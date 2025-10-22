@@ -1,0 +1,50 @@
+namespace OrbitGame;
+
+public struct Vector2(ScientificDecimal x, ScientificDecimal y)
+{
+    public static Vector2 Zero => new(0, 0);
+    public ScientificDecimal X { get; set; } = x;
+    public ScientificDecimal Y { get; set; } = y;
+
+    public static Vector2 operator -(Vector2 a) => new Vector2(-a.X, -a.Y);
+
+    public static Vector2 operator +(Vector2 a, Vector2 b)
+        => new(a.X + b.X, a.Y + b.Y);
+
+    public static Vector2 operator -(Vector2 a, Vector2 b)
+        => a + -b;
+    
+    public static Vector2 operator *(Vector2 a, ScientificDecimal b) 
+        => new (a.X * b, a.Y * b);
+
+    public static Vector2 operator /(Vector2 a, ScientificDecimal b)
+    {
+        if (b == 0) throw new DivideByZeroException();
+        return new Vector2(a.X / b, a.Y / b);
+    }
+    
+    // dot product
+    public static Vector2 operator *(Vector2 a, Vector2 b)
+        => new Vector2(a.X * b.X, a.Y * b.Y);
+
+    public ScientificDecimal Magnitude()
+        => ScientificDecimal.Sqrt(X * X + Y * Y);
+
+    public double PrincipalAngle()
+    {
+        double angle = Math.Atan((double)(Y / X));
+        if (X < 0 && Y > 0) return Math.PI + angle;
+        if (X < 0 && Y < 0) return Math.PI + angle;
+        if (X > 0 && Y < 0) return Math.Tau + angle;
+        return angle;
+    }
+
+    public static double AngleTo(Vector2 start, Vector2 end)
+    {
+        Vector2 difference = end - start;
+        return difference.PrincipalAngle();
+    }
+
+    public override string ToString()
+        => "<" + X + ", " + Y + ">";
+}
