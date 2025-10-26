@@ -73,13 +73,13 @@ public struct ScientificDecimal
 
     // to scientific decimal
     public static implicit operator ScientificDecimal(int value) 
-        => new ScientificDecimal(value, 0);
+        => new(value, 0);
 
     public static implicit operator ScientificDecimal(double value)
-        => new ScientificDecimal((decimal)value, 0);
+        => new((decimal)value, 0);
     
     public static implicit operator ScientificDecimal(decimal value) 
-        => new ScientificDecimal(value, 0);
+        => new(value, 0);
 
     // from scientific decimal
     public static explicit operator double(ScientificDecimal value)
@@ -89,10 +89,10 @@ public struct ScientificDecimal
         => Convert.ToSingle((double)value);
     
     public static explicit operator int (ScientificDecimal value)
-        => (int)value.Mantissa * (int)Math.Pow(10, value.Exponent);
+        => (int)((double)value.Mantissa * Math.Pow(10, value.Exponent));
     
     public static explicit operator uint (ScientificDecimal value)
-        => (uint)value.Mantissa * (uint)Math.Pow(10, value.Exponent);
+        => (uint)((double)value.Mantissa * Math.Pow(10, value.Exponent));
     
     #endregion
     

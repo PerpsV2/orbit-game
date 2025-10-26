@@ -43,3 +43,4 @@
 /Users/josephzhao/RiderProjects/OrbitGame/OrbitGame/obj/Debug/net8.0/OrbitGame.pdb
 /Users/josephzhao/RiderProjects/OrbitGame/OrbitGame/obj/Debug/net8.0/OrbitGame.genruntimeconfig.cache
 /Users/josephzhao/RiderProjects/OrbitGame/OrbitGame/obj/Debug/net8.0/ref/OrbitGame.dll
+/Users/josephzhao/RiderProjects/OrbitGame/OrbitGame/obj/Debug/net8.0/OrbitGame.sourcelink.json

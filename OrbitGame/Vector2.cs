@@ -29,6 +29,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
 
     public ScientificDecimal Magnitude()
         => ScientificDecimal.Sqrt(X * X + Y * Y);
+    
+    public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
+    {
+        Vector2 difference = end - start;
+        return difference / difference.Magnitude();
+    }
 
     public double PrincipalAngle()
     {
