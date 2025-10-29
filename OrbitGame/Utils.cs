@@ -32,11 +32,17 @@ public static class Utils
         ScientificDecimal radius, 
         SKPaint paint)
     {
-        float screenPositionX = (float)((centre.X - camera.Left) / (camera.Right - camera.Left)) * Options.ScreenSize.width;
-        float screenPositionY = (float)((centre.Y - camera.Top) / (camera.Bottom - camera.Top)) * Options.ScreenSize.height;
+        (float x, float y) screenPosition = camera.ConvertToScreenCoordinates(centre);
         float screenRadiusX = (float)(radius / (camera.Right - camera.Left)) * Options.ScreenSize.width;
         float screenRadiusY = (float)(radius / (camera.Top - camera.Bottom)) * Options.ScreenSize.height;
-        canvas.DrawOval(screenPositionX, screenPositionY, screenRadiusX, screenRadiusY, paint);
+        
+        (float x, float y) cameraOriginScreenPosition = camera.ConvertToScreenCoordinates(camera.AbsolutePosition);
+        SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x, cameraOriginScreenPosition.y);
+        canvas.SetMatrix(rotation);
+        
+        canvas.DrawOval(screenPosition.x, screenPosition.y, screenRadiusX, screenRadiusY, paint);
+        
+        canvas.ResetMatrix();
     }
 
     public static void GS_DrawRectangle(

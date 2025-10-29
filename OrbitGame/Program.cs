@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Orbit Game",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -68,7 +68,7 @@ List<Planet> planets = [
         new SKColor(255, 255, 255, 255),
         "Sun"
     ),
-    new Planet(
+    /*new Planet(
         new ScientificDecimal(5.9722m, 24),
         new Vector2(
             new ScientificDecimal(-8.5613233m, 9),
@@ -81,7 +81,7 @@ List<Planet> planets = [
         new ScientificDecimal(6.378m, 6 + 2),
         new SKColor(100, 200, 255, 255),
         "Earth"
-    )
+    )*/
 ];
 
 Camera camera = new Camera(
@@ -98,15 +98,22 @@ void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
 
 input.Keyboards[0].KeyDown += HandleKeyPresses;
 
-void HandleInput(IKeyboard keyboard)
+void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
 {
-    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(new Vector2(0, camera.Height * -Options.CamMoveSpeed));
-    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(new Vector2(0, camera.Height * Options.CamMoveSpeed));
-    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(new Vector2(camera.Height * -Options.CamMoveSpeed, 0));
-    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(new Vector2(camera.Height * Options.CamMoveSpeed, 0));
+    ScientificDecimal camSpeed = camera.Height * Options.CamMoveSpeed * dt;
+    // camera panning should be without respect for camera rotation
+    // to counteract camera rotation, the direction of the movement is reflected (Tau - angle)
+    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, 3 * Math.PI / 2 - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, -camera.Rotation);
     
     if (keyboard.IsKeyPressed(Options.ZoomOutKey)) camera.ScaleZoom(1 + Options.CamZoomSpeed);
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
+    
+    float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
+    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
+    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 }
 
 void OnRender(double _)
@@ -120,10 +127,10 @@ void OnRender(double _)
     time += deltaTimeStep;
     frameCountPerSecond++;
     
-    HandleInput(input.Keyboards[0]);
+    HandleInput(input.Keyboards[0], deltaTime);
     
     if (Options.DisplayFPS)
-        canvas.DrawText(framesPerSecond.ToString(), 5, 5, SKTextAlign.Center, font, paint);
+        canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
     
     foreach (var planet in planets)
     {

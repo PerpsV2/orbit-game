@@ -164,6 +164,8 @@ public struct ScientificDecimal
         return new ScientificDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
     }
 
+    public static ScientificDecimal Square(ScientificDecimal value) => value * value; 
+
     public static ScientificDecimal Abs(ScientificDecimal value)
         => new (Math.Abs(value.Mantissa), value.Exponent);   
     
