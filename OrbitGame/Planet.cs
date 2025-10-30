@@ -14,11 +14,11 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
         {
             Color = Colour
         };
-
+        
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        if (camera.Height <= Radius / 100)
+        if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
-            Vector2 screenPosition = camera.ConvertToScreenCoordinatesSD(position);
+            Vector2 screenPosition = camera.ConvertToScreenCoordinatesSD(Position);
             
             float h = Options.ScreenSize.height;
             float w = Options.ScreenSize.width;
@@ -37,43 +37,48 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
             if (topDiscriminant >= 0)
             {
                 radical = ScientificDecimal.Sqrt(topDiscriminant);
-                if (p2 - radical >= 0 && p2 - radical <= w) intersectionPoints.Add(new Vector2(p2 - radical, h));
-                if (p2 + radical >= 0 && p2 + radical <= w) intersectionPoints.Add(new Vector2(p2 + radical, h));
-            }
-            if (bottomDiscriminant >= 0)
-            {
-                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
-                if (p2 - radical >= 0 && p2 - radical <= w) intersectionPoints.Add(new Vector2(p2 - radical, 0));
-                if (p2 + radical >= 0 && p2 + radical <= w) intersectionPoints.Add(new Vector2(p2 + radical, 0));
-            }
-            if (leftDiscriminant >= 0)
-            {
-                radical = ScientificDecimal.Sqrt(leftDiscriminant);
-                if (p1 - radical >= 0 && p1 - radical <= h) intersectionPoints.Add(new Vector2(0, p1 - radical));
-                if (p1 + radical >= 0 && p1 + radical <= h) intersectionPoints.Add(new Vector2(0, p1 + radical));
+                if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
+                {
+                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), h));
+                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), h));
+                }
             }
             if (rightDiscriminant >= 0)
             {
                 radical = ScientificDecimal.Sqrt(rightDiscriminant);
-                if (p1 - radical >= 0 && p1 - radical <= h) intersectionPoints.Add(new Vector2(w, p1 - radical));
-                if (p1 + radical >= 0 && p1 + radical <= h) intersectionPoints.Add(new Vector2(w, p1 + radical));
+                if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
+                {
+                    intersectionPoints.Add(new Vector2(w, ScientificDecimal.Clamp(p1 + radical, 0, h)));
+                    intersectionPoints.Add(new Vector2(w, ScientificDecimal.Clamp(p1 - radical, 0, h)));
+                }
+            }
+            if (bottomDiscriminant >= 0)
+            {
+                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
+                if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
+                {
+                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), 0));
+                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), 0));
+                }
+            }
+            if (leftDiscriminant >= 0)
+            {
+                radical = ScientificDecimal.Sqrt(leftDiscriminant);
+                if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
+                {
+                    intersectionPoints.Add(new Vector2(0, ScientificDecimal.Clamp(p1 - radical, 0, h)));
+                    intersectionPoints.Add(new Vector2(0, ScientificDecimal.Clamp(p1 + radical, 0, h)));
+                }
             }
             
-            SKPaint testPaint = new SKPaint
-            {
-                Color = SKColors.Aqua,
-                StrokeWidth = 5
-            };
+            intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
 
-            if (intersectionPoints.Count == 2)
-            {
-                canvas.DrawLine(
-                    (float)intersectionPoints[0].X,
-                    (float)intersectionPoints[0].Y,
-                    (float)intersectionPoints[1].X,
-                    (float)intersectionPoints[1].Y, 
-                    testPaint);
-            }
+            SKPath path = new SKPath();
+            path.MoveTo(new SKPoint((float)intersectionPoints[0].X, (float)intersectionPoints[0].Y));
+            foreach (var point in intersectionPoints)
+                path.LineTo(new SKPoint((float)point.X, (float)point.Y));
+            path.Close();
+            canvas.DrawPath(path, paint);
         }
         else canvas.GS_DrawCircle(camera, Position, Radius, paint);
     }

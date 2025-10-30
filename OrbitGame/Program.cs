@@ -68,7 +68,7 @@ List<Planet> planets = [
         new SKColor(255, 255, 255, 255),
         "Sun"
     ),
-    new Planet(
+    /*new Planet(
         new ScientificDecimal(5.9722m, 24),
         new Vector2(
             new ScientificDecimal(-8.5613233m, 9),
@@ -81,7 +81,7 @@ List<Planet> planets = [
         new ScientificDecimal(6.378m, 6 + 2),
         new SKColor(100, 200, 255, 255),
         "Earth"
-    )
+    )*/
 ];
 
 Camera camera = new Camera(
@@ -137,8 +137,6 @@ void OnRender(double _)
         planet.UpdatePosition(planets, deltaTimeStep);
         planet.Draw(canvas, camera);
     }
-
-    Console.WriteLine(camera.Height);
     
     canvas.Flush();
 }

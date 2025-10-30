@@ -53,8 +53,8 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     
     public Vector2 ConvertToScreenCoordinatesSD(Vector2 point)
     {
-        return new Vector2((point.X - Left) / (Right - Left) * Options.ScreenSize.width,
-            (point.Y - Top) / (Bottom - Top) * Options.ScreenSize.height);
+        return new Vector2((point.X - Left)* Options.ScreenSize.width / (Right - Left) ,
+            (point.Y - Top)* Options.ScreenSize.height / (Bottom - Top));
     }
 
     public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)

@@ -1,6 +1,6 @@
 namespace OrbitGame;
 
-public struct Vector2(ScientificDecimal x, ScientificDecimal y)
+public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vector2>
 {
     public static Vector2 Zero => new(0, 0);
     public ScientificDecimal X { get; set; } = x;
@@ -53,4 +53,19 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
 
     public override string ToString()
         => "<" + X + ", " + Y + ">";
+
+    public bool Equals(Vector2 other)
+    {
+        return X.Equals(other.X) && Y.Equals(other.Y);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Vector2 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y);
+    }
 }

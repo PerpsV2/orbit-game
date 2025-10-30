@@ -186,6 +186,10 @@ public struct ScientificDecimal
             if (n > result) result = n;
         return result;
     }
+
+    public static ScientificDecimal Clamp(ScientificDecimal value, ScientificDecimal min, ScientificDecimal max)
+        => value < min ? min : value > max ? max : value;
+    
     
     // Atan2 function with scientific decimal which returns in the range 0 <= x < Tau
     public static double Atan2Tau(ScientificDecimal y, ScientificDecimal x)
