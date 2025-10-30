@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
     Title = "Orbit Game",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -59,30 +59,47 @@ SKFont font = new SKFont
     Size = 30
 };
 
-List<Planet> planets = [
-    new Planet(
-        new ScientificDecimal(1.989m, 30),
-        Vector2.Zero,
-        Vector2.Zero,
-        new ScientificDecimal(6.96340m, 8 + 1),
-        new SKColor(255, 255, 255, 255),
-        "Sun"
+Planet sun = new Planet(
+    new ScientificDecimal(1.989m, 30),
+    Vector2.Zero,
+    Vector2.Zero,
+    new ScientificDecimal(6.96340m, 8),
+    new SKColor(255, 255, 255, 255),
+    "Sun"
+);
+Planet earth = new Planet(
+    new ScientificDecimal(5.9722m, 24),
+    new Vector2(
+        new ScientificDecimal(-8.5613233m, 9),
+        new ScientificDecimal(1.4688537m, 11)
     ),
-    /*new Planet(
-        new ScientificDecimal(5.9722m, 24),
+    new Vector2(
+        new ScientificDecimal(-3.0223357m, 4),
+        new ScientificDecimal(-1.8447646m, 3)
+    ),
+    new ScientificDecimal(6.378m, 6),
+    new SKColor(100, 200, 255, 255),
+    "Earth"
+);
+
+List<Body> bodies = [
+    sun,
+    earth,
+    new Ship(
+        new ScientificDecimal(5.23m, 7),
         new Vector2(
-            new ScientificDecimal(-8.5613233m, 9),
-            new ScientificDecimal(1.4688537m, 11)
+            new ScientificDecimal(0),
+            new ScientificDecimal(6.378m, 6) + 80000
         ),
-        new Vector2(
-            new ScientificDecimal(-3.0223357m, 4),
-            new ScientificDecimal(-1.8447646m, 3)
-        ),
-        new ScientificDecimal(6.378m, 6 + 2),
-        new SKColor(100, 200, 255, 255),
-        "Earth"
-    )*/
+        Vector2.Zero,
+        new SKColor(125, 0, 0, 255),
+        earth,
+        "Smokestack"
+    )
 ];
+
+Body? tracking = null;
+int trackingIndex = bodies.Count;
 
 Camera camera = new Camera(
     new Vector2(0, 0),
@@ -94,6 +111,22 @@ void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
 {
     if (key == Options.TimeWarpDownKey) timeStep /= 10;
     if (key == Options.TimeWarpUpKey) timeStep *= 10;
+
+    if (key == Options.TrackNextBodyKey)
+    {
+        trackingIndex = (trackingIndex + 1) % (bodies.Count + 1);
+        tracking = trackingIndex == bodies.Count ? null : bodies[trackingIndex];
+    }
+    if (key == Options.TrackPrevBodyKey)
+    {
+        trackingIndex = (trackingIndex - 1) % (bodies.Count + 1);
+        tracking = trackingIndex == bodies.Count ? null : bodies[trackingIndex];
+    }
+
+    if (key == Options.FocusKey)
+    {
+        camera.MoveTo(Vector2.Zero);
+    }
 }
 
 input.Keyboards[0].KeyDown += HandleKeyPresses;
@@ -131,12 +164,12 @@ void OnRender(double _)
     
     if (Options.DisplayFPS)
         canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
-
-    foreach (var planet in planets)
-    {
-        planet.UpdatePosition(planets, deltaTimeStep);
-        planet.Draw(canvas, camera);
-    }
+    
+    foreach (var body in bodies) body.UpdatePosition(bodies, deltaTimeStep);
+    
+    camera.SetOrigin(tracking?.Position ?? Vector2.Zero);
+    
+    foreach (var body in bodies) body.Draw(canvas, camera);
     
     canvas.Flush();
 }

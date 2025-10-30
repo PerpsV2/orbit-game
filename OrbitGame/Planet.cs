@@ -8,7 +8,7 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
     private readonly ScientificDecimal Radius = radius;
     private readonly SKColor Colour = colour;
 
-    public void Draw(SKCanvas canvas, Camera camera)
+    public override void Draw(SKCanvas canvas, Camera camera)
     {
         SKPaint paint = new SKPaint
         {
@@ -70,6 +70,8 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
                     intersectionPoints.Add(new Vector2(0, ScientificDecimal.Clamp(p1 + radical, 0, h)));
                 }
             }
+
+            if (intersectionPoints.Count == 0) return;
             
             intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
 

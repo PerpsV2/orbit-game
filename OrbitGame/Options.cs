@@ -24,6 +24,10 @@ public static class Options
     public static readonly Key TimeWarpUpKey = Key.Equal;
     public static readonly Key TimeWarpDownKey = Key.Minus;
 
+    public static readonly Key TrackNextBodyKey = Key.M;
+    public static readonly Key TrackPrevBodyKey = Key.N;
+    public static readonly Key FocusKey = Key.F;
+
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
 

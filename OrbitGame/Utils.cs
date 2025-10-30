@@ -37,7 +37,8 @@ public static class Utils
         float screenRadiusY = (float)(radius / (camera.Top - camera.Bottom)) * Options.ScreenSize.height;
         
         (float x, float y) cameraOriginScreenPosition = camera.ConvertToScreenCoordinates(camera.AbsolutePosition);
-        SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x, cameraOriginScreenPosition.y);
+        SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x, 
+            cameraOriginScreenPosition.y);
         canvas.SetMatrix(rotation);
         
         canvas.DrawOval(screenPosition.x, screenPosition.y, screenRadiusX, screenRadiusY, paint);
@@ -45,4 +46,24 @@ public static class Utils
         canvas.ResetMatrix();
     }
 
+    public static void GS_DrawRect(
+        this SKCanvas canvas,
+        Camera camera,
+        Vector2 topLeft,
+        Vector2 bottomRight,
+        SKPaint paint)
+    {
+        (float x, float y) topLeftScreenPosition = camera.ConvertToScreenCoordinates(topLeft);
+        (float x, float y) bottomRightScreenPosition = camera.ConvertToScreenCoordinates(bottomRight);
+        float w = Math.Abs(bottomRightScreenPosition.x - topLeftScreenPosition.x);
+        float h = Math.Abs(bottomRightScreenPosition.y - topLeftScreenPosition.y);
+        (float x, float y) cameraOriginScreenPosition = camera.ConvertToScreenCoordinates(camera.AbsolutePosition);
+        SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x,
+            cameraOriginScreenPosition.y);
+        canvas.SetMatrix(rotation);
+        
+        canvas.DrawRect(topLeftScreenPosition.x, topLeftScreenPosition.y, w, h, paint);
+        
+        canvas.ResetMatrix();
+    }
 }

@@ -1,10 +1,12 @@
+using SkiaSharp;
+
 namespace OrbitGame;
 
 public class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name)
 {
     protected ScientificDecimal Mass = mass;
-    protected Vector2 Position = position;
-    protected Vector2 Velocity = velocity;
+    public Vector2 Position = position;
+    public Vector2 Velocity = velocity;
     private string _name = name;
     
     private Vector2 CalculateGravitationalAcceleration(Body actor)
@@ -29,4 +31,6 @@ public class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, st
         Velocity += CalculateNetAcceleration(actors) * timeStep;
         Position += Velocity * timeStep;
     }
+
+    public virtual void Draw(SKCanvas canvas, Camera camera) { }
 }

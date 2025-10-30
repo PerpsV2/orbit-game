@@ -45,6 +45,7 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     
     public void SetOrigin(Vector2 origin) => _origin = origin;
 
+    // TODO: take into account camera rotation when converting to screen coordinates
     public (float x, float y) ConvertToScreenCoordinates(Vector2 point)
     {
         return ((float)((point.X - Left) / (Right - Left)) * Options.ScreenSize.width,
