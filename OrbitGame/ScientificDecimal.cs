@@ -8,7 +8,9 @@ public struct ScientificDecimal
     : IComparable, IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
-    
+
+    public static readonly ScientificDecimal MaxValue = new(9.99M, int.MaxValue);
+    public static readonly ScientificDecimal MinValue = new(-9.99M, int.MinValue);
     public decimal Mantissa { get; set; }
     public int Exponent { get; set; }
     public bool Positive => decimal.IsPositive(Mantissa);
@@ -167,7 +169,23 @@ public struct ScientificDecimal
     public static ScientificDecimal Square(ScientificDecimal value) => value * value; 
 
     public static ScientificDecimal Abs(ScientificDecimal value)
-        => new (Math.Abs(value.Mantissa), value.Exponent);   
+        => new (Math.Abs(value.Mantissa), value.Exponent);
+
+    public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
+    {
+        ScientificDecimal result = value;
+        foreach (var n in values)
+            if (n < result) result = n;
+        return result;
+    }
+    
+    public static ScientificDecimal Max(ScientificDecimal value, params ScientificDecimal[] values)
+    {
+        ScientificDecimal result = value;
+        foreach (var n in values)
+            if (n > result) result = n;
+        return result;
+    }
     
     // Atan2 function with scientific decimal which returns in the range 0 <= x < Tau
     public static double Atan2Tau(ScientificDecimal y, ScientificDecimal x)

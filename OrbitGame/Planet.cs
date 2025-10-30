@@ -14,47 +14,67 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
         {
             Color = Colour
         };
-        canvas.GS_DrawCircle(camera, Position, Radius, paint);
 
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        if (camera.Height <= Radius * 100)
+        if (camera.Height <= Radius / 100)
         {
-            Vector2 screenPosition = camera.ConvertToScreenCoordinatesSD(position) - new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) / 2;
-            ScientificDecimal screenRadius = camera.ConvertToScreenDistanceSD(Radius);
-            //Console.WriteLine($"Position: {screenPosition}, Radius: {screenRadius}");
+            Vector2 screenPosition = camera.ConvertToScreenCoordinatesSD(position);
             
-            ScientificDecimal discriminantY = 1 - ScientificDecimal.Square(screenPosition.X / screenRadius);
-            ScientificDecimal discriminantX = 1 - ScientificDecimal.Square(screenPosition.Y / screenRadius);
+            float h = Options.ScreenSize.height;
+            float w = Options.ScreenSize.width;
+            ScientificDecimal p1 = screenPosition.Y;
+            ScientificDecimal p2 = screenPosition.X;
+            ScientificDecimal r = camera.ConvertToScreenDistanceSD(Radius);
 
-            ScientificDecimal? yIntercept2, xIntercept1, xIntercept2;
-            ScientificDecimal? yIntercept1 = yIntercept2 = xIntercept1 = xIntercept2 = null;
-            if (discriminantY >= 0)
+            ScientificDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
+            ScientificDecimal bottomDiscriminant = r * r - p1 * p1;
+            ScientificDecimal rightDiscriminant = 2 * w * p2 - p2 * p2 - w * w + r * r;
+            ScientificDecimal leftDiscriminant = r * r - p2 * p2;
+            ScientificDecimal radical;
+
+            List<Vector2> intersectionPoints = new();
+            
+            if (topDiscriminant >= 0)
             {
-                yIntercept1 = screenPosition.Y + ScientificDecimal.Abs(screenRadius) * ScientificDecimal.Sqrt(discriminantY);
-                yIntercept2 = screenPosition.Y - ScientificDecimal.Abs(screenRadius) * ScientificDecimal.Sqrt(discriminantY);
+                radical = ScientificDecimal.Sqrt(topDiscriminant);
+                if (p2 - radical >= 0 && p2 - radical <= w) intersectionPoints.Add(new Vector2(p2 - radical, h));
+                if (p2 + radical >= 0 && p2 + radical <= w) intersectionPoints.Add(new Vector2(p2 + radical, h));
             }
-
-            if (discriminantX >= 0)
+            if (bottomDiscriminant >= 0)
             {
-                xIntercept1 = screenPosition.X + ScientificDecimal.Abs(screenRadius) * ScientificDecimal.Sqrt(discriminantX);
-                xIntercept2 = screenPosition.X - ScientificDecimal.Abs(screenRadius) * ScientificDecimal.Sqrt(discriminantX);
+                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
+                if (p2 - radical >= 0 && p2 - radical <= w) intersectionPoints.Add(new Vector2(p2 - radical, 0));
+                if (p2 + radical >= 0 && p2 + radical <= w) intersectionPoints.Add(new Vector2(p2 + radical, 0));
+            }
+            if (leftDiscriminant >= 0)
+            {
+                radical = ScientificDecimal.Sqrt(leftDiscriminant);
+                if (p1 - radical >= 0 && p1 - radical <= h) intersectionPoints.Add(new Vector2(0, p1 - radical));
+                if (p1 + radical >= 0 && p1 + radical <= h) intersectionPoints.Add(new Vector2(0, p1 + radical));
+            }
+            if (rightDiscriminant >= 0)
+            {
+                radical = ScientificDecimal.Sqrt(rightDiscriminant);
+                if (p1 - radical >= 0 && p1 - radical <= h) intersectionPoints.Add(new Vector2(w, p1 - radical));
+                if (p1 + radical >= 0 && p1 + radical <= h) intersectionPoints.Add(new Vector2(w, p1 + radical));
             }
             
-            if (screenPosition.Y != 0)
+            SKPaint testPaint = new SKPaint
             {
-                ScientificDecimal slope = -screenPosition.X / screenPosition.Y;
-                canvas.DrawLine(0, (float)slope * -Options.ScreenSize.width / 2 + Options.ScreenSize.height / 2, Options.ScreenSize.width,
-                    (float)slope * Options.ScreenSize.width / 2 + Options.ScreenSize.height / 2, paint);
-            }
+                Color = SKColors.Aqua,
+                StrokeWidth = 5
+            };
 
-            if ((yIntercept1 >= -Options.ScreenSize.height / 2 && yIntercept1 <= Options.ScreenSize.height / 2) ||
-                (yIntercept2 >= -Options.ScreenSize.height / 2 && yIntercept2 <= Options.ScreenSize.height / 2) ||
-                (xIntercept1 >= -Options.ScreenSize.width / 2 && xIntercept1 <= Options.ScreenSize.width / 2) ||
-                (xIntercept2 >= -Options.ScreenSize.width / 2 && xIntercept2 <= Options.ScreenSize.width / 2))
+            if (intersectionPoints.Count == 2)
             {
-                Console.WriteLine($"INTERSECT x1:{xIntercept1} y1:{yIntercept1} x2:{xIntercept2} y2:{yIntercept2}");
+                canvas.DrawLine(
+                    (float)intersectionPoints[0].X,
+                    (float)intersectionPoints[0].Y,
+                    (float)intersectionPoints[1].X,
+                    (float)intersectionPoints[1].Y, 
+                    testPaint);
             }
-            else Console.WriteLine($"NO INTERSECT x1:{xIntercept1} y1:{yIntercept1} x2:{xIntercept2} y2:{yIntercept2}");
         }
+        else canvas.GS_DrawCircle(camera, Position, Radius, paint);
     }
 }

@@ -45,13 +45,4 @@ public static class Utils
         canvas.ResetMatrix();
     }
 
-    public static void GS_DrawRectangle(
-        this SKCanvas canvas, 
-        Camera camera, 
-        Vector2 bottomLeft, 
-        Vector2 topRight,
-        SKPaint paint)
-    {
-        return;
-    }
 }
