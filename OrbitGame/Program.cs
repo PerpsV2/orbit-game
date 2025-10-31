@@ -11,8 +11,8 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
-    Title = "Orbit Game",
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
 };
@@ -136,10 +136,10 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     ScientificDecimal camSpeed = camera.Height * Options.CamMoveSpeed * dt;
     // camera panning should be without respect for camera rotation
     // to counteract camera rotation, the direction of the movement is reflected (Tau - angle)
-    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, 3 * Math.PI / 2 - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, -camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2);
+    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2);
+    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI);
+    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0);
     
     if (keyboard.IsKeyPressed(Options.ZoomOutKey)) camera.ScaleZoom(1 + Options.CamZoomSpeed);
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);

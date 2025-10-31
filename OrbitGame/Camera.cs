@@ -12,7 +12,7 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     private Vector2 _origin = Vector2.Zero;
     public Vector2 AbsolutePosition => _localPosition + _origin;
 
-    private double _rotation = 0;
+    private double _rotation;
     public double Rotation
     {
         get => _rotation % Math.Tau;
@@ -48,14 +48,28 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     // TODO: take into account camera rotation when converting to screen coordinates
     public (float x, float y) ConvertToScreenCoordinates(Vector2 point)
     {
-        return ((float)((point.X - Left) / (Right - Left)) * Options.ScreenSize.width,
-            (float)((point.Y - Top) / (Bottom - Top)) * Options.ScreenSize.height);
+        Vector2 camRelativePoint = point - AbsolutePosition;
+        Vector2 scaledPoint = new Vector2(((camRelativePoint.X - Left) / (Right - Left)) * Options.ScreenSize.width,
+            ((point.Y - Top) / (Bottom - Top)) * Options.ScreenSize.height) - 
+                              new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
+        Vector2 camRotatedPoint = new Vector2(
+            -scaledPoint.X * Math.Cos(Rotation) + scaledPoint.Y * Math.Sin(Rotation),
+            -scaledPoint.X * Math.Sin(Rotation) + scaledPoint.Y * Math.Cos(Rotation)) 
+                                  + new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
+        return ((float)camRotatedPoint.X, (float)camRotatedPoint.Y);
     }
     
     public Vector2 ConvertToScreenCoordinatesSD(Vector2 point)
     {
-        return new Vector2((point.X - Left)* Options.ScreenSize.width / (Right - Left) ,
-            (point.Y - Top)* Options.ScreenSize.height / (Bottom - Top));
+        Vector2 camRelativePoint = point - AbsolutePosition;
+        Vector2 scaledPoint = new Vector2(((camRelativePoint.X - Left) / (Right - Left)) * Options.ScreenSize.width,
+            ((point.Y - Top) / (Bottom - Top)) * Options.ScreenSize.height) - 
+                              new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
+        Vector2 camRotatedPoint = new Vector2(
+            -scaledPoint.X * Math.Cos(Rotation) + scaledPoint.Y * Math.Sin(Rotation),
+            -scaledPoint.X * Math.Sin(Rotation) + scaledPoint.Y * Math.Cos(Rotation)) 
+                                  + new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
+        return camRotatedPoint;
     }
 
     public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
