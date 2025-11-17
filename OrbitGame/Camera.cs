@@ -1,3 +1,4 @@
+using SkiaSharp;
 namespace OrbitGame;
 
 public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height)
@@ -12,10 +13,10 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     private Vector2 _origin = Vector2.Zero;
     public Vector2 AbsolutePosition => _localPosition + _origin;
 
-    private double _rotation;
-    public double Rotation
+    private float _rotation;
+    public float Rotation
     {
-        get => _rotation % Math.Tau;
+        get => Utils.UnsignedMod(_rotation, (float)Math.Tau);
         private set => _rotation = value;
     }
 
@@ -33,9 +34,9 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public void MoveBy(ScientificDecimal distance, double angle)
         => _localPosition += new Vector2(distance * Math.Cos(angle), distance * Math.Sin(angle));
 
-    public void RotateTo(double angle) => Rotation = angle % Math.Tau;
+    public void SetRotation(float angle) => Rotation = angle;
     
-    public void RotateBy(double angle) => Rotation = (Rotation + angle) % Math.Tau;
+    public void RotateBy(float angle) => Rotation += angle;
     
     public void ScaleZoom(ScientificDecimal scale)
     {
@@ -44,43 +45,29 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     }
     
     public void SetOrigin(Vector2 origin) => _origin = origin;
-
-    // TODO: take into account camera rotation when converting to screen coordinates
-    public (float x, float y) ConvertToScreenCoordinates(Vector2 point)
-    {
-        Vector2 camRelativePoint = point - AbsolutePosition;
-        Vector2 scaledPoint = new Vector2(((camRelativePoint.X - Left) / (Right - Left)) * Options.ScreenSize.width,
-            ((point.Y - Top) / (Bottom - Top)) * Options.ScreenSize.height) - 
-                              new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
-        Vector2 camRotatedPoint = new Vector2(
-            -scaledPoint.X * Math.Cos(Rotation) + scaledPoint.Y * Math.Sin(Rotation),
-            -scaledPoint.X * Math.Sin(Rotation) + scaledPoint.Y * Math.Cos(Rotation)) 
-                                  + new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
-        return ((float)camRotatedPoint.X, (float)camRotatedPoint.Y);
-    }
     
-    public Vector2 ConvertToScreenCoordinatesSD(Vector2 point)
+    public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
     {
-        Vector2 camRelativePoint = point - AbsolutePosition;
-        Vector2 scaledPoint = new Vector2(((camRelativePoint.X - Left) / (Right - Left)) * Options.ScreenSize.width,
-            ((point.Y - Top) / (Bottom - Top)) * Options.ScreenSize.height) - 
-                              new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
-        Vector2 camRotatedPoint = new Vector2(
-            -scaledPoint.X * Math.Cos(Rotation) + scaledPoint.Y * Math.Sin(Rotation),
-            -scaledPoint.X * Math.Sin(Rotation) + scaledPoint.Y * Math.Cos(Rotation)) 
-                                  + new Vector2(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2);
-        return camRotatedPoint;
+        return (Vector2.ApplyRotation(point - AbsolutePosition, Rotation) +
+                new Vector2(Width / 2, Height / 2)) /
+               (Width / Options.ScreenSize.width);
     }
 
-    public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
+    public SKPoint ConvertToScreenCoordinates(Vector2 point)
     {
-        if (xAxis) return (float)((distance - Left) / (Right - Left)) * Options.ScreenSize.width;
-        return (float)((distance - Top) / (Bottom - Top)) * Options.ScreenSize.height;
+        Vector2 rotatedPoint = SD_ConvertToScreenCoordinates(point);
+        return new((float)rotatedPoint.X, (float)rotatedPoint.Y);
     }
 
-    public ScientificDecimal ConvertToScreenDistanceSD(ScientificDecimal distance, bool xAxis = true)
+    public ScientificDecimal SD_ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
     {
         if (xAxis) return distance / (Right - Left) * Options.ScreenSize.width;
         return distance / (Bottom - Top) * Options.ScreenSize.height;
+    }
+    
+    public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
+    {
+        if (xAxis) return (float)SD_ConvertToScreenDistance(distance);
+        return (float)SD_ConvertToScreenDistance(distance, false);
     }
 }

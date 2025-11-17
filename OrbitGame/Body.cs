@@ -2,12 +2,12 @@ using SkiaSharp;
 
 namespace OrbitGame;
 
-public class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name)
+public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name)
 {
     protected ScientificDecimal Mass = mass;
     public Vector2 Position = position;
     public Vector2 Velocity = velocity;
-    private string _name = name;
+    public string Name = name;
     
     private Vector2 CalculateGravitationalAcceleration(Body actor)
     {
@@ -33,4 +33,5 @@ public class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, st
     }
 
     public virtual void Draw(SKCanvas canvas, Camera camera) { }
+    public virtual void DrawCollider(SKCanvas canvas, Camera camera) { }
 }

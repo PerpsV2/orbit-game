@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -70,7 +70,7 @@ Planet sun = new Planet(
 Planet earth = new Planet(
     new ScientificDecimal(5.9722m, 24),
     new Vector2(
-        new ScientificDecimal(-8.5613233m, 9),
+        new ScientificDecimal(-8.5613233m, 8),
         new ScientificDecimal(1.4688537m, 11)
     ),
     new Vector2(
@@ -81,30 +81,46 @@ Planet earth = new Planet(
     new SKColor(100, 200, 255, 255),
     "Earth"
 );
+Ship ship = new Ship(
+    new ScientificDecimal(5.23m, 7),
+    new Vector2(
+        new ScientificDecimal(0),
+        new ScientificDecimal(6.378m, 6) + 80000
+    ),
+    new Vector2(
+        new ScientificDecimal(2m, 3),
+        new ScientificDecimal(0)
+    ),
+    new SKColor(125, 0, 0, 255),
+    earth,
+    [
+        new(0, 0),
+        new(-2, -0.3),
+        new(-5, -1.5),
+        new(-4, 0),
+        new(-5, 1.5),
+        new(-3, 1),
+        new(-2, 2),
+        new(-1.75, 0.5)
+    ],
+    "Smokestack"
+);
 
 List<Body> bodies = [
     sun,
     earth,
-    new Ship(
-        new ScientificDecimal(5.23m, 7),
-        new Vector2(
-            new ScientificDecimal(0),
-            new ScientificDecimal(6.378m, 6) + 80000
-        ),
-        Vector2.Zero,
-        new SKColor(125, 0, 0, 255),
-        earth,
-        "Smokestack"
-    )
+    ship
 ];
 
-Body? tracking = null;
-int trackingIndex = bodies.Count;
+OriginBody.Body = ship;
+
+Body tracking = OriginBody.Body;
+int trackingIndex = 0;
 
 Camera camera = new Camera(
     new Vector2(0, 0),
-    new ScientificDecimal(8m, 5),
-    new ScientificDecimal(6m, 5)
+    Options.ScreenSize.width * Options.DefaultZoomScale,
+    Options.ScreenSize.height * Options.DefaultZoomScale
     );
 
 void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
@@ -112,16 +128,15 @@ void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
     if (key == Options.TimeWarpDownKey) timeStep /= 10;
     if (key == Options.TimeWarpUpKey) timeStep *= 10;
 
-    if (key == Options.TrackNextBodyKey)
+    void TrackBody(int index)
     {
-        trackingIndex = (trackingIndex + 1) % (bodies.Count + 1);
-        tracking = trackingIndex == bodies.Count ? null : bodies[trackingIndex];
+        trackingIndex = index % bodies.Count;
+        tracking = bodies[trackingIndex];
+        camera.MoveTo(camera.AbsolutePosition - tracking.Position);
     }
-    if (key == Options.TrackPrevBodyKey)
-    {
-        trackingIndex = (trackingIndex - 1) % (bodies.Count + 1);
-        tracking = trackingIndex == bodies.Count ? null : bodies[trackingIndex];
-    }
+
+    if (key == Options.TrackNextBodyKey) TrackBody(trackingIndex + 1);
+    if (key == Options.TrackPrevBodyKey) TrackBody(trackingIndex - 1);
 
     if (key == Options.FocusKey)
     {
@@ -134,12 +149,11 @@ input.Keyboards[0].KeyDown += HandleKeyPresses;
 void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
 {
     ScientificDecimal camSpeed = camera.Height * Options.CamMoveSpeed * dt;
-    // camera panning should be without respect for camera rotation
-    // to counteract camera rotation, the direction of the movement is reflected (Tau - angle)
-    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2);
-    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2);
-    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI);
-    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0);
+    // subtract angle by camera rotation so movement does not respect rotation
+    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2 - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0 - camera.Rotation);
     
     if (keyboard.IsKeyPressed(Options.ZoomOutKey)) camera.ScaleZoom(1 + Options.CamZoomSpeed);
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
@@ -166,10 +180,16 @@ void OnRender(double _)
         canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
     
     foreach (var body in bodies) body.UpdatePosition(bodies, deltaTimeStep);
+    OriginBody.ResetOrigin(bodies);
     
-    camera.SetOrigin(tracking?.Position ?? Vector2.Zero);
-    
-    foreach (var body in bodies) body.Draw(canvas, camera);
+    camera.SetOrigin(tracking.Position);
+    //if (tracking != earth) camera.SetRotation((float)(-Vector2.AngleTo(camera.AbsolutePosition, earth.Position) - Math.PI / 2));
+
+    foreach (var body in bodies)
+    {
+        body.Draw(canvas, camera);
+        body.DrawCollider(canvas, camera);
+    }
     
     canvas.Flush();
 }

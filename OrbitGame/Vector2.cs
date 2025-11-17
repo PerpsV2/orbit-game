@@ -15,7 +15,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
         => a + -b;
     
     public static Vector2 operator *(Vector2 a, ScientificDecimal b) 
-        => new (a.X * b, a.Y * b);
+        => new(a.X * b, a.Y * b);
 
     public static Vector2 operator /(Vector2 a, ScientificDecimal b)
     {
@@ -25,7 +25,11 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
     
     // dot product
     public static Vector2 operator *(Vector2 a, Vector2 b)
-        => new Vector2(a.X * b.X, a.Y * b.Y);
+        => new(a.X * b.X, a.Y * b.Y);
+
+    public static Vector2 ApplyRotation(Vector2 vector, float angle)
+        => new(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle),
+            vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
 
     public ScientificDecimal Magnitude()
         => ScientificDecimal.Sqrt(X * X + Y * Y);
@@ -34,6 +38,41 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
     {
         Vector2 difference = end - start;
         return difference / difference.Magnitude();
+    }
+
+    public static RotationDirection TripletRotationDirection(Vector2[] triplet)
+    {
+        ScientificDecimal edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
+        ScientificDecimal edgeSlope2 = (triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X);
+        return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
+            edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
+    }
+
+    // returns the vertex order of the convex hull for the set of points given as a linked list
+    public static LinkedList<int> GetConvexHullIndices(Vector2[] points)
+    {
+        // get leftmost point to start
+        int leftmostIndex = 0;
+        for (int i = 0; i < points.Length; ++i)
+            if (points[i].X < points[leftmostIndex].X) leftmostIndex = i;
+        LinkedList<int> convexHull = new();
+        convexHull.AddFirst(leftmostIndex);
+
+        int currentIndex = leftmostIndex;
+        do {
+            int nextIndex = (currentIndex + 1) % points.Length;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                if (i == currentIndex || i == nextIndex) continue;
+                if (TripletRotationDirection([points[currentIndex], points[i], points[nextIndex]]) ==
+                    RotationDirection.Counterclockwise)
+                    nextIndex = i;
+            }
+            convexHull.AddLast(nextIndex);
+            currentIndex = nextIndex;
+        } while (currentIndex != leftmostIndex);
+
+        return convexHull;
     }
 
     public double PrincipalAngle()

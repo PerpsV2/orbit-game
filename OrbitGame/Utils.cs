@@ -8,8 +8,20 @@ public static class Constants
     public static readonly ScientificDecimal G = new(6.6743m, -11);
 }
 
+public enum RotationDirection
+{
+    Counterclockwise = -1,
+    None = 0,
+    Clockwise = 1
+};
+
 public static class Utils
 {
+    public static float UnsignedMod(float a, float b)
+    {
+        return a - b * (float)Math.Floor(a / b);
+    }
+    
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
     {
         if (x < 0) throw new OverflowException("Cannot calculate square root from a negative number");
@@ -32,18 +44,11 @@ public static class Utils
         ScientificDecimal radius, 
         SKPaint paint)
     {
-        (float x, float y) screenPosition = camera.ConvertToScreenCoordinates(centre);
-        float screenRadiusX = (float)(radius / (camera.Right - camera.Left)) * Options.ScreenSize.width;
-        float screenRadiusY = (float)(radius / (camera.Top - camera.Bottom)) * Options.ScreenSize.height;
+        SKPoint screenPosition = camera.ConvertToScreenCoordinates(centre);
+        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(radius), 
+            camera.ConvertToScreenDistance(radius, false));
         
-        (float x, float y) cameraOriginScreenPosition = camera.ConvertToScreenCoordinates(camera.AbsolutePosition);
-        //SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x, 
-        //    cameraOriginScreenPosition.y);
-        //canvas.SetMatrix(rotation);
-        
-        canvas.DrawOval(screenPosition.x, screenPosition.y, screenRadiusX, screenRadiusY, paint);
-        
-        //canvas.ResetMatrix();
+        canvas.DrawOval(screenPosition, screenRadius, paint);
     }
 
     public static void GS_DrawRect(
@@ -53,17 +58,36 @@ public static class Utils
         Vector2 bottomRight,
         SKPaint paint)
     {
-        (float x, float y) topLeftScreenPosition = camera.ConvertToScreenCoordinates(topLeft);
-        (float x, float y) bottomRightScreenPosition = camera.ConvertToScreenCoordinates(bottomRight);
-        float w = Math.Abs(bottomRightScreenPosition.x - topLeftScreenPosition.x);
-        float h = Math.Abs(bottomRightScreenPosition.y - topLeftScreenPosition.y);
-        (float x, float y) cameraOriginScreenPosition = camera.ConvertToScreenCoordinates(camera.AbsolutePosition);
-        //SKMatrix rotation = SKMatrix.CreateRotation((float)camera.Rotation, cameraOriginScreenPosition.x,
-        //    cameraOriginScreenPosition.y);
-        //canvas.SetMatrix(rotation);
+        SKPoint topLeftScreenPosition = camera.ConvertToScreenCoordinates(topLeft);
+        SKPoint bottomRightScreenPosition = camera.ConvertToScreenCoordinates(bottomRight);
+        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(bottomRight.X, topLeft.Y));
+        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(topLeft.X, bottomRight.Y));
         
-        canvas.DrawRect(topLeftScreenPosition.x, topLeftScreenPosition.y, w, h, paint);
-        
-        //canvas.ResetMatrix();
+        SKPath path = new SKPath();
+        path.MoveTo(topLeftScreenPosition);
+        path.LineTo(topRightScreenPosition);
+        path.LineTo(bottomRightScreenPosition);
+        path.LineTo(bottomLeftScreenPosition);
+        path.Close();
+        canvas.DrawPath(path, paint);
+    }
+
+    public static void GS_DrawPoly(
+        this SKCanvas canvas,
+        Camera camera,
+        IList<Vector2> points,
+        SKPaint paint,
+        bool filled = true
+        )
+    {
+        if (points.Count < 3)
+            throw new ArgumentException("A minimum of three points should be provided when drawing a polygon");
+        SKPath path = new SKPath();
+        path.MoveTo(camera.ConvertToScreenCoordinates(points[0]));
+        for (int i = 1; i < points.Count; i++)
+            path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
+        paint.Style = filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke;
+        path.Close();
+        canvas.DrawPath(path, paint);
     }
 }

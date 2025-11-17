@@ -18,13 +18,13 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
-            Vector2 screenPosition = camera.ConvertToScreenCoordinatesSD(Position);
+            Vector2 screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
             
             float h = Options.ScreenSize.height;
             float w = Options.ScreenSize.width;
             ScientificDecimal p1 = screenPosition.Y;
             ScientificDecimal p2 = screenPosition.X;
-            ScientificDecimal r = camera.ConvertToScreenDistanceSD(Radius);
+            ScientificDecimal r = camera.SD_ConvertToScreenDistance(Radius);
 
             ScientificDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
             ScientificDecimal bottomDiscriminant = r * r - p1 * p1;
