@@ -178,8 +178,12 @@ void OnRender(double _)
     
     if (Options.DisplayFPS)
         canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
-    
-    foreach (var body in bodies) body.UpdatePosition(bodies, deltaTimeStep);
+
+    foreach (var body in bodies)
+    {
+        body.SetNetGravitationalAcceleration(bodies);
+        body.NI_UpdatePosition(deltaTimeStep, Options.integratorMethod);
+    }
     OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);

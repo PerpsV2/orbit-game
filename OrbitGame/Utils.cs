@@ -15,6 +15,13 @@ public enum RotationDirection
     Clockwise = 1
 };
 
+public enum NumericalIntegrator
+{
+    ExplicitEuler,
+    ImplicitEuler,
+    RungeKutta4
+}
+
 public static class Utils
 {
     public static float UnsignedMod(float a, float b)
