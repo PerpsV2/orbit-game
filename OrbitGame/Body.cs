@@ -7,7 +7,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
 {
     public ScientificDecimal Mass = mass;
     public string Name = name;
-    protected ICollider? Collider;
+    public ICollider? Collider;
     
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);

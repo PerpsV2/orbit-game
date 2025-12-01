@@ -1,19 +1,22 @@
 namespace OrbitGame;
 
-public class ConvexCollider
-    : CompactCollider, ICollider
+public class RectangularCollider(
+    ScientificDecimal top,
+    ScientificDecimal right, 
+    ScientificDecimal bottom,
+    ScientificDecimal left, 
+    KinematicObject parent) 
+    : CompactCollider(parent), ICollider
 {
-    private readonly Vector2[] _points;
-    
-    public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent) 
-    {
-        _points = points.Distinct().ToArray();
-    }
+    private readonly ScientificDecimal _top = top;
+    private readonly ScientificDecimal _right = right;
+    private readonly ScientificDecimal _bottom = bottom;
+    private readonly ScientificDecimal _left = left;
 
-    public override RectangularCollider GetBoundingBox()
-    {
-        throw new NotImplementedException();
-    }
+    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent)
+        : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent) { }
+
+    public override RectangularCollider GetBoundingBox() => this;
 
     public override bool IntersectsWith(Vector2 point)
     {
