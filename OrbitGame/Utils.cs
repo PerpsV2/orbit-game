@@ -28,6 +28,16 @@ public static class Utils
     {
         return a - b * (float)Math.Floor(a / b);
     }
+
+    public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
+    {
+        return value.CompareTo(lowerBound) > 0 && value.CompareTo(upperBound) < 0;
+    }
+
+    public static bool IntervalIntersects<T>(T lower1, T upper1, T lower2, T upper2) where T : IComparable<T>
+    {
+        return IntervalIntersects(lower1, lower2, upper2) || IntervalIntersects(upper1, lower2, upper2);
+    }
     
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
     {

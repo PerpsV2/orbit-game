@@ -12,7 +12,19 @@ public class ConvexCollider
 
     public override RectangularCollider GetBoundingBox()
     {
-        throw new NotImplementedException();
+        ScientificDecimal top = ScientificDecimal.MinValue;
+        ScientificDecimal right = ScientificDecimal.MinValue;
+        ScientificDecimal bottom = ScientificDecimal.MaxValue;
+        ScientificDecimal left = ScientificDecimal.MaxValue;
+        foreach (var point in _points)
+        {
+            if (point.Y > top) top = point.Y;
+            if (point.Y < bottom) bottom = point.Y;
+            if (point.X > right) right = point.X;
+            if (point.X < left) left = point.X;
+        }
+
+        return new(top, right, bottom, left, Parent);
     }
 
     public override bool IntersectsWith(Vector2 point)
@@ -40,8 +52,6 @@ public class ConvexCollider
         throw new NotImplementedException();
     }
 
-    public override bool IsEmpty()
-    {
-        throw new NotImplementedException();
-    }
+    public override bool IsEmpty() => 
+        _points.Length <= 1;
 }

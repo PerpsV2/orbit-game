@@ -20,7 +20,8 @@ public class RectangularCollider(
 
     public override bool IntersectsWith(Vector2 point)
     {
-        throw new NotImplementedException();
+        point -= Parent.Position;
+        return point.Y < _top && point.Y > _bottom && point.X < _right && point.X > _left;
     }
 
     public override bool IntersectsWith(CircularCollider collider)
@@ -35,7 +36,12 @@ public class RectangularCollider(
 
     public override bool IntersectsWith(RectangularCollider collider)
     {
-        throw new NotImplementedException();
+        return Utils.IntervalIntersects(_top, _bottom,
+                   collider._top + collider.Parent.Position.Y - Parent.Position.Y,
+                   collider._bottom + collider.Parent.Position.Y - Parent.Position.Y) &&
+               Utils.IntervalIntersects(_left, _right,
+                   collider._left + collider.Parent.Position.X - Parent.Position.X,
+                   collider._right + collider.Parent.Position.X - Parent.Position.X);
     }
 
     public override void CollidesWith(ICollider collider)
@@ -43,8 +49,6 @@ public class RectangularCollider(
         throw new NotImplementedException();
     }
 
-    public override bool IsEmpty()
-    {
-        throw new NotImplementedException();
-    }
+    public override bool IsEmpty() =>
+        _top == _bottom || _left == _right;
 }
