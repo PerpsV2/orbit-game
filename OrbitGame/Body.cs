@@ -2,17 +2,45 @@ using SkiaSharp;
 
 namespace OrbitGame;
 
-public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name)
-    : PointParticle(mass, position, velocity)
+public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name) 
+    : KinematicObject(position, velocity)
 {
+    public ScientificDecimal Mass = mass;
     public string Name = name;
-    protected ICollider collider;
-
+    protected ICollider? Collider;
+    
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
-
-    public bool CollidesWith(Body body)
+    
+    private Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
-        collider.IntersectsWith(body.collider);
+        Vector2 direction = Vector2.DirectionVectorBetween(Position, attractor.Position);
+        ScientificDecimal distance = (Position - attractor.Position).Magnitude();
+        ScientificDecimal magnitude = Constants.G * attractor.Mass / (distance * distance);
+        return direction * magnitude;
+    }
+
+    public Vector2 SetNetGravitationalAcceleration(IEnumerable<Body> attractors)
+    {
+        Vector2 result = Vector2.Zero;
+        return Acceleration = attractors
+            .Where(x => x != this)
+            .Aggregate(result, (sum, next) => 
+                sum + CalculateGravitationalAcceleration(next));
+    }
+    
+    public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator)
+    {
+        switch (integrator)
+        {
+            case NumericalIntegrator.ExplicitEuler:
+                Velocity += Acceleration * timeStep;
+                Position += Velocity * timeStep;
+                break;
+            case NumericalIntegrator.ImplicitEuler:
+                throw new NotImplementedException();
+            case NumericalIntegrator.RungeKutta4:
+                throw new NotImplementedException();
+        }
     }
 }

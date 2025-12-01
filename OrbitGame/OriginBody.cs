@@ -1,13 +1,15 @@
 namespace OrbitGame;
 
-public class OriginBody : Body
+/// <summary>
+/// To prevent floating point errors, set the origin body to where most physics calculations would take place.
+/// </summary>
+public static class OriginBody
 {
-    public static Body Body = new OriginBody();
-
-    private OriginBody() : base(0, Vector2.Zero, Vector2.Zero, String.Empty) { }
+    public static Body? Body = null;
 
     public static void ResetOrigin(IEnumerable<Body> bodies)
     {
+        if (Body == null) return;
         foreach (var body in bodies) body.Position -= Body.Position;
         Body.Position -= Body.Position;
     }

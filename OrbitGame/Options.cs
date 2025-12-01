@@ -7,7 +7,7 @@ public static class Options
     public static readonly (int width, int height) ScreenSize = (1600, 1200);
     public static readonly ScientificDecimal DefaultZoomScale = new(7);
 
-    public static readonly NumericalIntegrator integratorMethod = NumericalIntegrator.ExplicitEuler;
+    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ExplicitEuler;
 
     public static readonly double CamMoveSpeed = 1;
     public static readonly double CamRotateSpeed = 1;

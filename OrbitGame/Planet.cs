@@ -5,8 +5,8 @@ namespace OrbitGame;
 public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, ScientificDecimal radius, SKColor colour, string name) 
     : Body(mass, position, velocity, name)
 {
-    private readonly ScientificDecimal Radius = radius;
-    private readonly SKColor Colour = colour;
+    public readonly ScientificDecimal Radius = radius;
+    public readonly SKColor Colour = colour;
 
     public override void Draw(SKCanvas canvas, Camera camera)
     {
@@ -83,5 +83,10 @@ public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, 
             canvas.DrawPath(path, paint);
         }
         else canvas.GS_DrawCircle(camera, Position, Radius, paint);
+    }
+
+    public override void DrawCollider(SKCanvas canvas, Camera camera)
+    {
+        Draw(canvas, camera);
     }
 }

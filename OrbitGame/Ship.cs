@@ -13,10 +13,7 @@ public class Ship(
     private readonly LinkedList<int> _colliderIndices = Vector2.GetConvexHullIndices(mesh);
     private readonly Vector2[] _mesh = mesh;
     private readonly SKColor _colour = colour;
-
-    /// <summary>
-    /// initialize with position and velocity relative to a parent body
-    /// </summary>
+    
     public Ship(
         ScientificDecimal mass, Vector2 position, Vector2 velocity, SKColor colour, Body parent,
         Vector2[] mesh, string name)
