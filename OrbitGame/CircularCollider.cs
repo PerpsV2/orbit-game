@@ -3,33 +3,31 @@ namespace OrbitGame;
 public class CircularCollider
     : CompactCollider, ICollider
 {
-    private readonly ScientificDecimal _radius;
+    public readonly ScientificDecimal Radius;
 
     public CircularCollider(ScientificDecimal radius, KinematicObject parent) 
         : base(parent)
     {
         if (radius.Negative) throw new ArgumentException();
-        _radius = radius;
+        Radius = radius;
     }
 
     public override RectangularCollider GetBoundingBox() =>
-        new (_radius, _radius, _radius, _radius, Parent);
+        new (Radius, Radius, Radius, Radius, Parent);
 
     public override bool IntersectsWith(Vector2 point) =>
-        (point - Parent.Position).Magnitude() <= _radius;
+        (point - Position).Magnitude() <= Radius;
 
     public override bool IntersectsWith(CircularCollider collider) =>
-        (collider.Parent.Position - Parent.Position).Magnitude() <= collider._radius + _radius;
+        (collider.Position - Position).Magnitude() <= collider.Radius + Radius;
 
     public override bool IntersectsWith(ConvexCollider collider)
     {
         throw new NotImplementedException();
     }
 
-    public override bool IntersectsWith(RectangularCollider collider)
-    {
-        throw new NotImplementedException();
-    }
+    public override bool IntersectsWith(RectangularCollider collider) =>
+        collider.IntersectsWith(this);
  
     public override void CollidesWith(ICollider collider)
     {
@@ -37,5 +35,5 @@ public class CircularCollider
     }
 
     public override bool IsEmpty() =>
-        _radius == 0;
+        Radius == 0;
 }

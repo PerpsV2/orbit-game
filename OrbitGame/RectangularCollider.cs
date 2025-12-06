@@ -8,10 +8,10 @@ public class RectangularCollider(
     KinematicObject parent) 
     : CompactCollider(parent), ICollider
 {
-    private readonly ScientificDecimal _top = top;
-    private readonly ScientificDecimal _right = right;
-    private readonly ScientificDecimal _bottom = bottom;
-    private readonly ScientificDecimal _left = left;
+    public readonly ScientificDecimal Top = top;
+    public readonly ScientificDecimal Right = right;
+    public readonly ScientificDecimal Bottom = bottom;
+    public readonly ScientificDecimal Left = left;
 
     public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent)
         : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent) { }
@@ -21,12 +21,14 @@ public class RectangularCollider(
     public override bool IntersectsWith(Vector2 point)
     {
         point -= Parent.Position;
-        return point.Y < _top && point.Y > _bottom && point.X < _right && point.X > _left;
+        return point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left;
     }
 
     public override bool IntersectsWith(CircularCollider collider)
     {
-        throw new NotImplementedException();
+        Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
+            Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
+        return (collider.Position - closestPoint).Magnitude() <= collider.Radius;
     }
 
     public override bool IntersectsWith(ConvexCollider collider)
@@ -36,12 +38,9 @@ public class RectangularCollider(
 
     public override bool IntersectsWith(RectangularCollider collider)
     {
-        return Utils.IntervalIntersects(_top, _bottom,
-                   collider._top + collider.Parent.Position.Y - Parent.Position.Y,
-                   collider._bottom + collider.Parent.Position.Y - Parent.Position.Y) &&
-               Utils.IntervalIntersects(_left, _right,
-                   collider._left + collider.Parent.Position.X - Parent.Position.X,
-                   collider._right + collider.Parent.Position.X - Parent.Position.X);
+        Vector2 posDiff = collider.Position - Position;
+        return Utils.IntervalIntersects(Top, Bottom, collider.Top + posDiff.Y, collider.Bottom + posDiff.Y) &&
+               Utils.IntervalIntersects(Left, Right, collider.Left + posDiff.X, collider.Right + posDiff.X);
     }
 
     public override void CollidesWith(ICollider collider)
@@ -50,5 +49,5 @@ public class RectangularCollider(
     }
 
     public override bool IsEmpty() =>
-        _top == _bottom || _left == _right;
+        Top == Bottom || Left == Right;
 }

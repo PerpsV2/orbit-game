@@ -27,6 +27,31 @@ public class ConvexCollider
         return new(top, right, bottom, left, Parent);
     }
 
+    /// <summary>
+    /// Projects the shape onto a line parallel with a chosen edge.
+    /// </summary>
+    /// <param name="edge">Index of an edge. Ranges between 0 and n - 1 where n is the number of vertices</param>
+    /// <returns> The closed interval of the projected convex shape with an arbitrary origin</returns>
+    private (ScientificDecimal, ScientificDecimal) GetProjectionInterval(uint edge)
+    {
+        Vector2[] projection = new Vector2[_points.Length];
+        for (int i = 0; i < _points.Length; ++i)
+        {
+            projection[i] = _points[i];
+        }
+    }
+
+    private bool CheckEdges()
+    {
+        for (int i = 0; i < _points.Length - 1; ++i)
+        {
+            Vector2 edgePoint1 = _points[i];
+            Vector2 edgePoint2 = _points[i + 1];
+            
+            
+        }
+    }
+
     public override bool IntersectsWith(Vector2 point)
     {
         throw new NotImplementedException();

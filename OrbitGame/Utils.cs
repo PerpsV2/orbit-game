@@ -24,6 +24,9 @@ public enum NumericalIntegrator
 
 public static class Utils
 {
+    public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> =>
+        value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
+    
     public static float UnsignedMod(float a, float b)
     {
         return a - b * (float)Math.Floor(a / b);
@@ -34,9 +37,10 @@ public static class Utils
         return value.CompareTo(lowerBound) > 0 && value.CompareTo(upperBound) < 0;
     }
 
-    public static bool IntervalIntersects<T>(T lower1, T upper1, T lower2, T upper2) where T : IComparable<T>
+    public static bool IntervalIntersects<T>(T l1, T u1, T l2, T u2) where T : IComparable<T>
     {
-        return IntervalIntersects(lower1, lower2, upper2) || IntervalIntersects(upper1, lower2, upper2);
+        return IntervalIntersects(l1, l2, u2) || 
+               IntervalIntersects(u2, l2, u2);
     }
     
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
