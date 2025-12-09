@@ -31,6 +31,12 @@ public static class Utils
     {
         return a - b * (float)Math.Floor(a / b);
     }
+    
+    /// <summary>
+    /// Projects a point from 2D to 1D on an axis aligned with the provided angle
+    /// </summary>
+    public static ScientificDecimal ProjectPoint(Vector2 point, double angle) =>
+        point.X * Math.Cos(angle) - point.Y * Math.Sin(angle);
 
     public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
     {

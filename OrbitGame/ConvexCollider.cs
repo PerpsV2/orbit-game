@@ -1,14 +1,8 @@
 namespace OrbitGame;
 
-public class ConvexCollider
-    : CompactCollider, ICollider
+public class ConvexCollider(Vector2[] points, KinematicObject parent) : CompactCollider(parent), ICollider
 {
-    private readonly Vector2[] _points;
-    
-    public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent) 
-    {
-        _points = points.Distinct().ToArray();
-    }
+    private readonly Vector2[] _points = points.Distinct().ToArray();
 
     public override RectangularCollider GetBoundingBox()
     {
@@ -27,34 +21,17 @@ public class ConvexCollider
         return new(top, right, bottom, left, Parent);
     }
 
-    /// <summary>
-    /// Projects the shape onto a line parallel with a chosen edge.
-    /// </summary>
-    /// <param name="edge">Index of an edge. Ranges between 0 and n - 1 where n is the number of vertices</param>
-    /// <returns> The closed interval of the projected convex shape with an arbitrary origin</returns>
-    private (ScientificDecimal, ScientificDecimal) GetProjectionInterval(uint edge)
-    {
-        Vector2[] projection = new Vector2[_points.Length];
-        for (int i = 0; i < _points.Length; ++i)
-        {
-            projection[i] = _points[i];
-        }
-    }
-
-    private bool CheckEdges()
-    {
-        for (int i = 0; i < _points.Length - 1; ++i)
-        {
-            Vector2 edgePoint1 = _points[i];
-            Vector2 edgePoint2 = _points[i + 1];
-            
-            
-        }
-    }
-
     public override bool IntersectsWith(Vector2 point)
     {
-        throw new NotImplementedException();
+        for (int i = 0; i < _points.Length; ++i)
+        {
+            Vector2 edgeVector = _points[(i + 1) % _points.Length] - _points[i];
+            double edgeAngle = Math.Atan2((double)edgeVector.Y, (double)edgeVector.X) + Math.PI / 2;
+            ScientificDecimal[] projectedCollider = _points.Select(x => Utils.ProjectPoint(x, edgeAngle)).ToArray();
+            ScientificDecimal projectedPoint = Utils.ProjectPoint(point, edgeAngle);
+            if (projectedCollider.Min() > projectedPoint || projectedPoint > projectedCollider.Max()) return false;
+        }
+        return true;
     }
 
     public override bool IntersectsWith(CircularCollider collider)

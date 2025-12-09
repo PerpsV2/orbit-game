@@ -163,6 +163,21 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 }
 
+ConvexCollider collider1 = new([
+    new (10, -2),
+    new (7, 0),
+    new (8, 2),
+    new (10, 4),
+    new (12, 0)
+], new Planet(0, Vector2.Zero, Vector2.Zero, 0, SKColors.White, String.Empty));
+ConvexCollider collider2 = new([
+    new (4, 2),
+    new (6, -0.5m),
+    new (9, 3.5m),
+    new (6.5m, 5),
+    new (4, 4)
+], new Planet(0, Vector2.Zero, Vector2.Zero, 0, SKColors.White, String.Empty));
+
 void OnRender(double _)
 {
     grContext.ResetContext();
