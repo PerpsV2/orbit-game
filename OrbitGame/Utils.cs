@@ -40,13 +40,14 @@ public static class Utils
 
     public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
     {
-        return value.CompareTo(lowerBound) > 0 && value.CompareTo(upperBound) < 0;
+        return value.CompareTo(lowerBound) >= 0 && value.CompareTo(upperBound) <= 0;
     }
 
     public static bool IntervalIntersects<T>(T l1, T u1, T l2, T u2) where T : IComparable<T>
     {
         return IntervalIntersects(l1, l2, u2) || 
-               IntervalIntersects(u2, l2, u2);
+               IntervalIntersects(u1, l2, u2) || 
+               (l1.CompareTo(l2) <= 0 && u1.CompareTo(u2) >= 0);
     }
     
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)

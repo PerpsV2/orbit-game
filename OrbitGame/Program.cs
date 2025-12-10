@@ -33,7 +33,7 @@ using SKCanvas canvas = surface.Canvas;
 IInputContext input = window.CreateInput();
 
 ScientificDecimal time = 0;
-ScientificDecimal timeStep = 1;
+ScientificDecimal timeStep = Options.DefaultTimeStep;
 ScientificDecimal deltaTime;
 DateTime previousTime = DateTime.Now;
 
@@ -81,38 +81,37 @@ Planet earth = new Planet(
     new SKColor(100, 200, 255, 255),
     "Earth"
 );
-Ship ship = new Ship(
-    new ScientificDecimal(5.23m, 7),
-    new Vector2(
-        new ScientificDecimal(0),
-        new ScientificDecimal(6.378m, 6) + 80000
-    ),
-    new Vector2(
-        new ScientificDecimal(2m, 3),
-        new ScientificDecimal(0)
-    ),
+Ship convex1 = new Ship(
+    1, Vector2.Zero, Vector2.Zero,
     new SKColor(125, 0, 0, 255),
-    earth,
     [
-        new(0, 0),
-        new(-2, -0.3),
-        new(-5, -1.5),
-        new(-4, 0),
-        new(-5, 1.5),
-        new(-3, 1),
-        new(-2, 2),
-        new(-1.75, 0.5)
+        new(10, -2),
+        new(7, 0),
+        new(8, 2),
+        new(10, 4),
+        new(12, 0)
     ],
-    "Smokestack"
+    "Convex 1"
+);
+Ship convex2 = new Ship(
+    1, Vector2.Zero, Vector2.Zero,
+    new SKColor(255, 255, 255, 255),
+    [
+        new (4, 2),
+        new (6, -0.5m),
+        new (9, 3.5m),
+        new (6.5m, 5),
+        new (4, 4)
+    ],
+    "Convex 2"
 );
 
 List<Body> bodies = [
-    sun,
-    earth,
-    ship
+    convex1,
+    convex2
 ];
 
-OriginBody.Body = ship;
+OriginBody.Body = convex1;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -163,21 +162,6 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 }
 
-ConvexCollider collider1 = new([
-    new (10, -2),
-    new (7, 0),
-    new (8, 2),
-    new (10, 4),
-    new (12, 0)
-], new Planet(0, Vector2.Zero, Vector2.Zero, 0, SKColors.White, String.Empty));
-ConvexCollider collider2 = new([
-    new (4, 2),
-    new (6, -0.5m),
-    new (9, 3.5m),
-    new (6.5m, 5),
-    new (4, 4)
-], new Planet(0, Vector2.Zero, Vector2.Zero, 0, SKColors.White, String.Empty));
-
 void OnRender(double _)
 {
     grContext.ResetContext();
@@ -193,21 +177,24 @@ void OnRender(double _)
     
     if (Options.DisplayFPS)
         canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
-    
-    foreach (var body in bodies)
+
+    if (Options.EnablePhysics)
     {
-        body.SetNetGravitationalAcceleration(bodies);
-        body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
+        foreach (var body in bodies)
+        {
+            body.SetNetGravitationalAcceleration(bodies);
+            body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
+        }
     }
+
     OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);
-    //if (tracking != earth) camera.SetRotation((float)(-Vector2.AngleTo(camera.AbsolutePosition, earth.Position) - Math.PI / 2));
-
+    
     foreach (var body in bodies)
-    {
+    { 
         body.Draw(canvas, camera);
-        body.DrawCollider(canvas, camera);
+        if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
     canvas.Flush();

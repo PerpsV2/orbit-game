@@ -1,18 +1,26 @@
 using SkiaSharp;
 namespace OrbitGame;
 
-public class Ship(
-    ScientificDecimal mass,
-    Vector2 position,
-    Vector2 velocity,
-    SKColor colour,
-    Vector2[] mesh,
-    string name)
-    : Body(mass, position, velocity, name)
+public class Ship : Body
 {
-    private readonly LinkedList<int> _colliderIndices = Vector2.GetConvexHullIndices(mesh);
-    private readonly Vector2[] _mesh = mesh;
-    private readonly SKColor _colour = colour;
+    private readonly LinkedList<int> _colliderIndices;
+    private readonly Vector2[] _mesh;
+    private readonly SKColor _colour;
+    
+    public Ship(ScientificDecimal mass,
+        Vector2 position,
+        Vector2 velocity,
+        SKColor colour,
+        Vector2[] mesh,
+        string name) : base(mass, position, velocity, name)
+    {
+        Position = position;
+        Velocity = velocity;
+        _colliderIndices = Vector2.GetConvexHullIndices(mesh);
+        _mesh = _colliderIndices.Select(x => mesh[x]).ToArray();
+        _colour = colour;
+        Collider = new ConvexCollider(_mesh, this);
+    }
     
     public Ship(
         ScientificDecimal mass, Vector2 position, Vector2 velocity, SKColor colour, Body parent,
@@ -49,9 +57,8 @@ public class Ship(
             Color = _colour,
             StrokeWidth = 4
         };
-        
-        Vector2[] convexHull = _colliderIndices.Select(x => _mesh[x]).ToArray();
-        Vector2[] polyPoints = convexHull.Select(x => x + Position).ToArray();
+
+        Vector2[] polyPoints = _mesh.Select(x => x + Position).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint, false);
     }
 }

@@ -10,7 +10,8 @@ public static class OriginBody
     public static void ResetOrigin(IEnumerable<Body> bodies)
     {
         if (Body == null) return;
-        foreach (var body in bodies) body.Position -= Body.Position;
-        Body.Position -= Body.Position;
+        foreach (var body in bodies) 
+            if (body != Body) body.Position -= Body.Position;
+        Body.Position = Vector2.Zero;
     }
 }

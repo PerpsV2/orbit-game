@@ -8,10 +8,16 @@ public class RectangularCollider(
     KinematicObject parent) 
     : CompactCollider(parent), ICollider
 {
+    // Values are not positive distances from kinematic object origin
     public readonly ScientificDecimal Top = top;
     public readonly ScientificDecimal Right = right;
     public readonly ScientificDecimal Bottom = bottom;
     public readonly ScientificDecimal Left = left;
+
+    public Vector2 TopRight => new(Right, Top);
+    public Vector2 TopLeft => new(Left, Top);
+    public Vector2 BottomRight => new(Right, Bottom);
+    public Vector2 BottomLeft => new(Left, Bottom);
 
     public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent)
         : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent) { }

@@ -1,8 +1,20 @@
 namespace OrbitGame;
 
-public class ConvexCollider(Vector2[] points, KinematicObject parent) : CompactCollider(parent), ICollider
+public class ConvexCollider : CompactCollider, ICollider
 {
-    private readonly Vector2[] _points = points.Distinct().ToArray();
+    private readonly Vector2[] _points;
+    private readonly Vector2[] _edgeVectors;
+    private readonly double[] _edgeNormalAxisAngles;
+    
+    public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent)
+    {
+        _points = points.Distinct().ToArray();
+        _edgeVectors = new Vector2[_points.Length];
+        for (int i = 0; i < _points.Length; ++i)
+            _edgeVectors[i] = _points[(i + 1) % _points.Length] - _points[i];
+        _edgeNormalAxisAngles = _edgeVectors
+            .Select(v => Math.Atan2((double)v.Y, (double)v.X) + Math.PI / 2).ToArray();
+    }
 
     public override RectangularCollider GetBoundingBox()
     {
@@ -23,13 +35,11 @@ public class ConvexCollider(Vector2[] points, KinematicObject parent) : CompactC
 
     public override bool IntersectsWith(Vector2 point)
     {
-        for (int i = 0; i < _points.Length; ++i)
+        foreach (var angle in _edgeNormalAxisAngles)
         {
-            Vector2 edgeVector = _points[(i + 1) % _points.Length] - _points[i];
-            double edgeAngle = Math.Atan2((double)edgeVector.Y, (double)edgeVector.X) + Math.PI / 2;
-            ScientificDecimal[] projectedCollider = _points.Select(x => Utils.ProjectPoint(x, edgeAngle)).ToArray();
-            ScientificDecimal projectedPoint = Utils.ProjectPoint(point, edgeAngle);
-            if (projectedCollider.Min() > projectedPoint || projectedPoint > projectedCollider.Max()) return false;
+            ScientificDecimal[] projectedCollider = _points.Select(x => Utils.ProjectPoint(x + Position, angle)).ToArray();
+            ScientificDecimal projectedPoint = Utils.ProjectPoint(point, angle);
+            if (projectedPoint > projectedCollider.Max() || projectedPoint < projectedCollider.Min()) return false;
         }
         return true;
     }
@@ -41,12 +51,22 @@ public class ConvexCollider(Vector2[] points, KinematicObject parent) : CompactC
 
     public override bool IntersectsWith(ConvexCollider collider)
     {
-        throw new NotImplementedException();
+        if (IsEmpty() || collider.IsEmpty()) return false;
+        foreach (var angle in _edgeNormalAxisAngles.Concat(collider._edgeNormalAxisAngles))
+        {
+            ScientificDecimal[] proj1 = _points.Select(x => Utils.ProjectPoint(x + Position, angle)).ToArray();
+            ScientificDecimal[] proj2 = collider._points.Select(x => Utils.ProjectPoint(x + collider.Position, angle)).ToArray();
+            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max())) return false;
+        }
+        return true;
     }
 
     public override bool IntersectsWith(RectangularCollider collider)
     {
-        throw new NotImplementedException();
+        // convert rect collider to a convex collider and use the respective intersect method
+        ConvexCollider convexRect = new ConvexCollider(
+            [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent);
+        return IntersectsWith(convexRect);
     }
 
     public override void CollidesWith(ICollider collider)
