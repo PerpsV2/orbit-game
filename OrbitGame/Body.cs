@@ -36,6 +36,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             case NumericalIntegrator.ExplicitEuler:
                 Velocity += Acceleration * timeStep;
                 Position += Velocity * timeStep;
+                Angle += AngularVelocity * (double)timeStep;
                 break;
             case NumericalIntegrator.ImplicitEuler:
                 throw new NotImplementedException();

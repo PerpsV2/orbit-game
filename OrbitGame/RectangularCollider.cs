@@ -8,7 +8,7 @@ public class RectangularCollider(
     KinematicObject parent) 
     : CompactCollider(parent), ICollider
 {
-    // Values are not positive distances from kinematic object origin
+    // Values are the signed ordinates of the vertex points of the collider
     public readonly ScientificDecimal Top = top;
     public readonly ScientificDecimal Right = right;
     public readonly ScientificDecimal Bottom = bottom;
@@ -26,24 +26,25 @@ public class RectangularCollider(
 
     public override bool IntersectsWith(Vector2 point)
     {
+        if (IsEmpty()) return false;
         point -= Parent.Position;
         return point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left;
     }
 
     public override bool IntersectsWith(CircularCollider collider)
     {
+        if (IsEmpty() || collider.IsEmpty()) return false;
         Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
             Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
         return (collider.Position - closestPoint).Magnitude() <= collider.Radius;
     }
 
     public override bool IntersectsWith(ConvexCollider collider)
-    {
-        throw new NotImplementedException();
-    }
+        => collider.IntersectsWith(this);
 
     public override bool IntersectsWith(RectangularCollider collider)
     {
+        if (IsEmpty() || collider.IsEmpty()) return false;
         Vector2 posDiff = collider.Position - Position;
         return Utils.IntervalIntersects(Top, Bottom, collider.Top + posDiff.Y, collider.Bottom + posDiff.Y) &&
                Utils.IntervalIntersects(Left, Right, collider.Left + posDiff.X, collider.Right + posDiff.X);

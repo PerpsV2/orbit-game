@@ -2,11 +2,17 @@ using SkiaSharp;
 
 namespace OrbitGame;
 
-public class Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, ScientificDecimal radius, SKColor colour, string name) 
-    : Body(mass, position, velocity, name)
+public class Planet : Body
 {
-    public readonly ScientificDecimal Radius = radius;
-    public readonly SKColor Colour = colour;
+    public readonly ScientificDecimal Radius;
+    public readonly SKColor Colour;
+    
+    public Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, ScientificDecimal radius, SKColor colour, string name) : base(mass, position, velocity, name)
+    {
+        Radius = radius;
+        Colour = colour;
+        Collider = new CircularCollider(Radius, this);
+    }
 
     public override void Draw(SKCanvas canvas, Camera camera)
     {

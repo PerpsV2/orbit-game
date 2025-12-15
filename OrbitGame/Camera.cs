@@ -3,21 +3,21 @@ namespace OrbitGame;
 
 public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height)
 {
-    public Camera(Vector2 position, float rotation, ScientificDecimal width, ScientificDecimal height) :
+    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
         this(position, width, height)
     {
-        Rotation = rotation;
+        Angle = angle;
     }
     
     private Vector2 _localPosition = position;
     private Vector2 _origin = Vector2.Zero;
     public Vector2 AbsolutePosition => _localPosition + _origin;
 
-    private float _rotation;
-    public float Rotation
+    private double _angle;
+    public double Angle
     {
-        get => Utils.UnsignedMod(_rotation, (float)Math.Tau);
-        private set => _rotation = value;
+        get => Utils.UnsignedMod(_angle, Math.Tau);
+        private set => _angle = value;
     }
 
     public ScientificDecimal Width { get; private set; } = width;
@@ -34,9 +34,9 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public void MoveBy(ScientificDecimal distance, double angle)
         => _localPosition += new Vector2(distance * Math.Cos(angle), distance * Math.Sin(angle));
 
-    public void SetRotation(float angle) => Rotation = angle;
+    public void SetRotation(float angle) => Angle = angle;
     
-    public void RotateBy(float angle) => Rotation += angle;
+    public void RotateBy(float angle) => Angle += angle;
     
     public void ScaleZoom(ScientificDecimal scale)
     {
@@ -48,7 +48,7 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     
     public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
     {
-        return (Vector2.ApplyRotation(point - AbsolutePosition, Rotation) +
+        return (Vector2.ApplyRotation(point - AbsolutePosition, Angle) +
                 new Vector2(Width / 2, Height / 2)) /
                (Width / Options.ScreenSize.width);
     }

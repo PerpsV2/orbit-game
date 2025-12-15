@@ -10,9 +10,9 @@ public static class Constants
 
 public enum RotationDirection
 {
-    Counterclockwise = -1,
+    Counterclockwise = 1,
     None = 0,
-    Clockwise = 1
+    Clockwise = -1
 };
 
 public enum NumericalIntegrator
@@ -27,9 +27,9 @@ public static class Utils
     public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> =>
         value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
     
-    public static float UnsignedMod(float a, float b)
+    public static double UnsignedMod(double a, double b)
     {
-        return a - b * (float)Math.Floor(a / b);
+        return a - b * Math.Floor(a / b);
     }
     
     /// <summary>

@@ -1,3 +1,5 @@
+using Silk.NET.OpenGL;
+
 namespace OrbitGame;
 
 public class ConvexCollider : CompactCollider, ICollider
@@ -18,6 +20,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override RectangularCollider GetBoundingBox()
     {
+        if (IsEmpty()) return new(0, 0, 0, 0, Parent);
         ScientificDecimal top = ScientificDecimal.MinValue;
         ScientificDecimal right = ScientificDecimal.MinValue;
         ScientificDecimal bottom = ScientificDecimal.MaxValue;
@@ -35,6 +38,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override bool IntersectsWith(Vector2 point)
     {
+        if (IsEmpty()) return false;
         foreach (var angle in _edgeNormalAxisAngles)
         {
             ScientificDecimal[] projectedCollider = _points.Select(x => Utils.ProjectPoint(x + Position, angle)).ToArray();
@@ -46,7 +50,22 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override bool IntersectsWith(CircularCollider collider)
     {
-        throw new NotImplementedException();
+        if (IsEmpty() || collider.IsEmpty()) return false;
+        // check if any vertices are inside the circle
+        if (_points.Any(x => (x + Position - collider.Position).Magnitude() <= collider.Radius)) return true;
+        // check if the circle's center is inside the convex shape 
+        if (IntersectsWith(collider.Position)) return true;
+        for (int curr = 0; curr < _points.Length; ++curr)
+        {
+            int next = (curr + 1) % _points.Length;
+            double angle = -Math.Atan2((double)_edgeVectors[curr].Y, (double)_edgeVectors[curr].X);
+            ScientificDecimal upperBound = Vector2.ApplyRotation(_points[next] - _points[curr], angle).X;
+            Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - _points[curr], angle);
+            if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && transformedCenter.X <= upperBound)
+                return true;
+        }
+
+        return false;
     }
 
     public override bool IntersectsWith(ConvexCollider collider)
@@ -63,6 +82,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override bool IntersectsWith(RectangularCollider collider)
     {
+        if (IsEmpty() || collider.IsEmpty()) return false;
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
             [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent);
@@ -75,5 +95,5 @@ public class ConvexCollider : CompactCollider, ICollider
     }
 
     public override bool IsEmpty() => 
-        _points.Length <= 1;
+        _points.Length < 3;
 }

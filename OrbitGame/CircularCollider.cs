@@ -16,15 +16,13 @@ public class CircularCollider
         new (Radius, Radius, Radius, Radius, Parent);
 
     public override bool IntersectsWith(Vector2 point) =>
-        (point - Position).Magnitude() <= Radius;
+        (point - Position).Magnitude() <= Radius || IsEmpty();
 
     public override bool IntersectsWith(CircularCollider collider) =>
-        (collider.Position - Position).Magnitude() <= collider.Radius + Radius;
+        (collider.Position - Position).Magnitude() <= collider.Radius + Radius || IsEmpty() || collider.IsEmpty();
 
-    public override bool IntersectsWith(ConvexCollider collider)
-    {
-        throw new NotImplementedException();
-    }
+    public override bool IntersectsWith(ConvexCollider collider) =>
+        collider.IntersectsWith(this);
 
     public override bool IntersectsWith(RectangularCollider collider) =>
         collider.IntersectsWith(this);

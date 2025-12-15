@@ -27,7 +27,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
     public static Vector2 operator *(Vector2 a, Vector2 b)
         => new(a.X * b.X, a.Y * b.Y);
 
-    public static Vector2 ApplyRotation(Vector2 vector, float angle)
+    public static Vector2 ApplyRotation(Vector2 vector, double angle)
         => new(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle),
             vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
 

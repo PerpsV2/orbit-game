@@ -81,8 +81,12 @@ Planet earth = new Planet(
     new SKColor(100, 200, 255, 255),
     "Earth"
 );
+Planet circle1 = new Planet(
+    1, Vector2.Zero, Vector2.Zero, 1,
+    new SKColor(0, 125, 0, 255), "Planet"
+    );
 Ship convex1 = new Ship(
-    1, Vector2.Zero, Vector2.Zero,
+    1, new(5, 0), Vector2.Zero,
     new SKColor(125, 0, 0, 255),
     [
         new(10, -2),
@@ -107,8 +111,8 @@ Ship convex2 = new Ship(
 );
 
 List<Body> bodies = [
-    convex1,
-    convex2
+    circle1,
+    convex1
 ];
 
 OriginBody.Body = convex1;
@@ -149,10 +153,10 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
 {
     ScientificDecimal camSpeed = camera.Height * Options.CamMoveSpeed * dt;
     // subtract angle by camera rotation so movement does not respect rotation
-    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2 - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Rotation);
-    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0 - camera.Rotation);
+    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2 - camera.Angle);
+    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Angle);
+    if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Angle);
+    if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0 - camera.Angle);
     
     if (keyboard.IsKeyPressed(Options.ZoomOutKey)) camera.ScaleZoom(1 + Options.CamZoomSpeed);
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
@@ -160,6 +164,13 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
+
+    if (keyboard.IsKeyPressed(Key.I)) convex1.Position -= new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.J)) convex1.Position -= new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.K)) convex1.Position += new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.L)) convex1.Position += new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.U)) convex1.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.O)) convex1.AngularVelocity -= 0.1;
 }
 
 void OnRender(double _)
@@ -196,6 +207,8 @@ void OnRender(double _)
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
+    
+    Console.WriteLine(convex1.Collider.IntersectsWith(circle1.Collider));
     
     canvas.Flush();
 }

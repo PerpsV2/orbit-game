@@ -3,7 +3,6 @@ namespace OrbitGame;
 
 public class Ship : Body
 {
-    private readonly LinkedList<int> _colliderIndices;
     private readonly Vector2[] _mesh;
     private readonly SKColor _colour;
     
@@ -16,8 +15,8 @@ public class Ship : Body
     {
         Position = position;
         Velocity = velocity;
-        _colliderIndices = Vector2.GetConvexHullIndices(mesh);
-        _mesh = _colliderIndices.Select(x => mesh[x]).ToArray();
+        LinkedList<int> colliderIndices = Vector2.GetConvexHullIndices(mesh);
+        _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
         _colour = colour;
         Collider = new ConvexCollider(_mesh, this);
     }
@@ -39,8 +38,7 @@ public class Ship : Body
             StrokeWidth = 4
         };
         
-        //canvas.GS_DrawRect(camera, Position + new Vector2(-1, 1), Position + new Vector2(1, -1), paint);
-        Vector2[] polyPoints = _mesh.Select(x => x + Position).ToArray();
+        Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint);
         
         SKPoint screenPosition = camera.ConvertToScreenCoordinates(Position);
@@ -58,7 +56,7 @@ public class Ship : Body
             StrokeWidth = 4
         };
 
-        Vector2[] polyPoints = _mesh.Select(x => x + Position).ToArray();
+        Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint, false);
     }
 }
