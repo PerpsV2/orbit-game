@@ -5,12 +5,20 @@ namespace OrbitGame;
 public class Planet : Body
 {
     public readonly ScientificDecimal Radius;
-    public readonly SKColor Colour;
+    private readonly Material _material;
     
-    public Planet(ScientificDecimal mass, Vector2 position, Vector2 velocity, ScientificDecimal radius, SKColor colour, string name) : base(mass, position, velocity, name)
+    public Planet(
+        ScientificDecimal mass, 
+        Vector2 position, 
+        Vector2 velocity, 
+        ScientificDecimal radius, 
+        Material material, 
+        string name
+        ) 
+        : base(mass, position, velocity, name)
     {
         Radius = radius;
-        Colour = colour;
+        _material = material;
         Collider = new CircularCollider(Radius, this);
     }
 
@@ -18,7 +26,7 @@ public class Planet : Body
     {
         SKPaint paint = new SKPaint
         {
-            Color = Colour
+            Color = _material.Colour
         };
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line

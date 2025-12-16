@@ -1,4 +1,5 @@
 using Silk.NET.Input;
+using SkiaSharp;
 
 namespace OrbitGame;
 
@@ -9,6 +10,8 @@ public static class Options
     public static readonly ScientificDecimal DefaultTimeStep = 1;
     public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = true;
+
+    public static readonly Material DefaultMaterial = new (SKColors.White, 1f);
 
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ExplicitEuler;
 

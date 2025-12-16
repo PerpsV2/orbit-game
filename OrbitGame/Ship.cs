@@ -4,12 +4,12 @@ namespace OrbitGame;
 public class Ship : Body
 {
     private readonly Vector2[] _mesh;
-    private readonly SKColor _colour;
+    private readonly Material _material;
     
     public Ship(ScientificDecimal mass,
         Vector2 position,
         Vector2 velocity,
-        SKColor colour,
+        Material material,
         Vector2[] mesh,
         string name) : base(mass, position, velocity, name)
     {
@@ -17,14 +17,14 @@ public class Ship : Body
         Velocity = velocity;
         LinkedList<int> colliderIndices = Vector2.GetConvexHullIndices(mesh);
         _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
-        _colour = colour;
+        _material = material;
         Collider = new ConvexCollider(_mesh, this);
     }
     
     public Ship(
-        ScientificDecimal mass, Vector2 position, Vector2 velocity, SKColor colour, Body parent,
+        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, Body parent,
         Vector2[] mesh, string name)
-        : this(mass, position, velocity, colour, mesh, name)
+        : this(mass, position, velocity, material, mesh, name)
     {
         Position = parent.Position + position;
         Velocity = parent.Velocity + velocity;
@@ -34,7 +34,7 @@ public class Ship : Body
     {
         SKPaint paint = new SKPaint
         {
-            Color = _colour,
+            Color = _material.Colour,
             StrokeWidth = 4
         };
         
@@ -52,7 +52,7 @@ public class Ship : Body
     {
         SKPaint paint = new SKPaint
         {
-            Color = _colour,
+            Color = _material.Colour,
             StrokeWidth = 4
         };
 

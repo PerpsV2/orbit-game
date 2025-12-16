@@ -64,7 +64,7 @@ Planet sun = new Planet(
     Vector2.Zero,
     Vector2.Zero,
     new ScientificDecimal(6.96340m, 8),
-    new SKColor(255, 255, 255, 255),
+    new Material(new SKColor(255, 255, 255, 255), 0),
     "Sun"
 );
 Planet earth = new Planet(
@@ -78,16 +78,16 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new SKColor(100, 200, 255, 255),
+    new Material(new SKColor(100, 200, 255, 255), 0),
     "Earth"
 );
 Planet circle1 = new Planet(
     1, Vector2.Zero, Vector2.Zero, 1,
-    new SKColor(0, 125, 0, 255), "Planet"
+    new Material(new SKColor(0, 125, 0, 255), 0), "Planet"
     );
 Ship convex1 = new Ship(
     1, new(5, 0), Vector2.Zero,
-    new SKColor(125, 0, 0, 255),
+    new Material(new SKColor(125, 0, 0, 255), 0),
     [
         new(10, -2),
         new(7, 0),
@@ -95,19 +95,7 @@ Ship convex1 = new Ship(
         new(10, 4),
         new(12, 0)
     ],
-    "Convex 1"
-);
-Ship convex2 = new Ship(
-    1, Vector2.Zero, Vector2.Zero,
-    new SKColor(255, 255, 255, 255),
-    [
-        new (4, 2),
-        new (6, -0.5m),
-        new (9, 3.5m),
-        new (6.5m, 5),
-        new (4, 4)
-    ],
-    "Convex 2"
+    "Ship"
 );
 
 List<Body> bodies = [
