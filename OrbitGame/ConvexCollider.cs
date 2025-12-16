@@ -5,16 +5,19 @@ namespace OrbitGame;
 public class ConvexCollider : CompactCollider, ICollider
 {
     private readonly Vector2[] _points;
-    private readonly Vector2[] _edgeVectors;
+    private Vector2[] RotatedPoints => _points.Select(x => Vector2.ApplyRotation(x, Parent.Angle)).ToArray();
     private readonly double[] _edgeNormalAxisAngles;
+    
+    // edge normal axis angles in world space
+    private double[] AbsoluteEdgeNormalAxisAngles => _edgeNormalAxisAngles.Select(x => x + Parent.Angle).ToArray();
     
     public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
-        _edgeVectors = new Vector2[_points.Length];
+        Vector2[] edgeVectors = new Vector2[_points.Length];
         for (int i = 0; i < _points.Length; ++i)
-            _edgeVectors[i] = _points[(i + 1) % _points.Length] - _points[i];
-        _edgeNormalAxisAngles = _edgeVectors
+            edgeVectors[i] = _points[(i + 1) % _points.Length] - _points[i];
+        _edgeNormalAxisAngles = edgeVectors
             .Select(v => Math.Atan2((double)v.Y, (double)v.X) + Math.PI / 2).ToArray();
     }
 
@@ -25,7 +28,7 @@ public class ConvexCollider : CompactCollider, ICollider
         ScientificDecimal right = ScientificDecimal.MinValue;
         ScientificDecimal bottom = ScientificDecimal.MaxValue;
         ScientificDecimal left = ScientificDecimal.MaxValue;
-        foreach (var point in _points)
+        foreach (var point in RotatedPoints)
         {
             if (point.Y > top) top = point.Y;
             if (point.Y < bottom) bottom = point.Y;
@@ -39,9 +42,11 @@ public class ConvexCollider : CompactCollider, ICollider
     public override bool IntersectsWith(Vector2 point)
     {
         if (IsEmpty()) return false;
-        foreach (var angle in _edgeNormalAxisAngles)
+        foreach (var angle in AbsoluteEdgeNormalAxisAngles)
         {
-            ScientificDecimal[] projectedCollider = _points.Select(x => Utils.ProjectPoint(x + Position, angle)).ToArray();
+            ScientificDecimal[] projectedCollider = _points.Select(
+                x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle))
+                .ToArray();
             ScientificDecimal projectedPoint = Utils.ProjectPoint(point, angle);
             if (projectedPoint > projectedCollider.Max() || projectedPoint < projectedCollider.Min()) return false;
         }
@@ -52,17 +57,18 @@ public class ConvexCollider : CompactCollider, ICollider
     {
         if (IsEmpty() || collider.IsEmpty()) return false;
         // check if any vertices are inside the circle
-        if (_points.Any(x => (x + Position - collider.Position).Magnitude() <= collider.Radius)) return true;
+        if (_points.Any(x => (Parent.ObjectToWorldSpace(x) - collider.Position).Magnitude() <= collider.Radius)) 
+            return true;
         // check if the circle's center is inside the convex shape 
         if (IntersectsWith(collider.Position)) return true;
         for (int curr = 0; curr < _points.Length; ++curr)
         {
             int next = (curr + 1) % _points.Length;
-            double angle = -Math.Atan2((double)_edgeVectors[curr].Y, (double)_edgeVectors[curr].X);
-            ScientificDecimal upperBound = Vector2.ApplyRotation(_points[next] - _points[curr], angle).X;
-            Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - _points[curr], angle);
-            if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && transformedCenter.X <= upperBound)
-                return true;
+            double angle = -AbsoluteEdgeNormalAxisAngles[curr] + Math.PI / 2;
+            ScientificDecimal upperBound = Vector2.ApplyRotation(RotatedPoints[next] - RotatedPoints[curr], angle).X;
+            Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - RotatedPoints[curr], angle);
+            if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && 
+                transformedCenter.X <= upperBound) return true;
         }
 
         return false;
@@ -71,10 +77,12 @@ public class ConvexCollider : CompactCollider, ICollider
     public override bool IntersectsWith(ConvexCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return false;
-        foreach (var angle in _edgeNormalAxisAngles.Concat(collider._edgeNormalAxisAngles))
+        foreach (var angle in AbsoluteEdgeNormalAxisAngles.Concat(collider.AbsoluteEdgeNormalAxisAngles))
         {
-            ScientificDecimal[] proj1 = _points.Select(x => Utils.ProjectPoint(x + Position, angle)).ToArray();
-            ScientificDecimal[] proj2 = collider._points.Select(x => Utils.ProjectPoint(x + collider.Position, angle)).ToArray();
+            ScientificDecimal[] proj1 = _points.Select(
+                x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle)).ToArray();
+            ScientificDecimal[] proj2 = collider._points.Select(
+                x => Utils.ProjectPoint(collider.Parent.ObjectToWorldSpace(x), angle)).ToArray();
             if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max())) return false;
         }
         return true;

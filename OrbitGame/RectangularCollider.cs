@@ -1,5 +1,8 @@
 namespace OrbitGame;
 
+/// <summary>
+/// Rectangular collider is unaffected by rotations
+/// </summary>
 public class RectangularCollider(
     ScientificDecimal top,
     ScientificDecimal right, 

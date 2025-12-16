@@ -16,6 +16,9 @@ public abstract class CompactCollider(KinematicObject parent) : ICollider
     public Vector2 Position => Parent.Position;
     public bool Fixed;
     
+    /// <summary>
+    /// Method to return the rectangular collider which best fits the set of points in the collider
+    /// </summary>
     public abstract RectangularCollider GetBoundingBox();
     
     public bool NearsWith(ICollider collider)
