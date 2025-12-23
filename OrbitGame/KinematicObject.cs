@@ -32,7 +32,7 @@ public abstract class KinematicObject
 
     public Vector2 ObjectToWorldSpace(Vector2 point)
     {
-        return new(point.X * Math.Cos(Angle) - point.Y * Math.Sin(Angle),
-            point.X * Math.Sin(Angle) + point.Y * Math.Cos(Angle));
+        return new Vector2(point.X * Math.Cos(Angle) - point.Y * Math.Sin(Angle),
+            point.X * Math.Sin(Angle) + point.Y * Math.Cos(Angle)) + Position;
     }
 }

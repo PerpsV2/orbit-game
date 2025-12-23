@@ -53,14 +53,14 @@ public class ConvexCollider : CompactCollider, ICollider
         return true;
     }
 
-    public override bool IntersectsWith(CircularCollider collider)
+    public override Collision IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return false;
+        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
         // check if any vertices are inside the circle
         if (_points.Any(x => (Parent.ObjectToWorldSpace(x) - collider.Position).Magnitude() <= collider.Radius)) 
-            return true;
+            return new Collision(Vector2.Zero);
         // check if the circle's center is inside the convex shape 
-        if (IntersectsWith(collider.Position)) return true;
+        if (IntersectsWith(collider.Position)) return new Collision(Vector2.Zero);
         for (int curr = 0; curr < _points.Length; ++curr)
         {
             int next = (curr + 1) % _points.Length;
@@ -68,29 +68,39 @@ public class ConvexCollider : CompactCollider, ICollider
             ScientificDecimal upperBound = Vector2.ApplyRotation(RotatedPoints[next] - RotatedPoints[curr], angle).X;
             Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - RotatedPoints[curr], angle);
             if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && 
-                transformedCenter.X <= upperBound) return true;
+                transformedCenter.X <= upperBound) return new Collision(Vector2.Zero);
         }
 
-        return false;
+        return Collision.None;
     }
 
-    public override bool IntersectsWith(ConvexCollider collider)
+    public override Collision IntersectsWith(ConvexCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return false;
+        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        ScientificDecimal minPenetrationDistance = new ScientificDecimal(20);
+        Vector2 penetrationVector = Vector2.Zero;
         foreach (var angle in AbsoluteEdgeNormalAxisAngles.Concat(collider.AbsoluteEdgeNormalAxisAngles))
         {
-            ScientificDecimal[] proj1 = _points.Select(
-                x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle)).ToArray();
-            ScientificDecimal[] proj2 = collider._points.Select(
-                x => Utils.ProjectPoint(collider.Parent.ObjectToWorldSpace(x), angle)).ToArray();
-            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max())) return false;
+            ScientificDecimal[] proj1 = _points
+                .Select(x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle)).ToArray();
+            ScientificDecimal[] proj2 = collider._points
+                .Select(x => Utils.ProjectPoint(collider.Parent.ObjectToWorldSpace(x), angle)).ToArray();
+            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max())) 
+                return Collision.None;
+            ScientificDecimal penetrationDistance =
+                Utils.IntervalPenetrationDistance(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max());
+            if (penetrationDistance < minPenetrationDistance)
+            {
+                minPenetrationDistance = penetrationDistance;
+                penetrationVector = new Vector2(Math.Cos(angle), -Math.Sin(angle)) * penetrationDistance;
+            }
         }
-        return true;
+        return new Collision(penetrationVector);
     }
 
-    public override bool IntersectsWith(RectangularCollider collider)
+    public override Collision IntersectsWith(RectangularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return false;
+        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
             [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent);

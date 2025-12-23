@@ -33,6 +33,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
 
     public ScientificDecimal Magnitude()
         => ScientificDecimal.Sqrt(X * X + Y * Y);
+
+    public Vector2 Normalize() =>
+        this /= Magnitude();
     
     public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
     {

@@ -18,15 +18,27 @@ public class CircularCollider
     public override bool IntersectsWith(Vector2 point) =>
         (point - Position).Magnitude() <= Radius || IsEmpty();
 
-    public override bool IntersectsWith(CircularCollider collider) =>
-        (collider.Position - Position).Magnitude() <= collider.Radius + Radius || IsEmpty() || collider.IsEmpty();
+    public override Collision IntersectsWith(CircularCollider collider)
+    {
+        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        Vector2 displacementVector = Position - collider.Position;
+        ScientificDecimal distance = displacementVector.Magnitude();
+        if (distance <= collider.Radius + Radius)
+            return new Collision(displacementVector.Normalize() * (collider.Radius + Radius - distance));
 
-    public override bool IntersectsWith(ConvexCollider collider) =>
-        collider.IntersectsWith(this);
+        return Collision.None;
+    }
 
-    public override bool IntersectsWith(RectangularCollider collider) =>
-        collider.IntersectsWith(this);
- 
+    public override Collision IntersectsWith(ConvexCollider collider) 
+    {
+        return collider.IntersectsWith(this).GetInverse();
+    }
+
+    public override Collision IntersectsWith(RectangularCollider collider)
+    {
+        return collider.IntersectsWith(this).GetInverse();
+    }
+
     public override void CollidesWith(ICollider collider)
     {
         throw new NotImplementedException();

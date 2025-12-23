@@ -81,29 +81,51 @@ Planet earth = new Planet(
     new Material(new SKColor(100, 200, 255, 255), 0),
     "Earth"
 );
-Planet circle1 = new Planet(
+Planet acol1 = new Planet(
     1, Vector2.Zero, Vector2.Zero, 1,
-    new Material(new SKColor(0, 125, 0, 255), 0), "Planet"
-    );
-Ship convex1 = new Ship(
-    1, new(5, 0), Vector2.Zero,
+    new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
+Planet acol2 = new Planet(
+    1, new(2, 5), Vector2.Zero, 1,
+    new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
+Ship col1 = new Ship(
+    1, new(5, 5), Vector2.Zero,
     new Material(new SKColor(125, 0, 0, 255), 0),
     [
-        new(10, -2),
-        new(7, 0),
-        new(8, 2),
-        new(10, 4),
-        new(12, 0)
+        new (2,2),
+        new (2, -2),
+        new (-4, -2),
+        new (-4, 2)
+        // new(10, -2),
+        // new(7, 0),
+        // new(8, 2),
+        // new(10, 4),
+        // new(12, 0)
+    ],
+    "Ship"
+);
+Ship col2 = new Ship(
+    1, Vector2.Zero, Vector2.Zero,
+    new Material(new SKColor(0, 125, 0, 255), 0),
+    [
+        new (2,3),
+        new (2, -2),
+        new (-2, -2),
+        new (-2, 3)
+        // new(8, -2),
+        // new(6, 0),
+        // new(8, 2),
+        // new(10, 4),
+        // new(12, 0)
     ],
     "Ship"
 );
 
 List<Body> bodies = [
-    circle1,
-    convex1
+    col1,
+    col2
 ];
 
-OriginBody.Body = convex1;
+OriginBody.Body = col1;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -130,9 +152,11 @@ void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
     if (key == Options.TrackPrevBodyKey) TrackBody(trackingIndex - 1);
 
     if (key == Options.FocusKey)
-    {
         camera.MoveTo(Vector2.Zero);
-    }
+    
+    // correct collision
+    if (key == Key.Y)
+        OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
 }
 
 input.Keyboards[0].KeyDown += HandleKeyPresses;
@@ -153,12 +177,15 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 
-    if (keyboard.IsKeyPressed(Key.I)) convex1.Position -= new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.J)) convex1.Position -= new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.K)) convex1.Position += new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.L)) convex1.Position += new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.U)) convex1.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.O)) convex1.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
+
+    if (keyboard.IsKeyPressed(Key.T))
+        OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
 }
 
 void OnRender(double _)
@@ -186,7 +213,7 @@ void OnRender(double _)
         }
     }
 
-    OriginBody.ResetOrigin(bodies);
+    //OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);
     
@@ -196,7 +223,7 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    Console.WriteLine(convex1.Collider.IntersectsWith(circle1.Collider));
+    Console.WriteLine(col1.Collider.IntersectsWith(col2.Collider).Intersects);
     
     canvas.Flush();
 }

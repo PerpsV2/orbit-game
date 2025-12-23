@@ -26,17 +26,17 @@ public abstract class CompactCollider(KinematicObject parent) : ICollider
         switch (collider)
         {
             case CompactCollider c: 
-                return GetBoundingBox().IntersectsWith(c.GetBoundingBox());
+                return GetBoundingBox().IntersectsWith(c.GetBoundingBox()).Intersects;
             default: throw new NotSupportedException();
         }
     }
 
     public abstract bool IntersectsWith(Vector2 point);
-    public abstract bool IntersectsWith(CircularCollider collider);
-    public abstract bool IntersectsWith(ConvexCollider collider);
-    public abstract bool IntersectsWith(RectangularCollider collider);
+    public abstract Collision IntersectsWith(CircularCollider collider);
+    public abstract Collision IntersectsWith(ConvexCollider collider);
+    public abstract Collision IntersectsWith(RectangularCollider collider);
     
-    public bool IntersectsWith(ICollider collider)
+    public Collision IntersectsWith(ICollider collider)
     {
         switch (collider)
         {

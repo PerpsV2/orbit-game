@@ -38,6 +38,10 @@ public static class Utils
     public static ScientificDecimal ProjectPoint(Vector2 point, double angle) =>
         point.X * Math.Cos(angle) - point.Y * Math.Sin(angle);
 
+    public static ScientificDecimal IntervalPenetrationDistance(ScientificDecimal l1, ScientificDecimal u1,
+        ScientificDecimal l2, ScientificDecimal u2)
+        => !IntervalIntersects(l1, u1, l2, u2) ? 0 : u2 - l1 > u1 - l2 ? -u1 + l2 : u2 - l1;
+
     public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
     {
         return value.CompareTo(lowerBound) >= 0 && value.CompareTo(upperBound) <= 0;

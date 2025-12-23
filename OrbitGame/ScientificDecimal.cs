@@ -145,10 +145,10 @@ public struct ScientificDecimal
 
     public static bool operator <(ScientificDecimal left, ScientificDecimal right)
         => (right - left).Positive;
-    
+
     public static bool operator >(ScientificDecimal left, ScientificDecimal right)
         => (left - right).Positive;
-    
+
     public static bool operator <=(ScientificDecimal left, ScientificDecimal right)
         => left < right || left == right;
     
