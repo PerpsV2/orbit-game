@@ -6,6 +6,7 @@ public class ConvexCollider : CompactCollider, ICollider
 {
     private readonly Vector2[] _points;
     private Vector2[] RotatedPoints => _points.Select(x => Vector2.ApplyRotation(x, Parent.Angle)).ToArray();
+    private readonly Vector2[] _edges;
     private readonly double[] _edgeNormalAxisAngles;
     
     // edge normal axis angles in world space
@@ -14,11 +15,17 @@ public class ConvexCollider : CompactCollider, ICollider
     public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
-        Vector2[] edgeVectors = new Vector2[_points.Length];
+        Console.Write("Points: ");
+        Utils.LogEnumerable(_points);
+        _edges = new Vector2[_points.Length];
         for (int i = 0; i < _points.Length; ++i)
-            edgeVectors[i] = _points[(i + 1) % _points.Length] - _points[i];
-        _edgeNormalAxisAngles = edgeVectors
-            .Select(v => Math.Atan2((double)v.Y, (double)v.X) + Math.PI / 2).ToArray();
+            _edges[i] = _points[(i + 1) % _points.Length] - _points[i];
+        Console.Write("Edges: ");
+        Utils.LogEnumerable(_edges);
+        _edgeNormalAxisAngles = _edges
+            .Select(v => Utils.UnsignedMod(Math.Atan2((double)v.Y, (double)v.X) - Math.PI / 2, Math.Tau)).ToArray();
+        Console.Write("Edge Normals: ");
+        Utils.LogEnumerable(_edgeNormalAxisAngles.Select(double.RadiansToDegrees));
     }
 
     public override RectangularCollider GetBoundingBox()
@@ -77,23 +84,26 @@ public class ConvexCollider : CompactCollider, ICollider
     public override Collision IntersectsWith(ConvexCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return Collision.None;
-        ScientificDecimal minPenetrationDistance = new ScientificDecimal(20);
-        Vector2 penetrationVector = Vector2.Zero;
-        foreach (var angle in AbsoluteEdgeNormalAxisAngles.Concat(collider.AbsoluteEdgeNormalAxisAngles))
+        Vector2 penetrationVector = new Vector2(new(10), new(10));
+        foreach (var angle in _edgeNormalAxisAngles.Concat(collider._edgeNormalAxisAngles))
         {
+            double edgeAngle = angle + Math.PI / 2;
             ScientificDecimal[] proj1 = _points
-                .Select(x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle)).ToArray();
+                .Select(x => Parent.ObjectToWorldSpace(x))
+                .Select(v => v.Y * Math.Cos(edgeAngle) - v.X * Math.Sin(edgeAngle))
+                .ToArray();
             ScientificDecimal[] proj2 = collider._points
-                .Select(x => Utils.ProjectPoint(collider.Parent.ObjectToWorldSpace(x), angle)).ToArray();
-            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max())) 
+                .Select(x => collider.Parent.ObjectToWorldSpace(x))
+                .Select(v => v.Y * Math.Cos(edgeAngle) - v.X * Math.Sin(edgeAngle))
+                .ToArray();
+            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max()))
                 return Collision.None;
-            ScientificDecimal penetrationDistance =
+            
+            ScientificDecimal pd = 
                 Utils.IntervalPenetrationDistance(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max());
-            if (penetrationDistance < minPenetrationDistance)
-            {
-                minPenetrationDistance = penetrationDistance;
-                penetrationVector = new Vector2(Math.Cos(angle), -Math.Sin(angle)) * penetrationDistance;
-            }
+            Vector2 newPenetrationVector = -new Vector2(Math.Cos(angle), Math.Sin(angle)) * pd;
+            if (newPenetrationVector.Magnitude() < penetrationVector.Magnitude())
+                penetrationVector = newPenetrationVector;
         }
         return new Collision(penetrationVector);
     }

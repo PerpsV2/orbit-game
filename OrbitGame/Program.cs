@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -91,15 +91,15 @@ Ship col1 = new Ship(
     1, new(5, 5), Vector2.Zero,
     new Material(new SKColor(125, 0, 0, 255), 0),
     [
-        new (2,2),
+        /*new (2,2),
         new (2, -2),
         new (-4, -2),
-        new (-4, 2)
-        // new(10, -2),
-        // new(7, 0),
-        // new(8, 2),
-        // new(10, 4),
-        // new(12, 0)
+        new (-4, 2)*/
+         new(10, -2),
+         new(7, 0),
+         new(8, 2),
+         new(10, 4),
+         new(12, 0)
     ],
     "Ship"
 );
@@ -107,15 +107,15 @@ Ship col2 = new Ship(
     1, Vector2.Zero, Vector2.Zero,
     new Material(new SKColor(0, 125, 0, 255), 0),
     [
-        new (2,3),
+        /*new (2,3),
         new (2, -2),
         new (-2, -2),
-        new (-2, 3)
-        // new(8, -2),
-        // new(6, 0),
-        // new(8, 2),
-        // new(10, 4),
-        // new(12, 0)
+        new (-2, 3)*/
+         new(8, -2),
+         new(6, 0),
+         new(8, 2),
+         new(10, 4),
+         new(12, 0)
     ],
     "Ship"
 );
@@ -222,8 +222,6 @@ void OnRender(double _)
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
-    
-    Console.WriteLine(col1.Collider.IntersectsWith(col2.Collider).Intersects);
     
     canvas.Flush();
 }

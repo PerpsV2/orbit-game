@@ -24,6 +24,14 @@ public enum NumericalIntegrator
 
 public static class Utils
 {
+    public static void LogEnumerable<T>(IEnumerable<T> enumerable)
+    {
+        var array = enumerable as T[] ?? enumerable.ToArray();
+        for (int i = 0; i < array.Length; i++)
+            Console.Write($"{array.ElementAt(i)} ");
+        Console.WriteLine();
+    }
+    
     public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> =>
         value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
     
