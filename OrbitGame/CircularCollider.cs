@@ -24,8 +24,8 @@ public class CircularCollider
         Vector2 displacementVector = Position - collider.Position;
         ScientificDecimal distance = displacementVector.Magnitude();
         if (distance <= collider.Radius + Radius)
-            return new Collision(displacementVector.Normalize() * (collider.Radius + Radius - distance));
-
+            return new Collision(displacementVector.Normalize() * (collider.Radius + Radius - distance
+                + new ScientificDecimal(1m, -10))); // TODO: crashes if the two objects are barely touching idk why help
         return Collision.None;
     }
 

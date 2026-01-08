@@ -5,27 +5,23 @@ namespace OrbitGame;
 public class ConvexCollider : CompactCollider, ICollider
 {
     private readonly Vector2[] _points;
-    private Vector2[] RotatedPoints => _points.Select(x => Vector2.ApplyRotation(x, Parent.Angle)).ToArray();
     private readonly Vector2[] _edges;
-    private readonly double[] _edgeNormalAxisAngles;
+    private Vector2[] RotatedPoints => _points.Select(x => Vector2.ApplyRotation(x, Parent.Angle)).ToArray();
+    private readonly double[] _edgeAngles;
+
+    private double[] AbsoluteEdgeAngles => _edgeAngles.Select(x => x + Parent.Angle).ToArray();
     
     // edge normal axis angles in world space
-    private double[] AbsoluteEdgeNormalAxisAngles => _edgeNormalAxisAngles.Select(x => x + Parent.Angle).ToArray();
+    private double[] AbsoluteEdgeNormalAngles => AbsoluteEdgeAngles.Select(x => x + Math.PI / 2).ToArray();
     
     public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
-        Console.Write("Points: ");
-        Utils.LogEnumerable(_points);
         _edges = new Vector2[_points.Length];
         for (int i = 0; i < _points.Length; ++i)
             _edges[i] = _points[(i + 1) % _points.Length] - _points[i];
-        Console.Write("Edges: ");
-        Utils.LogEnumerable(_edges);
-        _edgeNormalAxisAngles = _edges
-            .Select(v => Utils.UnsignedMod(Math.Atan2((double)v.Y, (double)v.X) - Math.PI / 2, Math.Tau)).ToArray();
-        Console.Write("Edge Normals: ");
-        Utils.LogEnumerable(_edgeNormalAxisAngles.Select(double.RadiansToDegrees));
+        _edgeAngles = _edges
+            .Select(v => Math.Atan2((double)v.Y, (double)v.X)).ToArray();
     }
 
     public override RectangularCollider GetBoundingBox()
@@ -49,7 +45,7 @@ public class ConvexCollider : CompactCollider, ICollider
     public override bool IntersectsWith(Vector2 point)
     {
         if (IsEmpty()) return false;
-        foreach (var angle in AbsoluteEdgeNormalAxisAngles)
+        foreach (var angle in AbsoluteEdgeNormalAngles)
         {
             ScientificDecimal[] projectedCollider = _points.Select(
                 x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle))
@@ -71,7 +67,7 @@ public class ConvexCollider : CompactCollider, ICollider
         for (int curr = 0; curr < _points.Length; ++curr)
         {
             int next = (curr + 1) % _points.Length;
-            double angle = -AbsoluteEdgeNormalAxisAngles[curr] + Math.PI / 2;
+            double angle = -AbsoluteEdgeNormalAngles[curr] + Math.PI / 2;
             ScientificDecimal upperBound = Vector2.ApplyRotation(RotatedPoints[next] - RotatedPoints[curr], angle).X;
             Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - RotatedPoints[curr], angle);
             if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && 
@@ -83,29 +79,25 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override Collision IntersectsWith(ConvexCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
-        Vector2 penetrationVector = new Vector2(new(10), new(10));
-        foreach (var angle in _edgeNormalAxisAngles.Concat(collider._edgeNormalAxisAngles))
+        Vector2 minPenetrationVector = Vector2.Zero;
+        foreach (var angle in AbsoluteEdgeAngles.Concat(collider.AbsoluteEdgeAngles))
         {
-            double edgeAngle = angle + Math.PI / 2;
-            ScientificDecimal[] proj1 = _points
-                .Select(x => Parent.ObjectToWorldSpace(x))
-                .Select(v => v.Y * Math.Cos(edgeAngle) - v.X * Math.Sin(edgeAngle))
-                .ToArray();
-            ScientificDecimal[] proj2 = collider._points
-                .Select(x => collider.Parent.ObjectToWorldSpace(x))
-                .Select(v => v.Y * Math.Cos(edgeAngle) - v.X * Math.Sin(edgeAngle))
-                .ToArray();
-            if (!Utils.IntervalIntersects(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max()))
+            ScientificDecimal[] projectedCollider1 = _points.Select(Parent.ObjectToWorldSpace)
+                .Select(v => v.Y * Math.Cos(angle) - v.X * Math.Sin(angle)).ToArray();
+            ScientificDecimal[] projectedCollider2 = collider._points
+                .Select(collider.Parent.ObjectToWorldSpace)
+                .Select(v => v.Y * Math.Cos(angle) - v.X * Math.Sin(angle)).ToArray();
+            if (!Utils.IntervalIntersects(projectedCollider1.Min(),
+                    projectedCollider1.Max(), projectedCollider2.Min(), projectedCollider2.Max()))
                 return Collision.None;
-            
-            ScientificDecimal pd = 
-                Utils.IntervalPenetrationDistance(proj1.Min(), proj1.Max(), proj2.Min(), proj2.Max());
-            Vector2 newPenetrationVector = -new Vector2(Math.Cos(angle), Math.Sin(angle)) * pd;
-            if (newPenetrationVector.Magnitude() < penetrationVector.Magnitude())
-                penetrationVector = newPenetrationVector;
+            ScientificDecimal penetrationDistance = Utils.IntervalPenetrationDistance(projectedCollider1.Min(),
+                projectedCollider1.Max(), projectedCollider2.Min(), projectedCollider2.Max());
+            if (ScientificDecimal.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
+                minPenetrationVector.Equals(Vector2.Zero))
+                minPenetrationVector = Vector2.DirectionVector(angle + Math.PI / 2) * penetrationDistance;
         }
-        return new Collision(penetrationVector);
+
+        return new Collision(minPenetrationVector);
     }
 
     public override Collision IntersectsWith(RectangularCollider collider)

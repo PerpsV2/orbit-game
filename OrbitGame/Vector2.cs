@@ -93,6 +93,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vec
         return difference.PrincipalAngle();
     }
 
+    public static Vector2 DirectionVector(double angle) =>
+        new(Math.Cos(angle), Math.Sin(angle));
+
     public override string ToString()
         => "<" + X + ", " + Y + ">";
 

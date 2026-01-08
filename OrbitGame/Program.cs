@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using OrbitGame;
+﻿using OrbitGame;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
@@ -11,7 +10,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -81,41 +80,41 @@ Planet earth = new Planet(
     new Material(new SKColor(100, 200, 255, 255), 0),
     "Earth"
 );
-Planet acol1 = new Planet(
-    1, Vector2.Zero, Vector2.Zero, 1,
+Planet col1 = new Planet(
+    1, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
     new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
-Planet acol2 = new Planet(
+Planet col2 = new Planet(
     1, new(2, 5), Vector2.Zero, 1,
     new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
-Ship col1 = new Ship(
+Ship acol1 = new Ship(
     1, new(5, 5), Vector2.Zero,
     new Material(new SKColor(125, 0, 0, 255), 0),
     [
-        /*new (2,2),
-        new (2, -2),
-        new (-4, -2),
-        new (-4, 2)*/
-         new(10, -2),
-         new(7, 0),
-         new(8, 2),
-         new(10, 4),
-         new(12, 0)
+        new (2,4),
+        new (2, -3),
+        new (-2, -2),
+        new (-4, 2)
+        // new(10, -2),
+        // new(7, 0),
+        // new(8, 2),
+        // new(10, 4),
+        // new(12, 0)
     ],
     "Ship"
 );
-Ship col2 = new Ship(
+Ship acol2 = new Ship(
     1, Vector2.Zero, Vector2.Zero,
     new Material(new SKColor(0, 125, 0, 255), 0),
     [
-        /*new (2,3),
-        new (2, -2),
-        new (-2, -2),
-        new (-2, 3)*/
-         new(8, -2),
-         new(6, 0),
-         new(8, 2),
-         new(10, 4),
-         new(12, 0)
+        new (2,3),
+        new (3, -2),
+        new (-2, -3),
+        new (-2, 4)
+        // new(8, -2),
+        // new(6, 0),
+        // new(8, 2),
+        // new(10, 4),
+        // new(12, 0)
     ],
     "Ship"
 );
@@ -153,10 +152,6 @@ void HandleKeyPresses(IKeyboard keyboard, Key key, int keyCode)
 
     if (key == Options.FocusKey)
         camera.MoveTo(Vector2.Zero);
-    
-    // correct collision
-    if (key == Key.Y)
-        OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
 }
 
 input.Keyboards[0].KeyDown += HandleKeyPresses;
@@ -183,9 +178,6 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
     if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
     if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
-
-    if (keyboard.IsKeyPressed(Key.T))
-        OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
 }
 
 void OnRender(double _)
@@ -212,13 +204,15 @@ void OnRender(double _)
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
         }
     }
-
-    //OriginBody.ResetOrigin(bodies);
+    
+    OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
+    
+    OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);
     
     foreach (var body in bodies)
-    { 
+    {
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
