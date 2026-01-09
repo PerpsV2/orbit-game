@@ -10,7 +10,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -94,11 +94,6 @@ Ship acol1 = new Ship(
         new (2, -3),
         new (-2, -2),
         new (-4, 2)
-        // new(10, -2),
-        // new(7, 0),
-        // new(8, 2),
-        // new(10, 4),
-        // new(12, 0)
     ],
     "Ship"
 );
@@ -110,11 +105,6 @@ Ship acol2 = new Ship(
         new (3, -2),
         new (-2, -3),
         new (-2, 4)
-        // new(8, -2),
-        // new(6, 0),
-        // new(8, 2),
-        // new(10, 4),
-        // new(12, 0)
     ],
     "Ship"
 );

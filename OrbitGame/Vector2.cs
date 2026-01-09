@@ -1,10 +1,19 @@
 namespace OrbitGame;
 
-public struct Vector2(ScientificDecimal x, ScientificDecimal y) : IEquatable<Vector2>
+public struct Vector2 : IEquatable<Vector2>
 {
+    public Vector2(ScientificDecimal x, ScientificDecimal y)
+    {
+        X = x;
+        Y = y;
+    }
+
+    public static Vector2 FromPolar(double angle, ScientificDecimal magnitude)
+        => new(magnitude * Math.Cos(angle), magnitude * Math.Sin(angle));
+
     public static Vector2 Zero => new(0, 0);
-    public ScientificDecimal X { get; set; } = x;
-    public ScientificDecimal Y { get; set; } = y;
+    public ScientificDecimal X { get; set; }
+    public ScientificDecimal Y { get; set; }
 
     public static Vector2 operator -(Vector2 a) => new Vector2(-a.X, -a.Y);
 
