@@ -10,7 +10,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -81,14 +81,14 @@ Planet earth = new Planet(
     "Earth"
 );
 Planet col1 = new Planet(
-    1, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
+    1, Vector2.Zero + new Vector2(5, 10), Vector2.Zero, 1,
     new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
-Planet col2 = new Planet(
+Planet acol2 = new Planet(
     1, new(2, 5), Vector2.Zero, 1,
     new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
 Ship acol1 = new Ship(
     1, new(5, 5), Vector2.Zero,
-    new Material(new SKColor(125, 0, 0, 255), 0),
+    new Material(new SKColor(0, 125, 0, 255), 0),
     [
         new (2,4),
         new (2, -3),
@@ -97,9 +97,9 @@ Ship acol1 = new Ship(
     ],
     "Ship"
 );
-Ship acol2 = new Ship(
+Ship col2 = new Ship(
     1, Vector2.Zero, Vector2.Zero,
-    new Material(new SKColor(0, 125, 0, 255), 0),
+    new Material(new SKColor(125, 0, 0, 255), 0),
     [
         new (2,3),
         new (3, -2),
@@ -196,6 +196,7 @@ void OnRender(double _)
     }
     
     OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
+    //Console.WriteLine(col1.Collider.IntersectsWith(col2.Collider).Intersects);
     
     OriginBody.ResetOrigin(bodies);
     

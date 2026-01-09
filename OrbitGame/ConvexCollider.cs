@@ -60,20 +60,38 @@ public class ConvexCollider : CompactCollider, ICollider
     {
         if (IsEmpty() || collider.IsEmpty()) return Collision.None;
         // check if any vertices are inside the circle
-        if (_points.Any(x => (Parent.ObjectToWorldSpace(x) - collider.Position).Magnitude() <= collider.Radius)) 
-            return new Collision(Vector2.Zero);
-        // check if the circle's center is inside the convex shape 
-        if (IntersectsWith(collider.Position)) return new Collision(Vector2.Zero);
+
+        Vector2 minPenetrationVector = Vector2.Zero;
         for (int curr = 0; curr < _points.Length; ++curr)
         {
             int next = (curr + 1) % _points.Length;
             double angle = -AbsoluteEdgeNormalAngles[curr] + Math.PI / 2;
             ScientificDecimal upperBound = Vector2.ApplyRotation(RotatedPoints[next] - RotatedPoints[curr], angle).X;
             Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - RotatedPoints[curr], angle);
-            if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius && 
-                transformedCenter.X <= upperBound) return new Collision(Vector2.Zero);
+            if (transformedCenter.X >= 0 && ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius &&
+                transformedCenter.X <= upperBound)
+            {
+                ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
+                if (ScientificDecimal.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
+                    minPenetrationVector.Equals(Vector2.Zero))
+                    minPenetrationVector = Vector2.DirectionVector(AbsoluteEdgeNormalAngles[curr]) * -penetrationDistance;
+            }
         }
 
+        if (!minPenetrationVector.Equals(Vector2.Zero)) return new Collision(minPenetrationVector);
+        
+        foreach (var vertex in _points.Select(Parent.ObjectToWorldSpace))
+        {
+            Vector2 diffVector = vertex - collider.Position;
+            if (diffVector.Magnitude() <= collider.Radius)
+                if (diffVector.Magnitude() < minPenetrationVector.Magnitude() ||
+                    minPenetrationVector.Equals(Vector2.Zero))
+                    minPenetrationVector =
+                        Vector2.DirectionVector(Math.Atan2((double)diffVector.Y, (double)diffVector.X)) *
+                        (collider.Radius - diffVector.Magnitude());
+        }
+
+        if (!minPenetrationVector.Equals(Vector2.Zero)) return new Collision(minPenetrationVector);
         return Collision.None;
     }
 
@@ -97,6 +115,7 @@ public class ConvexCollider : CompactCollider, ICollider
                 minPenetrationVector = Vector2.DirectionVector(angle + Math.PI / 2) * penetrationDistance;
         }
 
+        if (minPenetrationVector.Equals(Vector2.Zero)) return Collision.None;
         return new Collision(minPenetrationVector);
     }
 
