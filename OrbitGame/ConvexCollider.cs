@@ -14,7 +14,7 @@ public class ConvexCollider : CompactCollider, ICollider
     // edge normal axis angles in world space
     private double[] AbsoluteEdgeNormalAngles => AbsoluteEdgeAngles.Select(x => x + Math.PI / 2).ToArray();
     
-    public ConvexCollider(Vector2[] points, KinematicObject parent) : base(parent)
+    public ConvexCollider(Vector2[] points, Body parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
         _edges = new Vector2[_points.Length];
@@ -128,7 +128,9 @@ public class ConvexCollider : CompactCollider, ICollider
         return IntersectsWith(convexRect);
     }
 
-    public override void CollidesWith(ICollider collider)
+    public override void CollidesWith(ICollider collider) => throw new NotImplementedException();
+    
+    public override void CollidesWith(CompactCollider collider)
     {
         throw new NotImplementedException();
     }

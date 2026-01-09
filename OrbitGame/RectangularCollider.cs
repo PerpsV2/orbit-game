@@ -9,7 +9,7 @@ public class RectangularCollider(
     ScientificDecimal right, 
     ScientificDecimal bottom,
     ScientificDecimal left, 
-    KinematicObject parent) 
+    Body parent) 
     : CompactCollider(parent), ICollider
 {
     // Values are the signed ordinates of the vertex points of the collider
@@ -23,7 +23,7 @@ public class RectangularCollider(
     public Vector2 BottomRight => new(Right, Bottom);
     public Vector2 BottomLeft => new(Left, Bottom);
 
-    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent)
+    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, Body parent)
         : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent) { }
 
     public override RectangularCollider GetBoundingBox() => this;
@@ -72,6 +72,11 @@ public class RectangularCollider(
     }
 
     public override void CollidesWith(ICollider collider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void CollidesWith(CompactCollider collider)
     {
         throw new NotImplementedException();
     }

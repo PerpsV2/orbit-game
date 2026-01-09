@@ -2,10 +2,11 @@ using SkiaSharp;
 
 namespace OrbitGame;
 
-public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, string name) 
+public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, string name) 
     : KinematicObject(position, velocity)
 {
     public ScientificDecimal Mass = mass;
+    public Material Material = material;
     public string Name = name;
     public ICollider? Collider;
     

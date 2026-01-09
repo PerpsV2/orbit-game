@@ -5,7 +5,6 @@ namespace OrbitGame;
 public class Planet : Body
 {
     public readonly ScientificDecimal Radius;
-    private readonly Material _material;
     
     public Planet(
         ScientificDecimal mass, 
@@ -15,10 +14,9 @@ public class Planet : Body
         Material material, 
         string name
         ) 
-        : base(mass, position, velocity, name)
+        : base(mass, position, velocity, material, name)
     {
         Radius = radius;
-        _material = material;
         Collider = new CircularCollider(Radius, this);
     }
 
@@ -26,7 +24,8 @@ public class Planet : Body
     {
         SKPaint paint = new SKPaint
         {
-            Color = _material.Colour
+            Color = Material.Colour,
+            StrokeWidth = 4
         };
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
@@ -96,6 +95,18 @@ public class Planet : Body
             path.Close();
             canvas.DrawPath(path, paint);
         }
+        
+        // if the planet is too small to draw on screen, instead draw its approximate location with a marker
+        else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
+        {
+            SKPoint screenPosition = camera.ConvertToScreenCoordinates(Position);
+            canvas.DrawLine(screenPosition + new SKPoint(10, 0), screenPosition + new SKPoint(0, 10), paint);
+            canvas.DrawLine(screenPosition + new SKPoint(0, 10), screenPosition + new SKPoint(-10, 0), paint);
+            canvas.DrawLine(screenPosition + new SKPoint(-10, 0), screenPosition + new SKPoint(0, -10), paint);
+            canvas.DrawLine(screenPosition + new SKPoint(0, -10), screenPosition + new SKPoint(10, 0), paint);
+        }
+        
+        // otherwise draw the planet as a circle
         else canvas.GS_DrawCircle(camera, Position, Radius, paint);
     }
 

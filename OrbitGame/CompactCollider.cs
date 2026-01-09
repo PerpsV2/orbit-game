@@ -10,9 +10,9 @@ namespace OrbitGame;
 /// Complexity of colliders follows this order
 /// Convex > Rectangular > Circular
 /// </remarks>
-public abstract class CompactCollider(KinematicObject parent) : ICollider
+public abstract class CompactCollider(Body parent) : ICollider
 {
-    public readonly KinematicObject Parent = parent;
+    public readonly Body Parent = parent;
     public Vector2 Position => Parent.Position;
     public bool Fixed;
     
@@ -48,6 +48,7 @@ public abstract class CompactCollider(KinematicObject parent) : ICollider
     }
 
     public abstract void CollidesWith(ICollider collider);
+    public abstract void CollidesWith(CompactCollider collider);
 
     public void CollidesWith(Body body)
     {

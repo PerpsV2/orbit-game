@@ -77,15 +77,30 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new Material(new SKColor(100, 200, 255, 255), 0),
+    new Material(new SKColor(100, 200, 255, 255), 0.3f),
     "Earth"
 );
+Ship smokestack = new Ship(
+    new ScientificDecimal(5.9722m, 22), 
+    new Vector2(new ScientificDecimal(6.378m, 6) + 1000000, 0), 
+    new Vector2(0, 10),
+    new Material(new SKColor(125, 0, 0, 255), 0.95f),
+    earth,
+    [
+        new(new(2,5), new(2,5)),
+        new(new(2,5), new(-3,5)),
+        new(new(-2,5), new(-2,5)),
+        new(new(-4,5), new(2,5))
+    ],
+    "Smokestack"
+);
+
 Planet col1 = new Planet(
-    1, Vector2.Zero + new Vector2(5, 10), Vector2.Zero, 1,
+    1, Vector2.Zero, Vector2.Zero, 3,
     new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
-Planet acol2 = new Planet(
-    1, new(2, 5), Vector2.Zero, 1,
-    new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
+Planet col2 = new Planet(
+    1, new(6, 4), Vector2.Zero, 5,
+    new Material(new SKColor(0, 0, 125, 255), 0), "Planet");
 Ship acol1 = new Ship(
     1, new(5, 5), Vector2.Zero,
     new Material(new SKColor(0, 125, 0, 255), 0),
@@ -97,8 +112,8 @@ Ship acol1 = new Ship(
     ],
     "Ship"
 );
-Ship col2 = new Ship(
-    1, Vector2.Zero, Vector2.Zero,
+Ship col3 = new Ship(
+    1, new Vector2(-10, 0), Vector2.Zero,
     new Material(new SKColor(125, 0, 0, 255), 0),
     [
         new (2,3),
@@ -110,11 +125,12 @@ Ship col2 = new Ship(
 );
 
 List<Body> bodies = [
-    col1,
-    col2
+    sun,
+    earth,
+    smokestack
 ];
 
-OriginBody.Body = col1;
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -159,15 +175,11 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
     
     float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
-    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
-    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
-
-    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(camRotateSpeed);
+    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(-camRotateSpeed);
+    
+    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.001;
+    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.001;
 }
 
 void OnRender(double _)
@@ -194,9 +206,13 @@ void OnRender(double _)
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
         }
     }
-    
-    OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
+
+    //earth.Collider.CollidesWith(sun.Collider);
+    //sun.Collider.CollidesWith(smokestack.Collider);
+    earth.Collider.CollidesWith(smokestack.Collider);
     //Console.WriteLine(col1.Collider.IntersectsWith(col2.Collider).Intersects);
+
+    //smokestack.Position += smokestack.Collider.IntersectsWith(earth.Collider).PenetrationVector;
     
     OriginBody.ResetOrigin(bodies);
     

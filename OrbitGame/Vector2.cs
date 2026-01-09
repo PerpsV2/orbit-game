@@ -33,8 +33,8 @@ public struct Vector2 : IEquatable<Vector2>
     }
     
     // dot product
-    public static Vector2 operator *(Vector2 a, Vector2 b)
-        => new(a.X * b.X, a.Y * b.Y);
+    public static ScientificDecimal operator *(Vector2 a, Vector2 b)
+        => a.X * b.X + a.Y * b.Y;
 
     public static Vector2 ApplyRotation(Vector2 vector, double angle)
         => new(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle),
