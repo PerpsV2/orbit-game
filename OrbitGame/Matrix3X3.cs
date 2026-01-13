@@ -1,11 +1,10 @@
-using System.Reflection.Metadata;
-
 namespace OrbitGame;
+using MatrixData = ScientificDecimal[];
 
-public class Matrix3X3
+public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 {
     // Matrix information is organized from left to right then top to bottom
-    public ScientificDecimal[] Data = new ScientificDecimal[9];
+    public readonly MatrixData Data = new ScientificDecimal[9];
 
     public Matrix3X3(ScientificDecimal[] data)
     {
@@ -32,7 +31,7 @@ public class Matrix3X3
     
     public static Matrix3X3 operator *(Matrix3X3 a, Matrix3X3 b)
     {
-        ScientificDecimal[] resultData = new ScientificDecimal[9];
+        MatrixData resultData = new ScientificDecimal[9];
         for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             resultData[i * 3 + j] =
@@ -84,6 +83,13 @@ public class Matrix3X3
         ]);
     }
 
+    public bool Equals(Matrix3X3? other)
+    {
+        if (other == null) return false;
+        if (Data == other.Data) return true;
+        return false;
+    }
+
     public override string ToString()
     {
         string result = "";
@@ -91,4 +97,7 @@ public class Matrix3X3
             result += $"{Data[i * 3]}, {Data[i * 3 + 1]}, {Data[i * 3 + 2]}\n";
         return result;
     }
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+        => ToString();
 }

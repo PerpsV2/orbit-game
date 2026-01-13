@@ -1,4 +1,3 @@
-using System.Numerics;
 using SkiaSharp;
 
 namespace OrbitGame;

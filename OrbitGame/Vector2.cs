@@ -1,6 +1,8 @@
+using System.Globalization;
+
 namespace OrbitGame;
 
-public struct Vector2 : IEquatable<Vector2>
+public struct Vector2 : IEquatable<Vector2>, IFormattable
 {
     public Vector2(ScientificDecimal x, ScientificDecimal y)
     {
@@ -106,6 +108,9 @@ public struct Vector2 : IEquatable<Vector2>
         new(Math.Cos(angle), Math.Sin(angle));
 
     public override string ToString()
+        => "<" + X + ", " + Y + ">";
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
         => "<" + X + ", " + Y + ">";
 
     public bool Equals(Vector2 other)
