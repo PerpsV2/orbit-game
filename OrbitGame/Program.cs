@@ -4,13 +4,14 @@ using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
 using Silk.NET.Input;
 using SkiaSharp;
+using Matrix3X3 = OrbitGame.Matrix3X3;
 using Vector2 = OrbitGame.Vector2;
 // ReSharper disable AccessToDisposedClosure
 
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width/2, Options.ScreenSize.height/2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -77,33 +78,18 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new Material(new SKColor(100, 200, 255, 255), 0.3f),
+    new Material(new SKColor(100, 200, 255, 255), 0),
     "Earth"
 );
-Ship smokestack = new Ship(
-    new ScientificDecimal(5.9722m, 22), 
-    new Vector2(new ScientificDecimal(6.378m, 6) + 1000000, 0), 
-    new Vector2(0, 10),
-    new Material(new SKColor(125, 0, 0, 255), 0.95f),
-    earth,
-    [
-        new(new(2,5), new(2,5)),
-        new(new(2,5), new(-3,5)),
-        new(new(-2,5), new(-2,5)),
-        new(new(-4,5), new(2,5))
-    ],
-    "Smokestack"
-);
-
 Planet col1 = new Planet(
-    1, Vector2.Zero, Vector2.Zero, 3,
+    100, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
     new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
 Planet col2 = new Planet(
-    1, new(6, 4), Vector2.Zero, 5,
-    new Material(new SKColor(0, 0, 125, 255), 0), "Planet");
+    100, new(2, 5), Vector2.Zero, 1,
+    new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
 Ship acol1 = new Ship(
     1, new(5, 5), Vector2.Zero,
-    new Material(new SKColor(0, 125, 0, 255), 0),
+    new Material(new SKColor(125, 0, 0, 255), 0),
     [
         new (2,4),
         new (2, -3),
@@ -112,9 +98,9 @@ Ship acol1 = new Ship(
     ],
     "Ship"
 );
-Ship col3 = new Ship(
-    1, new Vector2(-10, 0), Vector2.Zero,
-    new Material(new SKColor(125, 0, 0, 255), 0),
+Ship acol2 = new Ship(
+    1, Vector2.Zero, Vector2.Zero,
+    new Material(new SKColor(0, 125, 0, 255), 0),
     [
         new (2,3),
         new (3, -2),
@@ -125,12 +111,11 @@ Ship col3 = new Ship(
 );
 
 List<Body> bodies = [
-    sun,
-    earth,
-    smokestack
+    col1,
+    col2
 ];
 
-OriginBody.Body = smokestack;
+OriginBody.Body = col1;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -175,11 +160,15 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
     
     float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
-    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(camRotateSpeed);
-    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(-camRotateSpeed);
-    
-    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.001;
-    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.001;
+    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
+    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
+
+    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.1m);
+    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
+    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
 }
 
 void OnRender(double _)
@@ -206,13 +195,8 @@ void OnRender(double _)
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
         }
     }
-
-    //earth.Collider.CollidesWith(sun.Collider);
-    //sun.Collider.CollidesWith(smokestack.Collider);
-    earth.Collider.CollidesWith(smokestack.Collider);
-    //Console.WriteLine(col1.Collider.IntersectsWith(col2.Collider).Intersects);
-
-    //smokestack.Position += smokestack.Collider.IntersectsWith(earth.Collider).PenetrationVector;
+    
+    OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
     
     OriginBody.ResetOrigin(bodies);
     
