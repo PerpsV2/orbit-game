@@ -43,7 +43,7 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
             vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
 
     public ScientificDecimal Magnitude()
-        => ScientificDecimal.Sqrt(X * X + Y * Y);
+        => (X * X + Y * Y).Sqrt();
 
     public Vector2 Normalize() =>
         this /= Magnitude();
@@ -53,6 +53,9 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
         Vector2 difference = end - start;
         return difference / difference.Magnitude();
     }
+    
+    public static Vector2 DirectionVector(double angle) =>
+        new(Math.Cos(angle), Math.Sin(angle));
 
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
     {
@@ -89,7 +92,7 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
         return convexHull;
     }
 
-    public double PrincipalAngle()
+    private double GetPrincipalAngle()
     {
         double angle = Math.Atan((double)(Y / X));
         if (X < 0 && Y > 0) return Math.PI + angle;
@@ -98,14 +101,11 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
         return angle;
     }
 
-    public static double AngleTo(Vector2 start, Vector2 end)
+    public static double Atan2(Vector2 start, Vector2 end)
     {
         Vector2 difference = end - start;
-        return difference.PrincipalAngle();
+        return difference.GetPrincipalAngle();
     }
-
-    public static Vector2 DirectionVector(double angle) =>
-        new(Math.Cos(angle), Math.Sin(angle));
 
     public override string ToString()
         => "<" + X + ", " + Y + ">";

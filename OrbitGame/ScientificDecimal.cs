@@ -58,7 +58,7 @@ public struct ScientificDecimal
     /// <summary>
     /// Increase the exponent without modifying the actual value of the number
     /// </summary>
-    public ScientificDecimal IncreaseExponent(int exponent)
+    private ScientificDecimal IncreaseExponent(int exponent)
     {
         int exponentDifference = exponent - Exponent;
         if (exponentDifference < 0) throw new ArgumentOutOfRangeException();
@@ -115,21 +115,11 @@ public struct ScientificDecimal
         => new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent).Normalize();
     
     public static ScientificDecimal operator +(ScientificDecimal value) => value;
-    
-    public static ScientificDecimal operator -(ScientificDecimal value) 
-        => new(-value.Mantissa, value.Exponent);
-
-    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right)
-        => Add(left, right);
-
-    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right)
-        => Add(left, -right);
-
-    public static ScientificDecimal operator ++(ScientificDecimal value)
-        => Add(value, 1);
-    
-    public static ScientificDecimal operator --(ScientificDecimal value)
-        => Add(value, -1);
+    public static ScientificDecimal operator -(ScientificDecimal value) => new(-value.Mantissa, value.Exponent);
+    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right) => Add(left, right);
+    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right) => Add(left, -right);
+    public static ScientificDecimal operator ++(ScientificDecimal value) => Add(value, 1);
+    public static ScientificDecimal operator --(ScientificDecimal value) => Add(value, -1);
     
     public static ScientificDecimal operator*(ScientificDecimal left, ScientificDecimal right)
         => Multiply(left, right);
@@ -155,21 +145,16 @@ public struct ScientificDecimal
     public static bool operator >=(ScientificDecimal left, ScientificDecimal right)
         => left > right || left == right;
 
-    public static ScientificDecimal Sqrt(ScientificDecimal value)
+    public ScientificDecimal Sqrt()
     {
-        if (value.Mantissa < 0)
-        {
-            Console.WriteLine(value.Mantissa);
+        if (Mantissa < 0)
             throw new ArgumentOutOfRangeException();
-        }
-        if (value.Exponent % 2 != 0) value = value.IncreaseExponent(value.Exponent + 1);
-        return new ScientificDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
+        if (Exponent % 2 != 0) IncreaseExponent(Exponent + 1);
+        return new ScientificDecimal(Utils.DecimalSqrt(Mantissa), Exponent / 2);
     }
 
-    public static ScientificDecimal Square(ScientificDecimal value) => value * value; 
-
-    public static ScientificDecimal Abs(ScientificDecimal value)
-        => new (Math.Abs(value.Mantissa), value.Exponent);
+    public ScientificDecimal Abs()
+        => new (Math.Abs(Mantissa), Exponent);
 
     public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
     {
@@ -187,19 +172,8 @@ public struct ScientificDecimal
         return result;
     }
 
-    public static ScientificDecimal Clamp(ScientificDecimal value, ScientificDecimal min, ScientificDecimal max)
-        => value < min ? min : value > max ? max : value;
-    
-    
-    // Atan2 function with scientific decimal which returns in the range 0 <= x < Tau
-    public static double Atan2Tau(ScientificDecimal y, ScientificDecimal x)
-    {
-        double result = Math.Atan((double)(y / x));
-        if (x < 0 && y > 0) return Math.PI + result;
-        if (x < 0 && y < 0) return Math.PI + result;
-        if (x > 0 && y < 0) return (Math.Tau + result) % Math.Tau;
-        return result;
-    }
+    public ScientificDecimal Clamp(ScientificDecimal min, ScientificDecimal max)
+        => this < min ? min : this > max ? max : this;
     
     #endregion
     

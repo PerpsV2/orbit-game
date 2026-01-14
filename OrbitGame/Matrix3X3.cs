@@ -28,7 +28,20 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         Data[5] = basisZ.Y;
         Data[8] = basisZ.Z;
     }
-    
+
+    private static Matrix3X3 Add(Matrix3X3 a, Matrix3X3 b)
+    {
+        MatrixData resultData = new ScientificDecimal[9];
+        for (int i = 0; i < 9; ++i)
+            resultData[i] = a.Data[i] + b.Data[i];
+        return new Matrix3X3(resultData);
+    }
+
+    public static Matrix3X3 operator +(Matrix3X3 m) => m;
+    public static Matrix3X3 operator -(Matrix3X3 m) 
+        => new (m.Data.Select(x => -x).ToArray());
+    public static Matrix3X3 operator +(Matrix3X3 a, Matrix3X3 b) => Add(a, b);
+    public static Matrix3X3 operator -(Matrix3X3 a, Matrix3X3 b) => Add(a, -b);
     public static Matrix3X3 operator *(Matrix3X3 a, Matrix3X3 b)
     {
         MatrixData resultData = new ScientificDecimal[9];
@@ -38,15 +51,19 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
                 a.Data[i * 3] * b.Data[j] + a.Data[i * 3 + 1] * b.Data[j + 3] + a.Data[i * 3 + 2] * b.Data[j + 6];
         return new Matrix3X3(resultData);
     }
-
+    
     public static Vector2 operator *(Matrix3X3 matrix, Vector2 vector)
     {
         return new Vector2(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2],
-            matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]
-            );
+            matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]);
     }
 
+    public static Vector3 operator *(Matrix3X3 matrix, Vector3 vector)
+    {
+        
+    }
+    
     public static Matrix3X3 Identity()
     {
         return new Matrix3X3([

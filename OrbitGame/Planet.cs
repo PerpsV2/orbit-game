@@ -49,38 +49,38 @@ public class Planet : Body
             
             if (topDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(topDiscriminant);
+                radical = topDiscriminant.Sqrt();
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), h));
-                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), h));
+                    intersectionPoints.Add(new Vector2((p2 - radical).Clamp(0, w), h));
+                    intersectionPoints.Add(new Vector2((p2 + radical).Clamp(0, w), h));
                 }
             }
             if (rightDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(rightDiscriminant);
+                radical = rightDiscriminant.Sqrt();
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new Vector2(w, ScientificDecimal.Clamp(p1 + radical, 0, h)));
-                    intersectionPoints.Add(new Vector2(w, ScientificDecimal.Clamp(p1 - radical, 0, h)));
+                    intersectionPoints.Add(new Vector2(w, (p1 + radical).Clamp(0, h)));
+                    intersectionPoints.Add(new Vector2(w, (p1 - radical).Clamp(0, h)));
                 }
             }
             if (bottomDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
+                radical = bottomDiscriminant.Sqrt();
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), 0));
-                    intersectionPoints.Add(new Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), 0));
+                    intersectionPoints.Add(new Vector2((p2 + radical).Clamp(0, w), 0));
+                    intersectionPoints.Add(new Vector2((p2 - radical).Clamp(0, w), 0));
                 }
             }
             if (leftDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(leftDiscriminant);
+                radical = leftDiscriminant.Sqrt();
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new Vector2(0, ScientificDecimal.Clamp(p1 - radical, 0, h)));
-                    intersectionPoints.Add(new Vector2(0, ScientificDecimal.Clamp(p1 + radical, 0, h)));
+                    intersectionPoints.Add(new Vector2(0, (p1 - radical).Clamp(0, h)));
+                    intersectionPoints.Add(new Vector2(0, (p1 + radical).Clamp(0, h)));
                 }
             }
 
