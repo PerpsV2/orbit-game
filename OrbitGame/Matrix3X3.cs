@@ -1,7 +1,7 @@
 namespace OrbitGame;
 using MatrixData = ScientificDecimal[];
 
-public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
+public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 {
     // Matrix information is organized from left to right then top to bottom
     public readonly MatrixData Data = new ScientificDecimal[9];
@@ -28,6 +28,8 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         Data[5] = basisZ.Y;
         Data[8] = basisZ.Z;
     }
+    
+    #region Operators
 
     private static Matrix3X3 Add(Matrix3X3 a, Matrix3X3 b)
     {
@@ -37,18 +39,23 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         return new Matrix3X3(resultData);
     }
 
-    public static Matrix3X3 operator +(Matrix3X3 m) => m;
-    public static Matrix3X3 operator -(Matrix3X3 m) 
-        => new (m.Data.Select(x => -x).ToArray());
-    public static Matrix3X3 operator +(Matrix3X3 a, Matrix3X3 b) => Add(a, b);
-    public static Matrix3X3 operator -(Matrix3X3 a, Matrix3X3 b) => Add(a, -b);
-    public static Matrix3X3 operator *(Matrix3X3 a, Matrix3X3 b)
+    public static Matrix3X3 operator +(Matrix3X3 value) 
+        => value;
+    public static Matrix3X3 operator -(Matrix3X3 value) 
+        => new (value.Data.Select(x => -x).ToArray());
+    public static Matrix3X3 operator +(Matrix3X3 left, Matrix3X3 right) 
+        => Add(left, right);
+    public static Matrix3X3 operator -(Matrix3X3 left, Matrix3X3 right) 
+        => Add(left, -right);
+    public static Matrix3X3 operator *(Matrix3X3 left, Matrix3X3 right)
     {
         MatrixData resultData = new ScientificDecimal[9];
         for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             resultData[i * 3 + j] =
-                a.Data[i * 3] * b.Data[j] + a.Data[i * 3 + 1] * b.Data[j + 3] + a.Data[i * 3 + 2] * b.Data[j + 6];
+                left.Data[i * 3] * right.Data[j] + 
+                left.Data[i * 3 + 1] * right.Data[j + 3] + 
+                left.Data[i * 3 + 2] * right.Data[j + 6];
         return new Matrix3X3(resultData);
     }
     
@@ -61,8 +68,22 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 
     public static Vector3 operator *(Matrix3X3 matrix, Vector3 vector)
     {
-        
+        return new Vector3(
+            matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2] * vector.Z,
+            matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5] * vector.Z,
+            matrix.Data[6] * vector.X + matrix.Data[7] * vector.Y + matrix.Data[8] * vector.Z
+            );
     }
+    
+    public static bool operator ==(Matrix3X3 left, Matrix3X3 right)
+        => left.Data.SequenceEqual(right.Data);
+
+    public static bool operator !=(Matrix3X3 left, Matrix3X3 right) 
+        => !left.Data.SequenceEqual(right.Data);
+    
+    #endregion
+    
+    #region Transformations
     
     public static Matrix3X3 Identity()
     {
@@ -99,14 +120,9 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
             0, 0, 1
         ]);
     }
-
-    public bool Equals(Matrix3X3? other)
-    {
-        if (other == null) return false;
-        if (Data == other.Data) return true;
-        return false;
-    }
-
+    
+    #endregion
+    
     public override string ToString()
     {
         string result = "";
@@ -117,4 +133,18 @@ public class Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 
     public string ToString(string? format, IFormatProvider? formatProvider)
         => ToString();
+
+    public bool Equals(Matrix3X3 other)
+    {
+        if (Data.SequenceEqual(other.Data)) return true;
+        return false;
+    }
+    
+    public override bool Equals(object? obj)
+    {
+        return obj is Matrix3X3 other && Equals(other);
+    }
+
+    public override int GetHashCode() 
+        => Data.GetHashCode();
 }

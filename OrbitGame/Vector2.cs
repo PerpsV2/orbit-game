@@ -2,51 +2,53 @@ using System.Globalization;
 
 namespace OrbitGame;
 
-public struct Vector2 : IEquatable<Vector2>, IFormattable
+public struct Vector2(ScientificDecimal x, ScientificDecimal y) 
+    : IEquatable<Vector2>, IFormattable
 {
-    public Vector2(ScientificDecimal x, ScientificDecimal y)
-    {
-        X = x;
-        Y = y;
-    }
+    public static Vector2 Zero => new(0, 0);
+    public ScientificDecimal X { get; set; } = x;
+    public ScientificDecimal Y { get; set; } = y;
 
     public static Vector2 FromPolar(double angle, ScientificDecimal magnitude)
         => new(magnitude * Math.Cos(angle), magnitude * Math.Sin(angle));
 
-    public static Vector2 Zero => new(0, 0);
-    public ScientificDecimal X { get; set; }
-    public ScientificDecimal Y { get; set; }
+    #region Operators
+    
+    public static ScientificDecimal Dot(Vector2 left, Vector2 right)
+        => left.X * right.X + left.Y * right.Y;
 
-    public static Vector2 operator -(Vector2 a) => new Vector2(-a.X, -a.Y);
+    // returns the cross product of two 2D vectors assuming the Z value of each is zero
+    public static Vector3 Cross(Vector2 left, Vector2 right)
+        => new(0, 0, left.X * right.Y - left.Y * right.X);
+    
+    public ScientificDecimal Magnitude()
+        => (X * X + Y * Y).Sqrt();
 
+    public Vector2 Normalize()
+        => this /= Magnitude();
+    
+    public static Vector2 operator +(Vector2 value) 
+        => value;
+    public static Vector2 operator -(Vector2 value) 
+        => new(-value.X, -value.Y);
     public static Vector2 operator +(Vector2 a, Vector2 b)
         => new(a.X + b.X, a.Y + b.Y);
-
     public static Vector2 operator -(Vector2 a, Vector2 b)
         => a + -b;
-    
     public static Vector2 operator *(Vector2 a, ScientificDecimal b) 
         => new(a.X * b, a.Y * b);
-
     public static Vector2 operator /(Vector2 a, ScientificDecimal b)
-    {
-        if (b == 0) throw new DivideByZeroException();
-        return new Vector2(a.X / b, a.Y / b);
-    }
+        => new(a.X / b, a.Y / b);
+    public static bool operator ==(Vector2 left, Vector2 right)
+        => left.Equals(right);
+    public static bool operator !=(Vector2 left, Vector2 right)
+        => !left.Equals(right);
     
-    // dot product
-    public static ScientificDecimal operator *(Vector2 a, Vector2 b)
-        => a.X * b.X + a.Y * b.Y;
+    #endregion
 
     public static Vector2 ApplyRotation(Vector2 vector, double angle)
         => new(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle),
             vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
-
-    public ScientificDecimal Magnitude()
-        => (X * X + Y * Y).Sqrt();
-
-    public Vector2 Normalize() =>
-        this /= Magnitude();
     
     public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
     {
@@ -110,8 +112,8 @@ public struct Vector2 : IEquatable<Vector2>, IFormattable
     public override string ToString()
         => "<" + X + ", " + Y + ">";
 
-    public string ToString(string? format, IFormatProvider? formatProvider)
-        => "<" + X + ", " + Y + ">";
+    public string ToString(string? format, IFormatProvider? formatProvider) 
+        => ToString();
 
     public bool Equals(Vector2 other)
     {

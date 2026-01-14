@@ -83,10 +83,10 @@ Planet earth = new Planet(
 );
 Planet col1 = new Planet(
     100, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
-    new Material(new SKColor(0, 125, 0, 255), 0), "Planet");
+    new Material(new SKColor(0, 125, 0, 255), 0.5f), "Planet");
 Planet col2 = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
-    new Material(new SKColor(125, 0, 0, 255), 0), "Planet");
+    new Material(new SKColor(125, 0, 0, 255), 0.5f), "Planet");
 Ship acol1 = new Ship(
     1, new(5, 5), Vector2.Zero,
     new Material(new SKColor(125, 0, 0, 255), 0),
@@ -196,7 +196,7 @@ void OnRender(double _)
         }
     }
     
-    OriginBody.Body.Position += col1.Collider.IntersectsWith(col2.Collider).PenetrationVector;
+    col1.Collider.CollidesWith(col2.Collider);
     
     OriginBody.ResetOrigin(bodies);
     

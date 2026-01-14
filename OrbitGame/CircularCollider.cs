@@ -57,7 +57,8 @@ public class CircularCollider
         Vector2 relativeVelocity = Parent.Velocity - collider.Parent.Velocity;
         ScientificDecimal totalRestitution =
             (Parent.Material.RestitutionCoefficient + collider.Parent.Material.RestitutionCoefficient) / 2;
-        ScientificDecimal totalVelocity = relativeVelocity * penetrationVector.Normalize() * -(1 + totalRestitution);
+        ScientificDecimal totalVelocity = 
+            Vector2.Dot(relativeVelocity, penetrationVector.Normalize()) * -(1 + totalRestitution);
         ScientificDecimal impulse = totalVelocity * mass1 * mass2 / (mass1 + mass2);
         
         // apply impulse along collision normal

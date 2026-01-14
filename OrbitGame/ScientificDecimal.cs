@@ -4,8 +4,7 @@ namespace OrbitGame;
 /// <summary>
 /// Number with decimal precision but arbitrary place value
 /// </summary>
-public struct ScientificDecimal
-    : IComparable, IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>
+public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>, IFormattable
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
 
@@ -114,37 +113,6 @@ public struct ScientificDecimal
     private static ScientificDecimal Divide(ScientificDecimal dividend, ScientificDecimal divisor)
         => new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent).Normalize();
     
-    public static ScientificDecimal operator +(ScientificDecimal value) => value;
-    public static ScientificDecimal operator -(ScientificDecimal value) => new(-value.Mantissa, value.Exponent);
-    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right) => Add(left, right);
-    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right) => Add(left, -right);
-    public static ScientificDecimal operator ++(ScientificDecimal value) => Add(value, 1);
-    public static ScientificDecimal operator --(ScientificDecimal value) => Add(value, -1);
-    
-    public static ScientificDecimal operator*(ScientificDecimal left, ScientificDecimal right)
-        => Multiply(left, right);
-    
-    public static ScientificDecimal operator/(ScientificDecimal dividend, ScientificDecimal divisor)
-        => Divide(dividend, divisor);
-    
-    public static bool operator ==(ScientificDecimal left, ScientificDecimal right)
-        => left.Mantissa == right.Mantissa && left.Exponent == right.Exponent;
-
-    public static bool operator !=(ScientificDecimal left, ScientificDecimal right) 
-        => !(left == right);
-
-    public static bool operator <(ScientificDecimal left, ScientificDecimal right)
-        => (right - left).Positive;
-
-    public static bool operator >(ScientificDecimal left, ScientificDecimal right)
-        => (left - right).Positive;
-
-    public static bool operator <=(ScientificDecimal left, ScientificDecimal right)
-        => left < right || left == right;
-    
-    public static bool operator >=(ScientificDecimal left, ScientificDecimal right)
-        => left > right || left == right;
-
     public ScientificDecimal Sqrt()
     {
         if (Mantissa < 0)
@@ -175,6 +143,35 @@ public struct ScientificDecimal
     public ScientificDecimal Clamp(ScientificDecimal min, ScientificDecimal max)
         => this < min ? min : this > max ? max : this;
     
+    public static ScientificDecimal operator +(ScientificDecimal value) 
+        => value;
+    public static ScientificDecimal operator -(ScientificDecimal value) 
+        => new(-value.Mantissa, value.Exponent);
+    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right) 
+        => Add(left, right);
+    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right) 
+        => Add(left, -right);
+    public static ScientificDecimal operator ++(ScientificDecimal value) 
+        => Add(value, 1);
+    public static ScientificDecimal operator --(ScientificDecimal value)
+        => Add(value, -1);
+    public static ScientificDecimal operator*(ScientificDecimal left, ScientificDecimal right)
+        => Multiply(left, right);
+    public static ScientificDecimal operator/(ScientificDecimal dividend, ScientificDecimal divisor)
+        => Divide(dividend, divisor);
+    public static bool operator ==(ScientificDecimal left, ScientificDecimal right)
+        => left.Equals(right);
+    public static bool operator !=(ScientificDecimal left, ScientificDecimal right) 
+        => !left.Equals(right);
+    public static bool operator <(ScientificDecimal left, ScientificDecimal right)
+        => (right - left).Positive;
+    public static bool operator >(ScientificDecimal left, ScientificDecimal right)
+        => (left - right).Positive;
+    public static bool operator <=(ScientificDecimal left, ScientificDecimal right)
+        => left < right || left == right;
+    public static bool operator >=(ScientificDecimal left, ScientificDecimal right)
+        => left > right || left == right;
+    
     #endregion
     
     public override string ToString()
@@ -185,15 +182,17 @@ public struct ScientificDecimal
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
 
+    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+
+    public int CompareTo(ScientificDecimal other)
+        => this < other ? -1 : this > other ? 1 : 0;
+    
     public int CompareTo(object? obj)
     {
         if (obj is not ScientificDecimal @decimal) 
             throw new ArgumentException($"Object must be of type {nameof(ScientificDecimal)}");
         return CompareTo(@decimal);
     }
-
-    public int CompareTo(ScientificDecimal other)
-        => this < other ? -1 : this > other ? 1 : 0;
 
     public bool Equals(ScientificDecimal other)
     {

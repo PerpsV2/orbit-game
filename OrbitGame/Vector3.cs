@@ -1,51 +1,70 @@
 namespace OrbitGame;
 
-public struct Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecimal z)
+public struct Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecimal z) 
+    : IEquatable<Vector3>, IFormattable
 {
     public static Vector3 Zero => new(0, 0, 0);
     public ScientificDecimal X { get; set; } = x;
     public ScientificDecimal Y { get; set; } = y;
     public ScientificDecimal Z { get; set; } = z;
 
-    public static Vector3 operator -(Vector3 a) => new Vector3(-a.X, -a.Y, -a.Z);
-    
-    public static Vector3 operator +(Vector3 a, Vector3 b)
-        => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+    #region Operators
 
-    public static Vector3 operator -(Vector3 a, Vector3 b)
-        => a + -b;
-    
-    public static Vector3 operator *(Vector3 a, ScientificDecimal b) 
-        => new (a.X * b, a.Y * b, a.Z * b);
+    public static ScientificDecimal Dot(Vector3 left, Vector3 right)
+        => left.X * right.X + left.Y * right.Y + left.Z * right.Z;
 
-    public static Vector3 operator /(Vector3 a, ScientificDecimal b)
-    {
-        if (b == 0) throw new DivideByZeroException();
-        return new Vector3(a.X / b, a.Y / b, a.Z / b);
-    }
-    
-    // dot product
-    public static ScientificDecimal operator *(Vector3 a, Vector3 b)
-        => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    public static Vector3 Cross(Vector3 left, Vector3 right)
+        => new(
+            left.Y * right.Z - left.Z * right.Y, 
+            left.Z * right.X - left.X * right.Z, 
+            left.X * right.Y - left.Y * right.X
+            );
 
     public ScientificDecimal Magnitude()
-        => ScientificDecimal.Sqrt(X * X + Y * Y + Z * Z);
+        => (X * X + Y * Y + Z * Z).Sqrt();
 
-    public static Vector3 CrossProduct(Vector3 a, Vector3 b)
-        => new (a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z, a.X * b.Y - a.Y * b.X);
-
-    public Vector2 Flatten()
-        => new (X, Y);
+    public Vector3 Normalize()
+        => this /= Magnitude();
     
-    public static double AngleBetween(Vector3 a, Vector3 b)
-        => Math.Acos((double)(a * b / (a.Magnitude() * b.Magnitude())));
-
-    public static Vector3 DirectionVectorBetween(Vector3 start, Vector3 end)
+    public static Vector3 operator +(Vector3 value) 
+        => value;
+    public static Vector3 operator -(Vector3 value) 
+        => new(-value.X, -value.Y, -value.Z);
+    public static Vector3 operator +(Vector3 left, Vector3 right)
+        => new(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+    public static Vector3 operator -(Vector3 left, Vector3 right)
+        => left + -right;
+    public static Vector3 operator *(Vector3 vector, ScientificDecimal scalar) 
+        => new(vector.X * scalar, vector.Y * scalar, vector.Z * scalar);
+    public static Vector3 operator /(Vector3 vector, ScientificDecimal scalar)
+        => new(vector.X / scalar, vector.Y / scalar, vector.Z / scalar);
+    
+    #endregion
+    
+    public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
     {
-        Vector3 difference = end - start;
+        Vector2 difference = end - start;
         return difference / difference.Magnitude();
     }
-
+    
     public override string ToString()
         => "<" + X + ", " + Y + ", " + Z + ">";
+
+    public string ToString(string? format, IFormatProvider? formatProvider) 
+        => ToString();
+
+    public bool Equals(Vector3 other)
+    {
+        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Vector2 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y, Z);
+    }
 }
