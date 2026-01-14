@@ -47,12 +47,10 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public void SetOrigin(Vector2 origin) => _origin = origin;
     
     public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
-    {
-        return (Vector2.ApplyRotation(point - AbsolutePosition, Angle) +
-                new Vector2(Width / 2, Height / 2)) /
-               (Width / Options.ScreenSize.width);
-    }
-
+        => Matrix3X3.Scale(Options.ScreenSize.width / Width) * 
+           Matrix3X3.Translation(Width / 2, Height / 2) *
+           Matrix3X3.Rotation(Angle) * (point - AbsolutePosition);
+    
     public SKPoint ConvertToScreenCoordinates(Vector2 point)
     {
         Vector2 rotatedPoint = SD_ConvertToScreenCoordinates(point);

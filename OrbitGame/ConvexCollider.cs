@@ -5,8 +5,7 @@ namespace OrbitGame;
 public class ConvexCollider : CompactCollider, ICollider
 {
     private readonly Vector2[] _points;
-    private readonly Vector2[] _edges;
-    private Vector2[] RotatedPoints => _points.Select(x => Vector2.ApplyRotation(x, Parent.Angle)).ToArray();
+    private Vector2[] RotatedPoints => _points.Select(x => Matrix3X3.Rotation(Parent.Angle) * x).ToArray();
     private readonly double[] _edgeAngles;
 
     private double[] AbsoluteEdgeAngles => _edgeAngles.Select(x => x + Parent.Angle).ToArray();
@@ -17,11 +16,10 @@ public class ConvexCollider : CompactCollider, ICollider
     public ConvexCollider(Vector2[] points, Body parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
-        _edges = new Vector2[_points.Length];
+        Vector2[] edges = new Vector2[_points.Length];
         for (int i = 0; i < _points.Length; ++i)
-            _edges[i] = _points[(i + 1) % _points.Length] - _points[i];
-        _edgeAngles = _edges
-            .Select(v => Math.Atan2((double)v.Y, (double)v.X)).ToArray();
+            edges[i] = _points[(i + 1) % _points.Length] - _points[i];
+        _edgeAngles = edges.Select(v => v.GetPrincipalAngle()).ToArray();
     }
 
     public override RectangularCollider GetBoundingBox()
@@ -42,15 +40,16 @@ public class ConvexCollider : CompactCollider, ICollider
         return new(top, right, bottom, left, Parent);
     }
 
+    // TODO: check if this works
     public override bool IntersectsWith(Vector2 point)
     {
         if (IsEmpty()) return false;
         foreach (var angle in AbsoluteEdgeNormalAngles)
         {
             ScientificDecimal[] projectedCollider = _points.Select(
-                x => Utils.ProjectPoint(Parent.ObjectToWorldSpace(x), angle))
+                x => (Matrix3X3.Rotation(angle) * Parent.ObjectToWorldSpace(x)).X)
                 .ToArray();
-            ScientificDecimal projectedPoint = Utils.ProjectPoint(point, angle);
+            ScientificDecimal projectedPoint = (Matrix3X3.Rotation(angle) * point).X;
             if (projectedPoint > projectedCollider.Max() || projectedPoint < projectedCollider.Min()) return false;
         }
         return true;
@@ -66,15 +65,15 @@ public class ConvexCollider : CompactCollider, ICollider
         {
             int next = (curr + 1) % _points.Length;
             double angle = -AbsoluteEdgeNormalAngles[curr] + Math.PI / 2;
-            ScientificDecimal upperBound = Vector2.ApplyRotation(RotatedPoints[next] - RotatedPoints[curr], angle).X;
-            Vector2 transformedCenter = Vector2.ApplyRotation(collider.Position - Position - RotatedPoints[curr], angle);
+            ScientificDecimal upperBound = (Matrix3X3.Rotation(angle) * (RotatedPoints[next] - RotatedPoints[curr])).X;
+            Vector2 transformedCenter = Matrix3X3.Rotation(angle) * (collider.Position - Position - RotatedPoints[curr]);
             if (transformedCenter.X >= 0 && transformedCenter.Y.Abs() <= collider.Radius &&
                 transformedCenter.X <= upperBound)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
                 if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() ||
                     minPenetrationVector.Equals(Vector2.Zero))
-                    minPenetrationVector = Vector2.DirectionVector(AbsoluteEdgeNormalAngles[curr]) * -penetrationDistance;
+                    minPenetrationVector = Vector2.FromPolar(AbsoluteEdgeNormalAngles[curr]) * -penetrationDistance;
             }
         }
 
@@ -87,7 +86,7 @@ public class ConvexCollider : CompactCollider, ICollider
                 if (diffVector.Magnitude() < minPenetrationVector.Magnitude() ||
                     minPenetrationVector.Equals(Vector2.Zero))
                     minPenetrationVector =
-                        Vector2.DirectionVector(Math.Atan2((double)diffVector.Y, (double)diffVector.X)) *
+                        Vector2.FromPolar(Math.Atan2((double)diffVector.Y, (double)diffVector.X)) *
                         (collider.Radius - diffVector.Magnitude());
         }
 
@@ -111,7 +110,7 @@ public class ConvexCollider : CompactCollider, ICollider
             ScientificDecimal penetrationDistance = Utils.IntervalPenetrationDistance(projectedCollider1.Min(),
                 projectedCollider1.Max(), projectedCollider2.Min(), projectedCollider2.Max());
             if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(Vector2.Zero))
-                minPenetrationVector = Vector2.DirectionVector(angle + Math.PI / 2) * penetrationDistance;
+                minPenetrationVector = Vector2.FromPolar(angle + Math.PI / 2) * penetrationDistance;
         }
 
         if (minPenetrationVector.Equals(Vector2.Zero)) return Collision.None;

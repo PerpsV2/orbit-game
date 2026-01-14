@@ -64,7 +64,7 @@ Planet sun = new Planet(
     Vector2.Zero,
     Vector2.Zero,
     new ScientificDecimal(6.96340m, 8),
-    new Material(new SKColor(255, 255, 255, 255), 0),
+    new Material(new SKColor(255, 255, 255, 255), 0.5f),
     "Sun"
 );
 Planet earth = new Planet(
@@ -78,7 +78,7 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new Material(new SKColor(100, 200, 255, 255), 0),
+    new Material(new SKColor(100, 200, 255, 255), 0.2f),
     "Earth"
 );
 Planet col1 = new Planet(
@@ -87,9 +87,9 @@ Planet col1 = new Planet(
 Planet col2 = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
     new Material(new SKColor(125, 0, 0, 255), 0.5f), "Planet");
-Ship acol1 = new Ship(
+Ship col3 = new Ship(
     1, new(5, 5), Vector2.Zero,
-    new Material(new SKColor(125, 0, 0, 255), 0),
+    new Material(new SKColor(125, 0, 0, 255), 0.5f),
     [
         new (2,4),
         new (2, -3),
@@ -98,9 +98,10 @@ Ship acol1 = new Ship(
     ],
     "Ship"
 );
-Ship acol2 = new Ship(
-    1, Vector2.Zero, Vector2.Zero,
-    new Material(new SKColor(0, 125, 0, 255), 0),
+Ship smokestack = new Ship(
+    1, new Vector2(new ScientificDecimal(6.378m, 6) + 5000, 0), Vector2.Zero,
+    new Material(new SKColor(0, 125, 0, 255), 0.5f), 
+    earth,
     [
         new (2,3),
         new (3, -2),
@@ -111,11 +112,12 @@ Ship acol2 = new Ship(
 );
 
 List<Body> bodies = [
-    col1,
-    col2
+    sun,
+    earth,
+    smokestack
 ];
 
-OriginBody.Body = col1;
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -196,7 +198,9 @@ void OnRender(double _)
         }
     }
     
-    col1.Collider.CollidesWith(col2.Collider);
+    sun.Collider.CollidesWith(smokestack.Collider);
+    earth.Collider.CollidesWith(smokestack.Collider);
+    earth.Collider.CollidesWith(sun.Collider);
     
     OriginBody.ResetOrigin(bodies);
     

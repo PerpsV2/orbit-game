@@ -31,19 +31,11 @@ public static class Utils
         Console.WriteLine();
     }
     
-    public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> =>
-        value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
+    public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> 
+        => value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
     
     public static double UnsignedMod(double a, double b)
-    {
-        return a - b * Math.Floor(a / b);
-    }
-    
-    /// <summary>
-    /// Projects a point from 2D to 1D on an axis aligned with the provided angle
-    /// </summary>
-    public static ScientificDecimal ProjectPoint(Vector2 point, double angle) =>
-        point.X * Math.Cos(angle) - point.Y * Math.Sin(angle);
+        => a - b * Math.Floor(a / b);
 
     public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
     {

@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace OrbitGame;
 
 public struct Vector2(ScientificDecimal x, ScientificDecimal y) 
@@ -8,6 +6,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     public static Vector2 Zero => new(0, 0);
     public ScientificDecimal X { get; set; } = x;
     public ScientificDecimal Y { get; set; } = y;
+    
+    public static Vector2 FromPolar(double angle)
+        => new(Math.Cos(angle), Math.Sin(angle));
 
     public static Vector2 FromPolar(double angle, ScientificDecimal magnitude)
         => new(magnitude * Math.Cos(angle), magnitude * Math.Sin(angle));
@@ -45,19 +46,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         => !left.Equals(right);
     
     #endregion
-
-    public static Vector2 ApplyRotation(Vector2 vector, double angle)
-        => new(vector.X * Math.Cos(angle) - vector.Y * Math.Sin(angle),
-            vector.X * Math.Sin(angle) + vector.Y * Math.Cos(angle));
     
     public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
     {
         Vector2 difference = end - start;
         return difference / difference.Magnitude();
     }
-    
-    public static Vector2 DirectionVector(double angle) =>
-        new(Math.Cos(angle), Math.Sin(angle));
 
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
     {
@@ -94,8 +88,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         return convexHull;
     }
 
-    private double GetPrincipalAngle()
+    public double GetPrincipalAngle()
     {
+        if (x == 0 && y == 0) throw new DivideByZeroException();
+        if (x == 0 && y > 0) return Math.PI / 2;
+        if (x == 0 && y < 0) return 3 * Math.PI / 2;
+        
         double angle = Math.Atan((double)(Y / X));
         if (X < 0 && Y > 0) return Math.PI + angle;
         if (X < 0 && Y < 0) return Math.PI + angle;
@@ -103,7 +101,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         return angle;
     }
 
-    public static double Atan2(Vector2 start, Vector2 end)
+    public static double GetPrincipalAngle(Vector2 start, Vector2 end)
     {
         Vector2 difference = end - start;
         return difference.GetPrincipalAngle();

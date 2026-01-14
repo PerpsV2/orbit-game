@@ -121,6 +121,9 @@ public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         ]);
     }
     
+    public static Matrix3X3 Scale(ScientificDecimal scale)
+        => Scale(scale, scale);
+    
     #endregion
     
     public override string ToString()
