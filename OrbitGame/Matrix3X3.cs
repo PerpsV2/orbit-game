@@ -102,6 +102,9 @@ public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
             0, 0, 1
         ]);
     }
+
+    public static Matrix3X3 Translation(Vector2 vector)
+        => Translation(vector.X, vector.Y);
     
     public static Matrix3X3 Rotation(double angle)
     {

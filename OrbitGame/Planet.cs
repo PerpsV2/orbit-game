@@ -12,19 +12,20 @@ public class Planet : Body
         Vector2 velocity, 
         ScientificDecimal radius, 
         Material material, 
+        SKColor colour,
         string name
         ) 
-        : base(mass, position, velocity, material, name)
+        : base(mass, position, velocity, colour, name)
     {
         Radius = radius;
-        Collider = new CircularCollider(Radius, this);
+        Collider = new CircularCollider(Radius, this, material);
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)
     {
         SKPaint paint = new SKPaint
         {
-            Color = Material.Colour,
+            Color = Colour,
             StrokeWidth = 4
         };
         
@@ -108,6 +109,8 @@ public class Planet : Body
         
         // otherwise draw the planet as a circle
         else canvas.GS_DrawCircle(camera, Position, Radius, paint);
+        
+        paint.Dispose();
     }
 
     public override void DrawCollider(SKCanvas canvas, Camera camera)

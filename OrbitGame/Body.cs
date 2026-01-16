@@ -2,12 +2,13 @@ using SkiaSharp;
 
 namespace OrbitGame;
 
-public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, string name) 
-    : KinematicObject(position, velocity)
+/// <summary>
+/// A KinematicObject with information about shape and material and methods for physics.
+/// </summary>
+public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, SKColor colour, string name) 
+    : KinematicObject(name, mass, position, velocity)
 {
-    public ScientificDecimal Mass = mass;
-    public Material Material = material;
-    public string Name = name;
+    public SKColor Colour = colour;
     public ICollider? Collider;
     
     public abstract void Draw(SKCanvas canvas, Camera camera);

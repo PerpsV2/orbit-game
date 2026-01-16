@@ -13,7 +13,7 @@ public class ConvexCollider : CompactCollider, ICollider
     // edge normal axis angles in world space
     private double[] AbsoluteEdgeNormalAngles => AbsoluteEdgeAngles.Select(x => x + Math.PI / 2).ToArray();
     
-    public ConvexCollider(Vector2[] points, Body parent) : base(parent)
+    public ConvexCollider(Vector2[] points, KinematicObject parent, Material material) : base(parent, material)
     {
         _points = points.Distinct().ToArray();
         Vector2[] edges = new Vector2[_points.Length];
@@ -24,11 +24,11 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override RectangularCollider GetBoundingBox()
     {
-        if (IsEmpty()) return new(0, 0, 0, 0, Parent);
-        ScientificDecimal top = ScientificDecimal.MinValue;
-        ScientificDecimal right = ScientificDecimal.MinValue;
-        ScientificDecimal bottom = ScientificDecimal.MaxValue;
-        ScientificDecimal left = ScientificDecimal.MaxValue;
+        if (IsEmpty()) return new(0, 0, 0, 0, Parent, Material);
+        ScientificDecimal top = RotatedPoints[0].Y;
+        ScientificDecimal right = RotatedPoints[0].X;
+        ScientificDecimal bottom = RotatedPoints[0].Y;
+        ScientificDecimal left = RotatedPoints[0].X;
         foreach (var point in RotatedPoints)
         {
             if (point.Y > top) top = point.Y;
@@ -37,27 +37,27 @@ public class ConvexCollider : CompactCollider, ICollider
             if (point.X < left) left = point.X;
         }
 
-        return new(top, right, bottom, left, Parent);
+        return new(top, right, bottom, left, Parent, Material);
     }
 
     // TODO: check if this works
-    public override bool IntersectsWith(Vector2 point)
+    protected override PointCollision IntersectsWith(Vector2 point)
     {
-        if (IsEmpty()) return false;
+        if (IsEmpty()) return new(false);
         foreach (var angle in AbsoluteEdgeNormalAngles)
         {
             ScientificDecimal[] projectedCollider = _points.Select(
                 x => (Matrix3X3.Rotation(angle) * Parent.ObjectToWorldSpace(x)).X)
                 .ToArray();
             ScientificDecimal projectedPoint = (Matrix3X3.Rotation(angle) * point).X;
-            if (projectedPoint > projectedCollider.Max() || projectedPoint < projectedCollider.Min()) return false;
+            if (projectedPoint > projectedCollider.Max() || projectedPoint < projectedCollider.Min()) return new(false);
         }
-        return true;
+        return new(true);
     }
 
-    public override Collision IntersectsWith(CircularCollider collider)
+    protected override PhysicsCollision IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         // check if any vertices are inside the circle
 
         Vector2 minPenetrationVector = Vector2.Zero;
@@ -77,7 +77,7 @@ public class ConvexCollider : CompactCollider, ICollider
             }
         }
 
-        if (!minPenetrationVector.Equals(Vector2.Zero)) return new Collision(minPenetrationVector);
+        if (!minPenetrationVector.Equals(Vector2.Zero)) return new PhysicsCollision(minPenetrationVector);
         
         foreach (var vertex in _points.Select(Parent.ObjectToWorldSpace))
         {
@@ -90,11 +90,11 @@ public class ConvexCollider : CompactCollider, ICollider
                         (collider.Radius - diffVector.Magnitude());
         }
 
-        if (!minPenetrationVector.Equals(Vector2.Zero)) return new Collision(minPenetrationVector);
-        return Collision.None;
+        if (!minPenetrationVector.Equals(Vector2.Zero)) return new PhysicsCollision(minPenetrationVector);
+        return PhysicsCollision.None;
     }
 
-    public override Collision IntersectsWith(ConvexCollider collider)
+    protected override PhysicsCollision IntersectsWith(ConvexCollider collider)
     {
         Vector2 minPenetrationVector = Vector2.Zero;
         foreach (var angle in AbsoluteEdgeAngles.Concat(collider.AbsoluteEdgeAngles))
@@ -106,29 +106,27 @@ public class ConvexCollider : CompactCollider, ICollider
                 .Select(v => v.Y * Math.Cos(angle) - v.X * Math.Sin(angle)).ToArray();
             if (!Utils.IntervalIntersects(projectedCollider1.Min(),
                     projectedCollider1.Max(), projectedCollider2.Min(), projectedCollider2.Max()))
-                return Collision.None;
+                return PhysicsCollision.None;
             ScientificDecimal penetrationDistance = Utils.IntervalPenetrationDistance(projectedCollider1.Min(),
                 projectedCollider1.Max(), projectedCollider2.Min(), projectedCollider2.Max());
             if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(Vector2.Zero))
                 minPenetrationVector = Vector2.FromPolar(angle + Math.PI / 2) * penetrationDistance;
         }
 
-        if (minPenetrationVector.Equals(Vector2.Zero)) return Collision.None;
-        return new Collision(minPenetrationVector);
+        if (minPenetrationVector.Equals(Vector2.Zero)) return PhysicsCollision.None;
+        return new PhysicsCollision(minPenetrationVector);
     }
 
-    public override Collision IntersectsWith(RectangularCollider collider)
+    protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
-            [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent);
+            [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent, collider.Material);
         return IntersectsWith(convexRect);
     }
-
-    public override void CollidesWith(ICollider collider) => throw new NotImplementedException();
     
-    public override void CollidesWith(CompactCollider collider)
+    protected override void CollidesWith(CompactCollider collider)
     {
         throw new NotImplementedException();
     }

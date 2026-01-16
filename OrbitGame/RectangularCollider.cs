@@ -9,8 +9,9 @@ public class RectangularCollider(
     ScientificDecimal right, 
     ScientificDecimal bottom,
     ScientificDecimal left, 
-    Body parent) 
-    : CompactCollider(parent), ICollider
+    KinematicObject parent,
+    Material material) 
+    : CompactCollider(parent, material), ICollider
 {
     // Values are the signed ordinates of the vertex points of the collider
     public readonly ScientificDecimal Top = top;
@@ -23,34 +24,34 @@ public class RectangularCollider(
     public Vector2 BottomRight => new(Right, Bottom);
     public Vector2 BottomLeft => new(Left, Bottom);
 
-    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, Body parent)
-        : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent) { }
+    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, Body parent, Material material)
+        : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent, material) { }
 
     public override RectangularCollider GetBoundingBox() => this;
 
-    public override bool IntersectsWith(Vector2 point)
+    protected override PointCollision IntersectsWith(Vector2 point)
     {
-        if (IsEmpty()) return false;
+        if (IsEmpty()) return new(false);
         point -= Parent.Position;
-        return point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left;
+        return new(point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left);
     }
 
-    public override Collision IntersectsWith(CircularCollider collider)
+    protected override PhysicsCollision IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
             Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
         if ((collider.Position - closestPoint).Magnitude() <= collider.Radius)
-            return new Collision(Vector2.Zero);
-        return Collision.None;
+            return new PhysicsCollision(Vector2.Zero);
+        return PhysicsCollision.None;
     }
 
-    public override Collision IntersectsWith(ConvexCollider collider)
-        => collider.IntersectsWith(this);
+    protected override PhysicsCollision IntersectsWith(ConvexCollider collider)
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
 
-    public override Collision IntersectsWith(RectangularCollider collider)
+    protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         Vector2 posDiff = collider.Position - Position;
         if (Utils.IntervalIntersects(Top, Bottom, collider.Top + posDiff.Y, collider.Bottom + posDiff.Y) &&
             Utils.IntervalIntersects(Left, Right, collider.Left + posDiff.X, collider.Right + posDiff.X))
@@ -65,18 +66,13 @@ public class RectangularCollider(
 
             cardinalPenetrationDepths.Sort();
             
-            return new Collision(cardinalPenetrationDepths[0]);
+            return new PhysicsCollision(cardinalPenetrationDepths[0]);
         }
 
-        return Collision.None;
+        return PhysicsCollision.None;
     }
 
-    public override void CollidesWith(ICollider collider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void CollidesWith(CompactCollider collider)
+    protected override void CollidesWith(CompactCollider collider)
     {
         throw new NotImplementedException();
     }

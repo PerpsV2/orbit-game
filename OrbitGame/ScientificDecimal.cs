@@ -7,7 +7,8 @@ namespace OrbitGame;
 public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>, IFormattable
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
-
+    
+    // TODO: Create better definitions for max and minvalue which don't break when doing comparisons
     public static readonly ScientificDecimal MaxValue = new(9.99M, int.MaxValue);
     public static readonly ScientificDecimal MinValue = new(-9.99M, int.MinValue);
     public decimal Mantissa { get; set; }

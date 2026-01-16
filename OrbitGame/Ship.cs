@@ -9,20 +9,21 @@ public class Ship : Body
         Vector2 position,
         Vector2 velocity,
         Material material,
+        SKColor colour,
         Vector2[] mesh,
-        string name) : base(mass, position, velocity, material, name)
+        string name) : base(mass, position, velocity, colour, name)
     {
         Position = position;
         Velocity = velocity;
         LinkedList<int> colliderIndices = Vector2.GetConvexHullIndices(mesh);
         _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
-        Collider = new ConvexCollider(_mesh, this);
+        Collider = new ConvexCollider(_mesh, this, material);
     }
     
     public Ship(
-        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, Body parent,
+        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Body parent,
         Vector2[] mesh, string name)
-        : this(mass, position, velocity, material, mesh, name)
+        : this(mass, position, velocity, material, colour, mesh, name)
     {
         Position = parent.Position + position;
         Velocity = parent.Velocity + velocity;
@@ -32,7 +33,7 @@ public class Ship : Body
     {
         SKPaint paint = new SKPaint
         {
-            Color = Material.Colour,
+            Color = Colour,
             StrokeWidth = 4
         };
         
@@ -44,17 +45,21 @@ public class Ship : Body
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, -10), paint);
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, -10), paint);
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, 10), paint);
+        
+        paint.Dispose();
     }
 
     public override void DrawCollider(SKCanvas canvas, Camera camera)
     {
         SKPaint paint = new SKPaint
         {
-            Color = Material.Colour,
+            Color = Colour,
             StrokeWidth = 4
         };
 
         Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint, false);
+
+        paint.Dispose();
     }
 }

@@ -1,13 +1,16 @@
 namespace OrbitGame;
 
 /// <summary>
-/// An object with a spatial and rotational position in the game space.
+/// A point mass with a spatial and rotational information in the game space. Does not have any physical shape.
 /// </summary>
 public abstract class KinematicObject
 {
+    public ScientificDecimal Mass;
+    
     public Vector2 Position;
     public Vector2 Velocity;
     public Vector2 Acceleration;
+    public string Name;
 
     private double _angle;
     public double Angle
@@ -18,21 +21,27 @@ public abstract class KinematicObject
     public double AngularVelocity;
     
     protected KinematicObject(
+        string name,
+        ScientificDecimal? mass,
         Vector2? position, 
         Vector2? velocity, 
         double? angle = null, 
         double? angularVelocity = null
         )
     {
+        Mass = mass ?? 1;
         Position = position ?? Vector2.Zero;
         Velocity = velocity ?? Vector2.Zero;
         Angle = angle ?? 0;
         AngularVelocity = angularVelocity ?? 0;
+        Name = name;
     }
+
+    private Matrix3X3 GetLocalSpaceMatrix()
+        => Matrix3X3.Translation(Position) * Matrix3X3.Rotation(Angle);
 
     public Vector2 ObjectToWorldSpace(Vector2 point)
     {
-        return new Vector2(point.X * Math.Cos(Angle) - point.Y * Math.Sin(Angle),
-            point.X * Math.Sin(Angle) + point.Y * Math.Cos(Angle)) + Position;
+        return GetLocalSpaceMatrix() * point;
     }
 }

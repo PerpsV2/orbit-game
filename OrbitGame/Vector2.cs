@@ -56,7 +56,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     // returns the inertia tensor for a convex shape
     public static (Vector2 a, Vector2 b, Vector2 c)[] TriangulateConvex(Vector2 origin, Vector2[] points)
     {
-        
+        throw new NotImplementedException();
     }
 
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)

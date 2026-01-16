@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -64,7 +64,8 @@ Planet sun = new Planet(
     Vector2.Zero,
     Vector2.Zero,
     new ScientificDecimal(6.96340m, 8),
-    new Material(new SKColor(255, 255, 255, 255), 0.5f),
+    new Material(0.5f),
+    new SKColor(255, 255, 255, 255), 
     "Sun"
 );
 Planet earth = new Planet(
@@ -78,18 +79,19 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new Material(new SKColor(100, 200, 255, 255), 0.2f),
+    new Material(0.2f),
+    new SKColor(100, 200, 255, 255), 
     "Earth"
 );
 Planet col1 = new Planet(
     100, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
-    new Material(new SKColor(0, 125, 0, 255), 0.5f), "Planet");
+    new Material(0.5f), new SKColor(0, 125, 0, 255),"Planet");
 Planet col2 = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
-    new Material(new SKColor(125, 0, 0, 255), 0.5f), "Planet");
+    new Material(0.5f), new SKColor(0, 125, 0, 255), "Planet");
 Ship col3 = new Ship(
     1, new(5, 5), Vector2.Zero,
-    new Material(new SKColor(125, 0, 0, 255), 0.5f),
+    new Material(0.5f), new SKColor(0, 125, 0, 255),
     [
         new (2,4),
         new (2, -3),
@@ -99,8 +101,8 @@ Ship col3 = new Ship(
     "Ship"
 );
 Ship smokestack = new Ship(
-    1, new Vector2(new ScientificDecimal(6.378m, 6) + 5000, 0), Vector2.Zero,
-    new Material(new SKColor(0, 125, 0, 255), 0.5f), 
+    1, new Vector2(new ScientificDecimal(6.378m, 6) + 3000, 1000), Vector2.Zero,
+    new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     [
         new (2,3),

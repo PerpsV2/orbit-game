@@ -11,8 +11,6 @@ public static class Options
     public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = true;
 
-    public static readonly Material DefaultMaterial = new (SKColors.White, 1f);
-
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ExplicitEuler;
 
     public static readonly double CamMoveSpeed = 1;

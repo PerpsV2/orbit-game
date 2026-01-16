@@ -5,45 +5,39 @@ public class CircularCollider
 {
     public readonly ScientificDecimal Radius;
 
-    public CircularCollider(ScientificDecimal radius, Body parent) 
-        : base(parent)
+    public CircularCollider(ScientificDecimal radius, KinematicObject parent, Material material) 
+        : base(parent, material)
     {
         if (radius.Negative) throw new ArgumentException();
         Radius = radius;
     }
 
     public override RectangularCollider GetBoundingBox() =>
-        new (Radius, Radius, Radius, Radius, Parent);
+        new (Radius, Radius, Radius, Radius, Parent, Material);
 
-    public override bool IntersectsWith(Vector2 point) =>
-        (point - Position).Magnitude() <= Radius || IsEmpty();
+    protected override PointCollision IntersectsWith(Vector2 point) =>
+        new((point - Position).Magnitude() <= Radius || IsEmpty());
 
-    public override Collision IntersectsWith(CircularCollider collider)
+    protected override PhysicsCollision IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return Collision.None;
+        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         Vector2 displacementVector = Position - collider.Position;
         ScientificDecimal distance = displacementVector.Magnitude();
         if (distance <= collider.Radius + Radius)
-            return new Collision(displacementVector.Normalize() * (collider.Radius + Radius - distance
+            return new PhysicsCollision(displacementVector.Normalize() * (collider.Radius + Radius - distance
                 + new ScientificDecimal(1m, -10))); // TODO: crashes if the two objects are barely touching idk why help
-        return Collision.None;
+        return PhysicsCollision.None;
     }
 
-    public override Collision IntersectsWith(ConvexCollider collider) 
-    {
-        return collider.IntersectsWith(this).GetInverse();
-    }
+    protected override PhysicsCollision IntersectsWith(ConvexCollider collider) 
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
 
-    public override Collision IntersectsWith(RectangularCollider collider)
-    {
-        return collider.IntersectsWith(this).GetInverse();
-    }
+    protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
 
-    public override void CollidesWith(ICollider collider) => CollidesWith((CompactCollider)collider);
-
-    public override void CollidesWith(CompactCollider collider)
+    protected override void CollidesWith(CompactCollider collider)
     {
-        Collision collisionInfo = IntersectsWith(collider);
+        PhysicsCollision collisionInfo = IntersectsWith(collider);
         
         Vector2 penetrationVector = collisionInfo.PenetrationVector;
         ScientificDecimal mass1 = Parent.Mass;
@@ -55,10 +49,8 @@ public class CircularCollider
         
         if (!collisionInfo.Intersects) return;
         Vector2 relativeVelocity = Parent.Velocity - collider.Parent.Velocity;
-        ScientificDecimal totalRestitution =
-            (Parent.Material.RestitutionCoefficient + collider.Parent.Material.RestitutionCoefficient) / 2;
-        ScientificDecimal totalVelocity = 
-            Vector2.Dot(relativeVelocity, penetrationVector.Normalize()) * -(1 + totalRestitution);
+        ScientificDecimal totalRestitution = (Material.RestitutionCoefficient + collider.Material.RestitutionCoefficient) / 2;
+        ScientificDecimal totalVelocity = Vector2.Dot(relativeVelocity, penetrationVector.Normalize()) * -(1 + totalRestitution);
         ScientificDecimal impulse = totalVelocity * mass1 * mass2 / (mass1 + mass2);
         
         // apply impulse along collision normal
