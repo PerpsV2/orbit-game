@@ -36,6 +36,7 @@ public class RectangularCollider(
         return new(point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left);
     }
 
+    // TODO: Implement rectangle-circle and rectangle-rectangle collisions
     protected override PhysicsCollision IntersectsWith(CircularCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;

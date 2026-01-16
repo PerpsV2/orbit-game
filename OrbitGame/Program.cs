@@ -101,7 +101,7 @@ Ship col3 = new Ship(
     "Ship"
 );
 Ship smokestack = new Ship(
-    1, new Vector2(new ScientificDecimal(6.378m, 6) + 3000, 1000), Vector2.Zero,
+    1, new Vector2(new ScientificDecimal(6.378m, 6) + 3000, 0), Vector2.Zero,
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     [

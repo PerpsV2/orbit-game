@@ -34,6 +34,7 @@ public readonly struct PointCollision(bool intersects = true)
     public readonly bool Intersects = intersects;
 }
 
+// TODO: implement collider point field for physics collisions
 public readonly struct PhysicsCollision(Vector2 penetrationVector, bool intersects = true)
     : IIntersection
 {

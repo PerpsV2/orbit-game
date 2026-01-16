@@ -14,6 +14,9 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
 {
     public readonly Material Material = material;
     public readonly KinematicObject Parent = parent;
+    public readonly Matrix3X3 InertiaMatrix = Matrix3X3.Identity();
+    public readonly Matrix3X3 InertiaInvMatrix = Matrix3X3.Identity();
+        
     public Vector2 Position => Parent.Position;
     public bool Fixed;
     

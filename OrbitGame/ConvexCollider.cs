@@ -122,7 +122,8 @@ public class ConvexCollider : CompactCollider, ICollider
         if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
-            [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], collider.Parent, collider.Material);
+            [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], 
+            collider.Parent, collider.Material);
         return IntersectsWith(convexRect);
     }
     
