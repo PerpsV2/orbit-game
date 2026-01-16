@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),

@@ -53,6 +53,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         return difference / difference.Magnitude();
     }
 
+    // returns the inertia tensor for a convex shape
+    public static (Vector2 a, Vector2 b, Vector2 c)[] TriangulateConvex(Vector2 origin, Vector2[] points)
+    {
+        
+    }
+
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
     {
         ScientificDecimal edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);

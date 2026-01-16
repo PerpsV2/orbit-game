@@ -21,6 +21,12 @@ public abstract class CompactCollider(Body parent) : ICollider
     /// </summary>
     public abstract RectangularCollider GetBoundingBox();
     
+    public bool NearsWith(object? obj)
+    {
+        if (obj is ICollider col) return NearsWith(col);
+        throw new NotSupportedException();
+    }
+    
     public bool NearsWith(ICollider collider)
     {
         switch (collider)
@@ -30,8 +36,18 @@ public abstract class CompactCollider(Body parent) : ICollider
             default: throw new NotSupportedException();
         }
     }
-
+    
     public abstract bool IntersectsWith(Vector2 point);
+    public IIntersection IntersectsWith(object? obj)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CollidesWith(object? obj)
+    {
+        throw new NotImplementedException();
+    }
+
     public abstract Collision IntersectsWith(CircularCollider collider);
     public abstract Collision IntersectsWith(ConvexCollider collider);
     public abstract Collision IntersectsWith(RectangularCollider collider);
