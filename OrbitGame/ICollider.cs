@@ -35,19 +35,26 @@ public readonly struct PointCollision(bool intersects = true)
 }
 
 // TODO: implement collider point field for physics collisions
-public readonly struct PhysicsCollision(Vector2 penetrationVector, bool intersects = true)
-    : IIntersection
+public readonly struct PhysicsCollision(Vector2 collisionPoint, Vector2 penetrationVector, bool intersects = true)
+    : IIntersection, IFormattable
 {
-    public static PhysicsCollision None = new (Vector2.Zero, false);
-    
-    public readonly bool Intersects = intersects;
-    public readonly Vector2 PenetrationVector = penetrationVector;
+    public static PhysicsCollision None = new (Vector2.Zero, Vector2.Zero, false);
 
-    public PhysicsCollision GetInverse()
+    public readonly Vector2 CollisionPoint = collisionPoint;
+    public readonly Vector2 PenetrationVector = penetrationVector;
+    public readonly bool Intersects = intersects;
+
+    public PhysicsCollision GetInverse(CompactCollider reference, CompactCollider collider)
     {
         return new PhysicsCollision(
+            CollisionPoint + reference.Position - collider.Position,
             -PenetrationVector,
             Intersects
         );
+    }
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        return $"({collisionPoint}, {penetrationVector}, {intersects})";
     }
 }

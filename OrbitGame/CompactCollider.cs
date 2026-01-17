@@ -25,7 +25,6 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
     /// </summary>
     public abstract RectangularCollider GetBoundingBox();
     
-    
     public bool NearsWith(object? obj)
     {
         if (obj is ICollider col) return NearsWith(col);
@@ -81,7 +80,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
     private void CollidesWith(ICollider collider)
     {
         if (collider is CompactCollider c) CollidesWith(c);
-        else throw new ArgumentException(collider.GetType().Name);
+        else throw new ArgumentException();
     }
     
     protected abstract void CollidesWith(CompactCollider collider);

@@ -43,12 +43,12 @@ public class RectangularCollider(
         Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
             Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
         if ((collider.Position - closestPoint).Magnitude() <= collider.Radius)
-            return new PhysicsCollision(Vector2.Zero);
+            return new PhysicsCollision(Vector2.Zero, Vector2.Zero);
         return PhysicsCollision.None;
     }
 
     protected override PhysicsCollision IntersectsWith(ConvexCollider collider)
-        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse(this, collider);
 
     protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
     {
@@ -67,7 +67,7 @@ public class RectangularCollider(
 
             cardinalPenetrationDepths.Sort();
             
-            return new PhysicsCollision(cardinalPenetrationDepths[0]);
+            return new PhysicsCollision(Vector2.Zero, cardinalPenetrationDepths[0]);
         }
 
         return PhysicsCollision.None;

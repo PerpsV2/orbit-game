@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
+    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -114,12 +114,10 @@ Ship smokestack = new Ship(
 );
 
 List<Body> bodies = [
-    sun,
-    earth,
-    smokestack
+    col1, col3
 ];
 
-OriginBody.Body = smokestack;
+OriginBody.Body = col1;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -173,6 +171,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
     if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
     if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.G)) col3.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.H)) col3.AngularVelocity -= 0.1;
 }
 
 void OnRender(double _)
@@ -200,9 +200,7 @@ void OnRender(double _)
         }
     }
     
-    sun.Collider.CollidesWith(smokestack.Collider);
-    earth.Collider.CollidesWith(smokestack.Collider);
-    earth.Collider.CollidesWith(sun.Collider);
+    //col1.Collider.CollidesWith(col3.Collider);
     
     OriginBody.ResetOrigin(bodies);
     
@@ -213,6 +211,10 @@ void OnRender(double _)
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
+    
+    PhysicsCollision collision = (PhysicsCollision)col1.Collider.IntersectsWith(col3.Collider);
+    Console.WriteLine(collision);
+    Utils.GS_DrawCircle(canvas, camera, collision.CollisionPoint + col1.Position, 0.1, paint);
     
     canvas.Flush();
 }

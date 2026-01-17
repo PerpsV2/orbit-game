@@ -24,22 +24,23 @@ public class CircularCollider
         Vector2 displacementVector = Position - collider.Position;
         ScientificDecimal distance = displacementVector.Magnitude();
         if (distance <= collider.Radius + Radius)
-            return new PhysicsCollision(displacementVector.Normalize() * (collider.Radius + Radius - distance
-                + new ScientificDecimal(1m, -10))); // TODO: crashes if the two objects are barely touching idk why help
+            return new PhysicsCollision(Vector2.Zero, displacementVector.Normalize() * (collider.Radius + Radius - distance));
         return PhysicsCollision.None;
     }
 
     protected override PhysicsCollision IntersectsWith(ConvexCollider collider) 
-        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse(this, collider);
 
     protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
-        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse();
+        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse(this, collider);
 
     protected override void CollidesWith(CompactCollider collider)
     {
         PhysicsCollision collisionInfo = IntersectsWith(collider);
         
         Vector2 penetrationVector = collisionInfo.PenetrationVector;
+        Vector2 collisionPoint1 = collisionInfo.CollisionPoint;
+        Vector2 collisionPoint2 = collisionInfo.GetInverse(this, collider).CollisionPoint;
         ScientificDecimal mass1 = Parent.Mass;
         ScientificDecimal mass2 = collider.Parent.Mass;
         

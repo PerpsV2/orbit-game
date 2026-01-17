@@ -74,6 +74,11 @@ public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
             matrix.Data[6] * vector.X + matrix.Data[7] * vector.Y + matrix.Data[8] * vector.Z
             );
     }
+
+    public static Matrix3X3 operator *(Matrix3X3 matrix, ScientificDecimal scalar)
+    {
+        return new Matrix3X3(matrix.Data.Select(x => x * scalar).ToArray());
+    }
     
     public static bool operator ==(Matrix3X3 left, Matrix3X3 right)
         => left.Data.SequenceEqual(right.Data);

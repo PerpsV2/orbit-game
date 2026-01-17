@@ -60,6 +60,7 @@ public class ConvexCollider : CompactCollider, ICollider
         if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
         // check if any vertices are inside the circle
 
+        Vector2 collisionPoint = Vector2.Zero;
         Vector2 minPenetrationVector = Vector2.Zero;
         for (int curr = 0; curr < _points.Length; ++curr)
         {
@@ -73,24 +74,36 @@ public class ConvexCollider : CompactCollider, ICollider
                 ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
                 if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() ||
                     minPenetrationVector.Equals(Vector2.Zero))
+                {
                     minPenetrationVector = Vector2.FromPolar(AbsoluteEdgeNormalAngles[curr]) * -penetrationDistance;
+                    collisionPoint =
+                        Matrix3X3.Translation(collider.Position) *
+                        Matrix3X3.Scale(-1) *
+                        Matrix3X3.Translation(RotatedPoints[curr]) *
+                        Matrix3X3.Rotation(-angle) * (transformedCenter + new Vector2(0, transformedCenter.Y));
+                }
             }
         }
 
-        if (!minPenetrationVector.Equals(Vector2.Zero)) return new PhysicsCollision(minPenetrationVector);
-        
+        if (!minPenetrationVector.Equals(Vector2.Zero))
+        {
+            return new PhysicsCollision(collisionPoint, minPenetrationVector);
+        }
+
         foreach (var vertex in _points.Select(Parent.ObjectToWorldSpace))
         {
             Vector2 diffVector = vertex - collider.Position;
             if (diffVector.Magnitude() <= collider.Radius)
                 if (diffVector.Magnitude() < minPenetrationVector.Magnitude() ||
                     minPenetrationVector.Equals(Vector2.Zero))
-                    minPenetrationVector =
-                        Vector2.FromPolar(Math.Atan2((double)diffVector.Y, (double)diffVector.X)) *
-                        (collider.Radius - diffVector.Magnitude());
+                {
+                    collisionPoint = vertex + Position;
+                    minPenetrationVector = Vector2.FromPolar(Math.Atan2((double)diffVector.Y, (double)diffVector.X)) *
+                                           (collider.Radius - diffVector.Magnitude());
+                }
         }
 
-        if (!minPenetrationVector.Equals(Vector2.Zero)) return new PhysicsCollision(minPenetrationVector);
+        if (!minPenetrationVector.Equals(Vector2.Zero)) return new PhysicsCollision(collisionPoint, minPenetrationVector);
         return PhysicsCollision.None;
     }
 
@@ -114,7 +127,7 @@ public class ConvexCollider : CompactCollider, ICollider
         }
 
         if (minPenetrationVector.Equals(Vector2.Zero)) return PhysicsCollision.None;
-        return new PhysicsCollision(minPenetrationVector);
+        return new PhysicsCollision(Vector2.Zero, minPenetrationVector);
     }
 
     protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
