@@ -49,7 +49,6 @@ public readonly struct PhysicsCollision(CompactCollider reference, CompactCollid
     public readonly Vector2[] CollisionManifold = manifold;
     public readonly Vector2 PenetrationVector = penetrationVector;
     
-    public Vector2 CollisionNormal => PenetrationVector.Normalize();
     public ScientificDecimal Restitution =>
         (Reference.Material.RestitutionCoefficient + Incident.Material.RestitutionCoefficient) / 2;
 
@@ -57,7 +56,7 @@ public readonly struct PhysicsCollision(CompactCollider reference, CompactCollid
     {
         Vector2[] newManifold = new Vector2[CollisionManifold.Length];
         for (int i = 0; i < CollisionManifold.Length; ++i)
-            newManifold[i] = CollisionManifold[i] + Reference.Position - Incident.Position;
+            newManifold[i] = CollisionManifold[i] + PenetrationVector + Reference.Position - Incident.Position;
         
         return new PhysicsCollision(
             Incident, Reference, newManifold, -PenetrationVector

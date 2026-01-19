@@ -84,7 +84,7 @@ Planet earth = new Planet(
     "Earth"
 );
 Planet r = new Planet(
-    100, new Vector2(1, 1), Vector2.Zero, 10,
+    100, new Vector2(4, 0), Vector2.Zero, 4,
     new Material(0.5f), new SKColor(125, 0, 0, 255),"Planet");
 Planet g = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
@@ -101,7 +101,7 @@ Ship b = new Ship(
     "Ship"
 );
 Ship smokestack = new Ship(
-    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 500, 0), Vector2.Zero,
+    1000, new Vector2(new ScientificDecimal(6.378m, 6), 0), Vector2.Zero,
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     [
@@ -114,10 +114,10 @@ Ship smokestack = new Ship(
 );
 
 List<Body> bodies = [
-    r, b
+    earth, smokestack
 ];
 
-OriginBody.Body = r;
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -165,14 +165,18 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 
-    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.06m);
-    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.06m, 0);
-    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.06m);
-    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.06m, 0);
-    if (keyboard.IsKeyPressed(Key.Number1)) OriginBody.Body.Angle += 0.01;
-    if (keyboard.IsKeyPressed(Key.Number2)) OriginBody.Body.Angle -= 0.01;
-    if (keyboard.IsKeyPressed(Key.T)) tracking.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.Y)) tracking.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Position -= new Vector2(0, 0.06m);
+    if (keyboard.IsKeyPressed(Key.J)) tracking.Position -= new Vector2(0.06m, 0);
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Position += new Vector2(0, 0.06m);
+    if (keyboard.IsKeyPressed(Key.L)) tracking.Position += new Vector2(0.06m, 0);
+    if (keyboard.IsKeyPressed(Key.Number1)) tracking.Angle += 0.01;
+    if (keyboard.IsKeyPressed(Key.Number2)) tracking.Angle -= 0.01;
+    if (keyboard.IsKeyPressed(Key.Number3)) tracking.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.Number4)) tracking.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.Number5)) tracking.Velocity += new Vector2(0, 0.01);
+    if (keyboard.IsKeyPressed(Key.Number6)) tracking.Velocity -= new Vector2(0, 0.01);
+    if (keyboard.IsKeyPressed(Key.Number7)) tracking.Velocity += new Vector2(0.01, 0);
+    if (keyboard.IsKeyPressed(Key.Number8)) tracking.Velocity -= new Vector2(0.01, 0);
 }
 
 void OnRender(double _)
@@ -210,8 +214,8 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    r.Collider.CollidesWith(b.Collider, canvas, camera);
-    b.Collider.CollidesWith(r.Collider, canvas, camera);
+    earth.Collider.CollidesWith(smokestack.Collider, canvas, camera);
+    //b.Collider.CollidesWith(r.Collider, canvas, camera);
 
     canvas.Flush();
 }

@@ -56,6 +56,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
         Vector2 collisionPoint = Vector2.Zero;
         Vector2 minPenetrationVector = Vector2.Zero;
+        Vector2 relativeCenter = Parent.WorldToObjectSpace(collider.Position);
         
         // edge case (literally)
         for (int i = 0; i < _points.Length; ++i)
@@ -68,17 +69,30 @@ public class ConvexCollider : CompactCollider, ICollider
             Matrix3X3 invTransformation = Matrix3X3.Translation(currentVertex) * Matrix3X3.Rotation(edgeAngle);
             
             ScientificDecimal edgeUpperBound = (transformation * nextVertex).X;
-            Vector2 transformedCenter = transformation * Parent.WorldToObjectSpace(collider.Position);
+            Vector2 transformedCenter = transformation * relativeCenter;
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
                 transformedCenter.Y.Abs() <= collider.Radius)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
-                if (penetrationDistance > 0 && penetrationDistance < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(Vector2.Zero))
+                if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(Vector2.Zero))
                 {
                     minPenetrationVector = Matrix3X3.Rotation(Parent.Angle) * Vector2.FromPolar(edgeAngle + Math.PI / 2, -penetrationDistance);
                     collisionPoint = Matrix3X3.Rotation(Parent.Angle) * invTransformation * new Vector2(transformedCenter.X, 0);
                 }
             }
+        }
+        
+        if (!minPenetrationVector.Equals(Vector2.Zero))
+            return new PhysicsCollision(this, collider, [collisionPoint], minPenetrationVector);
+        
+        // vertex case
+        minPenetrationVector = Vector2.Zero;
+        Vector2[] sortedPoints = _points.OrderBy(v => (v - relativeCenter).Magnitude()).ToArray();
+        
+        Vector2 diffVector = sortedPoints[0] - relativeCenter;
+        if (diffVector.Magnitude() <= collider.Radius) {
+            collisionPoint = Matrix3X3.Rotation(Parent.Angle) * sortedPoints[0];
+            minPenetrationVector = Matrix3X3.Rotation(Parent.Angle) * diffVector.Normalize() * (collider.Radius - diffVector.Magnitude());
         }
 
         if (!minPenetrationVector.Equals(Vector2.Zero))
