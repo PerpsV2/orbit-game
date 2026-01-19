@@ -11,7 +11,7 @@ using Vector2 = OrbitGame.Vector2;
 // Initialize window
 WindowOptions options = WindowOptions.Default with
 {
-    Size = new Vector2D<int>(Options.ScreenSize.width / 2, Options.ScreenSize.height / 2),
+    Size = new Vector2D<int>(Options.ScreenSize.width, Options.ScreenSize.height),
     Title = "Jonah's Shiny Smooth Forehead",
     PreferredStencilBufferBits = 8,
     PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8),
@@ -84,14 +84,14 @@ Planet earth = new Planet(
     "Earth"
 );
 Planet col1 = new Planet(
-    100, Vector2.Zero + new Vector2(1, 1), Vector2.Zero, 1,
-    new Material(0.5f), new SKColor(0, 125, 0, 255),"Planet");
+    100, new Vector2(1, 1), Vector2.Zero, 1,
+    new Material(0.5f), new SKColor(255, 125, 0, 255),"Planet");
 Planet col2 = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
-    new Material(0.5f), new SKColor(0, 125, 0, 255), "Planet");
+    new Material(0.5f), new SKColor(0, 125, 125, 255), "Planet");
 Ship col3 = new Ship(
-    1, new(5, 5), Vector2.Zero,
-    new Material(0.5f), new SKColor(0, 125, 0, 255),
+    1000, new(5, 5), Vector2.Zero,
+    new Material(0.5f), new SKColor(125, 0, 255, 255),
     [
         new (2,4),
         new (2, -3),
@@ -101,23 +101,23 @@ Ship col3 = new Ship(
     "Ship"
 );
 Ship smokestack = new Ship(
-    1, new Vector2(new ScientificDecimal(6.378m, 6) + 3000, 0), Vector2.Zero,
+    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 500, 0), Vector2.Zero,
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     [
-        new (2,3),
-        new (3, -2),
-        new (-2, -3),
-        new (-2, 4)
+        new (2.33333333333,3.5),
+        new (2.33333333333, -2.5),
+        new (-1.6666666667, -2.5),
+        new (-3.6666666667, 1.5)
     ],
     "Ship"
 );
 
 List<Body> bodies = [
-    col1, col3
+    earth,sun,smokestack
 ];
 
-OriginBody.Body = col1;
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -165,14 +165,14 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
 
-    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.1m);
-    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.1m, 0);
-    if (keyboard.IsKeyPressed(Key.U)) OriginBody.Body.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.O)) OriginBody.Body.AngularVelocity -= 0.1;
-    if (keyboard.IsKeyPressed(Key.G)) col3.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.H)) col3.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.I)) OriginBody.Body.Position -= new Vector2(0, 0.06m);
+    if (keyboard.IsKeyPressed(Key.J)) OriginBody.Body.Position -= new Vector2(0.06m, 0);
+    if (keyboard.IsKeyPressed(Key.K)) OriginBody.Body.Position += new Vector2(0, 0.06m);
+    if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.06m, 0);
+    if (keyboard.IsKeyPressed(Key.Number1)) OriginBody.Body.Angle += 0.01;
+    if (keyboard.IsKeyPressed(Key.Number2)) OriginBody.Body.Angle -= 0.01;
+    if (keyboard.IsKeyPressed(Key.T)) OriginBody.Body.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.Y)) OriginBody.Body.AngularVelocity -= 0.1;
 }
 
 void OnRender(double _)
@@ -200,8 +200,6 @@ void OnRender(double _)
         }
     }
     
-    //col1.Collider.CollidesWith(col3.Collider);
-    
     OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);
@@ -212,10 +210,9 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    PhysicsCollision collision = (PhysicsCollision)col1.Collider.IntersectsWith(col3.Collider);
-    Console.WriteLine(collision);
-    Utils.GS_DrawCircle(canvas, camera, collision.CollisionPoint + col1.Position, 0.1, paint);
-    
+    smokestack.Collider.CollidesWith(earth.Collider, canvas, camera);
+    //col3.Collider.CollidesWith(col1.Collider, canvas, camera);
+
     canvas.Flush();
 }
 

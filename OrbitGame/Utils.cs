@@ -77,6 +77,11 @@ public static class Utils
         return current;
     }
 
+    public static ScientificDecimal CalculateTriangleArea(Vector2 a, Vector2 b, Vector2 c)
+    {
+        return (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)).Abs()/ 2;
+    }
+
     public static void GS_DrawCircle(
         this SKCanvas canvas, 
         Camera camera, 
@@ -129,5 +134,29 @@ public static class Utils
         paint.Style = filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke;
         path.Close();
         canvas.DrawPath(path, paint);
+    }
+
+    public static void GS_DrawLine(
+        this SKCanvas canvas,
+        Camera camera,
+        Vector2 start,
+        Vector2 end,
+        SKPaint paint
+        )
+    {
+        SKPoint screenStart = camera.ConvertToScreenCoordinates(start);
+        SKPoint screenEnd = camera.ConvertToScreenCoordinates(end);
+        canvas.DrawLine(screenStart, screenEnd, paint);
+    }
+    
+    public static void GS_DrawPoint(
+        this SKCanvas canvas,
+        Camera camera,
+        Vector2 point,
+        SKPaint paint
+    )
+    {
+        SKPoint screenPoint = camera.ConvertToScreenCoordinates(point);
+        canvas.DrawCircle(screenPoint, 3, paint);
     }
 }

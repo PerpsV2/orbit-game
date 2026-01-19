@@ -22,11 +22,11 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     public static Vector3 Cross(Vector2 left, Vector2 right)
         => new(0, 0, left.X * right.Y - left.Y * right.X);
     
-    public ScientificDecimal Magnitude()
+    public readonly ScientificDecimal Magnitude()
         => (X * X + Y * Y).Sqrt();
 
-    public Vector2 Normalize()
-        => this /= Magnitude();
+    public readonly Vector2 Normalize()
+        => new (X / Magnitude(), Y / Magnitude());
     
     public static Vector2 operator +(Vector2 value) 
         => value;
@@ -47,6 +47,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     
     #endregion
     
+    public static implicit operator Vector3(Vector2 value)
+        => new (value.X, value.Y, 0);
+    
     public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
     {
         Vector2 difference = end - start;
@@ -54,9 +57,14 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     }
 
     // returns the inertia tensor for a convex shape
-    public static (Vector2 a, Vector2 b, Vector2 c)[] TriangulateConvex(Vector2 origin, Vector2[] points)
+    public static (Vector2 a, Vector2 b, Vector2 c)[] TriangulateConvex(Vector2[] points)
     {
-        throw new NotImplementedException();
+        if (points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
+        var triangulation = new (Vector2 a, Vector2 b, Vector2 c)[points.Length - 2];
+        for (int i = 1; i < points.Length - 1; ++i)
+            triangulation[i - 1] = (points[0], points[i], points[i + 1]);
+
+        return triangulation;
     }
 
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
@@ -100,10 +108,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         if (x == 0 && y > 0) return Math.PI / 2;
         if (x == 0 && y < 0) return 3 * Math.PI / 2;
         
-        double angle = Math.Atan((double)(Y / X));
-        if (X < 0 && Y > 0) return Math.PI + angle;
-        if (X < 0 && Y < 0) return Math.PI + angle;
-        if (X > 0 && Y < 0) return Math.Tau + angle;
+        double angle = Math.Atan2((double)Y, (double)X);
         return angle;
     }
 

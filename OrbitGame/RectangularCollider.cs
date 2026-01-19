@@ -27,7 +27,7 @@ public class RectangularCollider(
     public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, Body parent, Material material)
         : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent, material) { }
 
-    public override RectangularCollider GetBoundingBox() => this;
+    protected override RectangularCollider GetBoundingBox() => this;
 
     protected override PointCollision IntersectsWith(Vector2 point)
     {
@@ -37,22 +37,22 @@ public class RectangularCollider(
     }
 
     // TODO: Implement rectangle-circle and rectangle-rectangle collisions
-    protected override PhysicsCollision IntersectsWith(CircularCollider collider)
+    protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
+        if (IsEmpty() || collider.IsEmpty()) return null;
         Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
             Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
         if ((collider.Position - closestPoint).Magnitude() <= collider.Radius)
-            return new PhysicsCollision(Vector2.Zero, Vector2.Zero);
-        return PhysicsCollision.None;
+            return new PhysicsCollision(this, collider, Vector2.Zero, Vector2.Zero);
+        return null;
     }
 
-    protected override PhysicsCollision IntersectsWith(ConvexCollider collider)
-        => ((PhysicsCollision)collider.IntersectsWith(this)).GetInverse(this, collider);
+    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider)
+        => ((PhysicsCollision?)collider.IntersectsWith(this))?.GetInverse() ?? null;
 
-    protected override PhysicsCollision IntersectsWith(RectangularCollider collider)
+    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return PhysicsCollision.None;
+        if (IsEmpty() || collider.IsEmpty()) return null;
         Vector2 posDiff = collider.Position - Position;
         if (Utils.IntervalIntersects(Top, Bottom, collider.Top + posDiff.Y, collider.Bottom + posDiff.Y) &&
             Utils.IntervalIntersects(Left, Right, collider.Left + posDiff.X, collider.Right + posDiff.X))
@@ -67,15 +67,10 @@ public class RectangularCollider(
 
             cardinalPenetrationDepths.Sort();
             
-            return new PhysicsCollision(Vector2.Zero, cardinalPenetrationDepths[0]);
+            return new PhysicsCollision(this, collider, Vector2.Zero, cardinalPenetrationDepths[0]);
         }
 
-        return PhysicsCollision.None;
-    }
-
-    protected override void CollidesWith(CompactCollider collider)
-    {
-        throw new NotImplementedException();
+        return null;
     }
 
     public override bool IsEmpty() =>

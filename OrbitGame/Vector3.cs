@@ -41,9 +41,12 @@ public struct Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecima
     
     #endregion
     
-    public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
+    public static explicit operator Vector2(Vector3 value)
+        => new (value.X, value.Y);
+    
+    public static Vector3 DirectionVectorBetween(Vector3 start, Vector3 end)
     {
-        Vector2 difference = end - start;
+        Vector3 difference = end - start;
         return difference / difference.Magnitude();
     }
     

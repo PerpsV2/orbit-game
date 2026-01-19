@@ -113,6 +113,9 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     private static ScientificDecimal Divide(ScientificDecimal dividend, ScientificDecimal divisor)
         => new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent).Normalize();
+
+    public ScientificDecimal Square()
+        => this * this;
     
     public ScientificDecimal Sqrt()
     {

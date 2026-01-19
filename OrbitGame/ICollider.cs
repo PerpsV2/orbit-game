@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace OrbitGame;
 
 /// <summary>
@@ -13,12 +15,12 @@ public interface ICollider
     /// <summary>
     /// Returns whether two objects are intersecting and provides information about the intersection
     /// </summary>
-    public IIntersection IntersectsWith(object? obj);
+    public IIntersection? IntersectsWith(object? obj);
     
     /// <summary>
     /// Determines whether two objects intersect and executes the expected response using the intersection information
     /// </summary>
-    public void CollidesWith(object? obj);
+    public void CollidesWith(object? obj, SKCanvas canvas, Camera camera);
     
     /// <summary>
     /// Returns true if the collider has no area (an intersection is impossible)
@@ -35,26 +37,35 @@ public readonly struct PointCollision(bool intersects = true)
 }
 
 // TODO: implement collider point field for physics collisions
-public readonly struct PhysicsCollision(Vector2 collisionPoint, Vector2 penetrationVector, bool intersects = true)
+public readonly struct PhysicsCollision(CompactCollider reference, CompactCollider collider, Vector2 collisionPoint, Vector2 penetrationVector)
     : IIntersection, IFormattable
 {
-    public static PhysicsCollision None = new (Vector2.Zero, Vector2.Zero, false);
-
+    public readonly CompactCollider Reference = reference;
+    public readonly CompactCollider Collider = collider;
     public readonly Vector2 CollisionPoint = collisionPoint;
     public readonly Vector2 PenetrationVector = penetrationVector;
-    public readonly bool Intersects = intersects;
 
-    public PhysicsCollision GetInverse(CompactCollider reference, CompactCollider collider)
+    public ScientificDecimal Mass => Reference.Parent.Mass;
+    public ScientificDecimal Inertia => Reference.Inertia;
+    public Vector2 Velocity => Reference.Parent.Velocity;
+    public double AngularVelocity => Reference.Parent.AngularVelocity;
+    public Vector2 CollisionNormal => PenetrationVector.Normalize();
+    public Vector2 CollisionTangent => new(CollisionNormal.Y, -CollisionNormal.X);
+    public ScientificDecimal Restitution =>
+        (Reference.Material.RestitutionCoefficient + Collider.Material.RestitutionCoefficient) / 2;
+
+    public PhysicsCollision GetInverse()
     {
         return new PhysicsCollision(
-            CollisionPoint + reference.Position - collider.Position,
-            -PenetrationVector,
-            Intersects
+            Collider,
+            Reference,
+            Reference.Parent.ObjectToObjectSpace(CollisionPoint, Collider.Parent),
+            Matrix3X3.Rotation(Collider.Parent.Angle - Reference.Parent.Angle) * -PenetrationVector
         );
     }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        return $"({collisionPoint}, {penetrationVector}, {intersects})";
+        return $"({Collider}, {Reference}, {CollisionPoint}, {PenetrationVector})";
     }
 }
