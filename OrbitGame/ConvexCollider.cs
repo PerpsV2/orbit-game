@@ -1,5 +1,3 @@
-using Silk.NET.OpenGL;
-
 namespace OrbitGame;
 
 public class ConvexCollider : CompactCollider, ICollider
@@ -44,76 +42,47 @@ public class ConvexCollider : CompactCollider, ICollider
 
     protected override RectangularCollider GetBoundingBox()
     {
-        if (IsEmpty()) return new(0, 0, 0, 0, Parent, Material);
-        ScientificDecimal top = RotatedPoints[0].Y;
-        ScientificDecimal right = RotatedPoints[0].X;
-        ScientificDecimal bottom = RotatedPoints[0].Y;
-        ScientificDecimal left = RotatedPoints[0].X;
-        foreach (var point in RotatedPoints)
-        {
-            if (point.Y > top) top = point.Y;
-            if (point.Y < bottom) bottom = point.Y;
-            if (point.X > right) right = point.X;
-            if (point.X < left) left = point.X;
-        }
-
-        return new(top, right, bottom, left, Parent, Material);
+        throw new NotImplementedException();
     }
 
     protected override PointCollision IntersectsWith(Vector2 point)
     {
         throw new NotImplementedException();
     }
-
+    
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
-        
+
         Vector2 collisionPoint = Vector2.Zero;
         Vector2 minPenetrationVector = Vector2.Zero;
         
-        for (int curr = 0; curr < _points.Length; ++curr)
+        // edge case (literally)
+        for (int i = 0; i < _points.Length; ++i)
         {
-            int next = (curr + 1) % _points.Length;
-            double angle = Vector2.GetPrincipalAngle(_points[curr], _points[next]);
-            Matrix3X3 transformation = Matrix3X3.Rotation(-angle) * Matrix3X3.Translation(-_points[curr]);
-            Matrix3X3 invTransformation = Matrix3X3.Translation(_points[curr]) * Matrix3X3.Rotation(angle);
-            ScientificDecimal upperBound = (transformation * _points[next]).X;
+            Vector2 currentVertex = _points[i];
+            Vector2 nextVertex = _points[(i + 1) % _points.Length];
+            double edgeAngle = Vector2.GetPrincipalAngle(currentVertex, nextVertex);
+            
+            Matrix3X3 transformation = Matrix3X3.Rotation(-edgeAngle) * Matrix3X3.Translation(-currentVertex);
+            Matrix3X3 invTransformation = Matrix3X3.Translation(currentVertex) * Matrix3X3.Rotation(edgeAngle);
+            
+            ScientificDecimal edgeUpperBound = (transformation * nextVertex).X;
             Vector2 transformedCenter = transformation * Parent.WorldToObjectSpace(collider.Position);
-            if (transformedCenter.X >= 0 && transformedCenter.Y.Abs() <= collider.Radius &&
-                transformedCenter.X <= upperBound)
+            if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
+                transformedCenter.Y.Abs() <= collider.Radius)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
-                if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() ||
-                    minPenetrationVector.Equals(Vector2.Zero))
+                if (penetrationDistance > 0 && penetrationDistance < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(Vector2.Zero))
                 {
-                    minPenetrationVector = Vector2.FromPolar(angle + Math.PI / 2, -penetrationDistance);
-                    collisionPoint = invTransformation * new Vector2(transformedCenter.X, 0);
+                    minPenetrationVector = Matrix3X3.Rotation(Parent.Angle) * Vector2.FromPolar(edgeAngle + Math.PI / 2, -penetrationDistance);
+                    collisionPoint = Matrix3X3.Rotation(Parent.Angle) * invTransformation * new Vector2(transformedCenter.X, 0);
                 }
             }
         }
 
         if (!minPenetrationVector.Equals(Vector2.Zero))
-        {
-            return new PhysicsCollision(this, collider, collisionPoint, minPenetrationVector);
-        }
-
-        Vector2 relativeCenter = Parent.WorldToObjectSpace(collider.Position);
-        Vector2[] sortedPoints = _points.OrderBy(v => (v - relativeCenter).Magnitude()).ToArray();
-        
-        Vector2 diffVector1 = sortedPoints[0] - Parent.WorldToObjectSpace(collider.Position);
-        Vector2 diffVector2 = sortedPoints[1] - Parent.WorldToObjectSpace(collider.Position);
-        if (diffVector1.Magnitude() <= collider.Radius) {
-            collisionPoint = sortedPoints[0];
-            if (diffVector2.Magnitude() <= collider.Radius)
-                collisionPoint = (sortedPoints[0] + sortedPoints[1]) / 2;
-            minPenetrationVector = diffVector1.Normalize() * (collider.Radius - diffVector1.Magnitude());
-        }
-
-        if (!minPenetrationVector.Equals(Vector2.Zero))
-        {
-            return new PhysicsCollision(this, collider, collisionPoint, minPenetrationVector);
-        }
+            return new PhysicsCollision(this, collider, [collisionPoint], minPenetrationVector);
 
         return null;
     }

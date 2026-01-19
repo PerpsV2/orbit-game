@@ -83,20 +83,20 @@ Planet earth = new Planet(
     new SKColor(100, 200, 255, 255), 
     "Earth"
 );
-Planet col1 = new Planet(
-    100, new Vector2(1, 1), Vector2.Zero, 1,
-    new Material(0.5f), new SKColor(255, 125, 0, 255),"Planet");
-Planet col2 = new Planet(
+Planet r = new Planet(
+    100, new Vector2(1, 1), Vector2.Zero, 10,
+    new Material(0.5f), new SKColor(125, 0, 0, 255),"Planet");
+Planet g = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
-    new Material(0.5f), new SKColor(0, 125, 125, 255), "Planet");
-Ship col3 = new Ship(
-    1000, new(5, 5), Vector2.Zero,
-    new Material(0.5f), new SKColor(125, 0, 255, 255),
+    new Material(0.5f), new SKColor(0, 125, 0, 255), "Planet");
+Ship b = new Ship(
+    1000, new(-5, -3), Vector2.Zero,
+    new Material(0.5f), new SKColor(0, 0, 125, 255),
     [
-        new (2,4),
-        new (2, -3),
-        new (-2, -2),
-        new (-4, 2)
+        new (2.33333333333,3.5),
+        new (2.33333333333, -2.5),
+        new (-1.6666666667, -2.5),
+        new (-3.6666666667, 1.5)
     ],
     "Ship"
 );
@@ -114,10 +114,10 @@ Ship smokestack = new Ship(
 );
 
 List<Body> bodies = [
-    earth,sun,smokestack
+    r, b
 ];
 
-OriginBody.Body = smokestack;
+OriginBody.Body = r;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -171,8 +171,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.L)) OriginBody.Body.Position += new Vector2(0.06m, 0);
     if (keyboard.IsKeyPressed(Key.Number1)) OriginBody.Body.Angle += 0.01;
     if (keyboard.IsKeyPressed(Key.Number2)) OriginBody.Body.Angle -= 0.01;
-    if (keyboard.IsKeyPressed(Key.T)) OriginBody.Body.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.Y)) OriginBody.Body.AngularVelocity -= 0.1;
+    if (keyboard.IsKeyPressed(Key.T)) tracking.AngularVelocity += 0.1;
+    if (keyboard.IsKeyPressed(Key.Y)) tracking.AngularVelocity -= 0.1;
 }
 
 void OnRender(double _)
@@ -210,8 +210,8 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    smokestack.Collider.CollidesWith(earth.Collider, canvas, camera);
-    //col3.Collider.CollidesWith(col1.Collider, canvas, camera);
+    r.Collider.CollidesWith(b.Collider, canvas, camera);
+    b.Collider.CollidesWith(r.Collider, canvas, camera);
 
     canvas.Flush();
 }

@@ -136,27 +136,21 @@ public static class Utils
         canvas.DrawPath(path, paint);
     }
 
-    public static void GS_DrawLine(
-        this SKCanvas canvas,
-        Camera camera,
-        Vector2 start,
-        Vector2 end,
-        SKPaint paint
-        )
+    public static void GS_DrawLine(this SKCanvas canvas, Camera camera, Vector2 start, Vector2 end, SKPaint paint)
     {
         SKPoint screenStart = camera.ConvertToScreenCoordinates(start);
         SKPoint screenEnd = camera.ConvertToScreenCoordinates(end);
         canvas.DrawLine(screenStart, screenEnd, paint);
     }
     
-    public static void GS_DrawPoint(
-        this SKCanvas canvas,
-        Camera camera,
-        Vector2 point,
-        SKPaint paint
-    )
+    public static void GS_DrawLineR(this SKCanvas canvas, Camera camera, Vector2 start, Vector2 offset, SKPaint paint)
+    {
+        canvas.GS_DrawLine(camera, start, start + offset, paint);
+    }
+    
+    public static void GS_DrawPoint(this SKCanvas canvas, Camera camera, Vector2 point, SKPaint paint)
     {
         SKPoint screenPoint = camera.ConvertToScreenCoordinates(point);
-        canvas.DrawCircle(screenPoint, 3, paint);
+        canvas.DrawCircle(screenPoint, 5, paint);
     }
 }

@@ -38,7 +38,7 @@ public abstract class KinematicObject
     }
 
     private Matrix3X3 GetLocalSpaceMatrix()
-        => Matrix3X3.Translation(Position) * Matrix3X3.Rotation(-Angle);
+        => Matrix3X3.Translation(Position) * Matrix3X3.Rotation(Angle);
 
     public Vector2 ObjectToWorldSpace(Vector2 point)
     {
@@ -47,11 +47,11 @@ public abstract class KinematicObject
 
     public Vector2 WorldToObjectSpace(Vector2 point)
     {
-        return Matrix3X3.Rotation(Angle) * Matrix3X3.Translation(-Position) * point;
+        return Matrix3X3.Rotation(-Angle) * Matrix3X3.Translation(-Position) * point;
     }
 
     public Vector2 ObjectToObjectSpace(Vector2 point, KinematicObject originObject)
     {
-        return originObject.WorldToObjectSpace(ObjectToWorldSpace(point));
+        return WorldToObjectSpace(originObject.ObjectToWorldSpace(point));
     }
 }

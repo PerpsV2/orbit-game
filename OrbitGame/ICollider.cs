@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using SkiaSharp;
 
 namespace OrbitGame;
@@ -36,36 +37,35 @@ public readonly struct PointCollision(bool intersects = true)
     public readonly bool Intersects = intersects;
 }
 
-// TODO: implement collider point field for physics collisions
-public readonly struct PhysicsCollision(CompactCollider reference, CompactCollider collider, Vector2 collisionPoint, Vector2 penetrationVector)
+/// <summary>
+/// Contains information about a collision between two compact colliders.
+/// Values are relative to the reference collider's parent without respect for angle
+/// </summary>
+public readonly struct PhysicsCollision(CompactCollider reference, CompactCollider incident, Vector2[] manifold, Vector2 penetrationVector)
     : IIntersection, IFormattable
 {
     public readonly CompactCollider Reference = reference;
-    public readonly CompactCollider Collider = collider;
-    public readonly Vector2 CollisionPoint = collisionPoint;
+    public readonly CompactCollider Incident = incident;
+    public readonly Vector2[] CollisionManifold = manifold;
     public readonly Vector2 PenetrationVector = penetrationVector;
-
-    public ScientificDecimal Mass => Reference.Parent.Mass;
-    public ScientificDecimal Inertia => Reference.Inertia;
-    public Vector2 Velocity => Reference.Parent.Velocity;
-    public double AngularVelocity => Reference.Parent.AngularVelocity;
+    
     public Vector2 CollisionNormal => PenetrationVector.Normalize();
-    public Vector2 CollisionTangent => new(CollisionNormal.Y, -CollisionNormal.X);
     public ScientificDecimal Restitution =>
-        (Reference.Material.RestitutionCoefficient + Collider.Material.RestitutionCoefficient) / 2;
+        (Reference.Material.RestitutionCoefficient + Incident.Material.RestitutionCoefficient) / 2;
 
     public PhysicsCollision GetInverse()
     {
+        Vector2[] newManifold = new Vector2[CollisionManifold.Length];
+        for (int i = 0; i < CollisionManifold.Length; ++i)
+            newManifold[i] = CollisionManifold[i] + Reference.Position - Incident.Position;
+        
         return new PhysicsCollision(
-            Collider,
-            Reference,
-            Reference.Parent.ObjectToObjectSpace(CollisionPoint, Collider.Parent),
-            Matrix3X3.Rotation(Collider.Parent.Angle - Reference.Parent.Angle) * -PenetrationVector
+            Incident, Reference, newManifold, -PenetrationVector
         );
     }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        return $"({Collider}, {Reference}, {CollisionPoint}, {PenetrationVector})";
+        return $"({Incident}, {Reference}, {CollisionManifold}, {PenetrationVector})";
     }
 }

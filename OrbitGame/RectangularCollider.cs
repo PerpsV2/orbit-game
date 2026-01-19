@@ -35,16 +35,10 @@ public class RectangularCollider(
         point -= Parent.Position;
         return new(point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left);
     }
-
-    // TODO: Implement rectangle-circle and rectangle-rectangle collisions
+    
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return null;
-        Vector2 closestPoint = new(Utils.Clamp(collider.Position.X, Position.X - Left, Position.X - Right),
-            Utils.Clamp(collider.Position.Y, Position.Y - Bottom, Position.Y - Top));
-        if ((collider.Position - closestPoint).Magnitude() <= collider.Radius)
-            return new PhysicsCollision(this, collider, Vector2.Zero, Vector2.Zero);
-        return null;
+        throw new NotImplementedException();
     }
 
     protected override PhysicsCollision? IntersectsWith(ConvexCollider collider)
@@ -52,25 +46,7 @@ public class RectangularCollider(
 
     protected override PhysicsCollision? IntersectsWith(RectangularCollider collider)
     {
-        if (IsEmpty() || collider.IsEmpty()) return null;
-        Vector2 posDiff = collider.Position - Position;
-        if (Utils.IntervalIntersects(Top, Bottom, collider.Top + posDiff.Y, collider.Bottom + posDiff.Y) &&
-            Utils.IntervalIntersects(Left, Right, collider.Left + posDiff.X, collider.Right + posDiff.X))
-        {
-            List<Vector2> cardinalPenetrationDepths =
-            [
-                new(collider.Right - Left, 0),
-                new(Right - collider.Left, 0),
-                new(0, collider.Top - Bottom),
-                new(0, Top - collider.Bottom)
-            ];
-
-            cardinalPenetrationDepths.Sort();
-            
-            return new PhysicsCollision(this, collider, Vector2.Zero, cardinalPenetrationDepths[0]);
-        }
-
-        return null;
+        throw new NotImplementedException();
     }
 
     public override bool IsEmpty() =>

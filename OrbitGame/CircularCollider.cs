@@ -22,11 +22,17 @@ public class CircularCollider
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
-        Vector2 displacementVector = Position - collider.Position;
-        ScientificDecimal distance = displacementVector.Magnitude();
-        if (distance <= collider.Radius + Radius)
-            return new PhysicsCollision(this, collider, Vector2.Zero, 
-                displacementVector.Normalize() * (collider.Radius + Radius - distance));
+        
+        Vector2 diffVector = collider.Position - Position;
+        ScientificDecimal distance = diffVector.Magnitude();
+        if (distance <= Radius + collider.Radius)
+        {
+            Vector2 dirVector = diffVector.Normalize();
+            Vector2 collisionPoint = dirVector * Radius;
+            Vector2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            return new PhysicsCollision(this, collider, [collisionPoint], penetrationVector);
+        }
+        
         return null;
     }
 
