@@ -55,17 +55,19 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         Vector2 momentum = relVelocity * Mass;
         Vector3 angularMomentum = Vector2.Cross(relPosition, momentum);
         
-        Vector2 lrlVector = CalculateLRLVector(centralForce);
+        Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * CalculateLRLVector(centralForce);
         ScientificDecimal k = Mass * centralForce.Mass * Constants.G;
 
         ScientificDecimal c = Mass * k / angularMomentum.Magnitude().Square();
         ScientificDecimal e = lrlVector.Magnitude() / (Mass * k).Abs();
 
-        ScientificDecimal Orbit(double angle) => 1 / (c * (1 + e * Math.Cos(angle)));
+        double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
+
+        ScientificDecimal Orbit(double angle) => 1 / (c * (1 + e * Math.Cos(angle + periapsis)));
         
         DebugCanvas.Add((cnv, cam) => {
             List<Vector2> orbitPoints = new List<Vector2>();
-            for (double i = 0; i < 2 * Math.PI; i += Math.PI / 30)
+            for (double i = 0; i < 2 * Math.PI; i += Math.PI / 100)
                 orbitPoints.Add(centralForce.Position + Vector2.FromPolar(i, Orbit(i)));
             cnv.GS_DrawPath(cam, orbitPoints, DebugCanvas.Purple);
         });
