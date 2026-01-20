@@ -67,9 +67,19 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         
         DebugCanvas.Add((cnv, cam) => {
             List<Vector2> orbitPoints = new List<Vector2>();
-            for (double i = 0; i < 2 * Math.PI; i += Math.PI / 100)
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(i, Orbit(i)));
-            cnv.GS_DrawPath(cam, orbitPoints, DebugCanvas.Purple);
+            Vector2 relCamPosition = cam.AbsolutePosition - centralForce.Position;
+            Vector2 angleRangeVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(), new(0, 0, cam.Width));
+            double minAngle = Utils.UnsignedMod((relCamPosition + angleRangeVector).GetPrincipalAngle(), Math.Tau);
+            double maxAngle = Utils.UnsignedMod((relCamPosition - angleRangeVector).GetPrincipalAngle(), Math.Tau);
+            if (minAngle > maxAngle) maxAngle += Math.Tau;
+            
+            if (maxAngle - minAngle > Math.PI * 0.75f) 
+                for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, Orbit(a)));
+            else 
+                for (double a = minAngle; a < maxAngle; a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, Orbit(a)));
+            if (orbitPoints.Count > 0) cnv.GS_DrawPath(cam, orbitPoints, DebugCanvas.Purple);
         });
         
         return Orbit;

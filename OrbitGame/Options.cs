@@ -40,6 +40,8 @@ public static class Options
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
 
+    // Number of points that should be drawn on screen to represent an orbit
+    public const uint OrbitResolutionNumPoints = 100;
     // Maximum scale of planet radius with respect to the camera's height before the surface of the planet is drawn as a line rather than a curve
     public const float SurfaceApproximationRadiusZoomFraction = 1000;
     // Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker
