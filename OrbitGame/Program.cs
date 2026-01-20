@@ -101,7 +101,7 @@ Ship b = new Ship(
     "Ship"
 );
 Ship smokestack = new Ship(
-    1000, new Vector2(new ScientificDecimal(6.378m, 6), 0), Vector2.Zero,
+    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     [
@@ -204,6 +204,8 @@ void OnRender(double _)
         }
     }
     
+    earth.Collider.CollidesWith(smokestack.Collider, canvas, camera);
+    
     OriginBody.ResetOrigin(bodies);
     
     camera.SetOrigin(tracking.Position);
@@ -214,7 +216,7 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    earth.Collider.CollidesWith(smokestack.Collider, canvas, camera);
+    
     //b.Collider.CollidesWith(r.Collider, canvas, camera);
 
     canvas.Flush();

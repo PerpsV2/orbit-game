@@ -99,19 +99,23 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         KinematicObject reference = c1.Reference.Parent;
         KinematicObject incidence = c2.Reference.Parent;
         
+        // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
+        Vector2 cPr = c1.CollisionManifold[0];
+        Vector2 cPi = c2.CollisionManifold[0];
+        
         Vector2 pVr = reference.Velocity - (Vector2)Vector3.Cross(c1.CollisionManifold[0], new(0, 0, reference.AngularVelocity));
         Vector2 pVi = incidence.Velocity - (Vector2)Vector3.Cross(c2.CollisionManifold[0], new(0, 0, incidence.AngularVelocity));
         Vector2 relV = pVi - pVr;
 
         ScientificDecimal jV = -(1 + c1.Restitution) * Vector2.Dot(relV, cNormal);
-        Vector3 m1 = Vector3.Cross(Vector2.Cross(c1.CollisionManifold[0], cNormal) / c1.Reference.Inertia, c1.CollisionManifold[0]);
+        Vector3 m1 = Vector3.Cross(Vector2.Cross(cPr, cNormal) / c1.Reference.Inertia, cPr);
         Vector3 m2 = Vector3.Cross(Vector2.Cross(c2.CollisionManifold[0], cNormal) / c2.Reference.Inertia, c2.CollisionManifold[0]);
         ScientificDecimal j = jV / (Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) + Vector3.Dot(m1 + m2, cNormal));
 
         reference.Velocity -= cNormal * (j / reference.Mass);
         incidence.Velocity += cNormal * (j / incidence.Mass);
 
-        reference.AngularVelocity -= (double)(Vector2.Cross(c1.CollisionManifold[0], cNormal * j).Z / c1.Reference.Inertia);
+        reference.AngularVelocity -= (double)(Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
         incidence.AngularVelocity += (double)(Vector2.Cross(c2.CollisionManifold[0], cNormal * j).Z / c2.Reference.Inertia);
             
         reference.Position += c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
@@ -125,15 +129,15 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         SKPaint purple = new SKPaint { Color = SKColors.Purple, StrokeWidth = 4 };
         SKPaint white = new SKPaint { Color = SKColors.White, StrokeWidth = 4 };
         
-        canvas.GS_DrawPoint(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + c1.CollisionManifold[0], blue);
-        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + c1.CollisionManifold[0], c1.PenetrationVector, blue);
+        canvas.GS_DrawPoint(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + cPr, blue);
+        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + cPr, c1.PenetrationVector, blue);
         
         foreach (var point in c1.CollisionManifold)
             canvas.GS_DrawPoint(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + point, red);
         
-        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + c1.CollisionManifold[0], relV, yellow);
+        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + cPr, relV, yellow);
         
-        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + c1.CollisionManifold[0], cNormal * (j / reference.Mass), orange);
+        canvas.GS_DrawLineR(camera, Parent.ObjectToWorldSpace(Vector2.Zero) + cPr, cNormal * (j / reference.Mass), orange);
     }
     
     
