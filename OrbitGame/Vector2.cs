@@ -18,7 +18,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     public static ScientificDecimal Dot(Vector2 left, Vector2 right)
         => left.X * right.X + left.Y * right.Y;
 
-    // returns the cross product of two 2D vectors assuming the Z value of each is zero
+    /// <summary>
+    /// returns the cross product of two 2D vectors assuming the Z value of each is zero
+    /// </summary>
     public static Vector3 Cross(Vector2 left, Vector2 right)
         => new(0, 0, left.X * right.Y - left.Y * right.X);
     
@@ -49,14 +51,10 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     
     public static implicit operator Vector3(Vector2 value)
         => new (value.X, value.Y, 0);
-    
-    public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
-    {
-        Vector2 difference = end - start;
-        return difference / difference.Magnitude();
-    }
 
-    // returns the inertia tensor for a convex shape
+    /// <summary>
+    /// Decomposes the vertices of a convex polygon into triangles
+    /// </summary>
     public static (Vector2 a, Vector2 b, Vector2 c)[] TriangulateConvex(Vector2[] points)
     {
         if (points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
@@ -66,7 +64,36 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
 
         return triangulation;
     }
+    
+    /// <summary>
+    /// Returns the center of mass from the vertices of a convex polygon
+    /// </summary>
+    public static Vector2 CenterOfMassConvex(Vector2[] points)
+    {
+        var triangles = TriangulateConvex(points);
+        Vector2 centerOfMass = Zero;
+        foreach (var triangle in triangles)
+        {
+            Vector2 centroid = (triangle.a + triangle.b + triangle.c) / 3;
+            centerOfMass += centroid;
+        }
 
+        centerOfMass /= triangles.Length;
+
+        return centerOfMass;
+    }
+
+    /// <summary>
+    /// Re-centers a convex polygon at its center of mass
+    /// </summary>
+    /// <param name="points"></param>
+    /// <returns></returns>
+    public static Vector2[] CenterConvex(Vector2[] points)
+        => points.Select(v => v - CenterOfMassConvex(points)).ToArray();
+
+    /// <summary>
+    /// Returns whether a set of three points is ordered clockwise or counter-clockwise
+    /// </summary>
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
     {
         ScientificDecimal edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
@@ -74,8 +101,10 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
             edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
     }
-
-    // returns the vertex order of the convex hull for the set of points given as a linked list
+    
+    /// <summary>
+    /// Returns the vertex order of the convex hull for the set of points given as a linked list
+    /// </summary>
     public static LinkedList<int> GetConvexHullIndices(Vector2[] points)
     {
         // get leftmost point to start
@@ -101,6 +130,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
 
         return convexHull;
     }
+    
+    public static Vector2 DirectionVectorBetween(Vector2 start, Vector2 end)
+    {
+        Vector2 difference = end - start;
+        return difference / difference.Magnitude();
+    }
 
     public double GetPrincipalAngle()
     {
@@ -108,8 +143,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         if (x == 0 && y > 0) return Math.PI / 2;
         if (x == 0 && y < 0) return 3 * Math.PI / 2;
         
-        double angle = Math.Atan2((double)Y, (double)X);
-        return angle;
+        return Math.Atan2((double)Y, (double)X);
     }
 
     public static double GetPrincipalAngle(Vector2 start, Vector2 end)

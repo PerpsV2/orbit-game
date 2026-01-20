@@ -104,12 +104,13 @@ Ship smokestack = new Ship(
     1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
-    [
-        new (2.33333333333,3.5),
-        new (2.33333333333, -2.5),
-        new (-1.6666666667, -2.5),
-        new (-3.6666666667, 1.5)
-    ],
+    Vector2.CenterConvex([
+        new (4,4),
+        new (4, -3),
+        new (-2, -5),
+        new (-50, 0),
+        new (-3, 5)
+    ]),
     "Ship"
 );
 
