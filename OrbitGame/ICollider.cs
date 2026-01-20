@@ -21,7 +21,7 @@ public interface ICollider
     /// <summary>
     /// Determines whether two objects intersect and executes the expected response using the intersection information
     /// </summary>
-    public void CollidesWith(object? obj, SKCanvas canvas, Camera camera);
+    public void CollidesWith(object? obj);
     
     /// <summary>
     /// Returns true if the collider has no area (an intersection is impossible)

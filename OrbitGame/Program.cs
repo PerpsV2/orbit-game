@@ -204,7 +204,7 @@ void OnRender(double _)
         }
     }
     
-    earth.Collider.CollidesWith(smokestack.Collider, canvas, camera);
+    smokestack.Collider.CollidesWith(earth.Collider);
     
     OriginBody.ResetOrigin(bodies);
     
@@ -216,8 +216,8 @@ void OnRender(double _)
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
-    
-    //b.Collider.CollidesWith(r.Collider, canvas, camera);
+    DebugCanvas.Draw(canvas, camera);
+    DebugCanvas.ClearBuffer();
 
     canvas.Flush();
 }
