@@ -22,13 +22,12 @@ public class ConvexCollider : CompactCollider, ICollider
         ScientificDecimal[] inertias = new ScientificDecimal[triangles.Length];
         for (int i = 0; i < triangles.Length; ++i)
         {
-            var t = triangles[i];
-            Vector2 a = t.a;
-            Vector2 b = t.b;
-            Vector2 c = t.c;
+            Vector2 a = triangles[i].a;
+            Vector2 b = triangles[i].b;
+            Vector2 c = triangles[i].c;
             
             masses[i] = Parent.Mass / totalArea * Utils.CalculateTriangleArea(a, b, c);
-            centroids[i] = new Vector2(a.X + b.X + c.X, a.Y + b.Y + c.Y)/ 3;
+            centroids[i] = (a + b + c) / 3;
             inertias[i] = masses[i] * (Vector2.Dot(a, a) + Vector2.Dot(b, b) + Vector2.Dot(c, c) +
                 Vector2.Dot(c, c) + Vector2.Dot(a, b) + Vector2.Dot(b, c) + Vector2.Dot(c, a))/ 6;
         }
@@ -59,6 +58,7 @@ public class ConvexCollider : CompactCollider, ICollider
         Vector2 relativeCenter = Parent.WorldToObjectSpace(collider.Position);
         
         // edge case (literally)
+        // TODO: fix cases where one object is fully within the other
         for (int i = 0; i < _points.Length; ++i)
         {
             Vector2 currentVertex = _points[i];

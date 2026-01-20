@@ -115,7 +115,7 @@ Ship smokestack = new Ship(
 );
 
 List<Body> bodies = [
-    earth, smokestack
+    sun, earth, smokestack
 ];
 
 OriginBody.Body = smokestack;
@@ -204,6 +204,8 @@ void OnRender(double _)
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
         }
     }
+
+    earth.CalculateOrbitEquation(sun);
     
     smokestack.Collider.CollidesWith(earth.Collider);
     

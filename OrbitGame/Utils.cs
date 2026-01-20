@@ -95,6 +95,21 @@ public static class Utils
         
         canvas.DrawOval(screenPosition, screenRadius, paint);
     }
+    
+    public static void GS_DrawEllipse(
+        this SKCanvas canvas, 
+        Camera camera, 
+        Vector2 centre, 
+        ScientificDecimal radius1, 
+        ScientificDecimal radius2,
+        SKPaint paint)
+    {
+        SKPoint screenPosition = camera.ConvertToScreenCoordinates(centre);
+        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(radius1), 
+            camera.ConvertToScreenDistance(radius2, false));
+
+        canvas.DrawOval(screenPosition, screenRadius, paint);
+    }
 
     public static void GS_DrawRect(
         this SKCanvas canvas,
@@ -133,6 +148,21 @@ public static class Utils
             path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
         paint.Style = filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke;
         path.Close();
+        canvas.DrawPath(path, paint);
+    }
+    
+    public static void GS_DrawPath(
+        this SKCanvas canvas,
+        Camera camera,
+        IList<Vector2> points,
+        SKPaint paint
+    )
+    {
+        SKPath path = new SKPath();
+        path.MoveTo(camera.ConvertToScreenCoordinates(points[0]));
+        for (int i = 1; i < points.Count; i++)
+            path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
+        paint.Style = SKPaintStyle.Stroke;
         canvas.DrawPath(path, paint);
     }
 
