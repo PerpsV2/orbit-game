@@ -1,8 +1,18 @@
+using System.Diagnostics;
 using SkiaSharp;
 
 namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
+
+public readonly struct Orbit(OrbitEquation equation, ScientificDecimal scale, ScientificDecimal eccentricity, double periapsis)
+{
+    public readonly OrbitEquation Equation = equation;
+    public readonly ScientificDecimal Scale = scale;
+    public readonly ScientificDecimal Eccentricity = eccentricity;
+    public readonly double PeriapsisArgument = Utils.UnsignedMod(periapsis, Math.Tau);
+    public readonly double ApoapsisArgument = Utils.UnsignedMod(periapsis + Math.PI, Math.Tau);
+}
 
 /// <summary>
 /// A KinematicObject with information about shape and material and methods for physics.
@@ -18,21 +28,59 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
 
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera, Body centralForce)
     {
-        OrbitEquation orbit = CalculateOrbitEquation(centralForce);
+        Orbit orbit = CalculateOrbit(centralForce);
         List<Vector2> orbitPoints = new List<Vector2>();
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
-        Vector2 angleRangeVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(), 
+        Vector2 maxCamExtentVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(), 
             new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
-        double minAngle = Utils.UnsignedMod((relCamPosition + angleRangeVector).GetPrincipalAngle(), Math.Tau);
-        double maxAngle = Utils.UnsignedMod((relCamPosition - angleRangeVector).GetPrincipalAngle(), Math.Tau);
+        double minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
+        double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
-        if (maxAngle - minAngle > Math.PI * 0.75f) 
-            for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit(a)));
-        else 
+        if (maxAngle - minAngle > Math.PI * 0.75f)
+        {
+            // drawing elliptic and parabolic orbits
+            if (orbit.Eccentricity <= 1)
+            {
+                for (double a = 0; a <= Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
+            }
+            // for drawing hyperbolic orbits
+            else
+            {
+                double soiEscapeAngle = Utils.UnsignedMod(Math.Acos((double)(-(orbit.Eccentricity - 3) / (2 * orbit.Eccentricity))), Math.Tau);
+                if (orbit.Scale.Negative) soiEscapeAngle = Utils.UnsignedMod(Math.Cos((double)(-(orbit.Eccentricity + 1) / (2 * orbit.Eccentricity))), Math.Tau);
+                //if (Utils.UnsignedMod(-soiEscapeAngle, Math.Tau) < soiEscapeAngle)
+                //    soiEscapeAngle = Utils.UnsignedMod(-soiEscapeAngle, Math.Tau);
+                for (double a = 0; a <= 2 * soiEscapeAngle; a += 2 * soiEscapeAngle / Options.OrbitResolutionNumPoints)
+                {
+                    double trueAngle = soiEscapeAngle - a;
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, orbit.Equation(trueAngle)));
+                }
+            }
+
+            if (orbit.Eccentricity > 1)
+            {
+                canvas.GS_DrawPoint(camera, orbitPoints.Last(), DebugCanvas.Red);
+                canvas.GS_DrawPoint(camera, orbitPoints.First(), DebugCanvas.Red);
+                double asymptoteAngle = Math.Acos((double)(-1 / orbit.Eccentricity));
+                ScientificDecimal soiDistance = 929000000;
+                ScientificDecimal firstPointDistance = (orbitPoints.First() - centralForce.Position).Magnitude();
+                ScientificDecimal lastPointDistance = (orbitPoints.Last() - centralForce.Position).Magnitude();
+                orbitPoints.Add(orbitPoints.Last() + Vector2.FromPolar(-asymptoteAngle, soiDistance - lastPointDistance));
+                //orbitPoints.Prepend(orbitPoints.First() - Vector2.FromPolar(asymptoteAngle, soiDistance - firstPointDistance));
+            }
+        }
+        else
+        {
             for (double a = minAngle; a < maxAngle; a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit(a)));
+            {
+                ScientificDecimal dist = orbit.Equation(a);
+                if (dist > 0)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, dist));
+            }
+        }
+
         if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, DebugCanvas.Purple);
     }
     
@@ -53,7 +101,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
                 sum + CalculateGravitationalAcceleration(next));
     }
 
-    public OrbitEquation CalculateOrbitEquation(Body centralForce)
+    public Orbit CalculateOrbit(Body centralForce)
     {
         Vector2 relVelocity = Velocity - centralForce.Velocity;
         Vector2 relPosition = Position - centralForce.Position;
@@ -68,10 +116,10 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
 
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
-
         double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
 
-        return angle => 1 / (c * (1 + eccentricity * Math.Cos(angle + periapsis)));
+        return new Orbit(angle => 1 / (c * (1 + eccentricity * Math.Cos(angle + periapsis))),
+            c, eccentricity, periapsis);
     }
     
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator)
