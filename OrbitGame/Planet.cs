@@ -21,6 +21,22 @@ public class Planet : Body
         Collider = new CircularCollider(Radius, this, material);
     }
 
+    public Planet(
+        ScientificDecimal mass,
+        Vector2 position,
+        Vector2 velocity,
+        ScientificDecimal radius,
+        Material material,
+        SKColor colour,
+        Body parent,
+        string name
+    )
+        : this(mass, position, velocity, radius, material, colour, name)
+    {
+        Position = parent.Position + position;
+        Velocity = parent.Velocity + velocity;
+    }
+
     public override void Draw(SKCanvas canvas, Camera camera)
     {
         SKPaint paint = new SKPaint

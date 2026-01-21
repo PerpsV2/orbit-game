@@ -64,7 +64,7 @@ Planet sun = new Planet(
     Vector2.Zero,
     Vector2.Zero,
     new ScientificDecimal(6.96340m, 8),
-    new Material(0.5f),
+    new Material(0f),
     new SKColor(255, 255, 255, 255), 
     "Sun"
 );
@@ -79,10 +79,48 @@ Planet earth = new Planet(
         new ScientificDecimal(-1.8447646m, 3)
     ),
     new ScientificDecimal(6.378m, 6),
-    new Material(0.2f),
-    new SKColor(100, 200, 255, 255), 
-    "Earth"
+    new Material(0.2f), new SKColor(100, 200, 255, 255), sun, "Earth"
 );
+Body mars = new Planet(
+    new ScientificDecimal(6.39m, 23),
+    new Vector2(
+        new ScientificDecimal(-6.4603691m, 10), 
+        new ScientificDecimal( 2.3127019m, 11)
+    ), 
+    new Vector2(
+        new ScientificDecimal(-2.2420469m, 4), 
+        new ScientificDecimal(-4.6499686m, 3)
+    ),
+    new ScientificDecimal(3.3895m, 6),
+    new Material(0.2f), new SKColor(230, 60, 50, 255), sun, "Mars"
+);
+Body jupiter = new Planet(
+    new ScientificDecimal(1.898m, 27),
+    new Vector2(
+        new ScientificDecimal( 1.6580000m, 11), 
+        new ScientificDecimal( 7.4166230m, 11)
+    ), 
+    new Vector2(
+        new ScientificDecimal(-1.2915655m, 4), 
+        new ScientificDecimal( 3.4670152m, 3)
+    ), 
+    new ScientificDecimal(6.9911m, 7), 
+    new Material(0.2f), new SKColor(175, 125, 50, 255), sun, "Jupiter"
+);
+Ship smokestack = new Ship(
+    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
+    new Material(0.5f), new SKColor(0, 125, 0, 255),
+    earth,
+    Vector2.CenterConvex([
+        new (4,4),
+        new (4, -3),
+        new (-2, -5),
+        new (-50, 0),
+        new (-3, 5)
+    ]),
+    "Ship"
+);
+
 Planet r = new Planet(
     100, new Vector2(4, 0), Vector2.Zero, 4,
     new Material(0.5f), new SKColor(125, 0, 0, 255),"Planet");
@@ -100,22 +138,9 @@ Ship b = new Ship(
     ],
     "Ship"
 );
-Ship smokestack = new Ship(
-    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
-    new Material(0.5f), new SKColor(0, 125, 0, 255),
-    earth,
-    Vector2.CenterConvex([
-        new (4,4),
-        new (4, -3),
-        new (-2, -5),
-        new (-50, 0),
-        new (-3, 5)
-    ]),
-    "Ship"
-);
 
 List<Body> bodies = [
-    sun, earth, smokestack
+    sun, earth, mars, jupiter, smokestack
 ];
 
 OriginBody.Body = smokestack;
@@ -165,19 +190,12 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
-
-    if (keyboard.IsKeyPressed(Key.I)) tracking.Position -= new Vector2(0, 0.06m);
-    if (keyboard.IsKeyPressed(Key.J)) tracking.Position -= new Vector2(0.06m, 0);
-    if (keyboard.IsKeyPressed(Key.K)) tracking.Position += new Vector2(0, 0.06m);
-    if (keyboard.IsKeyPressed(Key.L)) tracking.Position += new Vector2(0.06m, 0);
-    if (keyboard.IsKeyPressed(Key.Number1)) tracking.Angle += 0.01;
-    if (keyboard.IsKeyPressed(Key.Number2)) tracking.Angle -= 0.01;
-    if (keyboard.IsKeyPressed(Key.Number3)) tracking.AngularVelocity += 0.1;
-    if (keyboard.IsKeyPressed(Key.Number4)) tracking.AngularVelocity -= 0.1;
-    if (keyboard.IsKeyPressed(Key.Number5)) tracking.Velocity += new Vector2(0, 0.01);
-    if (keyboard.IsKeyPressed(Key.Number6)) tracking.Velocity -= new Vector2(0, 0.01);
-    if (keyboard.IsKeyPressed(Key.Number7)) tracking.Velocity += new Vector2(0.01, 0);
-    if (keyboard.IsKeyPressed(Key.Number8)) tracking.Velocity -= new Vector2(0.01, 0);
+    
+    if (keyboard.IsKeyPressed(Key.J)) tracking.Angle -= 0.05;
+    if (keyboard.IsKeyPressed(Key.L)) tracking.Angle += 0.05;
+    
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
 }
 
 void OnRender(double _)
@@ -195,30 +213,38 @@ void OnRender(double _)
     
     if (Options.DisplayFPS)
         canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
-
+    
     if (Options.EnablePhysics)
     {
+        // step through gravity numerical integrator
         foreach (var body in bodies)
         {
             body.SetNetGravitationalAcceleration(bodies);
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
         }
+        
+        // resolve collisions
+        smokestack.Collider.CollidesWith(earth.Collider);
     }
-
-    earth.CalculateOrbitEquation(sun);
     
-    smokestack.Collider.CollidesWith(earth.Collider);
-    
+    // recalculate origins
     OriginBody.ResetOrigin(bodies);
-    
     camera.SetOrigin(tracking.Position);
     
+    // draw orbital paths
+    earth.DrawOrbitalPathLRL(canvas, camera, sun);
+    mars.DrawOrbitalPathLRL(canvas, camera, sun);
+    jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
+    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    
+    // draw bodies
     foreach (var body in bodies)
     {
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }
     
+    // draw objects from debug canvas
     DebugCanvas.Draw(canvas, camera);
     DebugCanvas.ClearBuffer();
 
