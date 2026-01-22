@@ -27,8 +27,6 @@ public class Ship : Body
     {
         Position = parent.Position + position;
         Velocity = parent.Velocity + velocity;
-
-        Angle = Math.PI / 2;
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)

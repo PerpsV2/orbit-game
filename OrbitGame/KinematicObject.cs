@@ -21,7 +21,7 @@ public abstract class KinematicObject
     public double AngularVelocity;
 
     public Vector2 ForwardVector => Vector2.FromPolar(Angle);
-    public Vector2 RightVector => Vector2.FromPolar(Angle + Math.PI / 2);
+    public Vector2 RightVector => Vector2.FromPolar(Angle - Math.PI / 2);
     
     protected KinematicObject(
         string name,

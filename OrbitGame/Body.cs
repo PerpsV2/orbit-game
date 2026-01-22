@@ -5,7 +5,7 @@ namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
 
-public readonly struct Orbit(OrbitEquation equation, ScientificDecimal scale, ScientificDecimal eccentricity, double periapsis)
+public record struct Orbit(OrbitEquation equation, ScientificDecimal scale, ScientificDecimal eccentricity, double periapsis)
 {
     public readonly OrbitEquation Equation = equation;
     public readonly ScientificDecimal Scale = scale;
@@ -36,30 +36,42 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         double minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         if (minAngle > maxAngle) maxAngle += Math.Tau;
-
+        
+        // draw zoomed out orbit
         if (maxAngle - minAngle > Math.PI * 0.75f)
         {
+            // draw elliptical orbits
             if (orbit.Eccentricity < 1)
             {
                 for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
             }
+            // draw hyperbolic orbits
             else
             {
-                Debug.WriteLine("Start Log");
-                for (double a = orbit.PeriapsisArgument; a < orbit.PeriapsisArgument + Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
+                double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(double)(1 / orbit.Eccentricity)), Math.Tau);
+                for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
                 {
-                    Debug.WriteLine($"Angle {double.RadiansToDegrees(a)} - Dist ${orbit.Equation(a)}");
+                    double trueAngle = a - orbit.PeriapsisArgument;
+                    ScientificDecimal dist = orbit.Equation(trueAngle);
+                    if (dist > 0) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
                 }
             }
         }
+        // draw zoomed in orbit
         else
         {
+            // draw elliptical orbits
             if (orbit.Eccentricity < 1)
             {
                 for (double a = minAngle; a < maxAngle;
                      a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
+            }
+            // draw hyperbolic orbits
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 

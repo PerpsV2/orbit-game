@@ -81,7 +81,7 @@ Planet earth = new Planet(
     new ScientificDecimal(6.378m, 6),
     new Material(0.2f), new SKColor(100, 200, 255, 255), sun, "Earth"
 );
-/*Body mars = new Planet(
+Body mars = new Planet(
     new ScientificDecimal(6.39m, 23),
     new Vector2(
         new ScientificDecimal(-6.4603691m, 10), 
@@ -93,8 +93,8 @@ Planet earth = new Planet(
     ),
     new ScientificDecimal(3.3895m, 6),
     new Material(0.2f), new SKColor(230, 60, 50, 255), sun, "Mars"
-);*/
-/*Body jupiter = new Planet(
+);
+Body jupiter = new Planet(
     new ScientificDecimal(1.898m, 27),
     new Vector2(
         new ScientificDecimal( 1.6580000m, 11), 
@@ -106,7 +106,7 @@ Planet earth = new Planet(
     ), 
     new ScientificDecimal(6.9911m, 7), 
     new Material(0.2f), new SKColor(175, 125, 50, 255), sun, "Jupiter"
-);*/
+);
 Ship smokestack = new Ship(
     1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
@@ -140,10 +140,10 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, earth
+    sun, earth, smokestack
 ];
 
-OriginBody.Body = earth;
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -191,8 +191,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(-camRotateSpeed);
     
-    if (keyboard.IsKeyPressed(Key.J)) tracking.Angle -= 0.05;
-    if (keyboard.IsKeyPressed(Key.L)) tracking.Angle += 0.05;
+    if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
+    if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
     
     if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
     if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
@@ -224,7 +224,7 @@ void OnRender(double _)
         }
         
         // resolve collisions
-        //smokestack.Collider.CollidesWith(earth.Collider);
+        smokestack.Collider.CollidesWith(earth.Collider);
     }
     
     // recalculate origins
@@ -233,7 +233,7 @@ void OnRender(double _)
     
     // draw orbital paths
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    //smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     
     // draw bodies
     foreach (var body in bodies)
