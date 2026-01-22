@@ -5,11 +5,11 @@ namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
 
-public record struct Orbit(OrbitEquation equation, ScientificDecimal scale, ScientificDecimal eccentricity, double periapsis)
+public record struct Orbit(OrbitEquation equation, ScientificDecimal scale, double eccentricity, double periapsis)
 {
     public readonly OrbitEquation Equation = equation;
     public readonly ScientificDecimal Scale = scale;
-    public readonly ScientificDecimal Eccentricity = eccentricity;
+    public readonly double Eccentricity = eccentricity;
     public readonly double PeriapsisArgument = Utils.UnsignedMod(periapsis, Math.Tau);
     public readonly double ApoapsisArgument = Utils.UnsignedMod(periapsis + Math.PI, Math.Tau);
 }
@@ -43,13 +43,24 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             // draw elliptical orbits
             if (orbit.Eccentricity < 1)
             {
-                for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
+                /*for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));*/
+                for (double a = 0; a < 2; a += 2 / (double)Options.OrbitResolutionNumPoints)
+                {
+                    double exponent = 3 * Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
+                    double b = Math.PI + Math.PI * Math.Pow(1 - a, exponent) - orbit.PeriapsisArgument;
+                    if (a >= 1) b = Math.PI - Math.PI * Math.Pow(a - 1, exponent) - orbit.PeriapsisArgument;
+                    ScientificDecimal dist = orbit.Equation(b);
+                    if (dist > 0) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(b, dist));
+                    //canvas.GS_DrawPoint(camera, centralForce.Position + Vector2.FromPolar(b, dist), DebugCanvas.Red);
+                }
+                // close orbit
+                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-orbit.PeriapsisArgument, orbit.Equation(-orbit.PeriapsisArgument)));
             }
             // draw hyperbolic orbits
             else
             {
-                double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(double)(1 / orbit.Eccentricity)), Math.Tau);
+                double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
                 for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
                 {
                     double trueAngle = a - orbit.PeriapsisArgument;
@@ -71,7 +82,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             // draw hyperbolic orbits
             else
             {
-                throw new NotImplementedException();
+                //throw new NotImplementedException();
             }
         }
 
@@ -113,7 +124,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
 
         return new Orbit(angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))),
-            c, eccentricity, periapsis);
+            c, (double)eccentricity, periapsis);
     }
     
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator)
