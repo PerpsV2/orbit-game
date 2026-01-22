@@ -37,22 +37,29 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
+        double EllipseBiasFunction(double angle, double exponent)
+        {
+            double result = Math.PI - Math.PI * Math.Pow(1 - angle / Math.PI, exponent);
+            if (angle > Math.PI) result = Math.PI + Math.PI * Math.Pow(angle / Math.PI - 1, exponent);
+            return result;
+        }
+        
+        double exponent = Options.EllipsePointDistributionBiasStrength * 
+            Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
+        
         // draw zoomed out orbit
         if (maxAngle - minAngle > Math.PI * 0.75f)
         {
             // draw elliptical orbits
-            if (orbit.Eccentricity < 1)
-            {
+            if (orbit.Eccentricity < 1) {
                 /*for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));*/
-                for (double a = 0; a < 2; a += 2 / (double)Options.OrbitResolutionNumPoints)
+                for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                 {
-                    double exponent = 3 * Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
-                    double b = Math.PI + Math.PI * Math.Pow(1 - a, exponent) - orbit.PeriapsisArgument;
-                    if (a >= 1) b = Math.PI - Math.PI * Math.Pow(a - 1, exponent) - orbit.PeriapsisArgument;
-                    ScientificDecimal dist = orbit.Equation(b);
-                    if (dist > 0) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(b, dist));
-                    //canvas.GS_DrawPoint(camera, centralForce.Position + Vector2.FromPolar(b, dist), DebugCanvas.Red);
+                    double trueAngle = EllipseBiasFunction(a, exponent) - orbit.PeriapsisArgument;
+                    ScientificDecimal dist = orbit.Equation(trueAngle);
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                    //canvas.GS_DrawPoint(camera, centralForce.Position + Vector2.FromPolar(trueAngle, dist), DebugCanvas.Red);
                 }
                 // close orbit
                 orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-orbit.PeriapsisArgument, orbit.Equation(-orbit.PeriapsisArgument)));
@@ -75,9 +82,15 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             // draw elliptical orbits
             if (orbit.Eccentricity < 1)
             {
-                for (double a = minAngle; a < maxAngle;
-                     a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
+                double unbiasedMinAngle = EllipseBiasFunction(minAngle, 1 / exponent);
+                double unbiasedMaxAngle = EllipseBiasFunction(maxAngle, 1 / exponent);
+                for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
+                {
+                    double trueAngle = EllipseBiasFunction(a, exponent);
+                    ScientificDecimal dist = orbit.Equation(trueAngle);
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                    //canvas.GS_DrawPoint(camera, centralForce.Position + Vector2.FromPolar(trueAngle, dist), DebugCanvas.Red);
+                }
             }
             // draw hyperbolic orbits
             else

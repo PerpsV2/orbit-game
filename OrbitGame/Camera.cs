@@ -1,15 +1,9 @@
 using SkiaSharp;
 namespace OrbitGame;
 
-public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height)
+public class Camera
 {
-    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
-        this(position, width, height)
-    {
-        Angle = angle;
-    }
-    
-    private Vector2 _localPosition = position;
+    private Vector2 _localPosition;
     private Vector2 _origin = Vector2.Zero;
     public Vector2 AbsolutePosition => _localPosition + _origin;
 
@@ -17,15 +11,55 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public double Angle
     {
         get => Utils.UnsignedMod(_angle, Math.Tau);
-        private set => _angle = value;
+        private set
+        {
+            _angle = value;
+            UpdateViewMatrix();
+        }
     }
 
-    public ScientificDecimal Width { get; private set; } = width;
-    public ScientificDecimal Height { get; private set; } = height;
+    private ScientificDecimal _width;
+    public ScientificDecimal Width
+    {
+        get => _width;
+        private set
+        {
+            _width = value;
+            UpdateViewMatrix(); 
+        }
+    }
+
+    private ScientificDecimal _height;
+
+    public ScientificDecimal Height
+    {
+        get => _height;
+        private set
+        {
+            _height = value;
+            UpdateViewMatrix();
+        }
+    }
+    
     public ScientificDecimal Left => AbsolutePosition.X - Width * 0.5f;
     public ScientificDecimal Top => AbsolutePosition.Y - Height * 0.5f;
     public ScientificDecimal Right => AbsolutePosition.X + Width * 0.5f;
     public ScientificDecimal Bottom => AbsolutePosition.Y + Height * 0.5f;
+
+    public Matrix3X3 ViewMatrix;
+    public Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height)
+    {
+        _localPosition = position;
+        _width = width;
+        _height = height;
+        UpdateViewMatrix();
+    }
+    
+    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
+        this(position, width, height)
+    {
+        Angle = angle;
+    }
 
     public void MoveTo(Vector2 position) => _localPosition = position;
     
@@ -47,10 +81,15 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public void SetOrigin(Vector2 origin) => _origin = origin;
     
     public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
-        => Matrix3X3.Scale(Options.ScreenSize.width / Width) * 
-           Matrix3X3.Translation(Width / 2, Height / 2) *
-           Matrix3X3.Rotation(-Angle) * 
-           Matrix3X3.Scale(1, -1) * (point - AbsolutePosition);
+        => ViewMatrix * (point - AbsolutePosition);
+    
+    public void UpdateViewMatrix()
+    {
+        ViewMatrix = Matrix3X3.Scale(Options.ScreenSize.width / Width) *
+                     Matrix3X3.Translation(Width / 2, Height / 2) *
+                     Matrix3X3.Rotation(-Angle) *
+                     Matrix3X3.Scale(1, -1);
+    }
     
     public SKPoint ConvertToScreenCoordinates(Vector2 point)
     {

@@ -39,11 +39,23 @@ public static class Options
 
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
-
-    // Number of points that should be drawn on screen to represent an orbit
-    public const uint OrbitResolutionNumPoints = 50;
-    // Maximum scale of planet radius with respect to the camera's height before the surface of the planet is drawn as a line rather than a curve
+    
+    /// <summary>
+    /// Number of points that should be drawn to represent an orbit.
+    /// </summary>
+    public const uint OrbitResolutionNumPoints = 100;
+    /// <summary>
+    /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
+    /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).
+    /// </summary>
+    public const double EllipsePointDistributionBiasStrength = 6;
+    /// <summary>
+    /// Maximum scale of planet radius with respect to the camera's height before the surface of the planet is
+    /// drawn as a line rather than a curve.
+    /// </summary>
     public const float SurfaceApproximationRadiusZoomFraction = 1000;
-    // Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker
+    /// <summary>
+    /// Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker.
+    /// </summary>
     public const float LocationApproximationRadiusZoomFraction = 0.005f;
 }

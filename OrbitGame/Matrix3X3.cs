@@ -1,7 +1,7 @@
 namespace OrbitGame;
 using MatrixData = ScientificDecimal[];
 
-public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
+public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 {
     // Matrix information is organized from left to right then top to bottom
     public readonly MatrixData Data = new ScientificDecimal[9];
@@ -85,12 +85,6 @@ public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         return new Matrix3X3(matrix.Data.Select(x => x / scalar).ToArray());
     }
     
-    public static bool operator ==(Matrix3X3 left, Matrix3X3 right)
-        => left.Data.SequenceEqual(right.Data);
-
-    public static bool operator !=(Matrix3X3 left, Matrix3X3 right) 
-        => !left.Data.SequenceEqual(right.Data);
-    
     #endregion
     
     #region Transformations
@@ -149,18 +143,4 @@ public struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 
     public string ToString(string? format, IFormatProvider? formatProvider)
         => ToString();
-
-    public bool Equals(Matrix3X3 other)
-    {
-        if (Data.SequenceEqual(other.Data)) return true;
-        return false;
-    }
-    
-    public override bool Equals(object? obj)
-    {
-        return obj is Matrix3X3 other && Equals(other);
-    }
-
-    public override int GetHashCode() 
-        => Data.GetHashCode();
 }
