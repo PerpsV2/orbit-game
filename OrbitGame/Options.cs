@@ -6,7 +6,7 @@ namespace OrbitGame;
 public static class Options
 {
     public static readonly (int width, int height) ScreenSize = (1600, 1200);
-    public static readonly ScientificDecimal DefaultZoomScale = new(2);
+    public static readonly ScientificDecimal DefaultZoomScale = new(8);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
     public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = false;
@@ -41,7 +41,7 @@ public static class Options
     public const int ScientificPrintPrecision = 5;
 
     // Number of points that should be drawn on screen to represent an orbit
-    public const uint OrbitResolutionNumPoints = 1000;
+    public const uint OrbitResolutionNumPoints = 200;
     // Maximum scale of planet radius with respect to the camera's height before the surface of the planet is drawn as a line rather than a curve
     public const float SurfaceApproximationRadiusZoomFraction = 1000;
     // Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker

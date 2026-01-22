@@ -49,7 +49,8 @@ public class Camera(Vector2 position, ScientificDecimal width, ScientificDecimal
     public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
         => Matrix3X3.Scale(Options.ScreenSize.width / Width) * 
            Matrix3X3.Translation(Width / 2, Height / 2) *
-           Matrix3X3.Rotation(Angle) * (point - AbsolutePosition);
+           Matrix3X3.Rotation(-Angle) * 
+           Matrix3X3.Scale(1, -1) * (point - AbsolutePosition);
     
     public SKPoint ConvertToScreenCoordinates(Vector2 point)
     {

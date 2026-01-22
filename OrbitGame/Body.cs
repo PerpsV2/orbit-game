@@ -36,71 +36,30 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         double minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         if (minAngle > maxAngle) maxAngle += Math.Tau;
-        
+
         if (maxAngle - minAngle > Math.PI * 0.75f)
         {
-            // drawing elliptic and parabolic orbits
-            if (orbit.Eccentricity <= 1)
+            if (orbit.Eccentricity < 1)
             {
-                for (double a = 0; a <= Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
+                for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
             }
-            // for drawing hyperbolic orbits
             else
             {
-                Console.WriteLine(orbit.Scale);
-                double asymptoteAngle1 = Utils.UnsignedMod(Math.Acos((double)-(1 / orbit.Eccentricity)) - orbit.PeriapsisArgument, Math.Tau);
-                // TODO: fix calculation for asymptote angle 2
-                double asymptoteAngle2 = Utils.UnsignedMod(Math.Acos((double)-(1 / orbit.Eccentricity)) + orbit.PeriapsisArgument, Math.Tau);
-                if (asymptoteAngle1 > asymptoteAngle2) asymptoteAngle2 += Math.Tau;
-                
-                double soiEscapeAngle = Utils.UnsignedMod(Math.Acos((double)(-(orbit.Eccentricity - 3) / (2 * orbit.Eccentricity))), Math.Tau);
-                if (orbit.Scale.Negative) soiEscapeAngle = Utils.UnsignedMod(Math.Cos((double)(-(orbit.Eccentricity + 1) / (2 * orbit.Eccentricity))), Math.Tau);
-                //if (Utils.UnsignedMod(-soiEscapeAngle, Math.Tau) < soiEscapeAngle)
-                //    soiEscapeAngle = Utils.UnsignedMod(-soiEscapeAngle, Math.Tau);
-                for (double a = asymptoteAngle1; a < asymptoteAngle2; a += (asymptoteAngle2 - asymptoteAngle1) / Options.OrbitResolutionNumPoints)
+                Debug.WriteLine("Start Log");
+                for (double a = orbit.PeriapsisArgument; a < orbit.PeriapsisArgument + Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                 {
-                    //double a = 2 * i / (double)Options.OrbitResolutionNumPoints;
-                    //if (a <= 1) a = Math.Pow(a, 2) * asymptoteAngle;
-                    //else a = Math.Pow(2 - a, 2) * asymptoteAngle + asymptoteAngle;
-                    //double trueAngle = asymptoteAngle - a;
-                    //if (orbit.Scale.Negative) angleSwept = -Math.Tau + 2 * asymptoteAngle;
-                    //double trueAngle = asymptoteAngle1 - angleSwept * (i / (double)Options.OrbitResolutionNumPoints);
-                    //ScientificDecimal dist = orbit.Equation(trueAngle);
-                    if (orbit.Equation(a) > 0)
-                        orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
+                    Debug.WriteLine($"Angle {double.RadiansToDegrees(a)} - Dist ${orbit.Equation(a)}");
                 }
-                canvas.GS_DrawPoint(camera, Vector2.FromPolar(asymptoteAngle1, orbit.Equation(asymptoteAngle1)),
-                    DebugCanvas.Yellow);
             }
-
-            if (orbit.Eccentricity > 1)
-            {
-                canvas.GS_DrawPoint(camera, orbitPoints.Last(), DebugCanvas.Red);
-                canvas.GS_DrawPoint(camera, orbitPoints.First(), DebugCanvas.Blue);
-            }
-
-            /*
-            if (orbit.Eccentricity > 1)
-            {
-                canvas.GS_DrawPoint(camera, orbitPoints.Last(), DebugCanvas.Red);
-                canvas.GS_DrawPoint(camera, orbitPoints.First(), DebugCanvas.Red);
-                double asymptoteAngle = Math.Acos((double)(-1 / orbit.Eccentricity));
-                ScientificDecimal soiDistance = 929000000;
-                ScientificDecimal firstPointDistance = (orbitPoints.First() - centralForce.Position).Magnitude();
-                ScientificDecimal lastPointDistance = (orbitPoints.Last() - centralForce.Position).Magnitude();
-                orbitPoints.Add(orbitPoints.Last() + Vector2.FromPolar(-asymptoteAngle, soiDistance - lastPointDistance));
-                //orbitPoints.Prepend(orbitPoints.First() - Vector2.FromPolar(asymptoteAngle, soiDistance - firstPointDistance));
-            }
-            */
         }
         else
         {
-            for (double a = minAngle; a < maxAngle; a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
+            if (orbit.Eccentricity < 1)
             {
-                ScientificDecimal dist = orbit.Equation(a);
-                if (dist > 0)
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, dist));
+                for (double a = minAngle; a < maxAngle;
+                     a += (maxAngle - minAngle) / Options.OrbitResolutionNumPoints)
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(a, orbit.Equation(a)));
             }
         }
 
@@ -141,7 +100,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
 
-        return new Orbit(angle => 1 / (c * (1 + eccentricity * Math.Cos(angle + periapsis))),
+        return new Orbit(angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))),
             c, eccentricity, periapsis);
     }
     

@@ -81,7 +81,7 @@ Planet earth = new Planet(
     new ScientificDecimal(6.378m, 6),
     new Material(0.2f), new SKColor(100, 200, 255, 255), sun, "Earth"
 );
-Body mars = new Planet(
+/*Body mars = new Planet(
     new ScientificDecimal(6.39m, 23),
     new Vector2(
         new ScientificDecimal(-6.4603691m, 10), 
@@ -93,8 +93,8 @@ Body mars = new Planet(
     ),
     new ScientificDecimal(3.3895m, 6),
     new Material(0.2f), new SKColor(230, 60, 50, 255), sun, "Mars"
-);
-Body jupiter = new Planet(
+);*/
+/*Body jupiter = new Planet(
     new ScientificDecimal(1.898m, 27),
     new Vector2(
         new ScientificDecimal( 1.6580000m, 11), 
@@ -106,7 +106,7 @@ Body jupiter = new Planet(
     ), 
     new ScientificDecimal(6.9911m, 7), 
     new Material(0.2f), new SKColor(175, 125, 50, 255), sun, "Jupiter"
-);
+);*/
 Ship smokestack = new Ship(
     1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
@@ -140,10 +140,10 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, earth, mars, jupiter, smokestack
+    sun, earth
 ];
 
-OriginBody.Body = smokestack;
+OriginBody.Body = earth;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -179,8 +179,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
 {
     ScientificDecimal camSpeed = camera.Height * Options.CamMoveSpeed * dt;
     // subtract angle by camera rotation so movement does not respect rotation
-    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, -Math.PI / 2 - camera.Angle);
-    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Angle);
+    if (keyboard.IsKeyPressed(Options.MoveUpKey)) camera.MoveBy(camSpeed, Math.PI / 2 - camera.Angle);
+    if (keyboard.IsKeyPressed(Options.MoveDownKey)) camera.MoveBy(camSpeed, -Math.PI / 2 - camera.Angle);
     if (keyboard.IsKeyPressed(Options.MoveLeftKey)) camera.MoveBy(camSpeed, Math.PI - camera.Angle);
     if (keyboard.IsKeyPressed(Options.MoveRightKey)) camera.MoveBy(camSpeed, 0 - camera.Angle);
     
@@ -188,8 +188,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.ZoomInKey)) camera.ScaleZoom(1 - Options.CamZoomSpeed);
     
     float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
-    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(-camRotateSpeed);
-    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(camRotateSpeed);
+    if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(camRotateSpeed);
+    if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(-camRotateSpeed);
     
     if (keyboard.IsKeyPressed(Key.J)) tracking.Angle -= 0.05;
     if (keyboard.IsKeyPressed(Key.L)) tracking.Angle += 0.05;
@@ -224,7 +224,7 @@ void OnRender(double _)
         }
         
         // resolve collisions
-        smokestack.Collider.CollidesWith(earth.Collider);
+        //smokestack.Collider.CollidesWith(earth.Collider);
     }
     
     // recalculate origins
@@ -233,9 +233,7 @@ void OnRender(double _)
     
     // draw orbital paths
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    mars.DrawOrbitalPathLRL(canvas, camera, sun);
-    jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
-    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    //smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     
     // draw bodies
     foreach (var body in bodies)
