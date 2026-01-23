@@ -48,7 +48,7 @@ public static class Options
     /// If the angle range of the orbit within the camera's region is less than the zoom fraction multiplied by PI,
     /// approximate the section of orbit visible with points instead of drawing an ellipse for the whole orbit.
     /// </summary>
-    public const float OrbitApproximationZoomFraction = 0.01f;
+    public const float OrbitApproximationZoomFraction = 0.1f;
     /// <summary>
     /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
     /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).

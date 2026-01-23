@@ -52,14 +52,21 @@ public abstract class Body(
         Orbit orbit = CalculateOrbit(centralForce);
         CalculateSphereOfInfluenceRadius(orbit);
         List<Vector2> orbitPoints = new List<Vector2>();
+        
+        // find approximate angle of the orbit covered by the camera
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
-        Vector2 maxCamExtentVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(), 
-            new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
-        double minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
-        double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
+        double minAngle = 0;
+        double maxAngle = Math.Tau;
+        if (relCamPosition != Vector2.Zero)
+        {
+            Vector2 maxCamExtentVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(),
+                new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
+            minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
+            maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
+        }
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
-        // redistribute 
+        // redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
         {
             angle = Utils.UnsignedMod(angle, Math.Tau);
