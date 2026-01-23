@@ -15,7 +15,6 @@ public readonly record struct Orbit(
     public readonly double Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
     public readonly ScientificDecimal? SemiMajorAxis = Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
     public readonly ScientificDecimal? SemiMinorAxis = Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
-
 }
 
 /// <summary>

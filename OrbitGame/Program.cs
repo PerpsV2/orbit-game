@@ -236,7 +236,6 @@ void OnRender(double _)
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
     mars.DrawOrbitalPathLRL(canvas, camera, sun);
     jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
-    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     
     // draw bodies
     foreach (var body in bodies)

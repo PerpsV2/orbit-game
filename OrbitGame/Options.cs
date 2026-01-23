@@ -45,10 +45,15 @@ public static class Options
     /// </summary>
     public const uint OrbitResolutionNumPoints = 100;
     /// <summary>
+    /// If the angle range of the orbit within the camera's region is less than the zoom fraction multiplied by PI,
+    /// approximate the section of orbit visible with points instead of drawing an ellipse for the whole orbit.
+    /// </summary>
+    public const float OrbitApproximationZoomFraction = 0.01f;
+    /// <summary>
     /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
     /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).
     /// </summary>
-    public const double EllipsePointDistributionBiasStrength = 2;
+    public const float EllipsePointDistributionBiasStrength = 2;
     /// <summary>
     /// Maximum scale of planet radius with respect to the camera's height before the surface of the planet is
     /// drawn as a line rather than a curve.
