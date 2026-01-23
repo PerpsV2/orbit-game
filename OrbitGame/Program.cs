@@ -68,6 +68,32 @@ Planet sun = new Planet(
     new SKColor(255, 255, 255, 255), 
     "Sun"
 );
+Body mercury = new Planet(
+    new ScientificDecimal(3.285m, 23),
+    new Vector2(
+        new ScientificDecimal(-5.6940545m, 10), 
+        new ScientificDecimal( 3.2977160m, 9)
+    ), 
+    new Vector2(
+        new ScientificDecimal(-1.2946428m, 4), 
+        new ScientificDecimal(-4.6540563m, 4)
+    ),
+    new ScientificDecimal(2.4397m, 6),
+    new Material(0.2f), new SKColor(140, 140, 140, 255), sun, "Mercury"
+);
+Body venus = new Planet(
+    new ScientificDecimal(4.867m, 24),
+    new Vector2(
+        new ScientificDecimal( 8.2978939m, 10), 
+        new ScientificDecimal( 6.9376114m, 10)
+    ), 
+    new Vector2(
+        new ScientificDecimal(-2.2569107m, 4), 
+        new ScientificDecimal( 2.6718186m, 4)
+    ),
+    new ScientificDecimal(6.0518m, 6),
+    new Material(0.2f), new SKColor(230, 160, 40, 255), sun, "Venus"
+);
 Planet earth = new Planet(
     new ScientificDecimal(5.9722m, 24),
     new Vector2(
@@ -107,6 +133,45 @@ Body jupiter = new Planet(
     new ScientificDecimal(6.9911m, 7), 
     new Material(0.2f), new SKColor(175, 125, 50, 255), sun, "Jupiter"
 );
+Body saturn = new Planet(
+    new ScientificDecimal(5.683m, 26),
+    new Vector2(
+        new ScientificDecimal( 1.4146019m, 12), 
+        new ScientificDecimal(-2.6971440m, 11)
+    ), 
+    new Vector2(
+        new ScientificDecimal( 1.2650097m, 3), 
+        new ScientificDecimal( 9.4749677m, 3)
+    ),
+    new ScientificDecimal(5.8232m, 7),
+    new Material(0.2f), new SKColor(150, 150, 80, 255), sun, "Saturn"
+);
+Body uranus = new Planet(
+    new ScientificDecimal(8.681m, 25),
+    new Vector2(
+        new ScientificDecimal( 1.6645067m, 12), 
+        new ScientificDecimal( 2.4055482m, 12)
+    ), 
+    new Vector2(
+        new ScientificDecimal(-5.6626764m, 3), 
+        new ScientificDecimal( 3.5634117m, 3)
+    ),
+    new ScientificDecimal(2.5362m, 7),
+    new Material(0.2f), new SKColor(170, 200, 255, 255), sun, "Uranus"
+);
+Body neptune = new Planet(
+    new ScientificDecimal(1.024m, 26),
+    new Vector2(
+        new ScientificDecimal( 4.4699311m, 12), 
+        new ScientificDecimal(-9.8183016m, 10)
+    ), 
+    new Vector2(
+        new ScientificDecimal( 7.2829293m, 1), 
+        new ScientificDecimal( 5.4729751m, 3)
+    ),
+    new ScientificDecimal(2.4622m, 7),
+    new Material(0.2f), new SKColor(100, 120, 200, 255), sun, "Neptune"
+);
 Ship smokestack = new Ship(
     1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
@@ -140,7 +205,7 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, earth, smokestack, mars, jupiter
+    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune
 ];
 
 OriginBody.Body = smokestack;
@@ -233,9 +298,16 @@ void OnRender(double _)
     camera.SetOrigin(tracking.Position);
     
     // draw orbital paths
+    mercury.DrawOrbitalPathLRL(canvas, camera, sun);
+    venus.DrawOrbitalPathLRL(canvas, camera, sun);
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
+    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     mars.DrawOrbitalPathLRL(canvas, camera, sun);
     jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
+    saturn.DrawOrbitalPathLRL(canvas, camera, sun);
+    uranus.DrawOrbitalPathLRL(canvas, camera, sun);
+    neptune.DrawOrbitalPathLRL(canvas, camera, sun);
+    
     
     // draw bodies
     foreach (var body in bodies)

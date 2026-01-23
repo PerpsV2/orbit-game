@@ -120,7 +120,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
                 sum + CalculateGravitationalAcceleration(next));
     }
 
-    public Orbit CalculateOrbit(Body centralForce)
+    private Orbit CalculateOrbit(Body centralForce)
     {
         Vector2 relVelocity = Velocity - centralForce.Velocity;
         Vector2 relPosition = Position - centralForce.Position;

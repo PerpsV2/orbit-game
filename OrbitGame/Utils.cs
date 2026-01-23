@@ -36,31 +36,6 @@ public static class Utils
     
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
-
-    public static bool IntervalIntersects<T>(T value, T lowerBound, T upperBound) where T : IComparable<T>
-    {
-        return value.CompareTo(lowerBound) >= 0 && value.CompareTo(upperBound) <= 0;
-    }
-    
-    public static ScientificDecimal IntervalPenetrationDistance(ScientificDecimal l1, ScientificDecimal u1,
-        ScientificDecimal l2, ScientificDecimal u2)
-        => !IntervalIntersects(l1, u1, l2, u2) ? 0 : u2 - l1 > u1 - l2 ? -u1 + l2 : u2 - l1;
-
-    public static (ScientificDecimal start, ScientificDecimal end)? GetIntervalIntersection
-        (ScientificDecimal s1, ScientificDecimal e1, ScientificDecimal s2, ScientificDecimal e2)
-    {
-        if (s2 > e1 || s1 > e2) return null;
-        ScientificDecimal start = ScientificDecimal.Max(s1, s2);
-        ScientificDecimal end = ScientificDecimal.Min(e1, e2);
-        return (start, end);
-    }
-
-    public static bool IntervalIntersects<T>(T l1, T u1, T l2, T u2) where T : IComparable<T>
-    {
-        return IntervalIntersects(l1, l2, u2) || 
-               IntervalIntersects(u1, l2, u2) || 
-               (l1.CompareTo(l2) <= 0 && u1.CompareTo(u2) >= 0);
-    }
     
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
     {
