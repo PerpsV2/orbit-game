@@ -326,3 +326,5 @@ void OnRender(double _)
 window.Render += OnRender;
 
 window.Run();
+
+paint.Dispose();

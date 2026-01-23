@@ -31,12 +31,10 @@ public class Ship : Body
 
     public override void Draw(SKCanvas canvas, Camera camera)
     {
-        SKPaint paint = new SKPaint
-        {
-            Color = Colour,
-            StrokeWidth = 4
-        };
-        
+        using SKPaint paint = new SKPaint();
+        paint.Color = Colour;
+        paint.StrokeWidth = 4;
+
         Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint);
         
@@ -45,21 +43,15 @@ public class Ship : Body
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, -10), paint);
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, -10), paint);
         canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, 10), paint);
-        
-        paint.Dispose();
     }
 
     public override void DrawCollider(SKCanvas canvas, Camera camera)
     {
-        SKPaint paint = new SKPaint
-        {
-            Color = Colour,
-            StrokeWidth = 4
-        };
+        using SKPaint paint = new SKPaint();
+        paint.Color = Colour;
+        paint.StrokeWidth = 4;
 
         Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint, false);
-
-        paint.Dispose();
     }
 }

@@ -39,12 +39,10 @@ public class Planet : Body
 
     public override void Draw(SKCanvas canvas, Camera camera)
     {
-        SKPaint paint = new SKPaint
-        {
-            Color = Colour,
-            StrokeWidth = 4
-        };
-        
+        using SKPaint paint = new SKPaint();
+        paint.Color = Colour;
+        paint.StrokeWidth = 4;
+
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
@@ -125,8 +123,6 @@ public class Planet : Body
         
         // otherwise draw the planet as a circle
         else canvas.GS_DrawCircle(camera, Position, Radius, paint);
-        
-        paint.Dispose();
     }
 
     public override void DrawCollider(SKCanvas canvas, Camera camera)

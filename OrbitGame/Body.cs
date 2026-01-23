@@ -34,6 +34,11 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
     /// </summary>
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera, Body centralForce)
     {
+        // paint for orbits
+        using SKPaint paint = new SKPaint();
+        paint.Color = Colour;
+        paint.Style = SKPaintStyle.Stroke;
+
         Orbit orbit = CalculateOrbit(centralForce);
         List<Vector2> orbitPoints = new List<Vector2>();
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
