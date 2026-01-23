@@ -6,13 +6,16 @@ public delegate ScientificDecimal OrbitEquation(double angle);
 
 public readonly record struct Orbit(
     OrbitEquation Equation, 
-    ScientificDecimal Scale, 
     double Eccentricity, 
-    double Periapsis
+    double Periapsis,
+    ScientificDecimal SemiLatusRectum
     )
 {
     public readonly double Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
     public readonly double Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
+    public readonly ScientificDecimal SemiMajorAxis = (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2;
+    public readonly ScientificDecimal SemiMinorAxis = (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt();
+
 }
 
 /// <summary>
@@ -55,8 +58,9 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             if (orbit.Eccentricity < 1)
             {
                 ScientificDecimal semiMajorAxis = (orbit.Equation(orbit.Periapsis) + orbit.Equation(orbit.Apoapsis)) / 2;
-                canvas.GS_DrawLineR(camera, centralForce.Position + Vector2.FromPolar(-orbit.Periapsis, orbit.Equation(-orbit.Periapsis)), 
-                    Vector2.FromPolar(-orbit.Periapsis, -semiMajorAxis), DebugCanvas.Blue);
+                Vector2 center = Vector2.FromPolar(-orbit.Periapsis, orbit.Equation(-orbit.Periapsis)) +
+                                 Vector2.FromPolar(-orbit.Periapsis, -orbit.SemiMajorAxis);
+                canvas.GS_DrawPoint(camera, centralForce.Position + center, DebugCanvas.Blue);
                 for (double a = 0; a < Math.Tau; a += Math.Tau / Options.OrbitResolutionNumPoints)
                 {
                     double trueAngle = EllipseBiasFunction(a, exponent) - orbit.Periapsis;
@@ -139,11 +143,12 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
 
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
+        ScientificDecimal semiLatusRectum = 1 / c;
         double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
 
         return new Orbit(
-            angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))),
-            c, (double)eccentricity, periapsis
+            angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))), 
+            (double)eccentricity, periapsis, semiLatusRectum
             );
     }
     
