@@ -48,7 +48,7 @@ public static class Options
     /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
     /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).
     /// </summary>
-    public const double EllipsePointDistributionBiasStrength = 6;
+    public const double EllipsePointDistributionBiasStrength = 2;
     /// <summary>
     /// Maximum scale of planet radius with respect to the camera's height before the surface of the planet is
     /// drawn as a line rather than a curve.
