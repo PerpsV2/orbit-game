@@ -13,18 +13,28 @@ public readonly record struct Orbit(
 {
     public readonly double Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
     public readonly double Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
-    public readonly ScientificDecimal? SemiMajorAxis = Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
-    public readonly ScientificDecimal? SemiMinorAxis = Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
+    public readonly ScientificDecimal? SemiMajorAxis = 
+        Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
+    public readonly ScientificDecimal? SemiMinorAxis = 
+        Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
 }
 
 /// <summary>
 /// A KinematicObject with information about shape and material and methods for physics.
 /// </summary>
-public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 velocity, SKColor colour, string name) 
+public abstract class Body(
+    ScientificDecimal mass, 
+    Vector2 position, 
+    Vector2 velocity, 
+    SKColor colour, 
+    string name, 
+    Body? parent = null
+    ) 
     : KinematicObject(name, mass, position, velocity)
 {
     public SKColor Colour = colour;
     public ICollider? Collider;
+    public Body? Parent = parent;
     
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
@@ -149,7 +159,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
             );
     }
     
-    public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator)
+    public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
         switch (integrator)
         {
@@ -159,9 +169,42 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
                 Angle += AngularVelocity * (double)timeStep;
                 break;
             case NumericalIntegrator.ImplicitEuler:
-                throw new NotImplementedException();
+                Position += Velocity * timeStep;
+                Velocity += Acceleration * timeStep;
+                Angle += AngularVelocity * (double)timeStep;
+                break;
             case NumericalIntegrator.RungeKutta4:
-                throw new NotImplementedException();
+                Vector2 originalPosition = Position;
+                Vector2 originalVelocity = Velocity;
+                
+                Vector2 originalAcceleration = Acceleration;
+                Vector2 velocityK1 = originalAcceleration * timeStep;
+                Vector2 positionK1 = Velocity * timeStep;
+
+                Position = originalPosition + positionK1 * 0.5f;
+                Velocity = originalVelocity + velocityK1 * 0.5f;
+                
+                updateAcceleration(this);
+                Vector2 velocityK2 = Acceleration * timeStep;
+                Vector2 positionK2 = Velocity * timeStep;
+
+                Position = originalPosition + positionK2 * 0.5f;
+                Velocity = originalVelocity + velocityK2 * 0.5f;
+                
+                updateAcceleration(this);
+                Vector2 velocityK3 = Acceleration * timeStep;
+                Vector2 positionK3 = Velocity * timeStep;
+
+                Position = originalPosition + positionK3;
+                Velocity = originalVelocity + velocityK3;
+                
+                updateAcceleration(this);
+                Vector2 velocityK4 = Acceleration * timeStep;
+                Vector2 positionK4 = Velocity * timeStep;
+
+                Velocity = originalVelocity + (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
+                Position = originalPosition + (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
+                break;
         }
     }
 }

@@ -33,8 +33,9 @@ public class Planet : Body
     )
         : this(mass, position, velocity, radius, material, colour, name)
     {
-        Position = parent.Position + position;
-        Velocity = parent.Velocity + velocity;
+        Parent = parent;
+        Position = Parent.Position + position;
+        Velocity = Parent.Velocity + velocity;
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)

@@ -205,7 +205,7 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune
+    sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune
 ];
 
 OriginBody.Body = smokestack;
@@ -285,11 +285,11 @@ void OnRender(double _)
         foreach (var body in bodies)
         {
             body.SetNetGravitationalAcceleration(bodies);
-            body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod);
+            body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(bodies));
         }
         
         // resolve collisions
-        smokestack.Collider.CollidesWith(earth.Collider);
+        // smokestack.Collider.CollidesWith(earth.Collider);
         earth.Collider.CollidesWith(sun.Collider);
     }
     
@@ -301,7 +301,7 @@ void OnRender(double _)
     mercury.DrawOrbitalPathLRL(canvas, camera, sun);
     venus.DrawOrbitalPathLRL(canvas, camera, sun);
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    // smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     mars.DrawOrbitalPathLRL(canvas, camera, sun);
     jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
     saturn.DrawOrbitalPathLRL(canvas, camera, sun);
