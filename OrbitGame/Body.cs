@@ -50,6 +50,7 @@ public abstract class Body(
         paint.Style = SKPaintStyle.Stroke;
 
         Orbit orbit = CalculateOrbit(centralForce);
+        CalculateSphereOfInfluenceRadius(orbit);
         List<Vector2> orbitPoints = new List<Vector2>();
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
         Vector2 maxCamExtentVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(), 
@@ -157,6 +158,20 @@ public abstract class Body(
             angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))), 
             (double)eccentricity, periapsis, semiLatusRectum
             );
+    }
+
+    public ScientificDecimal? CalculateSphereOfInfluenceRadius(Orbit orbit)
+    {
+        if (Parent == null) return null;
+        if (orbit.SemiMajorAxis == null) return null;
+        SKPaint paint = new SKPaint();
+        paint.Color = new SKColor(255, 255, 255, 40);
+        ScientificDecimal result = (ScientificDecimal)orbit.SemiMajorAxis * Math.Pow((double)(Mass / Parent.Mass), 2f/5f);
+        DebugCanvas.Add((cnv, cam) =>
+        {
+            cnv.GS_DrawCircle(cam, Position, result, paint);
+        });
+        return result;
     }
     
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
