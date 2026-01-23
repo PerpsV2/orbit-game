@@ -30,6 +30,9 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
 
+    /// <summary>
+    /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
+    /// </summary>
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera, Body centralForce)
     {
         Orbit orbit = CalculateOrbit(centralForce);
@@ -41,6 +44,7 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         double maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
+        // redistribute 
         double EllipseBiasFunction(double angle, double exponent)
         {
             angle = Utils.UnsignedMod(angle, Math.Tau);
@@ -51,30 +55,41 @@ public abstract class Body(ScientificDecimal mass, Vector2 position, Vector2 vel
         
         double exponent = Options.EllipsePointDistributionBiasStrength * 
             Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
-
+        
+        // draw circular and elliptical orbits
         if (orbit.Eccentricity < 1)
         {
-            if (maxAngle - minAngle < 0.01 * Math.PI)
+            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null) 
+                throw new NullReferenceException("Elliptic orbit must have a semi-major axis.");
+            ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
+            ScientificDecimal semiMinorAxis = (ScientificDecimal)orbit.SemiMinorAxis;
+            // orbit is too small to draw
+            if (camera.ConvertToScreenDistance(semiMajorAxis) < 1) return;
+            // draw partial orbit if camera is zoomed in.
+            if (maxAngle - minAngle < Options.OrbitApproximationZoomFraction * Math.PI)
             {
+                // apply inverse ellipse bias function of camera angle limits
                 double unbiasedMinAngle = EllipseBiasFunction(minAngle + orbit.Periapsis, 1 / exponent);
                 double unbiasedMaxAngle = EllipseBiasFunction(maxAngle + orbit.Periapsis, 1 / exponent);
+                // sweep through angle range and re-apply bias function on each point then draw the orbit
                 for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; 
                      a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
                 {
                     double trueAngle = EllipseBiasFunction(a, exponent) - orbit.Periapsis;
                     ScientificDecimal dist = orbit.Equation(trueAngle);
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
-                    canvas.GS_DrawPoint(camera, centralForce.Position + Vector2.FromPolar(trueAngle, dist), DebugCanvas.Red);
                 }
             }
+            // draw the entire orbit as an ellipse
             else
             {
                 Vector2 center = Vector2.FromPolar(-orbit.Periapsis, orbit.Equation(-orbit.Periapsis)) +
-                                 Vector2.FromPolar(-orbit.Periapsis, -(ScientificDecimal)orbit.SemiMajorAxis!);
-                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + center, (ScientificDecimal)orbit.SemiMajorAxis,
-                    (ScientificDecimal)orbit.SemiMinorAxis!, orbit.Periapsis, DebugCanvas.Blue);
+                                 Vector2.FromPolar(-orbit.Periapsis, -semiMajorAxis);
+                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + center, semiMajorAxis, semiMinorAxis, 
+                    orbit.Periapsis, DebugCanvas.Blue);
             }
         }
+        // draw parabolic and hyperbolic orbits
         else
         {
             double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
