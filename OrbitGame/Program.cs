@@ -140,7 +140,7 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, earth, smokestack
+    sun, earth, smokestack, mars, jupiter
 ];
 
 OriginBody.Body = smokestack;
@@ -194,8 +194,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
     if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
     
-    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
-    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 10;
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 10;
 }
 
 void OnRender(double _)
@@ -225,6 +225,7 @@ void OnRender(double _)
         
         // resolve collisions
         smokestack.Collider.CollidesWith(earth.Collider);
+        earth.Collider.CollidesWith(sun.Collider);
     }
     
     // recalculate origins
@@ -233,7 +234,9 @@ void OnRender(double _)
     
     // draw orbital paths
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    //smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    mars.DrawOrbitalPathLRL(canvas, camera, sun);
+    jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
+    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     
     // draw bodies
     foreach (var body in bodies)

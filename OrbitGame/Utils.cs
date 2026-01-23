@@ -96,19 +96,22 @@ public static class Utils
         canvas.DrawOval(screenPosition, screenRadius, paint);
     }
     
-    public static void GS_DrawEllipse(
+    public static void GS_DrawEllipseOrbit(
         this SKCanvas canvas, 
         Camera camera, 
         Vector2 centre, 
-        ScientificDecimal radius1, 
-        ScientificDecimal radius2,
+        ScientificDecimal semiMajorAxis, 
+        ScientificDecimal semiMinorAxis,
+        double periapsisArgument,
         SKPaint paint)
     {
         SKPoint screenPosition = camera.ConvertToScreenCoordinates(centre);
-        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(radius1), 
-            camera.ConvertToScreenDistance(radius2, false));
-
+        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(semiMajorAxis), 
+            camera.ConvertToScreenDistance(semiMinorAxis, false));
+        paint.Style = SKPaintStyle.Stroke;
+        canvas.RotateRadians((float)periapsisArgument, screenPosition.X, screenPosition.Y);
         canvas.DrawOval(screenPosition, screenRadius, paint);
+        canvas.ResetMatrix();
     }
 
     public static void GS_DrawRect(
