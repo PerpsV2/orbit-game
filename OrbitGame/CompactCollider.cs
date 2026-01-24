@@ -115,14 +115,20 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         ScientificDecimal j = jV / (Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) 
                                     + Vector3.Dot(m1 + m2, cNormal));
         
-        reference.Velocity -= cNormal * (j / reference.Mass);
-        incidence.Velocity += cNormal * (j / incidence.Mass);
+        if (!Fixed) reference.Velocity -= cNormal * (j / reference.Mass);
+        if (!collider.Fixed) incidence.Velocity += cNormal * (j / incidence.Mass);
 
-        reference.AngularVelocity -= (double)(Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
-        incidence.AngularVelocity += (double)(Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
-            
-        reference.Position += c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
-        incidence.Position += c2.PenetrationVector * reference.Mass / (incidence.Mass + reference.Mass);
+        if (!Fixed)reference.AngularVelocity -= (double)(Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
+        if (!collider.Fixed) incidence.AngularVelocity += (double)(Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
+
+        if (!Fixed && !collider.Fixed)
+        {
+            reference.Position += c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
+            incidence.Position += c2.PenetrationVector * reference.Mass / (incidence.Mass + reference.Mass);
+        }
+        else if (Fixed) incidence.Position += c2.PenetrationVector;
+        else if (collider.Fixed) reference.Position += c1.PenetrationVector;
+        
 
         if (Options.EnableCollisionDebug)
             DebugCanvas.Add((cnv, cam) => {

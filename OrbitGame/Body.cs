@@ -11,12 +11,15 @@ public readonly record struct Orbit
     public readonly Body Parent;
     public readonly double Periapsis;
     public readonly double Apoapsis;
-    public readonly ScientificDecimal? SemiMajorAxis;
-    public readonly ScientificDecimal? SemiMinorAxis;
-    public readonly ScientificDecimal? SphereOfInfluenceRadius;
     public readonly OrbitEquation Equation;
     public readonly double Eccentricity;
     public readonly ScientificDecimal SemiLatusRectum;
+    public readonly ScientificDecimal? SemiMajorAxis;
+    public readonly ScientificDecimal? SemiMinorAxis;
+    public readonly Vector2? Center;
+    public readonly ScientificDecimal? SphereOfInfluenceRadius;
+    public readonly ScientificDecimal? Period;
+    public readonly ScientificDecimal? InitialTime;
     
     public Orbit(
         Body Body,
@@ -24,7 +27,8 @@ public readonly record struct Orbit
         OrbitEquation Equation, 
         double Eccentricity, 
         double Periapsis,
-        ScientificDecimal SemiLatusRectum
+        ScientificDecimal SemiLatusRectum,
+        bool initials = false
         )
     {
         this.Body = Body;
@@ -34,9 +38,44 @@ public readonly record struct Orbit
         this.SemiLatusRectum = SemiLatusRectum;
         this.Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
         Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
-        SemiMajorAxis = Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
-        SemiMinorAxis = Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
-        SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f/5f);
+        if (Eccentricity < 1)
+        {
+            SemiMajorAxis = (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2;
+            SemiMinorAxis = (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt();
+            SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
+            if (SemiMajorAxis != null)
+            {
+                ScientificDecimal semiMajorAxis = (ScientificDecimal)SemiMajorAxis;
+                Period = Math.Tau * (semiMajorAxis * semiMajorAxis * semiMajorAxis / Constants.G / Parent.Mass).Sqrt();
+                Center = Vector2.FromPolar(-Periapsis, Equation(-Periapsis)) + 
+                         Vector2.FromPolar(-Periapsis, -SemiMajorAxis.Value);
+            }
+
+            if (initials)
+            {
+                Vector2 initialPosition = Body.Position - Parent.Position;
+                Vector2 initialVelocity = Body.Velocity - Parent.Velocity;
+                double initialTrueAnomaly = Math.Acos(
+                    (double)(Vector2.Dot(Vector2.FromPolar(-Periapsis, Eccentricity), initialPosition) /
+                             (Eccentricity * initialPosition.Magnitude())));
+                if (Vector2.Dot(initialPosition, initialVelocity) < 0)
+                    initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
+
+                if (double.IsNaN(initialTrueAnomaly)) return;
+
+                double initialEccentricAnomaly = Math.Atan2(
+                    Math.Sqrt(1 - Eccentricity * Eccentricity) * Math.Sin(initialTrueAnomaly),
+                    Eccentricity + Math.Cos(initialTrueAnomaly)
+                ) % Math.Tau;
+
+                double initialMeanAnomaly = (initialEccentricAnomaly - Eccentricity * (
+                    Math.Sqrt(1 - Eccentricity * Eccentricity) * Math.Sin(initialTrueAnomaly) /
+                    1 + Eccentricity * Math.Cos(initialTrueAnomaly)
+                )) % Math.Tau;
+
+                InitialTime = initialMeanAnomaly / (Math.Tau / Period);
+            }
+        }
     }
 
     public void Deconstruct(
@@ -74,12 +113,11 @@ public abstract class Body : KinematicObject
         Body? parent) 
         : base(name, mass, position, velocity)
     {
-        
         Colour = colour;
         Parent = parent;
-        Position += parent?.Position ?? Vector2.Zero;
-        Velocity += parent?.Velocity ?? Vector2.Zero;
-        Orbit = CalculateOrbit();
+        Position = position + parent?.Position ?? Vector2.Zero;
+        Velocity = velocity + parent?.Velocity ?? Vector2.Zero;
+        Orbit = CalculateOrbit(true);
     }
 
     public abstract void Draw(SKCanvas canvas, Camera camera);
@@ -152,10 +190,9 @@ public abstract class Body : KinematicObject
             // draw the entire orbit as an ellipse
             else
             {
-                Vector2 center = Vector2.FromPolar(-orbit.Periapsis, orbit.Equation(-orbit.Periapsis)) +
-                                 Vector2.FromPolar(-orbit.Periapsis, -semiMajorAxis);
-                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + center, semiMajorAxis, semiMinorAxis, 
-                    orbit.Periapsis, paint);
+                if (orbit.Center == null) throw new NullReferenceException("Elliptic orbit must have a center.");
+                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
+                    semiMinorAxis, orbit.Periapsis, paint);
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -205,7 +242,7 @@ public abstract class Body : KinematicObject
                 sum + CalculateGravitationalAcceleration(next));
     }
     
-    private Orbit CalculateOrbit(Body centralForce)
+    private Orbit CalculateOrbit(Body centralForce, bool initials)
     {
         Vector2 relVelocity = Velocity - centralForce.Velocity;
         Vector2 relPosition = Position - centralForce.Position;
@@ -224,16 +261,17 @@ public abstract class Body : KinematicObject
         ScientificDecimal semiLatusRectum = 1 / c;
         ScientificDecimal Equation(double angle) => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis)));
 
-        return new Orbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum);
+        return new Orbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
-    private Orbit? CalculateOrbit()
+    private Orbit? CalculateOrbit(bool initials)
     {
-        return Parent == null ? null : CalculateOrbit(Parent);
+        return Parent == null ? null : CalculateOrbit(Parent, initials);
     }
 
     public void RecalculateOrbit(List<Body> bodies)
     {
+        
         if (Parent == null) return;
         ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
@@ -247,7 +285,7 @@ public abstract class Body : KinematicObject
                 if ((Position - body.Position).Magnitude() < (ScientificDecimal)bodySOIRadius)
                     Parent = body;
         }
-        Orbit = CalculateOrbit();
+        Orbit = CalculateOrbit(false);
     }
 
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
@@ -295,7 +333,60 @@ public abstract class Body : KinematicObject
 
                 Velocity = originalVelocity + (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
                 Position = originalPosition + (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
+                
+                Angle += AngularVelocity * (double)timeStep;
                 break;
         }
+    }
+
+    private double CalculateEccentricAnomaly(double meanAnomaly)
+    {
+        if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
+        Orbit orbit = (Orbit)Orbit;
+        ScientificDecimal epsilon = new ScientificDecimal(1m, -35);
+        double eccentricAnomaly = meanAnomaly;
+        int iterations = 0;
+        while (double.Abs(eccentricAnomaly - orbit.Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) > epsilon)
+        {
+            if (iterations > 100) return eccentricAnomaly;
+            eccentricAnomaly -= (eccentricAnomaly - orbit.Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) /
+                                (1 - orbit.Eccentricity * Math.Cos(eccentricAnomaly));
+            iterations++;
+        }
+        return eccentricAnomaly;
+    }
+
+    private double CalculateTrueAnomaly(double eccentricAnomaly)
+    {
+        if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
+        Orbit orbit = (Orbit)Orbit;
+        return 2 * Math.Atan2(Math.Sqrt(1 + orbit.Eccentricity) * Math.Sin(eccentricAnomaly / 2), 
+            Math.Sqrt(1 - orbit.Eccentricity) * Math.Cos(eccentricAnomaly / 2));
+    }
+
+    public void Kepler_UpdatePosition(ScientificDecimal totalTime)
+    {
+        if (Orbit == null) return;
+        if (Parent == null) return;
+        Orbit orbit = (Orbit)Orbit;
+        if (orbit.Period == null) return;
+        ScientificDecimal period = (ScientificDecimal)orbit.Period;
+        if (orbit.SemiMajorAxis == null) return;
+        ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
+        if (orbit.Center == null) return;
+        Vector2 center = (Vector2)orbit.Center;
+        
+        double meanAnomaly = (double)(Math.Tau / period * (totalTime + orbit.InitialTime!)) - orbit.Periapsis;
+        double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly + orbit.Periapsis) - orbit.Periapsis;
+        double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly + orbit.Periapsis) - orbit.Periapsis;
+        Position = Parent.Position + Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
+        
+        ScientificDecimal relDist = (Position - Parent.Position).Magnitude();
+        ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / semiMajorAxis)).Sqrt();
+        if (Name == "Earth")
+            Console.WriteLine(relSpeed);
+        Vector2 relVelocity = Vector2.FromPolar(Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
+                                                Math.PI / 2, relSpeed);
+        Velocity = Parent.Velocity + relVelocity;
     }
 }

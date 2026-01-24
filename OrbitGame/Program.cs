@@ -68,7 +68,7 @@ Planet sun = new Planet(
     new SKColor(255, 255, 255, 255), null,
     "Sun"
 );
-Body mercury = new Planet(
+Planet mercury = new Planet(
     new ScientificDecimal(3.285m, 23),
     new Vector2(
         new ScientificDecimal(-5.6940545m, 10), 
@@ -81,7 +81,7 @@ Body mercury = new Planet(
     new ScientificDecimal(2.4397m, 6),
     new Material(0.2f), new SKColor(140, 140, 140, 255), sun, "Mercury"
 );
-Body venus = new Planet(
+Planet venus = new Planet(
     new ScientificDecimal(4.867m, 24),
     new Vector2(
         new ScientificDecimal( 8.2978939m, 10), 
@@ -107,7 +107,7 @@ Planet earth = new Planet(
     new ScientificDecimal(6.378m, 6),
     new Material(0.2f), new SKColor(100, 200, 255, 255), sun, "Earth"
 );
-Body mars = new Planet(
+Planet mars = new Planet(
     new ScientificDecimal(6.39m, 23),
     new Vector2(
         new ScientificDecimal(-6.4603691m, 10), 
@@ -120,7 +120,7 @@ Body mars = new Planet(
     new ScientificDecimal(3.3895m, 6),
     new Material(0.2f), new SKColor(230, 60, 50, 255), sun, "Mars"
 );
-Body jupiter = new Planet(
+Planet jupiter = new Planet(
     new ScientificDecimal(1.898m, 27),
     new Vector2(
         new ScientificDecimal( 1.6580000m, 11), 
@@ -133,7 +133,7 @@ Body jupiter = new Planet(
     new ScientificDecimal(6.9911m, 7), 
     new Material(0.2f), new SKColor(175, 125, 50, 255), sun, "Jupiter"
 );
-Body saturn = new Planet(
+Planet saturn = new Planet(
     new ScientificDecimal(5.683m, 26),
     new Vector2(
         new ScientificDecimal( 1.4146019m, 12), 
@@ -146,7 +146,7 @@ Body saturn = new Planet(
     new ScientificDecimal(5.8232m, 7),
     new Material(0.2f), new SKColor(150, 150, 80, 255), sun, "Saturn"
 );
-Body uranus = new Planet(
+Planet uranus = new Planet(
     new ScientificDecimal(8.681m, 25),
     new Vector2(
         new ScientificDecimal( 1.6645067m, 12), 
@@ -159,7 +159,7 @@ Body uranus = new Planet(
     new ScientificDecimal(2.5362m, 7),
     new Material(0.2f), new SKColor(170, 200, 255, 255), sun, "Uranus"
 );
-Body neptune = new Planet(
+Planet neptune = new Planet(
     new ScientificDecimal(1.024m, 26),
     new Vector2(
         new ScientificDecimal( 4.4699311m, 12), 
@@ -172,8 +172,21 @@ Body neptune = new Planet(
     new ScientificDecimal(2.4622m, 7),
     new Material(0.2f), new SKColor(100, 120, 200, 255), sun, "Neptune"
 );
+Planet halley = new Planet(
+    new ScientificDecimal(2.2m, 14),
+    new Vector2(
+        new ScientificDecimal(-2.9450469m, 12),
+        new ScientificDecimal(4.0907881m, 12)
+    ),
+    new Vector2(
+        new ScientificDecimal(8.0919083m, 2),
+        new ScientificDecimal(8.0919083m, 2)
+    ),
+    new ScientificDecimal(5.5m, 3),
+    new Material(0.2f), new SKColor(200, 100, 200, 255), sun, "Halley"
+);
 Ship smokestack = new Ship(
-    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000, 0), new Vector2(0, 10),
+    1000, new Vector2(new ScientificDecimal(6.378m, 6) + 4000000, 0), new Vector2(0, 10),
     new Material(0.5f), new SKColor(0, 125, 0, 255),
     earth,
     Vector2.CenterConvex([
@@ -183,7 +196,7 @@ Ship smokestack = new Ship(
         new (-50, 0),
         new (-3, 5)
     ]),
-    "Ship"
+    "Smokestack"
 );
 
 Planet r = new Planet(
@@ -205,7 +218,13 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune
+    sun, earth, smokestack
+];
+List<Planet> planets = [
+    sun, earth
+];
+List<Ship> ships = [
+    smokestack
 ];
 
 OriginBody.Body = smokestack;
@@ -259,8 +278,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
     if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
     
-    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
-    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.I)) smokestack.Velocity -= smokestack.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.K)) smokestack.Velocity += smokestack.ForwardVector * 100;
 }
 
 void OnRender(double _)
@@ -277,30 +296,46 @@ void OnRender(double _)
     HandleInput(input.Keyboards[0], deltaTime);
     
     if (Options.DisplayFPS)
-        canvas.DrawText(framesPerSecond.ToString(), 20, 20, SKTextAlign.Center, font, paint);
+        canvas.DrawText(framesPerSecond.ToString(), 40, 40, SKTextAlign.Center, font, paint);
+    
+    try {
+        canvas.DrawText("Current date: " + new DateTime(2024, 12, 25).AddSeconds((double)time),
+            40, 60, font, paint);
+    }
+    catch (ArgumentOutOfRangeException) {
+        canvas.DrawText("Current date: >10000y A.D.", 40, 60, font, paint);
+    }
     
     if (Options.EnablePhysics)
     {
-        // step through gravity numerical integrator
-        foreach (var body in bodies)
+        foreach (var body in planets)
         {
-            body.SetNetGravitationalAcceleration(bodies);
-            body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(bodies));
+            body.Kepler_UpdatePosition(time);
+        }
+        
+        // step through gravity numerical integrator
+        foreach (var body in ships)
+        {
+            body.SetNetGravitationalAcceleration(planets);
+            body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(planets));
         }
         
         // resolve collisions
-        smokestack.Collider.CollidesWith(earth.Collider);
-        smokestack.Collider.CollidesWith(venus.Collider);
-        earth.Collider.CollidesWith(sun.Collider);
+        foreach (var ship in ships)
+            foreach (var body in bodies)
+                if (body != ship)
+                    if (ship.Collider != null)
+                        ship.Collider.CollidesWith(body.Collider);
     }
     
     // recalculate origins
-    OriginBody.ResetOrigin(bodies);
+    // BUG: resetting the origin currently breaks values for keplerian orbits
+    //OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
     
     smokestack.RecalculateOrbit(bodies);
 
-    foreach (var body in bodies) if (body is Planet planet) planet.DrawSphereOfInfluence(canvas, camera);
+    foreach (var body in planets) body.DrawSphereOfInfluence(canvas, camera);
     foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);
     
     // draw bodies

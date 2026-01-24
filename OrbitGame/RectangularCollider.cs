@@ -24,7 +24,7 @@ public class RectangularCollider(
     public Vector2 BottomRight => new(Right, Bottom);
     public Vector2 BottomLeft => new(Left, Bottom);
 
-    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, Body parent, Material material)
+    public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent, Material material)
         : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent, material) { }
 
     protected override RectangularCollider GetBoundingBox() => this;

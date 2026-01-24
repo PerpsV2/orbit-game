@@ -19,7 +19,10 @@ public class Planet : Body
         : base(mass, position, velocity, colour, name, parent)
     {
         Radius = radius;
-        Collider = new CircularCollider(Radius, this, material);
+        CircularCollider collider = new CircularCollider(Radius, this, material) {
+            Fixed = true
+        };
+        Collider = collider;
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)

@@ -41,7 +41,18 @@ public class ConvexCollider : CompactCollider, ICollider
 
     protected override RectangularCollider GetBoundingBox()
     {
-        throw new NotImplementedException();
+        ScientificDecimal minX = RotatedPoints[0].X;
+        ScientificDecimal minY = RotatedPoints[0].Y;
+        ScientificDecimal maxX = RotatedPoints[1].X;
+        ScientificDecimal maxY = RotatedPoints[1].Y;
+        foreach (var rotatedPoint in RotatedPoints)
+        {
+            if (rotatedPoint.X < minX) minX = rotatedPoint.X;
+            if (rotatedPoint.X > maxX) maxX = rotatedPoint.X;
+            if (rotatedPoint.Y < minY) minY = rotatedPoint.Y;
+            if (rotatedPoint.Y > maxY) maxY = rotatedPoint.Y;
+        }
+        return new RectangularCollider(maxY, maxX, minY, minX, Parent, Material);
     }
 
     protected override PointCollision IntersectsWith(Vector2 point)
