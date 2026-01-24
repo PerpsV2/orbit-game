@@ -290,6 +290,7 @@ void OnRender(double _)
         
         // resolve collisions
         smokestack.Collider.CollidesWith(earth.Collider);
+        smokestack.Collider.CollidesWith(venus.Collider);
         earth.Collider.CollidesWith(sun.Collider);
     }
     
@@ -297,14 +298,14 @@ void OnRender(double _)
     OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
     
-    smokestack.RecalculateOrbit();
+    smokestack.RecalculateOrbit(bodies);
+    
+    foreach (var body in bodies) body.DrawSphereOfInfluence(canvas, camera);
+    foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);
     
     // draw bodies
     foreach (var body in bodies)
     {
-        
-        body.DrawSphereOfInfluence(canvas, camera);
-        body.DrawOrbitalPathLRL(canvas, camera);
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }

@@ -246,10 +246,25 @@ public abstract class Body : KinematicObject
     {
         return Parent == null ? null : CalculateOrbit(Parent);
     }
-    
-    public void RecalculateOrbit()
-        => _orbit = CalculateOrbit();
-    
+
+    public void RecalculateOrbit(List<Body> bodies)
+    {
+        if (Parent == null) return;
+        ScientificDecimal? parentSOIRadius = Parent._orbit?.SphereOfInfluenceRadius;
+        if (parentSOIRadius != null)
+            if ((Position - Parent.Position).Magnitude() > (ScientificDecimal)parentSOIRadius)
+                Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
+        foreach (Body body in bodies)
+        {
+            if (body == Parent || body == this) continue;
+            ScientificDecimal? bodySOIRadius = body._orbit?.SphereOfInfluenceRadius;
+            if (bodySOIRadius != null)
+                if ((Position - body.Position).Magnitude() < (ScientificDecimal)bodySOIRadius)
+                    Parent = body;
+        }
+        _orbit = CalculateOrbit();
+    }
+
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
         switch (integrator)
