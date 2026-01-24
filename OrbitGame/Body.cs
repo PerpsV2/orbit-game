@@ -4,38 +4,81 @@ namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
 
-public readonly record struct Orbit(
-    OrbitEquation Equation, 
-    double Eccentricity, 
-    double Periapsis,
-    ScientificDecimal SemiLatusRectum
-    )
+public readonly record struct Orbit
 {
-    public readonly double Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
-    public readonly double Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
-    public readonly ScientificDecimal? SemiMajorAxis = 
-        Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
-    public readonly ScientificDecimal? SemiMinorAxis = 
-        Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
+    public readonly Body Body;
+    public readonly Body Parent;
+    public readonly double Periapsis;
+    public readonly double Apoapsis;
+    public readonly ScientificDecimal? SemiMajorAxis;
+    public readonly ScientificDecimal? SemiMinorAxis;
+    public readonly ScientificDecimal? SphereOfInfluenceRadius;
+    public readonly OrbitEquation Equation;
+    public readonly double Eccentricity;
+    public readonly ScientificDecimal SemiLatusRectum;
+    
+    public Orbit(
+        Body Body,
+        Body Parent,
+        OrbitEquation Equation, 
+        double Eccentricity, 
+        double Periapsis,
+        ScientificDecimal SemiLatusRectum
+        )
+    {
+        this.Body = Body;
+        this.Parent = Parent;
+        this.Equation = Equation;
+        this.Eccentricity = Eccentricity;
+        this.SemiLatusRectum = SemiLatusRectum;
+        this.Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
+        Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
+        SemiMajorAxis = Eccentricity < 1 ? (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2 : null;
+        SemiMinorAxis = Eccentricity < 1 ? (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt() : null;
+        SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f/5f);
+    }
+
+    public void Deconstruct(
+        out Body body,
+        out Body parent,
+        out OrbitEquation equation, 
+        out double eccentricity, 
+        out double periapsis, 
+        out ScientificDecimal semiLatusRectum)
+    {
+        body = Body;
+        parent = Parent;
+        equation = Equation;
+        eccentricity = Eccentricity;
+        periapsis = Periapsis;
+        semiLatusRectum = SemiLatusRectum;
+    }
 }
 
 /// <summary>
-/// A KinematicObject with information about shape and material and methods for physics.
+/// A KinematicObject with information about shape, trajectory, material and methods for physics.
 /// </summary>
-public abstract class Body(
-    ScientificDecimal mass, 
-    Vector2 position, 
-    Vector2 velocity, 
-    SKColor colour, 
-    string name, 
-    Body? parent = null
-    ) 
-    : KinematicObject(name, mass, position, velocity)
+public abstract class Body : KinematicObject
 {
-    public SKColor Colour = colour;
+    public SKColor Colour;
     public ICollider? Collider;
-    public Body? Parent = parent;
+    protected Body? Parent;
+    private Orbit _orbit;
     
+    protected Body(ScientificDecimal mass, 
+        Vector2 position, 
+        Vector2 velocity, 
+        SKColor colour, 
+        string name, 
+        Body? parent = null) 
+        : base(name, mass, position, velocity)
+    {
+        Colour = colour;
+        Parent = parent;
+        if (parent != null)
+            _orbit = CalculateOrbit(parent);
+    }
+
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
 
@@ -48,9 +91,11 @@ public abstract class Body(
         using SKPaint paint = new SKPaint();
         paint.Color = Colour;
         paint.Style = SKPaintStyle.Stroke;
+        
+        using SKPaint soiPaint = new SKPaint();
+        soiPaint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, 50);
 
         Orbit orbit = CalculateOrbit(centralForce);
-        CalculateSphereOfInfluenceRadius(orbit);
         List<Vector2> orbitPoints = new List<Vector2>();
         
         // find approximate angle of the orbit covered by the camera
@@ -81,10 +126,12 @@ public abstract class Body(
         // draw circular and elliptical orbits
         if (orbit.Eccentricity < 1)
         {
-            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null) 
+            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null || orbit.SphereOfInfluenceRadius == null) 
                 throw new NullReferenceException("Elliptic orbit must have a semi-major axis.");
             ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
             ScientificDecimal semiMinorAxis = (ScientificDecimal)orbit.SemiMinorAxis;
+            ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
+            canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, soiPaint);
             // orbit is too small to draw
             if (camera.ConvertToScreenDistance(semiMajorAxis) < 1) return;
             // draw partial orbit if camera is zoomed in.
@@ -108,7 +155,7 @@ public abstract class Body(
                 Vector2 center = Vector2.FromPolar(-orbit.Periapsis, orbit.Equation(-orbit.Periapsis)) +
                                  Vector2.FromPolar(-orbit.Periapsis, -semiMajorAxis);
                 canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + center, semiMajorAxis, semiMinorAxis, 
-                    orbit.Periapsis, DebugCanvas.Blue);
+                    orbit.Periapsis, paint);
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -123,7 +170,7 @@ public abstract class Body(
             }
         }
 
-        if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, DebugCanvas.Purple);
+        if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, paint);
     }
     
     private Vector2 CalculateGravitationalAcceleration(Body attractor)
@@ -142,7 +189,7 @@ public abstract class Body(
             .Aggregate(result, (sum, next) => 
                 sum + CalculateGravitationalAcceleration(next));
     }
-
+    
     private Orbit CalculateOrbit(Body centralForce)
     {
         Vector2 relVelocity = Velocity - centralForce.Velocity;
@@ -156,29 +203,13 @@ public abstract class Body(
         Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((Vector2)Vector3.Cross(momentum, angularMomentum) -
                             directionVector * Mass * forceStrength);
 
+        double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = 1 / c;
-        double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
+        ScientificDecimal Equation(double angle) => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis)));
 
-        return new Orbit(
-            angle => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis))), 
-            (double)eccentricity, periapsis, semiLatusRectum
-            );
-    }
-
-    public ScientificDecimal? CalculateSphereOfInfluenceRadius(Orbit orbit)
-    {
-        if (Parent == null) return null;
-        if (orbit.SemiMajorAxis == null) return null;
-        SKPaint paint = new SKPaint();
-        paint.Color = new SKColor(255, 255, 255, 40);
-        ScientificDecimal result = (ScientificDecimal)orbit.SemiMajorAxis * Math.Pow((double)(Mass / Parent.Mass), 2f/5f);
-        DebugCanvas.Add((cnv, cam) =>
-        {
-            cnv.GS_DrawCircle(cam, Position, result, paint);
-        });
-        return result;
+        return new Orbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum);
     }
     
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
