@@ -299,8 +299,8 @@ void OnRender(double _)
     camera.SetOrigin(tracking.Position);
     
     smokestack.RecalculateOrbit(bodies);
-    
-    foreach (var body in bodies) body.DrawSphereOfInfluence(canvas, camera);
+
+    foreach (var body in bodies) if (body is Planet planet) planet.DrawSphereOfInfluence(canvas, camera);
     foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);
     
     // draw bodies

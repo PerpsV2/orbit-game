@@ -64,7 +64,7 @@ public abstract class Body : KinematicObject
     public SKColor Colour;
     public ICollider? Collider;
     protected Body? Parent;
-    private Orbit? _orbit;
+    protected Orbit? Orbit;
     
     protected Body(ScientificDecimal mass, 
         Vector2 position, 
@@ -79,34 +79,19 @@ public abstract class Body : KinematicObject
         Parent = parent;
         Position += parent?.Position ?? Vector2.Zero;
         Velocity += parent?.Velocity ?? Vector2.Zero;
-        _orbit = CalculateOrbit();
+        Orbit = CalculateOrbit();
     }
 
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
-
-    public void DrawSphereOfInfluence(SKCanvas canvas, Camera camera)
-    {
-        if (_orbit == null) return;
-        Orbit orbit = (Orbit)_orbit;
-        
-        if (orbit.SphereOfInfluenceRadius == null) return;
-        ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
-        
-        // paint for orbits
-        using SKPaint paint = new SKPaint();
-        paint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, Options.SOIAlpha);
-        
-        canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, paint);
-    }
 
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera)
     {
-        if (_orbit == null || Parent == null) return;
-        Orbit orbit = (Orbit)_orbit;
+        if (Orbit == null || Parent == null) return;
+        Orbit orbit = (Orbit)Orbit;
         Body centralForce = Parent;
         List<Vector2> orbitPoints = new List<Vector2>();
         
@@ -176,7 +161,7 @@ public abstract class Body : KinematicObject
         // draw parabolic and hyperbolic orbits
         else
         {
-            ScientificDecimal? parentSOIRadius = centralForce._orbit?.SphereOfInfluenceRadius ?? null;
+            ScientificDecimal? parentSOIRadius = centralForce.Orbit?.SphereOfInfluenceRadius ?? null;
             double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
@@ -250,19 +235,19 @@ public abstract class Body : KinematicObject
     public void RecalculateOrbit(List<Body> bodies)
     {
         if (Parent == null) return;
-        ScientificDecimal? parentSOIRadius = Parent._orbit?.SphereOfInfluenceRadius;
+        ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
             if ((Position - Parent.Position).Magnitude() > (ScientificDecimal)parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
         foreach (Body body in bodies)
         {
             if (body == Parent || body == this) continue;
-            ScientificDecimal? bodySOIRadius = body._orbit?.SphereOfInfluenceRadius;
+            ScientificDecimal? bodySOIRadius = body.Orbit?.SphereOfInfluenceRadius;
             if (bodySOIRadius != null)
                 if ((Position - body.Position).Magnitude() < (ScientificDecimal)bodySOIRadius)
                     Parent = body;
         }
-        _orbit = CalculateOrbit();
+        Orbit = CalculateOrbit();
     }
 
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)

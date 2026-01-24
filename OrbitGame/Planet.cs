@@ -114,4 +114,19 @@ public class Planet : Body
     {
         Draw(canvas, camera);
     }
+    
+    public void DrawSphereOfInfluence(SKCanvas canvas, Camera camera)
+    {
+        if (Orbit == null) return;
+        Orbit orbit = (Orbit)Orbit;
+        
+        if (orbit.SphereOfInfluenceRadius == null) return;
+        ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
+        
+        // paint for spheres of influence
+        using SKPaint paint = new SKPaint();
+        paint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, Options.SOIAlpha);
+        
+        canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, paint);
+    }
 }
