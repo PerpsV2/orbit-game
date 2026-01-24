@@ -5,29 +5,14 @@ public class Ship : Body
 {
     private readonly Vector2[] _mesh;
     
-    public Ship(ScientificDecimal mass,
-        Vector2 position,
-        Vector2 velocity,
-        Material material,
-        SKColor colour,
-        Vector2[] mesh,
-        string name) : base(mass, position, velocity, colour, name)
+    public Ship(
+        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Body? parent,
+        Vector2[] mesh, string name)
+        : base(mass, position, velocity, colour, name, parent)
     {
-        Position = position;
-        Velocity = velocity;
         LinkedList<int> colliderIndices = Vector2.GetConvexHullIndices(mesh);
         _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
         Collider = new ConvexCollider(_mesh, this, material);
-    }
-    
-    public Ship(
-        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Body parent,
-        Vector2[] mesh, string name)
-        : this(mass, position, velocity, material, colour, mesh, name)
-    {
-        Parent = parent;
-        Position = Parent.Position + position;
-        Velocity = Parent.Velocity + velocity;
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)

@@ -65,7 +65,7 @@ Planet sun = new Planet(
     Vector2.Zero,
     new ScientificDecimal(6.96340m, 8),
     new Material(0f),
-    new SKColor(255, 255, 255, 255), 
+    new SKColor(255, 255, 255, 255), null,
     "Sun"
 );
 Body mercury = new Planet(
@@ -188,13 +188,13 @@ Ship smokestack = new Ship(
 
 Planet r = new Planet(
     100, new Vector2(4, 0), Vector2.Zero, 4,
-    new Material(0.5f), new SKColor(125, 0, 0, 255),"Planet");
+    new Material(0.5f), new SKColor(125, 0, 0, 255), null, "Planet");
 Planet g = new Planet(
     100, new(2, 5), Vector2.Zero, 1,
-    new Material(0.5f), new SKColor(0, 125, 0, 255), "Planet");
+    new Material(0.5f), new SKColor(0, 125, 0, 255), null, "Planet");
 Ship b = new Ship(
     1000, new(-5, -3), Vector2.Zero,
-    new Material(0.5f), new SKColor(0, 0, 125, 255),
+    new Material(0.5f), new SKColor(0, 0, 125, 255), null,
     [
         new (2.33333333333,3.5),
         new (2.33333333333, -2.5),
@@ -205,7 +205,7 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune
+    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune
 ];
 
 OriginBody.Body = smokestack;
@@ -259,8 +259,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
     if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
     
-    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 10;
-    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 10;
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
 }
 
 void OnRender(double _)
@@ -289,7 +289,7 @@ void OnRender(double _)
         }
         
         // resolve collisions
-        // smokestack.Collider.CollidesWith(earth.Collider);
+        smokestack.Collider.CollidesWith(earth.Collider);
         earth.Collider.CollidesWith(sun.Collider);
     }
     
@@ -301,13 +301,14 @@ void OnRender(double _)
     mercury.DrawOrbitalPathLRL(canvas, camera, sun);
     venus.DrawOrbitalPathLRL(canvas, camera, sun);
     earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    // smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
+    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
     mars.DrawOrbitalPathLRL(canvas, camera, sun);
     jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
     saturn.DrawOrbitalPathLRL(canvas, camera, sun);
     uranus.DrawOrbitalPathLRL(canvas, camera, sun);
     neptune.DrawOrbitalPathLRL(canvas, camera, sun);
     
+    smokestack.RecalculateOrbit();
     
     // draw bodies
     foreach (var body in bodies)

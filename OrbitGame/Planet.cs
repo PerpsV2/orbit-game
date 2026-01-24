@@ -7,35 +7,19 @@ public class Planet : Body
     public readonly ScientificDecimal Radius;
     
     public Planet(
-        ScientificDecimal mass, 
-        Vector2 position, 
-        Vector2 velocity, 
-        ScientificDecimal radius, 
-        Material material, 
-        SKColor colour,
-        string name
-        ) 
-        : base(mass, position, velocity, colour, name)
-    {
-        Radius = radius;
-        Collider = new CircularCollider(Radius, this, material);
-    }
-
-    public Planet(
         ScientificDecimal mass,
         Vector2 position,
         Vector2 velocity,
         ScientificDecimal radius,
         Material material,
         SKColor colour,
-        Body parent,
+        Body? parent,
         string name
     )
-        : this(mass, position, velocity, radius, material, colour, name)
+        : base(mass, position, velocity, colour, name, parent)
     {
-        Parent = parent;
-        Position = Parent.Position + position;
-        Velocity = Parent.Velocity + velocity;
+        Radius = radius;
+        Collider = new CircularCollider(Radius, this, material);
     }
 
     public override void Draw(SKCanvas canvas, Camera camera)

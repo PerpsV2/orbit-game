@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SkiaSharp;
 
 namespace OrbitGame;
@@ -63,20 +64,22 @@ public abstract class Body : KinematicObject
     public SKColor Colour;
     public ICollider? Collider;
     protected Body? Parent;
-    private Orbit _orbit;
+    private Orbit? _orbit;
     
     protected Body(ScientificDecimal mass, 
         Vector2 position, 
         Vector2 velocity, 
         SKColor colour, 
         string name, 
-        Body? parent = null) 
+        Body? parent) 
         : base(name, mass, position, velocity)
     {
+        
         Colour = colour;
         Parent = parent;
-        if (parent != null)
-            _orbit = CalculateOrbit(parent);
+        Position += parent?.Position ?? Vector2.Zero;
+        Velocity += parent?.Velocity ?? Vector2.Zero;
+        _orbit = CalculateOrbit();
     }
 
     public abstract void Draw(SKCanvas canvas, Camera camera);
@@ -87,6 +90,10 @@ public abstract class Body : KinematicObject
     /// </summary>
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera, Body centralForce)
     {
+        if (_orbit == null) return;
+        Orbit orbit = (Orbit)_orbit;
+        List<Vector2> orbitPoints = new List<Vector2>();
+        
         // paint for orbits
         using SKPaint paint = new SKPaint();
         paint.Color = Colour;
@@ -94,9 +101,6 @@ public abstract class Body : KinematicObject
         
         using SKPaint soiPaint = new SKPaint();
         soiPaint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, 50);
-
-        Orbit orbit = CalculateOrbit(centralForce);
-        List<Vector2> orbitPoints = new List<Vector2>();
         
         // find approximate angle of the orbit covered by the camera
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
@@ -161,12 +165,24 @@ public abstract class Body : KinematicObject
         // draw parabolic and hyperbolic orbits
         else
         {
+            ScientificDecimal? parentSOIRadius = centralForce._orbit?.SphereOfInfluenceRadius ?? null;
             double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
                 double trueAngle = a - orbit.Periapsis;
                 ScientificDecimal dist = orbit.Equation(trueAngle);
-                if (dist > 0) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                if (parentSOIRadius != null)
+                {
+                    if (dist > 0 && dist < parentSOIRadius)
+                        orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                }
+                else if (dist > 0) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+            }
+
+            if (parentSOIRadius != null)
+            {
+                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(asymptoteAngle - orbit.Periapsis, parentSOIRadius.Value));
+                orbitPoints = orbitPoints.Prepend(centralForce.Position + Vector2.FromPolar(-asymptoteAngle - orbit.Periapsis, parentSOIRadius.Value)).ToList();
             }
         }
 
@@ -211,6 +227,14 @@ public abstract class Body : KinematicObject
 
         return new Orbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum);
     }
+
+    private Orbit? CalculateOrbit()
+    {
+        return Parent == null ? null : CalculateOrbit(Parent);
+    }
+    
+    public void RecalculateOrbit()
+        => _orbit = CalculateOrbit();
     
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
