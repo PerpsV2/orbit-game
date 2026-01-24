@@ -218,10 +218,10 @@ Ship b = new Ship(
 );
 
 List<Body> bodies = [
-    sun, earth, smokestack
+    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune, halley
 ];
 List<Planet> planets = [
-    sun, earth
+    sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, halley
 ];
 List<Ship> ships = [
     smokestack

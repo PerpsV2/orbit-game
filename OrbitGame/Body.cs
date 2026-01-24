@@ -383,8 +383,6 @@ public abstract class Body : KinematicObject
         
         ScientificDecimal relDist = (Position - Parent.Position).Magnitude();
         ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / semiMajorAxis)).Sqrt();
-        if (Name == "Earth")
-            Console.WriteLine(relSpeed);
         Vector2 relVelocity = Vector2.FromPolar(Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
                                                 Math.PI / 2, relSpeed);
         Velocity = Parent.Velocity + relVelocity;
