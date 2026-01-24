@@ -297,22 +297,14 @@ void OnRender(double _)
     OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
     
-    // draw orbital paths
-    mercury.DrawOrbitalPathLRL(canvas, camera, sun);
-    venus.DrawOrbitalPathLRL(canvas, camera, sun);
-    earth.DrawOrbitalPathLRL(canvas, camera, sun);
-    smokestack.DrawOrbitalPathLRL(canvas, camera, earth);
-    mars.DrawOrbitalPathLRL(canvas, camera, sun);
-    jupiter.DrawOrbitalPathLRL(canvas, camera, sun);
-    saturn.DrawOrbitalPathLRL(canvas, camera, sun);
-    uranus.DrawOrbitalPathLRL(canvas, camera, sun);
-    neptune.DrawOrbitalPathLRL(canvas, camera, sun);
-    
     smokestack.RecalculateOrbit();
     
     // draw bodies
     foreach (var body in bodies)
     {
+        
+        body.DrawSphereOfInfluence(canvas, camera);
+        body.DrawOrbitalPathLRL(canvas, camera);
         body.Draw(canvas, camera);
         if (Options.DrawColliders) body.DrawCollider(canvas, camera);
     }

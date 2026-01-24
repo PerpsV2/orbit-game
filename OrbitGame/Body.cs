@@ -85,22 +85,34 @@ public abstract class Body : KinematicObject
     public abstract void Draw(SKCanvas canvas, Camera camera);
     public abstract void DrawCollider(SKCanvas canvas, Camera camera);
 
-    /// <summary>
-    /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
-    /// </summary>
-    public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera, Body centralForce)
+    public void DrawSphereOfInfluence(SKCanvas canvas, Camera camera)
     {
         if (_orbit == null) return;
         Orbit orbit = (Orbit)_orbit;
-        List<Vector2> orbitPoints = new List<Vector2>();
+        
+        if (orbit.SphereOfInfluenceRadius == null) return;
+        ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
         
         // paint for orbits
         using SKPaint paint = new SKPaint();
+        paint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, Options.SOIAlpha);
+        
+        canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, paint);
+    }
+
+    /// <summary>
+    /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
+    /// </summary>
+    public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera)
+    {
+        if (_orbit == null || Parent == null) return;
+        Orbit orbit = (Orbit)_orbit;
+        Body centralForce = Parent;
+        List<Vector2> orbitPoints = new List<Vector2>();
+        
+        using SKPaint paint = new SKPaint();
         paint.Color = Colour;
         paint.Style = SKPaintStyle.Stroke;
-        
-        using SKPaint soiPaint = new SKPaint();
-        soiPaint.Color = new SKColor(Colour.Red, Colour.Green, Colour.Blue, 50);
         
         // find approximate angle of the orbit covered by the camera
         Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
@@ -130,12 +142,11 @@ public abstract class Body : KinematicObject
         // draw circular and elliptical orbits
         if (orbit.Eccentricity < 1)
         {
-            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null || orbit.SphereOfInfluenceRadius == null) 
+            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null) 
                 throw new NullReferenceException("Elliptic orbit must have a semi-major axis.");
             ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
             ScientificDecimal semiMinorAxis = (ScientificDecimal)orbit.SemiMinorAxis;
-            ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
-            canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, soiPaint);
+            
             // orbit is too small to draw
             if (camera.ConvertToScreenDistance(semiMajorAxis) < 1) return;
             // draw partial orbit if camera is zoomed in.
@@ -181,8 +192,11 @@ public abstract class Body : KinematicObject
 
             if (parentSOIRadius != null)
             {
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(asymptoteAngle - orbit.Periapsis, parentSOIRadius.Value));
-                orbitPoints = orbitPoints.Prepend(centralForce.Position + Vector2.FromPolar(-asymptoteAngle - orbit.Periapsis, parentSOIRadius.Value)).ToList();
+                double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
+                                                        (orbit.Eccentricity * parentSOIRadius /
+                                                         orbit.SemiLatusRectum))) + Math.PI;
+                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-escapeAngle - orbit.Periapsis, parentSOIRadius.Value));
+                orbitPoints = orbitPoints.Prepend(centralForce.Position + Vector2.FromPolar(escapeAngle - orbit.Periapsis, parentSOIRadius.Value)).ToList();
             }
         }
 
