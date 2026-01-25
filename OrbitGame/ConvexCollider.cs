@@ -127,6 +127,8 @@ public class ConvexCollider : CompactCollider, ICollider
         return IntersectsWith(convexRect);
     }
 
-    public override bool IsEmpty() => 
-        _points.Length < 3;
+    public override bool IsEmpty()
+    {
+        throw new NotImplementedException();
+    }
 }
