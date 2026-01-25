@@ -3,75 +3,56 @@ using OrbitGame;
 
 public class ScientificDecimalTests
 {
+    private ScientificDecimal _posNum = new ScientificDecimal(4, 0);
+    private ScientificDecimal _negNum = new ScientificDecimal(-4, 0);
+    private ScientificDecimal _zero = new ScientificDecimal(0, 0);
+    private ScientificDecimal _posInfinity = ScientificDecimal.PosInfinity;
+    private ScientificDecimal _negInfinity = ScientificDecimal.NegInfinity;
+    
     [Fact]
     public void Test_SqrtMethod()
     {
-        ScientificDecimal posRadicand = new ScientificDecimal(4, 0);
-        ScientificDecimal negRadicand = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(2, posRadicand.Sqrt());
-        Assert.Equal(posInfinity, posInfinity.Sqrt());
-        Assert.Throws<ArithmeticException>(() => negRadicand.Sqrt());
-        Assert.Throws<ArithmeticException>(() => negInfinity.Sqrt());
+        Assert.Equal(2, _posNum.Sqrt());
+        Assert.Equal(_posInfinity, _posInfinity.Sqrt());
+        Assert.Throws<ArithmeticException>(() => _negNum.Sqrt());
+        Assert.Throws<ArithmeticException>(() => _negInfinity.Sqrt());
     }
 
     [Fact]
     public void Test_AbsMethod()
     {
-        ScientificDecimal posArgument = new ScientificDecimal(4, 0);
-        ScientificDecimal negArgument = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(4, posArgument.Abs());
-        Assert.Equal(4, negArgument.Abs());
-        Assert.Equal(posInfinity, posInfinity.Abs());
-        Assert.Equal(posInfinity, negInfinity.Abs());
+        Assert.Equal(4, _posNum.Abs());
+        Assert.Equal(4, _negNum.Abs());
+        Assert.Equal(_posInfinity, _posInfinity.Abs());
+        Assert.Equal(_posInfinity, _negInfinity.Abs());
     }
 
     [Fact]
     public void Test_MinMethod()
     {
-        ScientificDecimal posNum = new ScientificDecimal(2, 0);
-        ScientificDecimal negNum = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-4, ScientificDecimal.Min(negNum, posNum));
-        Assert.Equal(negInfinity, ScientificDecimal.Min(posInfinity, negInfinity));
-        Assert.Equal(negInfinity, ScientificDecimal.Min(negInfinity, negNum));
+        Assert.Equal(-4, ScientificDecimal.Min(_negNum, _posNum));
+        Assert.Equal(_negInfinity, ScientificDecimal.Min(_posInfinity, _negInfinity));
+        Assert.Equal(_negInfinity, ScientificDecimal.Min(_negInfinity, _negNum));
     }
     
     [Fact]
     public void Test_MaxMethod()
     {
-        
-        ScientificDecimal posNum = new ScientificDecimal(4, 0);
-        ScientificDecimal negNum = new ScientificDecimal(-8, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-8, ScientificDecimal.Max(negInfinity, negNum));
-        Assert.Equal(4, ScientificDecimal.Max(negNum, posNum));
-        Assert.Equal(posInfinity, ScientificDecimal.Max(posInfinity, negInfinity));
+        Assert.Equal(-4, ScientificDecimal.Max(_negInfinity, _negNum));
+        Assert.Equal(4, ScientificDecimal.Max(_negNum, _posNum));
+        Assert.Equal(_posInfinity, ScientificDecimal.Max(_posInfinity, _negInfinity));
     }
 
     [Fact]
     public void Test_ClampMethod()
     {
-        ScientificDecimal posNum = new ScientificDecimal(2, 0);
-        ScientificDecimal negNum = new ScientificDecimal(-4, 0);
         ScientificDecimal argument = new ScientificDecimal(-8, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
         
-        Assert.Equal(-4, argument.Clamp(negNum, posNum));
-        Assert.Equal(-4, negInfinity.Clamp(negNum, posNum));
-        Assert.Equal(2, posInfinity.Clamp(negNum, posNum));
-        Assert.Equal(posInfinity, posInfinity.Clamp(negNum, posInfinity));
-        Assert.Throws<ArithmeticException>(() => argument.Clamp(posNum, negNum));
+        Assert.Equal(-4, argument.Clamp(_negNum, _posNum));
+        Assert.Equal(-4, _negInfinity.Clamp(_negNum, _posNum));
+        Assert.Equal(4, _posInfinity.Clamp(_negNum, _posNum));
+        Assert.Equal(_posInfinity, _posInfinity.Clamp(_negNum, _posInfinity));
+        Assert.Throws<ArithmeticException>(() => argument.Clamp(_posNum, _negNum));
     }
     
     #region Operators
@@ -79,113 +60,72 @@ public class ScientificDecimalTests
     [Fact]
     public void Test_NegativeOperator()
     {
-        ScientificDecimal argument = new ScientificDecimal(2, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-2, -argument);
-        Assert.Equal(negInfinity, -posInfinity);
+        Assert.Equal(-4, -_posNum);
+        Assert.Equal(_negInfinity, -_posInfinity);
     }
     
     [Fact]
     public void Test_AdditionOperator()
     {
-        ScientificDecimal argument1 = new ScientificDecimal(2, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-2, argument1 + argument2);
-        Assert.Equal(posInfinity, argument1 + posInfinity);
-        Assert.Equal(posInfinity, posInfinity + posInfinity);
-        Assert.Throws<ArithmeticException>(() => posInfinity + negInfinity);
+        Assert.Equal(0, _posNum + _negNum);
+        Assert.Equal(_posInfinity, _posNum + _posInfinity);
+        Assert.Equal(_posInfinity, _posInfinity + _posInfinity);
+        Assert.Throws<ArithmeticException>(() => _posInfinity + _negInfinity);
     }
 
     [Fact]
     public void Test_SubtractionOperator()
     {
-        ScientificDecimal argument1 = new ScientificDecimal(2, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(6, argument1 - argument2);
-        Assert.Equal(posInfinity, argument1 - negInfinity);
-        Assert.Throws<ArithmeticException>(() => posInfinity - posInfinity);
+        Assert.Equal(8, _posNum - _negNum);
+        Assert.Equal(_posInfinity, _posNum - _negInfinity);
+        Assert.Throws<ArithmeticException>(() => _posInfinity - _posInfinity);
     }
 
     [Fact]
     public void Test_MultiplicationOperator()
     {
-        ScientificDecimal zero = new ScientificDecimal(0, 0);
-        ScientificDecimal argument1 = new ScientificDecimal(2, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-8, argument1 * argument2);
-        Assert.Equal(0, zero * posInfinity);
-        Assert.Equal(negInfinity, argument2 * posInfinity);
-        Assert.Equal(negInfinity, posInfinity * negInfinity);
-        Assert.Equal(posInfinity, negInfinity * negInfinity);
+        Assert.Equal(-16, _posNum * _negNum);
+        Assert.Equal(0, _zero * _posInfinity);
+        Assert.Equal(_negInfinity, _negNum * _posInfinity);
+        Assert.Equal(_negInfinity, _posInfinity * _negInfinity);
+        Assert.Equal(_posInfinity, _negInfinity * _negInfinity);
     }
 
     [Fact]
     public void Test_DivisionOperator()
     {
-        ScientificDecimal zero = new ScientificDecimal(0, 0);
-        ScientificDecimal argument1 = new ScientificDecimal(2, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-4, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
-        Assert.Equal(-0.5, argument1 / argument2);
-        Assert.Equal(0, argument1 / posInfinity);
-        Assert.Equal(negInfinity, posInfinity / argument2);
-        Assert.Throws<ArithmeticException>(() => argument1 / zero);
-        Assert.Throws<ArithmeticException>(() => posInfinity / negInfinity);
+        Assert.Equal(-1, _posNum / _negNum);
+        Assert.Equal(0, _posNum / _posInfinity);
+        Assert.Equal(_negInfinity, _posInfinity / _negNum);
+        Assert.Throws<ArithmeticException>(() => _posNum / _zero);
+        Assert.Throws<ArithmeticException>(() => _posInfinity / _negInfinity);
     }
     
     [Fact]
     public void Test_EqualsOperator()
     {
-        ScientificDecimal argument1 = new ScientificDecimal(1, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-1, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
         // ReSharper disable once EqualExpressionComparison
-        Assert.True(negInfinity == negInfinity);
-        Assert.False(argument1 == argument2);
-        Assert.False(argument1 == posInfinity);
+        Assert.True(_negInfinity == _negInfinity);
+        Assert.False(_posNum == _negNum);
+        Assert.False(_posNum == _posInfinity);
     }
 
     [Fact]
     public void Test_GreaterThanOperator()
     {
-        ScientificDecimal argument1 = new ScientificDecimal(1, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-1, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-
         // ReSharper disable once EqualExpressionComparison
-        Assert.False(posInfinity > posInfinity);
-        Assert.True(posInfinity > negInfinity);
-        Assert.True(argument1 > argument2);
+        Assert.False(_posInfinity > _posInfinity);
+        Assert.True(_posInfinity > _negInfinity);
+        Assert.True(_posNum > _negNum);
     }
 
     [Fact]
     public void Test_LessThanOperator()
     {
-        ScientificDecimal argument1 = new ScientificDecimal(1, 0);
-        ScientificDecimal argument2 = new ScientificDecimal(-1, 0);
-        ScientificDecimal posInfinity = ScientificDecimal.PosInfinity;
-        ScientificDecimal negInfinity = ScientificDecimal.NegInfinity;
-        
         // ReSharper disable once EqualExpressionComparison
-        Assert.False(posInfinity < posInfinity);
-        Assert.True(argument2 < argument1);
-        Assert.False(posInfinity < argument1);
+        Assert.False(_posInfinity < _posInfinity);
+        Assert.True(_negNum < _posNum);
+        Assert.False(_posInfinity < _posNum);
     }
     
     #endregion Operators

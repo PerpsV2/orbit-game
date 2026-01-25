@@ -51,7 +51,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
             case CircularCollider c: return IntersectsWith(c);
             case ConvexCollider c: return IntersectsWith(c);
             case RectangularCollider c : return IntersectsWith(c);
-            case PointCollision c : return IntersectsWith(c);
+            case Vector2 c : return IntersectsWith(c);
             default: throw new ArgumentException();
         }
     }

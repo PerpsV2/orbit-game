@@ -8,7 +8,7 @@ public class Vector2_Tests
         double angle = Math.PI;
         ScientificDecimal magnitude = 2;
         
-        AssertExtensions.Vector2Equals(new Vector2(-2, 0), Vector2.FromPolar(angle, magnitude));
+        AssertExtensions.Equal(new Vector2(-2, 0), Vector2.FromPolar(angle, magnitude));
     }
     
     [Fact]
@@ -45,7 +45,7 @@ public class Vector2_Tests
         Vector2 argument1 = new Vector2(4, 4);
         Vector2 zeroVector = Vector2.Zero;
         
-        AssertExtensions.Vector2Equals(new Vector2(Math.Cos(Math.PI / 4), Math.Sin(Math.PI / 4)), argument1.Normalize());
+        AssertExtensions.Equal(new Vector2(Math.Cos(Math.PI / 4), Math.Sin(Math.PI / 4)), argument1.Normalize());
         Assert.Throws<ArithmeticException>(() => zeroVector.Normalize());
     }
     
@@ -177,7 +177,7 @@ public class Vector2_Tests
         Vector2 argument1 = new Vector2(0, 1);
         Vector2 argument2 = new Vector2(1, 0);
         
-        AssertExtensions.Vector2Equals(new Vector2(Math.Cos(Math.PI / 4), -Math.Sin(Math.PI / 4)),
+        AssertExtensions.Equal(new Vector2(Math.Cos(Math.PI / 4), -Math.Sin(Math.PI / 4)),
             Vector2.DirectionVectorBetween(argument1, argument2));
     }
 
@@ -189,9 +189,9 @@ public class Vector2_Tests
         Vector2 argument3 = new Vector2(-Math.Cos(Math.PI / 6), -Math.Sin(Math.PI / 6));
         Vector2 argument4 = new Vector2(-Math.Cos(Math.PI / 6), Math.Sin(Math.PI / 6));
         
-        AssertExtensions.FuzzyEquals(Math.PI / 6, argument1.GetPrincipalAngle());
-        AssertExtensions.FuzzyEquals(5 * Math.PI / 6, argument2.GetPrincipalAngle());
-        AssertExtensions.FuzzyEquals(5 * Math.PI / 6, argument3.GetPrincipalAngle());
-        AssertExtensions.FuzzyEquals(Math.PI / 6, argument4.GetPrincipalAngle());
+        AssertExtensions.Equal(Math.PI / 6, argument1.GetPrincipalAngle());
+        AssertExtensions.Equal(5 * Math.PI / 6, argument2.GetPrincipalAngle());
+        AssertExtensions.Equal(5 * Math.PI / 6, argument3.GetPrincipalAngle());
+        AssertExtensions.Equal(Math.PI / 6, argument4.GetPrincipalAngle());
     }
 }

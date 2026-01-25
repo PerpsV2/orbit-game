@@ -36,7 +36,7 @@ public class Vector3_Tests
         Vector3 argument1 = new Vector3(4, 0, 4);
         Vector3 zeroVector = Vector3.Zero;
         
-        AssertExtensions.Vector3Equals(new Vector3(Math.Cos(Math.PI / 4), 0, Math.Sin(Math.PI / 4)), argument1.Normalize());
+        AssertExtensions.Equal(new Vector3(Math.Cos(Math.PI / 4), 0, Math.Sin(Math.PI / 4)), argument1.Normalize());
         Assert.Throws<ArithmeticException>(() => zeroVector.Normalize());
     }
     
@@ -89,7 +89,7 @@ public class Vector3_Tests
         Vector3 argument1 = new Vector3(0, 0, 1);
         Vector3 argument2 = new Vector3(1, 0, 0);
         
-        AssertExtensions.Vector3Equals(new Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
+        AssertExtensions.Equal(new Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
             Vector3.DirectionVectorBetween(argument1, argument2));
     }
     
