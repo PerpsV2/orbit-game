@@ -172,7 +172,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     private static ScientificDecimal Divide(ScientificDecimal dividend, ScientificDecimal divisor)
     {
-        if (divisor == 0) throw new ArithmeticException("Cannot divide ScientificDecimal by zero");
+        if (divisor == 0 && dividend == 0) throw new ArithmeticException("Cannot divide zero by zero");
+        if (divisor == 0) return PosInfinity * (dividend.Positive ? 1 : -1);
         if (dividend._infinite && divisor._infinite) 
             throw new ArithmeticException("Cannot divide an infinite ScientificDecimal by another infinite ScientificDecimal");
         if (dividend._infinite) return dividend * divisor;

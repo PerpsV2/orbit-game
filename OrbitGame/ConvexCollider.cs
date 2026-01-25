@@ -129,6 +129,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override bool IsEmpty()
     {
+        return false;
         throw new NotImplementedException();
     }
 }

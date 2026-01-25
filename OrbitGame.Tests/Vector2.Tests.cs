@@ -187,11 +187,11 @@ public class Vector2_Tests
         Vector2 argument1 = new Vector2(Math.Cos(Math.PI / 6), Math.Sin(Math.PI / 6));
         Vector2 argument2 = new Vector2(-Math.Cos(Math.PI / 6), Math.Sin(Math.PI / 6));
         Vector2 argument3 = new Vector2(-Math.Cos(Math.PI / 6), -Math.Sin(Math.PI / 6));
-        Vector2 argument4 = new Vector2(-Math.Cos(Math.PI / 6), Math.Sin(Math.PI / 6));
+        Vector2 argument4 = new Vector2(Math.Cos(Math.PI / 6), -Math.Sin(Math.PI / 6));
         
         AssertExtensions.Equal(Math.PI / 6, argument1.GetPrincipalAngle());
         AssertExtensions.Equal(5 * Math.PI / 6, argument2.GetPrincipalAngle());
-        AssertExtensions.Equal(5 * Math.PI / 6, argument3.GetPrincipalAngle());
-        AssertExtensions.Equal(Math.PI / 6, argument4.GetPrincipalAngle());
+        AssertExtensions.Equal(7 * Math.PI / 6, argument3.GetPrincipalAngle());
+        AssertExtensions.Equal(11 * Math.PI / 6, argument4.GetPrincipalAngle());
     }
 }

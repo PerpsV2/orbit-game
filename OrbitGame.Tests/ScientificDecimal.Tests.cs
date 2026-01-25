@@ -97,7 +97,8 @@ public class ScientificDecimalTests
         Assert.Equal(-1, _posNum / _negNum);
         Assert.Equal(0, _posNum / _posInfinity);
         Assert.Equal(_negInfinity, _posInfinity / _negNum);
-        Assert.Throws<ArithmeticException>(() => _posNum / _zero);
+        Assert.Equal(_negInfinity, _negNum / _zero);
+        Assert.Throws<ArithmeticException>(() => _zero / _zero);
         Assert.Throws<ArithmeticException>(() => _posInfinity / _negInfinity);
     }
     
