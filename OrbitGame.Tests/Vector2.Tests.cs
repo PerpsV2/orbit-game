@@ -10,7 +10,7 @@ public class Vector2_Tests
         
         AssertExtensions.Vector2Equals(new Vector2(-2, 0), Vector2.FromPolar(angle, magnitude));
     }
-
+    
     [Fact]
     public void Vector2_DotMethod()
     {
@@ -101,6 +101,8 @@ public class Vector2_Tests
         Assert.True(argument1 == argument1);
         Assert.False(argument1 == argument2);
     }
+    
+    #endregion
 
     [Fact]
     public void Vector2_TriangulateConvexMethod()
@@ -202,6 +204,4 @@ public class Vector2_Tests
         AssertExtensions.FuzzyEquals(5 * Math.PI / 6, argument3.GetPrincipalAngle());
         AssertExtensions.FuzzyEquals(Math.PI / 6, argument4.GetPrincipalAngle());
     }
-    
-    #endregion
 }

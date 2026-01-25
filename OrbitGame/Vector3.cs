@@ -38,6 +38,10 @@ public struct Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecima
         => new(vector.X * scalar, vector.Y * scalar, vector.Z * scalar);
     public static Vector3 operator /(Vector3 vector, ScientificDecimal scalar)
         => new(vector.X / scalar, vector.Y / scalar, vector.Z / scalar);
+    public static bool operator ==(Vector3 left, Vector3 right)
+        => left.Equals(right);
+    public static bool operator !=(Vector3 left, Vector3 right)
+        => !left.Equals(right);
     
     #endregion
     
