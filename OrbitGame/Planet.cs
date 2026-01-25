@@ -121,7 +121,7 @@ public class Planet : Body
     public void DrawSphereOfInfluence(SKCanvas canvas, Camera camera)
     {
         if (Orbit == null) return;
-        Orbit orbit = (Orbit)Orbit;
+        KeplerOrbit orbit = (KeplerOrbit)Orbit;
         
         if (orbit.SphereOfInfluenceRadius == null) return;
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;

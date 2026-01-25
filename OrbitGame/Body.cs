@@ -5,23 +5,24 @@ namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
 
-public readonly record struct Orbit
+public readonly record struct KeplerOrbit
 {
     public readonly Body Body;
     public readonly Body Parent;
     public readonly double Periapsis;
-    public readonly double Apoapsis;
     public readonly OrbitEquation Equation;
     public readonly double Eccentricity;
     public readonly ScientificDecimal SemiLatusRectum;
+    
     public readonly ScientificDecimal? SemiMajorAxis;
     public readonly ScientificDecimal? SemiMinorAxis;
+    
     public readonly Vector2? Center;
     public readonly ScientificDecimal? SphereOfInfluenceRadius;
     public readonly ScientificDecimal? Period;
     public readonly ScientificDecimal? InitialTime;
     
-    public Orbit(
+    public KeplerOrbit(
         Body Body,
         Body Parent,
         OrbitEquation Equation, 
@@ -37,7 +38,6 @@ public readonly record struct Orbit
         this.Eccentricity = Eccentricity;
         this.SemiLatusRectum = SemiLatusRectum;
         this.Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
-        Apoapsis = Utils.UnsignedMod(Periapsis + Math.PI, Math.Tau);
         if (Eccentricity < 1)
         {
             SemiMajorAxis = (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2;
@@ -103,7 +103,7 @@ public abstract class Body : KinematicObject
     public SKColor Colour;
     public ICollider? Collider;
     protected Body? Parent;
-    protected Orbit? Orbit;
+    protected KeplerOrbit? Orbit;
     
     protected Body(ScientificDecimal mass, 
         Vector2 position, 
@@ -129,7 +129,7 @@ public abstract class Body : KinematicObject
     public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera)
     {
         if (Orbit == null || Parent == null) return;
-        Orbit orbit = (Orbit)Orbit;
+        KeplerOrbit orbit = (KeplerOrbit)Orbit;
         Body centralForce = Parent;
         List<Vector2> orbitPoints = new List<Vector2>();
         
@@ -242,7 +242,7 @@ public abstract class Body : KinematicObject
                 sum + CalculateGravitationalAcceleration(next));
     }
     
-    private Orbit CalculateOrbit(Body centralForce, bool initials)
+    private KeplerOrbit CalculateOrbit(Body centralForce, bool initials)
     {
         Vector2 relVelocity = Velocity - centralForce.Velocity;
         Vector2 relPosition = Position - centralForce.Position;
@@ -261,10 +261,10 @@ public abstract class Body : KinematicObject
         ScientificDecimal semiLatusRectum = 1 / c;
         ScientificDecimal Equation(double angle) => 1 / (c * (1 + eccentricity * Math.Cos(-angle - periapsis)));
 
-        return new Orbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum, initials);
+        return new KeplerOrbit(this, centralForce, Equation, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
-    private Orbit? CalculateOrbit(bool initials)
+    private KeplerOrbit? CalculateOrbit(bool initials)
     {
         return Parent == null ? null : CalculateOrbit(Parent, initials);
     }
@@ -342,7 +342,7 @@ public abstract class Body : KinematicObject
     private double CalculateEccentricAnomaly(double meanAnomaly)
     {
         if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
-        Orbit orbit = (Orbit)Orbit;
+        KeplerOrbit orbit = (KeplerOrbit)Orbit;
         ScientificDecimal epsilon = new ScientificDecimal(1m, -35);
         double eccentricAnomaly = meanAnomaly;
         int iterations = 0;
@@ -359,7 +359,7 @@ public abstract class Body : KinematicObject
     private double CalculateTrueAnomaly(double eccentricAnomaly)
     {
         if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
-        Orbit orbit = (Orbit)Orbit;
+        KeplerOrbit orbit = (KeplerOrbit)Orbit;
         return 2 * Math.Atan2(Math.Sqrt(1 + orbit.Eccentricity) * Math.Sin(eccentricAnomaly / 2), 
             Math.Sqrt(1 - orbit.Eccentricity) * Math.Cos(eccentricAnomaly / 2));
     }
@@ -368,7 +368,7 @@ public abstract class Body : KinematicObject
     {
         if (Orbit == null) return;
         if (Parent == null) return;
-        Orbit orbit = (Orbit)Orbit;
+        KeplerOrbit orbit = (KeplerOrbit)Orbit;
         if (orbit.Period == null) return;
         ScientificDecimal period = (ScientificDecimal)orbit.Period;
         if (orbit.SemiMajorAxis == null) return;

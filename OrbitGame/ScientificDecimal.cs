@@ -2,19 +2,57 @@ using System.Globalization;
 namespace OrbitGame;
 
 /// <summary>
-/// Number with decimal precision but arbitrary place value
+/// Number with decimal precision but arbitrary place value.
 /// </summary>
 public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>, IFormattable
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
     
-    // TODO: Create better definitions for max and minvalue which don't break when doing comparisons
-    public static readonly ScientificDecimal MaxValue = new(9.99M, int.MaxValue);
-    public static readonly ScientificDecimal MinValue = new(-9.99M, int.MinValue);
-    public decimal Mantissa { get; set; }
-    public int Exponent { get; set; }
-    public bool Positive => decimal.IsPositive(Mantissa);
-    public bool Negative => decimal.IsNegative(Mantissa);
+    /// <summary>
+    /// Represents a number that approaches positive infinity.
+    /// </summary>
+    public static readonly ScientificDecimal PosInfinity = new(true, true);
+    /// <summary>
+    /// Represents a number that approaches negative infinity.
+    /// </summary>
+    public static readonly ScientificDecimal NegInfinity = new(true, false);
+    
+    private readonly bool _infinite = false;
+
+    private decimal _mantissa;
+    public decimal Mantissa
+    {
+        get
+        {
+            if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no mantissa");
+            return _mantissa;
+        }
+        set
+        {
+            if (_infinite) throw new ArithmeticException("Cannot set mantissa of infinite ScientificDecimal");
+            _mantissa = value;
+        }
+    }
+
+    private int _exponent;
+    public int Exponent
+    {
+        get
+        {
+            if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no exponent");
+            return _exponent;
+        }
+        set
+        {
+            if (_infinite) throw new ArithmeticException("Cannot set exponent of infinite ScientificDecimal");
+            _exponent = value;
+        }
+    }
+    
+    public bool Positive => decimal.IsPositive(_mantissa);
+    public bool Negative => decimal.IsNegative(_mantissa);
+    public bool IsInfinite => _infinite;
+    
 
     public ScientificDecimal(decimal mantissa, int exponent)
     {
@@ -29,11 +67,19 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     public ScientificDecimal()
         : this(0, 0) {}
 
+    private ScientificDecimal(bool infinite, bool positive)
+        : this(positive ? 1 : -1, 0)
+    {
+        _infinite = infinite;
+    }
+
     /// <summary>
     /// Sets the largest non-zero digit of the mantissa to be in the ones place
     /// </summary>
     private ScientificDecimal Normalize()
     {
+        if (_infinite) throw new ArithmeticException("Cannot normalize infinite ScientificDecimal");
+        
         if (Mantissa == 0)
         {
             Exponent = 0;
@@ -102,6 +148,9 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
+        if (left._infinite && right._infinite) throw new ArithmeticException("Cannot add two infinite ScientificDecimal");
+        if (left._infinite) return left;
+        if (right._infinite) return right;
         return (left.Exponent > right.Exponent ? 
             new ScientificDecimal(right.IncreaseExponent(left.Exponent).Mantissa + left.Mantissa, left.Exponent) :
             new ScientificDecimal(left.IncreaseExponent(right.Exponent).Mantissa + right.Mantissa, right.Exponent))
@@ -109,24 +158,41 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     }
 
     private static ScientificDecimal Multiply(ScientificDecimal left, ScientificDecimal right)
-         => new ScientificDecimal(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent).Normalize();
+    {
+        if (left == 0 || right == 0) return 0;
+        if (left._infinite || right._infinite) return new(true, 
+            (left.Positive && right.Positive) || (left.Negative && right.Negative));
+        return new ScientificDecimal(left.Mantissa * right.Mantissa, 
+            left.Exponent + right.Exponent).Normalize();
+    }
 
     private static ScientificDecimal Divide(ScientificDecimal dividend, ScientificDecimal divisor)
-        => new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent).Normalize();
+    {
+        if (divisor == 0) throw new ArithmeticException("Cannot divide ScientificDecimal by zero");
+        if (dividend._infinite && divisor._infinite) 
+            throw new ArithmeticException("Cannot divide an infinite ScientificDecimal by another infinite ScientificDecimal");
+        if (dividend._infinite) return dividend * divisor;
+        if (divisor._infinite) return 0;
+        return new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, 
+            dividend.Exponent - divisor.Exponent).Normalize();
+    } 
 
     public ScientificDecimal Square()
         => this * this;
     
     public ScientificDecimal Sqrt()
     {
-        if (Mantissa < 0)
-            throw new ArgumentOutOfRangeException();
+        if (Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
+        if (_infinite) return this;
         if (Exponent % 2 != 0) IncreaseExponent(Exponent + 1);
         return new ScientificDecimal(Utils.DecimalSqrt(Mantissa), Exponent / 2);
     }
 
     public ScientificDecimal Abs()
-        => new (Math.Abs(Mantissa), Exponent);
+    {
+        if (_infinite) return new ScientificDecimal(true, true);
+        return new (Math.Abs(Mantissa), Exponent);
+    }
 
     public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
     {
@@ -149,8 +215,12 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     
     public static ScientificDecimal operator +(ScientificDecimal value) 
         => value;
-    public static ScientificDecimal operator -(ScientificDecimal value) 
-        => new(-value.Mantissa, value.Exponent);
+
+    public static ScientificDecimal operator -(ScientificDecimal value)
+    {
+        if (value._infinite) return new(true, value.Negative);
+        return new(-value.Mantissa, value.Exponent);
+    } 
     public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right) 
         => Add(left, right);
     public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right) 
@@ -168,9 +238,21 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     public static bool operator !=(ScientificDecimal left, ScientificDecimal right) 
         => !left.Equals(right);
     public static bool operator <(ScientificDecimal left, ScientificDecimal right)
-        => (right - left).Positive;
+    {
+        if (left == right) return false;
+        if (left._infinite) return left.Negative;
+        if (right._infinite) return right.Positive;
+        return (right - left).Positive;
+    }
+
     public static bool operator >(ScientificDecimal left, ScientificDecimal right)
-        => (left - right).Positive;
+    {
+        if (left == right) return false;
+        if (left._infinite) return left.Positive;
+        if (right._infinite) return right.Negative;
+        return (left - right).Positive;
+    }
+
     public static bool operator <=(ScientificDecimal left, ScientificDecimal right)
         => left < right || left == right;
     public static bool operator >=(ScientificDecimal left, ScientificDecimal right)
@@ -180,6 +262,7 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     
     public override string ToString()
     {
+        if (_infinite) return (Positive ? "" : "-") + "Infinity";
         string mantissaString = Mantissa.ToString(CultureInfo.InvariantCulture);
         mantissaString = (Positive ? "" : "-") + mantissaString.Substring(Positive ? 0 : 1, 
             Math.Min(PrintPrecision + 1, mantissaString.Length - (Positive ? 0 : 1)));
@@ -200,6 +283,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     public bool Equals(ScientificDecimal other)
     {
+        if (_infinite && other._infinite) return Positive == other.Positive;
+        if (_infinite || other._infinite) return false;
         return Mantissa == other.Mantissa && Exponent == other.Exponent;
     }
 
