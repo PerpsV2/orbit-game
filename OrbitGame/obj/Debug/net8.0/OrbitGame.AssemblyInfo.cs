@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OrbitGame")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+95e117bd34ad78bbf1a35936c3a45f8c6a3af8cf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1eb75286caab4d8400e0bb0390fec8656af899cd")]
 [assembly: System.Reflection.AssemblyProductAttribute("OrbitGame")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OrbitGame")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

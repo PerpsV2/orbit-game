@@ -148,7 +148,11 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
-        if (left._infinite && right._infinite) throw new ArithmeticException("Cannot add two infinite ScientificDecimal");
+        if (left._infinite && right._infinite)
+        {
+            if (left.Positive == right.Positive) return left;
+            throw new ArithmeticException("Cannot add opposite signed infinite ScientificDecimals");
+        }
         if (left._infinite) return left;
         if (right._infinite) return right;
         return (left.Exponent > right.Exponent ? 
@@ -211,8 +215,11 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     }
 
     public ScientificDecimal Clamp(ScientificDecimal min, ScientificDecimal max)
-        => this < min ? min : this > max ? max : this;
-    
+    {
+        if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
+        return this < min ? min : this > max ? max : this;
+    }
+
     public static ScientificDecimal operator +(ScientificDecimal value) 
         => value;
 
