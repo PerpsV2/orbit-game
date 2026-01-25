@@ -13,21 +13,6 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 
         Data = data;
     }
-
-    public Matrix3X3(Vector3 basisX, Vector3 basisY, Vector3 basisZ)
-    {
-        Data[0] = basisX.X;
-        Data[3] = basisX.Y;
-        Data[6] = basisX.Z;
-
-        Data[1] = basisY.X;
-        Data[4] = basisY.Y;
-        Data[7] = basisY.Z;
-
-        Data[2] = basisZ.X;
-        Data[5] = basisZ.Y;
-        Data[8] = basisZ.Z;
-    }
     
     #region Operators
 
@@ -61,6 +46,8 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
     
     public static Vector2 operator *(Matrix3X3 matrix, Vector2 vector)
     {
+        if (matrix.Data[6] != 0 || matrix.Data[7] != 0 || matrix.Data[8] != 1)
+            throw new ArithmeticException("Matrix3x3 must have identity Z-axis values when multiplying with Vector2");
         return new Vector2(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2],
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]);
@@ -128,10 +115,21 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         ]);
     }
     
+    public static Matrix3X3 Scale(Vector2 scale)
+        => Scale(scale.X, scale.Y);
+    
     public static Matrix3X3 Scale(ScientificDecimal scale)
         => Scale(scale, scale);
     
     #endregion
+    
+    public bool Equals(Matrix3X3 other)
+    {
+        for (int i = 0; i < 9; ++i)
+            if (!Data[i].Equals(other.Data[i])) return false;
+
+        return true;
+    }
     
     public override string ToString()
     {
@@ -143,4 +141,9 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
 
     public string ToString(string? format, IFormatProvider? formatProvider)
         => ToString();
+    
+    public readonly override int GetHashCode()
+    {
+        return Data.GetHashCode();
+    }
 }

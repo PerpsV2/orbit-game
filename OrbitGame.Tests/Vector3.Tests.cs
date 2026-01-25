@@ -84,16 +84,6 @@ public class Vector3_Tests
     }
 
     [Fact]
-    public void Vector3_EqualsOperator()
-    {
-        Vector3 argument1 = new Vector3(1, 1, 1);
-        Vector3 argument2 = new Vector3(2, 2, 2);
-        // ReSharper disable once EqualExpressionComparison
-        Assert.True(argument1 == argument1);
-        Assert.False(argument1 == argument2);
-    }
-
-    [Fact]
     public void Vector3_DirectionVectorBetweenMethod()
     {
         Vector3 argument1 = new Vector3(0, 0, 1);

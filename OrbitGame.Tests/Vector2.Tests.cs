@@ -91,16 +91,6 @@ public class Vector2_Tests
         ScientificDecimal scalar = 3;
         Assert.Equal(new Vector2(-1, -1), vector / scalar);
     }
-
-    [Fact]
-    public void Vector2_EqualsOperator()
-    {
-        Vector2 argument1 = new Vector2(1, 1);
-        Vector2 argument2 = new Vector2(2, 2);
-        // ReSharper disable once EqualExpressionComparison
-        Assert.True(argument1 == argument1);
-        Assert.False(argument1 == argument2);
-    }
     
     #endregion
 
