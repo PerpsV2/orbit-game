@@ -196,6 +196,7 @@ public class ScientificDecimalTests
     public void Test_DoubleCast()
     {
         ScientificDecimal argument = new ScientificDecimal(-1.59m, 1);
+        
         Assert.Equal(-15.9d, (double)argument);
     }
     

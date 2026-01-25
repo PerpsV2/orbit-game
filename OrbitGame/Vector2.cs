@@ -28,8 +28,12 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         => (X * X + Y * Y).Sqrt();
 
     public readonly Vector2 Normalize()
-        => new (X / Magnitude(), Y / Magnitude());
-    
+    {
+        ScientificDecimal magnitude = Magnitude();
+        if (magnitude == 0) throw new ArithmeticException("Cannot normalize zero vector");
+        return new(X / magnitude, Y / magnitude);
+    }
+
     public static Vector2 operator +(Vector2 value) 
         => value;
     public static Vector2 operator -(Vector2 value) 
@@ -86,8 +90,6 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     /// <summary>
     /// Re-centers a convex polygon at its center of mass
     /// </summary>
-    /// <param name="points"></param>
-    /// <returns></returns>
     public static Vector2[] CenterConvex(Vector2[] points)
         => points.Select(v => v - CenterOfMassConvex(points)).ToArray();
 
@@ -96,6 +98,7 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     /// </summary>
     public static RotationDirection TripletRotationDirection(Vector2[] triplet)
     {
+        if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
         ScientificDecimal edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
         ScientificDecimal edgeSlope2 = (triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X);
         return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
@@ -143,7 +146,8 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
         if (x == 0 && y > 0) return Math.PI / 2;
         if (x == 0 && y < 0) return 3 * Math.PI / 2;
         
-        return Math.Atan2((double)Y, (double)X);
+        double angle = Math.Atan2((double)Y, (double)X);
+        return Utils.UnsignedMod(angle, Math.Tau);
     }
 
     public static double GetPrincipalAngle(Vector2 start, Vector2 end)
