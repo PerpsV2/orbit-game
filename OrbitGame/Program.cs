@@ -59,6 +59,8 @@ SKFont font = new SKFont
     Size = 30
 };
 
+#region Bodies
+
 Planet sun = new Planet(
     new ScientificDecimal(1.989m, 30),
     Vector2.Zero,
@@ -68,7 +70,7 @@ Planet sun = new Planet(
     new SKColor(255, 255, 255, 255), null,
     "Sun"
 );
-Planet mercury = new Planet(
+/*Planet mercury = new Planet(
     new ScientificDecimal(3.285m, 23),
     new Vector2(
         new ScientificDecimal(-5.6940545m, 10), 
@@ -210,9 +212,9 @@ Ship smokestack = new Ship(
         new (-3, 5)
     ]),
     "Smokestack"
-);
+);*/
 
-/*Planet r = new Planet(
+Planet r = new Planet(
     100, new Vector2(4, 0), Vector2.Zero, 4,
     new Material(0.5f), new SKColor(125, 0, 0, 255), null, "Planet");
 Planet g = new Planet(
@@ -220,7 +222,7 @@ Planet g = new Planet(
     new Material(0.5f), new SKColor(0, 125, 0, 255), null, "Planet");
 Ship b = new Ship(
     1000, new(-5, -3), Vector2.Zero,
-    new Material(0.5f), new SKColor(0, 0, 125, 255), r,
+    new Material(0.5f), new SKColor(0, 0, 125, 255), sun,
     [
         new (2.33333333333,3.5),
         new (2.33333333333, -2.5),
@@ -228,19 +230,32 @@ Ship b = new Ship(
         new (-3.6666666667, 1.5)
     ],
     "Ship"
-);*/
+);
+Ship p = new Ship(
+    1000, new(-5, -3), Vector2.Zero,
+    new Material(0.5f), new SKColor(253,200,154, 255), sun,
+    [
+        new (2.33333333333,3.5),
+        new (2.33333333333, -2.5),
+        new (-1.6666666667, -2.5),
+        new (-3.6666666667, 1.5)
+    ],
+    "Ship"
+);
+
+#endregion
 
 List<Body> bodies = [
-    sun, mercury, venus, earth, moon, smokestack, mars, jupiter, saturn, uranus, neptune, halley
+    b, p, sun
 ];
 List<Planet> planets = [
-    sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley
+    sun
 ];
 List<Ship> ships = [
-    smokestack
+    b, p
 ];
 
-OriginBody.Body = smokestack;
+OriginBody.Body = b;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -291,8 +306,8 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
     if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
     
-    if (keyboard.IsKeyPressed(Key.I)) smokestack.Velocity -= smokestack.ForwardVector * 100;
-    if (keyboard.IsKeyPressed(Key.K)) smokestack.Velocity += smokestack.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
 }
 
 void OnRender(double _)
@@ -334,11 +349,11 @@ void OnRender(double _)
         }
         
         // resolve collisions
-        foreach (var ship in ships)
+        /*foreach (var ship in ships)
             foreach (var body in bodies)
                 if (body != ship)
                     if (ship.Collider != null)
-                        ship.Collider.CollidesWith(body.Collider);
+                        ship.Collider.CollidesWith(body.Collider);*/
     }
     
     // recalculate origins
@@ -346,7 +361,7 @@ void OnRender(double _)
     //OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
     
-    smokestack.CalculateShipOrbit(planets);
+    //smokestack.CalculateShipOrbit(planets);
 
     foreach (var body in planets) body.DrawSphereOfInfluence(canvas, camera);
     foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);

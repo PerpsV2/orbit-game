@@ -6,11 +6,11 @@ public static class AssertExtensions
 
     public delegate void AssertEqual<in T>(T a, T b);
 
-    private static void Equal<T>(IList<T> a, IList<T> b, AssertEqual<T> assert)
+    private static void Equal<T>(HashSet<T> a, HashSet<T> b, AssertEqual<T> assertExtensionMethod)
     {
         Assert.Equal(a.Count, b.Count);
         for (int i = 0; i < a.Count; i++)
-            assert(a.ElementAt(i), b.ElementAt(i));
+            assertExtensionMethod(a.ElementAt(i), b.ElementAt(i));
     }
     
     public static void Equal(double a, double b)

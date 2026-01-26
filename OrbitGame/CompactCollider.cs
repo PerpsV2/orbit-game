@@ -98,8 +98,13 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         KinematicObject incidence = c2.Reference.Parent;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
-        Vector2 cPr = c1.CollisionManifold[0];
-        Vector2 cPi = c2.CollisionManifold[0];
+        Vector2 cPr = Vector2.Zero;
+        foreach (var collisionPoint in c1.CollisionManifold)
+            cPr = collisionPoint;
+        
+        Vector2 cPi = Vector2.Zero;
+        foreach (var collisionPoint in c2.CollisionManifold)
+            cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
         Vector2 pVr = reference.Velocity - (Vector2)Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));

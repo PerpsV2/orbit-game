@@ -154,8 +154,10 @@ public abstract class Body : KinematicObject
                 sum + CalculateGravitationalAcceleration(next));
     }
     
-    private KeplerOrbit CalculateOrbit(Body centralForce, bool initials)
+    private KeplerOrbit? CalculateOrbit(Body? centralForce, bool initials)
     {
+        if (centralForce == null) return null;
+        
         Vector2 relVelocity = Velocity - centralForce.Velocity;
         Vector2 relPosition = Position - centralForce.Position;
         
@@ -172,13 +174,13 @@ public abstract class Body : KinematicObject
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = 1 / c;
 
+        if (semiLatusRectum == 0) return null;
+
         return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
     protected KeplerOrbit? CalculateOrbit(bool initials)
-    {
-        return Parent == null ? null : CalculateOrbit(Parent, initials);
-    }
+        => CalculateOrbit(Parent, initials);
 
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
