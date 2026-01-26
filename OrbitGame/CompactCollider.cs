@@ -25,7 +25,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
     /// <summary>
     /// Method to return the axis-aligned rectangular collider which best fits the set of points in the collider
     /// </summary>
-    protected abstract RectangularCollider GetBoundingBox();
+    public abstract RectangularCollider GetBoundingBox();
     
     public bool NearsWith(object? obj)
     {
@@ -33,12 +33,12 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         throw new ArgumentException();
     }
     
-    public bool NearsWith(ICollider collider)
+    protected virtual bool NearsWith(ICollider collider)
     {
         switch (collider)
         {
             case CompactCollider c: 
-                return GetBoundingBox().IntersectsWith(c.GetBoundingBox()) != null;
+                return GetBoundingBox().NearsWith(c.GetBoundingBox());
             default: throw new NotSupportedException();
         }
     }
@@ -48,9 +48,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
     {
         switch (obj)
         {
-            case CircularCollider c: return IntersectsWith(c);
-            case ConvexCollider c: return IntersectsWith(c);
-            case RectangularCollider c : return IntersectsWith(c);
+            case ICollider c: return IntersectsWith(c);
             case Vector2 c : return IntersectsWith(c);
             default: throw new ArgumentException();
         }

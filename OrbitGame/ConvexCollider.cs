@@ -39,7 +39,7 @@ public class ConvexCollider : CompactCollider, ICollider
         return totalInertia;
     }
 
-    protected override RectangularCollider GetBoundingBox()
+    public override RectangularCollider GetBoundingBox()
     {
         ScientificDecimal minX = RotatedPoints[0].X;
         ScientificDecimal minY = RotatedPoints[0].Y;
@@ -52,7 +52,7 @@ public class ConvexCollider : CompactCollider, ICollider
             if (rotatedPoint.Y < minY) minY = rotatedPoint.Y;
             if (rotatedPoint.Y > maxY) maxY = rotatedPoint.Y;
         }
-        return new RectangularCollider(maxY, maxX, minY, minX, Parent, Material);
+        return new RectangularCollider(new Vector2(maxY, maxX), new Vector2(minY, minX), Parent, Material);
     }
 
     protected override PointCollision IntersectsWith(Vector2 point)

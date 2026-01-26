@@ -13,8 +13,8 @@ public class CircularCollider
         Inertia = Parent.Mass * Radius * Radius / 2;
     }
 
-    protected override RectangularCollider GetBoundingBox() =>
-        new (Radius, Radius, Radius, Radius, Parent, Material);
+    public override RectangularCollider GetBoundingBox() =>
+        new (Vector2.Zero, Radius * 2, Radius * 2, Parent, Material);
 
     protected override PointCollision IntersectsWith(Vector2 point) =>
         new((point - Position).Magnitude() <= Radius || IsEmpty());

@@ -5,19 +5,18 @@ namespace OrbitGame;
 /// Ambiguous collision penetration vectors favour the positive x and y directions (Right and Top)
 /// </summary>
 public class RectangularCollider(
-    ScientificDecimal top,
-    ScientificDecimal right, 
-    ScientificDecimal bottom,
-    ScientificDecimal left, 
+    Vector2 center,
+    ScientificDecimal width,
+    ScientificDecimal height, 
     KinematicObject parent,
     Material material) 
     : CompactCollider(parent, material), ICollider
 {
     // Values are the signed ordinates of the vertex points of the collider
-    public readonly ScientificDecimal Top = top;
-    public readonly ScientificDecimal Right = right;
-    public readonly ScientificDecimal Bottom = bottom;
-    public readonly ScientificDecimal Left = left;
+    public readonly ScientificDecimal Top = center.Y + height / 2;
+    public readonly ScientificDecimal Right = center.X + width / 2;
+    public readonly ScientificDecimal Bottom = center.Y - height / 2;
+    public readonly ScientificDecimal Left = center.X - width / 2;
 
     public Vector2 TopRight => new(Right, Top);
     public Vector2 TopLeft => new(Left, Top);
@@ -25,9 +24,28 @@ public class RectangularCollider(
     public Vector2 BottomLeft => new(Left, Bottom);
 
     public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent, Material material)
-        : this(topRight.Y, topRight.X, bottomLeft.Y, bottomLeft.X, parent, material) { }
+        : this(
+            (topRight + bottomLeft) / 2, 
+            topRight.X - bottomLeft.X, 
+            topRight.Y - bottomLeft.Y, 
+            parent, material
+            ) 
+    { }
 
-    protected override RectangularCollider GetBoundingBox() => this;
+    public override RectangularCollider GetBoundingBox() => this;
+
+    protected override bool NearsWith(ICollider collider)
+    {
+        if (collider is RectangularCollider rect)
+            return Position.Y + Top >= rect.Position.Y + rect.Bottom && 
+                   Position.Y + Bottom <= rect.Position.Y + rect.Top && 
+                   Position.X + Right >= rect.Position.X + rect.Left && 
+                   Position.X + Left <= rect.Position.X + rect.Right;
+        // convert the other collider into a rectangular collider if it is not one
+        else if (collider is CompactCollider compact)
+            return NearsWith(compact.GetBoundingBox());
+        else throw new ArgumentException("RectangularCollider cannot be near invalid collider type");
+    }
 
     protected override PointCollision IntersectsWith(Vector2 point)
     {

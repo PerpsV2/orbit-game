@@ -107,6 +107,19 @@ Planet earth = new Planet(
     new ScientificDecimal(6.378m, 6),
     new Material(0.2f), new SKColor(100, 200, 255, 255), sun, "Earth"
 );
+Planet moon = new Planet(
+    new ScientificDecimal(7.349m, 22), 
+    new Vector2(
+        new ScientificDecimal(-3.6413936m, 8), 
+        new ScientificDecimal(-1.7481022m, 8)
+    ), 
+    new Vector2(
+        new ScientificDecimal( 4.2899598m, 2), 
+        new ScientificDecimal(-8.6413934m, 2)
+    ),
+    new ScientificDecimal(1.737m, 6), 
+    new Material(0.2f), new SKColor(180, 180, 180, 255), earth, "Moon"
+);
 Planet mars = new Planet(
     new ScientificDecimal(6.39m, 23),
     new Vector2(
@@ -218,10 +231,10 @@ Ship b = new Ship(
 );*/
 
 List<Body> bodies = [
-    sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune, halley
+    sun, mercury, venus, earth, moon, smokestack, mars, jupiter, saturn, uranus, neptune, halley
 ];
 List<Planet> planets = [
-    sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, halley
+    sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley
 ];
 List<Ship> ships = [
     smokestack
