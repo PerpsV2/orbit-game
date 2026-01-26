@@ -106,17 +106,22 @@ public abstract class Body : KinematicObject
         {
             ScientificDecimal? parentSOIRadius = centralForce.Orbit?.SphereOfInfluenceRadius ?? null;
             double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
+            double objectAngle = Utils.UnsignedMod((Position - centralForce.Position).GetPrincipalAngle(), Math.Tau);
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
-                double trueAngle = a + orbit.Periapsis;
+                double trueAngle = Utils.UnsignedMod(a + orbit.Periapsis, Math.Tau);
                 ScientificDecimal dist = orbit.Equation(trueAngle);
+                Vector2 orbitPoint = centralForce.Position + Vector2.FromPolar(trueAngle, dist);
                 if (parentSOIRadius != null)
                 {
                     if (dist > 0 && dist < parentSOIRadius)
-                        orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                        orbitPoints.Add(orbitPoint);
                 }
                 else if (dist > 0 && !dist.IsInfinite) 
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                    orbitPoints.Add(orbitPoint);
+                if (double.IsPositive(trueAngle - objectAngle) !=  
+                    double.IsPositive(trueAngle + 2 * asymptoteAngle / Options.OrbitResolutionNumPoints - objectAngle))
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
             }
 
             if (parentSOIRadius != null)
