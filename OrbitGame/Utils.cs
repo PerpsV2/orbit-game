@@ -84,7 +84,7 @@ public static class Utils
         SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(semiMajorAxis), 
             camera.ConvertToScreenDistance(semiMinorAxis, false));
         paint.Style = SKPaintStyle.Stroke;
-        canvas.RotateRadians((float)periapsisArgument, screenPosition.X, screenPosition.Y);
+        canvas.RotateRadians((float)(periapsisArgument - camera.Angle), screenPosition.X, screenPosition.Y);
         canvas.DrawOval(screenPosition, screenRadius, paint);
         canvas.ResetMatrix();
     }
