@@ -39,7 +39,7 @@ public static class Utils
     
     public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
     {
-        if (x < 0) throw new OverflowException("Cannot calculate square root from a negative number");
+        if (x < 0) throw new ArithmeticException("Cannot calculate square root from a negative number");
 
         decimal current = (decimal)Math.Sqrt((double)x), previous;
         do

@@ -41,25 +41,33 @@ public class Camera
         }
     }
     
+    private readonly int _screenWidth;
+    private readonly int _screenHeight;
+    
     public ScientificDecimal Left => AbsolutePosition.X - Width * 0.5f;
     public ScientificDecimal Top => AbsolutePosition.Y - Height * 0.5f;
     public ScientificDecimal Right => AbsolutePosition.X + Width * 0.5f;
     public ScientificDecimal Bottom => AbsolutePosition.Y + Height * 0.5f;
 
     public Matrix3X3 ViewMatrix;
-    public Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height)
+    
+    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height,
+        int screenWidth, int screenHeight)
     {
         _localPosition = position;
         _width = width;
         _height = height;
+        Angle = angle;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
         UpdateViewMatrix();
     }
-    
+
     public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
-        this(position, width, height)
-    {
-        Angle = angle;
-    }
+        this(position, angle, width, height, Options.ScreenSize.width, Options.ScreenSize.height) { }
+    
+    public Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height) :
+        this(position, 0, width, height) { }
 
     public void MoveTo(Vector2 position) => _localPosition = position;
     
@@ -80,27 +88,27 @@ public class Camera
     
     public void SetOrigin(Vector2 origin) => _origin = origin;
     
-    public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
-        => ViewMatrix * (point - AbsolutePosition);
-    
     public void UpdateViewMatrix()
     {
-        ViewMatrix = Matrix3X3.Scale(Options.ScreenSize.width / Width) *
+        ViewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
                      Matrix3X3.Translation(Width / 2, Height / 2) *
                      Matrix3X3.Rotation(-Angle) *
                      Matrix3X3.Scale(1, -1);
     }
     
+    public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
+        => ViewMatrix * (point - AbsolutePosition);
+    
     public SKPoint ConvertToScreenCoordinates(Vector2 point)
     {
-        Vector2 rotatedPoint = SD_ConvertToScreenCoordinates(point);
-        return new((float)rotatedPoint.X, (float)rotatedPoint.Y);
+        Vector2 transformedPoint = SD_ConvertToScreenCoordinates(point);
+        return new((float)transformedPoint.X, (float)transformedPoint.Y);
     }
 
     public ScientificDecimal SD_ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
     {
-        if (xAxis) return distance / (Right - Left) * Options.ScreenSize.width;
-        return distance / (Bottom - Top) * Options.ScreenSize.height;
+        if (xAxis) return distance / (Right - Left) * _screenWidth;
+        return distance / (Bottom - Top) * _screenHeight;
     }
     
     public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)

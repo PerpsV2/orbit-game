@@ -33,7 +33,7 @@ public class RectangularCollider(
     {
         if (IsEmpty()) return new(false);
         point -= Parent.Position;
-        return new(point.Y < Top && point.Y > Bottom && point.X < Right && point.X > Left);
+        return new(point.Y <= Top && point.Y >= Bottom && point.X <= Right && point.X >= Left);
     }
     
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider)

@@ -53,8 +53,8 @@ public abstract class KinematicObject
         return Matrix3X3.Rotation(-Angle) * Matrix3X3.Translation(-Position) * point;
     }
 
-    public Vector2 ObjectToObjectSpace(Vector2 point, KinematicObject originObject)
+    public Vector2 ObjectToObjectSpace(Vector2 point, KinematicObject newOriginObject)
     {
-        return WorldToObjectSpace(originObject.ObjectToWorldSpace(point));
+        return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }
 }

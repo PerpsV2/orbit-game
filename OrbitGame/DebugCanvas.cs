@@ -14,21 +14,21 @@ public static class DebugCanvas
     public static readonly SKPaint Purple = new() { Color = SKColors.Purple, StrokeWidth = 4 };
     public static readonly SKPaint White = new() { Color = SKColors.White, StrokeWidth = 4 };
     
-    private static readonly List<DrawOperation> _drawOperationBuffer = new();
+    private static readonly List<DrawOperation> DrawOperationBuffer = new();
 
     public static void Add(DrawOperation drawOperation)
     {
-        _drawOperationBuffer.Add(drawOperation);
+        DrawOperationBuffer.Add(drawOperation);
     }
 
     public static void ClearBuffer()
     {
-        _drawOperationBuffer.Clear();
+        DrawOperationBuffer.Clear();
     }
 
     public static void Draw(SKCanvas canvas, Camera camera)
     {
-        foreach (var operation in _drawOperationBuffer)
+        foreach (var operation in DrawOperationBuffer)
             operation(canvas, camera);
     }
 }
