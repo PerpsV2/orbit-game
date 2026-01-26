@@ -35,16 +35,16 @@ public class KeplerOrbit_Tests
     public void KeplerOrbit_EquationProperty()
     {
         AssertExtensions.Equal(100, _circularOrbit.Equation(Math.PI / 4));
-        AssertExtensions.Equal(100, _circularOrbit.Equation(3 * Math.PI / 2));
+        AssertExtensions.Equal(100, _circularOrbit.Equation(3 * Math.PI / 4));
         
         AssertExtensions.Equal(66 + 2d/3, _ellipticOrbit.Equation(Math.PI / 4));
-        AssertExtensions.Equal(100, _ellipticOrbit.Equation(3 * Math.PI / 2));
+        AssertExtensions.Equal(100, _ellipticOrbit.Equation(3 * Math.PI / 4));
         
-        AssertExtensions.Equal(50, _ellipticOrbit.Equation(Math.PI / 4));
-        AssertExtensions.Equal(100, _ellipticOrbit.Equation(3 * Math.PI / 2));
+        AssertExtensions.Equal(50, _parabolicOrbit.Equation(Math.PI / 4));
+        AssertExtensions.Equal(100, _parabolicOrbit.Equation(3 * Math.PI / 4));
         
-        AssertExtensions.Equal(33 + 1d/3, _ellipticOrbit.Equation(Math.PI / 4));
-        AssertExtensions.Equal(100, _ellipticOrbit.Equation(3 * Math.PI / 2));
+        AssertExtensions.Equal(33 + 1d/3, _hyperbolicOrbit.Equation(Math.PI / 4));
+        AssertExtensions.Equal(100, _hyperbolicOrbit.Equation(3 * Math.PI / 4));
     }
 
     [Fact]

@@ -72,10 +72,8 @@ public abstract class Body : KinematicObject
         // draw circular and elliptical orbits
         if (orbit.Eccentricity < 1)
         {
-            if (orbit.SemiMajorAxis == null || orbit.SemiMinorAxis == null) 
-                throw new NullReferenceException("Elliptic orbit must have a semi-major axis.");
-            ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
-            ScientificDecimal semiMinorAxis = (ScientificDecimal)orbit.SemiMinorAxis;
+            ScientificDecimal semiMajorAxis = orbit.SemiMajorAxis;
+            ScientificDecimal semiMinorAxis = orbit.SemiMinorAxis;
             
             // orbit is too small to draw
             if (camera.ConvertToScreenDistance(semiMajorAxis) < 1) return;
@@ -83,13 +81,13 @@ public abstract class Body : KinematicObject
             if (maxAngle - minAngle < Options.OrbitApproximationZoomFraction * Math.PI)
             {
                 // apply inverse ellipse bias function of camera angle limits
-                double unbiasedMinAngle = EllipseBiasFunction(minAngle + orbit.Periapsis, 1 / exponent);
-                double unbiasedMaxAngle = EllipseBiasFunction(maxAngle + orbit.Periapsis, 1 / exponent);
+                double unbiasedMinAngle = EllipseBiasFunction(minAngle - orbit.Periapsis, 1 / exponent);
+                double unbiasedMaxAngle = EllipseBiasFunction(maxAngle - orbit.Periapsis, 1 / exponent);
                 // sweep through angle range and re-apply bias function on each point then draw the orbit
                 for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; 
                      a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
                 {
-                    double trueAngle = EllipseBiasFunction(a, exponent) - orbit.Periapsis;
+                    double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
                     ScientificDecimal dist = orbit.Equation(trueAngle);
                     orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
                 }
@@ -109,14 +107,15 @@ public abstract class Body : KinematicObject
             double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
-                double trueAngle = a - orbit.Periapsis;
+                double trueAngle = a + orbit.Periapsis;
                 ScientificDecimal dist = orbit.Equation(trueAngle);
                 if (parentSOIRadius != null)
                 {
                     if (dist > 0 && dist < parentSOIRadius)
                         orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
                 }
-                else if (dist > 0 && !dist.IsInfinite) orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                else if (dist > 0 && !dist.IsInfinite) 
+                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
             }
 
             if (parentSOIRadius != null)
@@ -124,8 +123,8 @@ public abstract class Body : KinematicObject
                 double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
                                                         (orbit.Eccentricity * parentSOIRadius /
                                                          orbit.SemiLatusRectum))) + Math.PI;
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-escapeAngle - orbit.Periapsis, parentSOIRadius.Value));
-                orbitPoints = orbitPoints.Prepend(centralForce.Position + Vector2.FromPolar(escapeAngle - orbit.Periapsis, parentSOIRadius.Value)).ToList();
+                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+                orbitPoints.Insert(0, centralForce.Position + Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
             }
         }
 
@@ -162,7 +161,7 @@ public abstract class Body : KinematicObject
         Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((Vector2)Vector3.Cross(momentum, angularMomentum) -
                             directionVector * Mass * forceStrength);
 
-        double periapsis = lrlVector.GetPrincipalAngle() + Math.PI;
+        double periapsis = Utils.UnsignedMod(Math.PI - lrlVector.GetPrincipalAngle(), Math.Tau);
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = 1 / c;
@@ -275,20 +274,16 @@ public abstract class Body : KinematicObject
         if (Orbit == null) return;
         if (Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        if (orbit.Period == null) return;
-        ScientificDecimal period = (ScientificDecimal)orbit.Period;
-        if (orbit.SemiMajorAxis == null) return;
-        ScientificDecimal semiMajorAxis = (ScientificDecimal)orbit.SemiMajorAxis;
         if (orbit.Center == null) return;
         Vector2 center = (Vector2)orbit.Center;
         
-        double meanAnomaly = (double)(Math.Tau / period * (totalTime + orbit.InitialTime!)) - orbit.Periapsis;
-        double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly + orbit.Periapsis) - orbit.Periapsis;
-        double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly + orbit.Periapsis) - orbit.Periapsis;
+        double meanAnomaly = (double)(Math.Tau / orbit.Period * (totalTime + orbit.InitialTime!)) + orbit.Periapsis;
+        double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly - orbit.Periapsis) + orbit.Periapsis;
+        double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly - orbit.Periapsis) + orbit.Periapsis;
         Position = Parent.Position + Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
         
         ScientificDecimal relDist = (Position - Parent.Position).Magnitude();
-        ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / semiMajorAxis)).Sqrt();
+        ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / orbit.SemiMajorAxis)).Sqrt();
         Vector2 relVelocity = Vector2.FromPolar(Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
                                                 Math.PI / 2, relSpeed);
         Velocity = Parent.Velocity + relVelocity;

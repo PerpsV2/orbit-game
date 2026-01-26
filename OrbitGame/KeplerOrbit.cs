@@ -32,29 +32,30 @@ public readonly record struct KeplerOrbit
         this.Parent = Parent;
         this.Eccentricity = Eccentricity;
         this.SemiLatusRectum = SemiLatusRectum;
-        Equation = angle => SemiLatusRectum / (1 + Eccentricity * Math.Cos(-angle - Periapsis));
+        Equation = angle => SemiLatusRectum / (1 + Eccentricity * Math.Cos(angle - Periapsis));
         this.Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
+        
         if (Eccentricity == 0)
         {
             SemiMajorAxis = SemiLatusRectum;
             SemiMinorAxis = SemiLatusRectum;
             SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
             Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = Vector2.FromPolar(-Periapsis, Equation(-Periapsis)) + 
-                     Vector2.FromPolar(-Periapsis, -SemiMajorAxis);
+            Center = Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
+                     Vector2.FromPolar(Periapsis, -SemiMajorAxis);
         }
         if (Eccentricity is > 0 and < 1)
         {
-            SemiMajorAxis = (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2;
-            SemiMinorAxis = (Equation(-Periapsis) * Equation(-Periapsis + Math.PI)).Sqrt();
+            SemiMajorAxis = (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
+            SemiMinorAxis = (Equation(Periapsis) * Equation(Periapsis + Math.PI)).Sqrt();
             SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
             Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = Vector2.FromPolar(-Periapsis, Equation(-Periapsis)) + 
-                     Vector2.FromPolar(-Periapsis, -SemiMajorAxis);
+            Center = Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
+                     Vector2.FromPolar(Periapsis, -SemiMajorAxis);
         }
         if (Eccentricity >= 1)
         {
-            SemiMajorAxis = (Equation(-Periapsis) + Equation(-Periapsis + Math.PI)) / 2;
+            SemiMajorAxis = (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
             SemiMinorAxis = ScientificDecimal.PosInfinity;
             SphereOfInfluenceRadius = null;
             Period = ScientificDecimal.PosInfinity;
@@ -67,9 +68,11 @@ public readonly record struct KeplerOrbit
             {
                 Vector2 initialPosition = Body.Position - Parent.Position;
                 Vector2 initialVelocity = Body.Velocity - Parent.Velocity;
-                double initialTrueAnomaly = Math.Acos(
-                    (double)(Vector2.Dot(Vector2.FromPolar(-Periapsis, Eccentricity), initialPosition) /
-                             (Eccentricity * initialPosition.Magnitude())));
+                double initialTrueAnomaly = Math.Acos((double)(
+                    Vector2.Dot(Vector2.FromPolar(Periapsis, Eccentricity), initialPosition) /
+                    (Eccentricity * initialPosition.Magnitude()))
+                    );
+                
                 if (Vector2.Dot(initialPosition, initialVelocity) < 0)
                     initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
 
