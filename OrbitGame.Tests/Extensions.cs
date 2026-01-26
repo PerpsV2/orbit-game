@@ -46,4 +46,15 @@ public static class AssertExtensions
         Equal(a.CollisionManifold, b.CollisionManifold, Equal);
         Equal(a.PenetrationVector, b.PenetrationVector);
     }
+
+    public static void Equal(KeplerOrbit a, KeplerOrbit b)
+    {
+        Assert.Equal(a.Body, b.Body);
+        Assert.Equal(a.Parent, b.Parent);
+        Equal(a.Eccentricity, b.Eccentricity);
+        Equal(a.Periapsis, b.Periapsis);
+        Equal(a.SemiLatusRectum, b.SemiLatusRectum);
+        if (a.InitialTime != null && b.InitialTime != null)
+            Equal(a.InitialTime.Value, b.InitialTime.Value);
+    }
 }

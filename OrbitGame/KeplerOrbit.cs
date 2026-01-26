@@ -7,14 +7,15 @@ public readonly record struct KeplerOrbit
     public readonly Body Body;
     public readonly Body Parent;
     public readonly double Periapsis;
-    public readonly OrbitEquation Equation;
     public readonly double Eccentricity;
     public readonly ScientificDecimal SemiLatusRectum;
+    
+    public readonly OrbitEquation Equation;
     public readonly ScientificDecimal SemiMajorAxis;
     public readonly ScientificDecimal SemiMinorAxis;
-    
     public readonly ScientificDecimal Period;
     public readonly Vector2? Center;
+    
     public readonly ScientificDecimal? SphereOfInfluenceRadius;
     
     public readonly ScientificDecimal? InitialTime;

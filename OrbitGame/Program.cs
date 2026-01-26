@@ -199,7 +199,7 @@ Ship smokestack = new Ship(
     "Smokestack"
 );
 
-Planet r = new Planet(
+/*Planet r = new Planet(
     100, new Vector2(4, 0), Vector2.Zero, 4,
     new Material(0.5f), new SKColor(125, 0, 0, 255), null, "Planet");
 Planet g = new Planet(
@@ -207,7 +207,7 @@ Planet g = new Planet(
     new Material(0.5f), new SKColor(0, 125, 0, 255), null, "Planet");
 Ship b = new Ship(
     1000, new(-5, -3), Vector2.Zero,
-    new Material(0.5f), new SKColor(0, 0, 125, 255), null,
+    new Material(0.5f), new SKColor(0, 0, 125, 255), r,
     [
         new (2.33333333333,3.5),
         new (2.33333333333, -2.5),
@@ -215,7 +215,7 @@ Ship b = new Ship(
         new (-3.6666666667, 1.5)
     ],
     "Ship"
-);
+);*/
 
 List<Body> bodies = [
     sun, mercury, venus, earth, smokestack, mars, jupiter, saturn, uranus, neptune, halley
@@ -333,7 +333,7 @@ void OnRender(double _)
     //OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
     
-    smokestack.RecalculateOrbit(bodies);
+    smokestack.CalculateShipOrbit(planets);
 
     foreach (var body in planets) body.DrawSphereOfInfluence(canvas, camera);
     foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);

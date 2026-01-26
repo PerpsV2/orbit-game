@@ -9,8 +9,8 @@ public abstract class Body : KinematicObject
 {
     public SKColor Colour;
     public ICollider? Collider;
-    protected Body? Parent;
-    protected KeplerOrbit? Orbit;
+    public Body? Parent;
+    public KeplerOrbit? Orbit;
     
     protected Body(ScientificDecimal mass, 
         Vector2 position, 
@@ -18,12 +18,13 @@ public abstract class Body : KinematicObject
         SKColor colour, 
         string name, 
         Body? parent) 
-        : base(name, mass, position, velocity)
+        : base(name, mass, 
+            position + (parent?.Position ?? Vector2.Zero), 
+            velocity + (parent?.Velocity ?? Vector2.Zero)
+            )
     {
         Colour = colour;
         Parent = parent;
-        Position = position + parent?.Position ?? Vector2.Zero;
-        Velocity = velocity + parent?.Velocity ?? Vector2.Zero;
         Orbit = CalculateOrbit(true);
     }
 
@@ -169,28 +170,9 @@ public abstract class Body : KinematicObject
         return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
-    private KeplerOrbit? CalculateOrbit(bool initials)
+    protected KeplerOrbit? CalculateOrbit(bool initials)
     {
         return Parent == null ? null : CalculateOrbit(Parent, initials);
-    }
-
-    public void RecalculateOrbit(List<Body> bodies)
-    {
-        
-        if (Parent == null) return;
-        ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
-        if (parentSOIRadius != null)
-            if ((Position - Parent.Position).Magnitude() > (ScientificDecimal)parentSOIRadius)
-                Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
-        foreach (Body body in bodies)
-        {
-            if (body == Parent || body == this) continue;
-            ScientificDecimal? bodySOIRadius = body.Orbit?.SphereOfInfluenceRadius;
-            if (bodySOIRadius != null)
-                if ((Position - body.Position).Magnitude() < (ScientificDecimal)bodySOIRadius)
-                    Parent = body;
-        }
-        Orbit = CalculateOrbit(false);
     }
 
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)

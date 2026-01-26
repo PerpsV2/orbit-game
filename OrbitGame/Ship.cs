@@ -6,7 +6,7 @@ public class Ship : Body
     private readonly Vector2[] _mesh;
     
     public Ship(
-        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Body? parent,
+        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Planet parent,
         Vector2[] mesh, string name)
         : base(mass, position, velocity, colour, name, parent)
     {
@@ -39,5 +39,27 @@ public class Ship : Body
 
         Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint, false);
+    }
+    
+    public void CalculateShipOrbit(List<Planet> planets)
+    {
+        if (Parent == null)
+            throw new NullReferenceException($"Ship \"{Name}\" has no parent");
+        
+        ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
+        if (parentSOIRadius != null)
+            if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
+                Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
+        
+        foreach (Planet planet in planets)
+        {
+            if (planet == Parent) continue;
+            ScientificDecimal? bodySOIRadius = planet.Orbit?.SphereOfInfluenceRadius;
+            if (bodySOIRadius != null)
+                if ((Position - planet.Position).Magnitude() < bodySOIRadius)
+                    Parent = planet;
+        }
+        
+        Orbit = CalculateOrbit(false);
     }
 }
