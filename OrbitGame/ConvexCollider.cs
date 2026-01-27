@@ -41,6 +41,7 @@ public class ConvexCollider : CompactCollider, ICollider
 
     public override RectangularCollider GetBoundingBox()
     {
+        
         ScientificDecimal minX = RotatedPoints[0].X;
         ScientificDecimal minY = RotatedPoints[0].Y;
         ScientificDecimal maxX = RotatedPoints[1].X;
@@ -52,8 +53,15 @@ public class ConvexCollider : CompactCollider, ICollider
             if (rotatedPoint.Y < minY) minY = rotatedPoint.Y;
             if (rotatedPoint.Y > maxY) maxY = rotatedPoint.Y;
         }
-        return new RectangularCollider(new Vector2(maxY, maxX), new Vector2(minY, minX), Parent, Material);
+
+        Vector2 topRight = new Vector2(maxX, maxY);
+        Vector2 bottomLeft = new Vector2(minX, minY);
+        
+        return new RectangularCollider(topRight, bottomLeft, Parent, Material);
     }
+    
+    public static explicit operator RectangularCollider(ConvexCollider value)
+        => value.GetBoundingBox();
 
     protected override PointCollision IntersectsWith(Vector2 point)
     {
@@ -114,7 +122,84 @@ public class ConvexCollider : CompactCollider, ICollider
 
     protected override PhysicsCollision? IntersectsWith(ConvexCollider collider)
     {
-        throw new NotImplementedException();
+        double GetEdgeAngle((Vector2 a, Vector2 b) edge)
+            => (edge.b - edge.a).GetPrincipalAngle();
+        
+        // calculate minimum penetration vector
+        (Vector2 a, Vector2 b)[] refEdges = new (Vector2, Vector2)[_points.Length];
+        for (int i = 0; i < _points.Length; ++i)
+            refEdges[i] = (RotatedPoints[i], RotatedPoints[(i + 1) % RotatedPoints.Length]);
+        
+        (Vector2 a, Vector2 b)[] incEdges = new (Vector2, Vector2)[collider._points.Length];
+        for (int i = 0; i <collider. _points.Length; ++i)
+            incEdges[i] = (collider.RotatedPoints[i], collider.RotatedPoints[(i + 1) % collider.RotatedPoints.Length]);
+        
+        // create a list of all edges involved
+        (Vector2 a, Vector2 b)[] edges = refEdges.Concat(incEdges).ToArray();
+        
+        // create an array for the penetration vector of the SAT applied onto each edge
+        (Vector2 vector, double angle)[] penetrationVectors = new (Vector2 vector, double angle)[edges.Length];
+        for (int e = 0; e < penetrationVectors.Length; ++e)
+        {
+            // current edge
+            (Vector2 a, Vector2 b) edge = edges[e];
+            // angle to project SAT onto
+            double projectionAngle = GetEdgeAngle(edge) + Math.PI / 2;
+            
+            // project points from both polygons
+            ScientificDecimal[] referenceProjectedPoints = new ScientificDecimal[_points.Length];
+            for (int p = 0; p < referenceProjectedPoints.Length; ++p)
+                referenceProjectedPoints[p] = (Matrix3X3.Rotation(-projectionAngle) * (Position + RotatedPoints[p])).X;
+            ScientificDecimal[] incidenceProjectedPoints = new ScientificDecimal[_points.Length];
+            for (int p = 0; p < incidenceProjectedPoints.Length; ++p)
+                incidenceProjectedPoints[p] = (Matrix3X3.Rotation(-projectionAngle) * (collider.Position + collider.RotatedPoints[p])).X;
+
+            // check if there is not an intersection in SAT range
+            if (referenceProjectedPoints.Max() < incidenceProjectedPoints.Min() || 
+                incidenceProjectedPoints.Max() < referenceProjectedPoints.Min()) return null;
+            
+            // find intersection distance
+            ScientificDecimal posPenetrationDist = referenceProjectedPoints.Max() - incidenceProjectedPoints.Min();
+            ScientificDecimal negPenetrationDist = incidenceProjectedPoints.Max() - referenceProjectedPoints.Min();
+            
+            // return penetration vector with minimum magnitude for this edge
+            penetrationVectors[e].vector = Vector2.FromPolar(projectionAngle,
+                posPenetrationDist.Abs() <= negPenetrationDist.Abs() ? -posPenetrationDist : negPenetrationDist);
+            penetrationVectors[e].angle = projectionAngle;
+        }
+        
+        var minPenetrationVector = penetrationVectors.MinBy(x => x.vector.Magnitude());
+        
+        HashSet<Vector2> manifold = new HashSet<Vector2>();
+        // calculate collision manifold
+        double minPenetrationAngle = minPenetrationVector.angle;
+        Vector2 refFurthestPoint = RotatedPoints
+            .MinBy(v => (Matrix3X3.Rotation(-minPenetrationAngle) * (Position + v)).X);
+        manifold.Add(refFurthestPoint);
+        
+        /*Vector2 incFurthestPoint = collider._points
+            .MinBy(v => (Matrix3X3.Rotation(Math.PI -minPenetrationAngle) * (collider.Position + v)).X);
+
+        double refCollisionNormalAngle = Utils.UnsignedMod(minPenetrationAngle - Math.PI / 2, Math.Tau);
+        double incCollisionNormalAngle = Utils.UnsignedMod(minPenetrationAngle + Math.PI / 2, Math.Tau);
+        (Vector2 a, Vector2 b) refCollisionEdge = refEdges
+            .Where(x => x.a == refFurthestPoint || x.b == refFurthestPoint)
+            .MinBy(x => Math.Abs(refCollisionNormalAngle - GetEdgeAngle(x)));
+        (Vector2 a, Vector2 b) incCollisionEdge = incEdges
+            .Where(x => x.a == incFurthestPoint || x.b == incFurthestPoint)
+            .MinBy(x => Math.Abs(incCollisionNormalAngle - GetEdgeAngle(x)));
+
+        if ((refCollisionEdge.b - refCollisionEdge.a).Normalize() !=
+            -(incCollisionEdge.b - incCollisionEdge.a).Normalize())
+        {
+            manifold.Add(refFurthestPoint);
+        }
+        else
+        {
+        
+        }*/
+        
+        return new PhysicsCollision(this, collider, manifold, minPenetrationVector.vector);
     }
 
     protected override PhysicsCollision? IntersectsWith(RectangularCollider collider)
