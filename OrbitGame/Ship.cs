@@ -24,11 +24,11 @@ public class Ship : Body
         Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
         canvas.GS_DrawPoly(camera, polyPoints, paint);
         
-        SKPoint screenPosition = camera.ConvertToScreenCoordinates(Position);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, 10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, -10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, -10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, 10), paint);
+        //SKPoint screenPosition = camera.ConvertToScreenCoordinates(Position);
+        //canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, 10), paint);
+        //canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, -10), paint);
+        //canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, -10), paint);
+        //canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, 10), paint);
     }
 
     public override void DrawCollider(SKCanvas canvas, Camera camera)

@@ -84,29 +84,28 @@ public static class Utils
         SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(semiMajorAxis), 
             camera.ConvertToScreenDistance(semiMinorAxis, false));
         paint.Style = SKPaintStyle.Stroke;
-        canvas.RotateRadians(-(float)(periapsisArgument +camera.Angle), screenPosition.X, screenPosition.Y);
+        canvas.RotateRadians(-(float)(periapsisArgument + camera.Angle), screenPosition.X, screenPosition.Y);
         canvas.DrawOval(screenPosition, screenRadius, paint);
         canvas.ResetMatrix();
     }
 
-    public static void GS_DrawRect(
+    public static void GS_DrawAABB(
         this SKCanvas canvas,
         Camera camera,
-        Vector2 topLeft,
-        Vector2 bottomRight,
+        Vector2 topRight,
+        Vector2 bottomLeft,
         SKPaint paint)
     {
-        SKPoint topLeftScreenPosition = camera.ConvertToScreenCoordinates(topLeft);
-        SKPoint bottomRightScreenPosition = camera.ConvertToScreenCoordinates(bottomRight);
-        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(bottomRight.X, topLeft.Y));
-        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(topLeft.X, bottomRight.Y));
+        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(topRight.X, topRight.Y));
+        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(bottomLeft.X, bottomLeft.Y));
         
         SKPath path = new SKPath();
-        path.MoveTo(topLeftScreenPosition);
-        path.LineTo(topRightScreenPosition);
-        path.LineTo(bottomRightScreenPosition);
+        path.MoveTo(topRightScreenPosition);
+        path.LineTo(topRightScreenPosition.X, bottomLeftScreenPosition.Y);
         path.LineTo(bottomLeftScreenPosition);
+        path.LineTo(bottomLeftScreenPosition.X, topRightScreenPosition.Y);
         path.Close();
+        
         canvas.DrawPath(path, paint);
     }
 
@@ -120,13 +119,9 @@ public static class Utils
     {
         if (points.Count < 3)
             throw new ArgumentException("A minimum of three points should be provided when drawing a polygon");
-        SKPath path = new SKPath();
-        path.MoveTo(camera.ConvertToScreenCoordinates(points[0]));
-        for (int i = 1; i < points.Count; i++)
-            path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
-        paint.Style = filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke;
-        path.Close();
-        canvas.DrawPath(path, paint);
+        //SKPath path = new SKPath();
+        SKPoint vertex = camera.ConvertToScreenCoordinates(points[0]);
+        canvas.DrawCircle(vertex, 5, paint);
     }
     
     public static void GS_DrawPath(

@@ -8,7 +8,7 @@ namespace OrbitGame;
 public abstract class Body : KinematicObject
 {
     public SKColor Colour;
-    public ICollider? Collider;
+    public CompactCollider? Collider;
     public Body? Parent;
     public KeplerOrbit? Orbit;
     
@@ -168,6 +168,7 @@ public abstract class Body : KinematicObject
 
         Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((Vector2)Vector3.Cross(momentum, angularMomentum) -
                             directionVector * Mass * forceStrength);
+        if (lrlVector == Vector2.Zero) return null;
 
         double periapsis = Utils.UnsignedMod(Math.PI - lrlVector.GetPrincipalAngle(), Math.Tau);
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();

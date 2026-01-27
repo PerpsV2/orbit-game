@@ -2,34 +2,40 @@ namespace OrbitGame;
 
 /// <summary>
 /// Rectangular collider is unaffected by rotations
-/// Ambiguous collision penetration vectors favour the positive x and y directions (Right and Top)
 /// </summary>
-public class RectangularCollider(
-    Vector2 center,
-    ScientificDecimal width,
-    ScientificDecimal height, 
-    KinematicObject parent,
-    Material material) 
-    : CompactCollider(parent, material), ICollider
+public class RectangularCollider : CompactCollider, ICollider
 {
     // Values are the signed ordinates of the vertex points of the collider
-    private readonly ScientificDecimal _top = center.Y + height / 2;
-    private readonly ScientificDecimal _right = center.X + width / 2;
-    private readonly ScientificDecimal _bottom = center.Y - height / 2;
-    private readonly ScientificDecimal _left = center.X - width / 2;
+    private readonly ScientificDecimal _top;
+    private readonly ScientificDecimal _right;
+    private readonly ScientificDecimal _bottom;
+    private readonly ScientificDecimal _left;
 
     public Vector2 TopRight => new(_right, _top);
     public Vector2 TopLeft => new(_left, _top);
     public Vector2 BottomRight => new(_right, _bottom);
     public Vector2 BottomLeft => new(_left, _bottom);
-
+    
+    public RectangularCollider(Vector2 center,
+        ScientificDecimal width,
+        ScientificDecimal height, 
+        KinematicObject parent,
+        Material material) : base(parent, material)
+    {
+        _top = center.Y + height / 2;
+        _right = center.X + width / 2;
+        _bottom = center.Y - height / 2;
+        _left = center.X - width / 2;
+        Inertia = parent.Mass * (height * height + width * width) / 12;
+    }
+    
     public RectangularCollider(Vector2 topRight, Vector2 bottomLeft, KinematicObject parent, Material material)
         : this(
             (topRight + bottomLeft) / 2, 
             topRight.X - bottomLeft.X, 
             topRight.Y - bottomLeft.Y, 
             parent, material
-            ) 
+        ) 
     { }
 
     public override RectangularCollider GetBoundingBox() => this;
@@ -64,7 +70,36 @@ public class RectangularCollider(
 
     protected override PhysicsCollision? IntersectsWith(RectangularCollider collider)
     {
-        throw new NotImplementedException();
+        if (IsEmpty() || collider.IsEmpty()) return null;
+
+        HashSet<Vector2> collisionManifold = new();
+        Vector2? minPenetrationVector = null;
+        Vector2[] penetrationVectors = new Vector2[4];
+        if (Position.Y + _bottom <= collider.Position.Y + collider._top && 
+            Position.Y + _top >= collider.Position.Y + collider._bottom)
+        {
+            penetrationVectors[0] = new(0, collider.Position.Y + collider._top - Position.Y - _bottom);
+            penetrationVectors[1] = new(0, Position.Y + _top - collider.Position.Y - collider._bottom);
+            penetrationVectors[2] = new(collider.Position.X + collider._right - Position.X - _left, 0);
+            penetrationVectors[3] = new(Position.X + _right - collider.Position.X - _left, 0);
+            minPenetrationVector = penetrationVectors.MinBy(x => x.Magnitude());
+        }
+
+        if (minPenetrationVector == null) return null;
+
+        (Vector2 a, Vector2 b)[] edges = [
+            (TopLeft, TopRight),
+            (BottomLeft, TopLeft),
+            (BottomRight, BottomLeft),
+            (TopRight, BottomRight)
+        ];
+        
+        (Vector2 a, Vector2 b) incidentEdge = edges.MinBy(x =>
+            Math.Abs((x.a - x.b).GetPrincipalAngle() - minPenetrationVector.Value.GetPrincipalAngle() - Math.PI / 2));
+        collisionManifold.Add(incidentEdge.a);
+        collisionManifold.Add(incidentEdge.b);
+
+        return new PhysicsCollision(this, collider, collisionManifold, minPenetrationVector.Value);
     }
 
     public override bool IsEmpty() =>

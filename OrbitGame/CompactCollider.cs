@@ -131,7 +131,6 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         }
         else if (Fixed) incidence.Position += c2.PenetrationVector;
         else if (collider.Fixed) reference.Position += c1.PenetrationVector;
-        
 
         if (Options.EnableCollisionDebug)
             DebugCanvas.Add((cnv, cam) => {

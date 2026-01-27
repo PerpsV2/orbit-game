@@ -15,6 +15,9 @@ public class CircularCollider
 
     public override RectangularCollider GetBoundingBox() =>
         new (Vector2.Zero, Radius * 2, Radius * 2, Parent, Material);
+    
+    public static explicit operator RectangularCollider(CircularCollider value)
+        => value.GetBoundingBox();
 
     protected override PointCollision IntersectsWith(Vector2 point) =>
         new((point - Position).Magnitude() <= Radius || IsEmpty());

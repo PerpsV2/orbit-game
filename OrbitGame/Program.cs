@@ -70,7 +70,7 @@ Planet sun = new Planet(
     new SKColor(255, 255, 255, 255), null,
     "Sun"
 );
-/*Planet mercury = new Planet(
+Planet mercury = new Planet(
     new ScientificDecimal(3.285m, 23),
     new Vector2(
         new ScientificDecimal(-5.6940545m, 10), 
@@ -212,50 +212,68 @@ Ship smokestack = new Ship(
         new (-3, 5)
     ]),
     "Smokestack"
-);*/
+);
 
-Planet r = new Planet(
+/*Planet r = new Planet(
     100, new Vector2(4, 0), Vector2.Zero, 4,
     new Material(0.5f), new SKColor(125, 0, 0, 255), null, "Planet");
 Planet g = new Planet(
-    100, new(2, 5), Vector2.Zero, 1,
+    100, new(-50000000001d, 5), Vector2.Zero, 1,
     new Material(0.5f), new SKColor(0, 125, 0, 255), null, "Planet");
 Ship b = new Ship(
-    1000, new(-5, -3), Vector2.Zero,
-    new Material(0.5f), new SKColor(0, 0, 125, 255), sun,
-    [
+    1000, new(-50000000000d, 0), Vector2.Zero,
+    new Material(0.5f), new SKColor(0, 0, 255, 255), sun,
+    Vector2.CenterConvex([
         new (2.33333333333,3.5),
         new (2.33333333333, -2.5),
         new (-1.6666666667, -2.5),
         new (-3.6666666667, 1.5)
-    ],
+    ]),
     "Ship"
 );
 Ship p = new Ship(
-    1000, new(-5, -3), Vector2.Zero,
+    1000, new(-50000000002d, 0), Vector2.Zero,
     new Material(0.5f), new SKColor(253,200,154, 255), sun,
-    [
+    Vector2.CenterConvex([
         new (2.33333333333,3.5),
         new (2.33333333333, -2.5),
-        new (-1.6666666667, -2.5),
+        new (-3.6666666667, -2.5),
         new (-3.6666666667, 1.5)
-    ],
+    ]),
     "Ship"
-);
+);*/
 
 #endregion
 
-List<Body> bodies = [
-    b, p, sun
-];
-List<Planet> planets = [
-    sun
-];
-List<Ship> ships = [
-    b, p
-];
+Random rnd = new Random();
 
-OriginBody.Body = b;
+Planet originPlanet = new Planet(
+    0, new Vector2(10000, 0), Vector2.Zero, 10, 
+    new Material(0.2f), SKColors.White, null, "Origin"
+);
+
+List<Body> bodies = [originPlanet];
+
+for (int i = 0; i < 1000; ++i)
+{
+    byte randColour = (byte)rnd.Next(0, 256);
+    Ship ship = new Ship(
+            10, new Vector2(-10000, 0) + new Vector2(rnd.Next(-500, 500), rnd.Next(-500, 500)), Vector2.Zero, 
+            new Material(0.2f), new SKColor(255, randColour, randColour, 255),
+            originPlanet, Vector2.CenterConvex([
+                new Vector2(2, 2),
+                new Vector2(-2, 2),
+                new Vector2(-2, -2),
+                new Vector2(2, -2)
+            ]), "Ship " + i
+        );
+    bodies.Add(ship);
+}
+
+List<Planet> planets = bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
+List<Ship> ships = bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
+
+OriginBody.Body = smokestack;
 
 Body tracking = OriginBody.Body;
 int trackingIndex = 0;
@@ -303,11 +321,11 @@ void HandleInput(IKeyboard keyboard, ScientificDecimal dt)
     if (keyboard.IsKeyPressed(Options.RotateLeftKey)) camera.RotateBy(camRotateSpeed);
     if (keyboard.IsKeyPressed(Options.RotateRightKey)) camera.RotateBy(-camRotateSpeed);
     
-    if (keyboard.IsKeyPressed(Key.J)) tracking.Angle += 0.05;
-    if (keyboard.IsKeyPressed(Key.L)) tracking.Angle -= 0.05;
+    if (keyboard.IsKeyPressed(Key.J)) tracking.AngularVelocity += 0.05;
+    if (keyboard.IsKeyPressed(Key.L)) tracking.AngularVelocity -= 0.05;
     
-    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 100;
-    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 100;
+    if (keyboard.IsKeyPressed(Key.I)) tracking.Velocity -= tracking.ForwardVector * 1;
+    if (keyboard.IsKeyPressed(Key.K)) tracking.Velocity += tracking.ForwardVector * 1;
 }
 
 void OnRender(double _)
@@ -336,7 +354,7 @@ void OnRender(double _)
     
     if (Options.EnablePhysics)
     {
-        foreach (var body in planets)
+        /*foreach (var body in planets)
         {
             body.Kepler_UpdatePosition(time);
         }
@@ -346,22 +364,21 @@ void OnRender(double _)
         {
             body.SetNetGravitationalAcceleration(planets);
             body.NI_UpdatePosition(deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(planets));
-        }
+        }*/
         
         // resolve collisions
         /*foreach (var ship in ships)
             foreach (var body in bodies)
                 if (body != ship)
-                    if (ship.Collider != null)
-                        ship.Collider.CollidesWith(body.Collider);*/
+                    if (ship.Collider != null && body.Collider != null)
+                        if (ship.Collider.NearsWith(body.Collider))
+                            ship.Collider.CollidesWith(body.Collider);*/
     }
     
     // recalculate origins
-    // BUG: resetting the origin currently breaks values for keplerian orbits
+    // BUG: resetting the origin currently breaks values for Keplerian orbits
     //OriginBody.ResetOrigin(bodies);
     camera.SetOrigin(tracking.Position);
-    
-    //smokestack.CalculateShipOrbit(planets);
 
     foreach (var body in planets) body.DrawSphereOfInfluence(canvas, camera);
     foreach (var body in bodies) body.DrawOrbitalPathLRL(canvas, camera);

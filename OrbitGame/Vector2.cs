@@ -1,3 +1,5 @@
+using SkiaSharp;
+
 namespace OrbitGame;
 
 public struct Vector2(ScientificDecimal x, ScientificDecimal y) 
@@ -55,6 +57,9 @@ public struct Vector2(ScientificDecimal x, ScientificDecimal y)
     
     public static implicit operator Vector3(Vector2 value)
         => new (value.X, value.Y, 0);
+    
+    public static implicit operator SKPoint(Vector2 value)
+        => new SKPoint((float)value.X, (float)value.Y);
 
     /// <summary>
     /// Decomposes the vertices of a convex polygon into triangles
