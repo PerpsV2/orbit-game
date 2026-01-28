@@ -1,11 +1,11 @@
-using SkiaSharp;
+using System;
 namespace OrbitGame;
 
 public class Camera
 {
-    private Vector2 _localPosition;
-    private Vector2 _origin = Vector2.Zero;
-    public Vector2 AbsolutePosition => _localPosition + _origin;
+    private SD_Vector2 _localPosition;
+    private SD_Vector2 _origin = SD_Vector2.Zero;
+    public SD_Vector2 AbsolutePosition => _localPosition + _origin;
 
     private double _angle;
     public double Angle
@@ -51,7 +51,7 @@ public class Camera
 
     public Matrix3X3 ViewMatrix;
     
-    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height,
+    public Camera(SD_Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height,
         int screenWidth, int screenHeight)
     {
         _localPosition = position;
@@ -63,18 +63,18 @@ public class Camera
         UpdateViewMatrix();
     }
 
-    public Camera(Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
+    public Camera(SD_Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
         this(position, angle, width, height, Options.ScreenSize.width, Options.ScreenSize.height) { }
     
-    public Camera(Vector2 position, ScientificDecimal width, ScientificDecimal height) :
+    public Camera(SD_Vector2 position, ScientificDecimal width, ScientificDecimal height) :
         this(position, 0, width, height) { }
 
-    public void MoveTo(Vector2 position) => _localPosition = position;
+    public void MoveTo(SD_Vector2 position) => _localPosition = position;
     
-    public void MoveBy(Vector2 position) => _localPosition += position;
+    public void MoveBy(SD_Vector2 position) => _localPosition += position;
 
     public void MoveBy(ScientificDecimal distance, double angle)
-        => _localPosition += new Vector2(distance * Math.Cos(angle), distance * Math.Sin(angle));
+        => _localPosition += new SD_Vector2(distance * Math.Cos(angle), distance * Math.Sin(angle));
 
     public void SetRotation(float angle) => Angle = angle;
     
@@ -86,7 +86,7 @@ public class Camera
         Height *= scale;
     }
     
-    public void SetOrigin(Vector2 origin) => _origin = origin;
+    public void SetOrigin(SD_Vector2 origin) => _origin = origin;
     
     public void UpdateViewMatrix()
     {
@@ -96,12 +96,12 @@ public class Camera
                      Matrix3X3.Scale(1, -1);
     }
     
-    public Vector2 SD_ConvertToScreenCoordinates(Vector2 point)
+    public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
         => ViewMatrix * (point - AbsolutePosition);
     
-    public SKPoint ConvertToScreenCoordinates(Vector2 point)
+    public Microsoft.Xna.Framework.Vector2 ConvertToScreenCoordinates(SD_Vector2 point)
     {
-        Vector2 transformedPoint = SD_ConvertToScreenCoordinates(point);
+        SD_Vector2 transformedPoint = SD_ConvertToScreenCoordinates(point);
         return new((float)transformedPoint.X, (float)transformedPoint.Y);
     }
 

@@ -1,3 +1,5 @@
+using System;
+
 namespace OrbitGame;
 
 public class CircularCollider
@@ -14,22 +16,25 @@ public class CircularCollider
     }
 
     public override RectangularCollider GetBoundingBox() =>
-        new (Vector2.Zero, Radius * 2, Radius * 2, Parent, Material);
+        new (SD_Vector2.Zero, Radius * 2, Radius * 2, Parent, Material);
+    
+    public static explicit operator RectangularCollider(CircularCollider value)
+        => value.GetBoundingBox();
 
-    protected override PointCollision IntersectsWith(Vector2 point) =>
+    protected override PointCollision IntersectsWith(SD_Vector2 point) =>
         new((point - Position).Magnitude() <= Radius || IsEmpty());
 
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
         
-        Vector2 diffVector = collider.Position - Position;
+        SD_Vector2 diffVector = collider.Position - Position;
         ScientificDecimal distance = diffVector.Magnitude();
         if (distance <= Radius + collider.Radius)
         {
-            Vector2 dirVector = diffVector.Normalize();
-            Vector2 collisionPoint = dirVector * Radius;
-            Vector2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            SD_Vector2 dirVector = diffVector.Normalize();
+            SD_Vector2 collisionPoint = dirVector * Radius;
+            SD_Vector2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
             return new PhysicsCollision(this, collider, [collisionPoint], penetrationVector);
         }
         

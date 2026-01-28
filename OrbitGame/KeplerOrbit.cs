@@ -1,3 +1,5 @@
+using System;
+
 namespace OrbitGame;
 
 public delegate ScientificDecimal OrbitEquation(double angle);
@@ -14,7 +16,7 @@ public readonly record struct KeplerOrbit
     public readonly ScientificDecimal SemiMajorAxis;
     public readonly ScientificDecimal SemiMinorAxis;
     public readonly ScientificDecimal Period;
-    public readonly Vector2? Center;
+    public readonly SD_Vector2? Center;
     
     public readonly ScientificDecimal? SphereOfInfluenceRadius;
     
@@ -42,8 +44,8 @@ public readonly record struct KeplerOrbit
             SemiMinorAxis = SemiLatusRectum;
             SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
             Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
-                     Vector2.FromPolar(Periapsis, -SemiMajorAxis);
+            Center = SD_Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
+                     SD_Vector2.FromPolar(Periapsis, -SemiMajorAxis);
         }
         if (Eccentricity is > 0 and < 1)
         {
@@ -51,8 +53,8 @@ public readonly record struct KeplerOrbit
             SemiMinorAxis = (Equation(Periapsis) * Equation(Periapsis + Math.PI)).Sqrt();
             SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
             Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
-                     Vector2.FromPolar(Periapsis, -SemiMajorAxis);
+            Center = SD_Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
+                     SD_Vector2.FromPolar(Periapsis, -SemiMajorAxis);
         }
         if (Eccentricity >= 1)
         {
@@ -67,14 +69,14 @@ public readonly record struct KeplerOrbit
         {
             if (initials)
             {
-                Vector2 initialPosition = Body.Position - Parent.Position;
-                Vector2 initialVelocity = Body.Velocity - Parent.Velocity;
+                SD_Vector2 initialPosition = Body.Position - Parent.Position;
+                SD_Vector2 initialVelocity = Body.Velocity - Parent.Velocity;
                 double initialTrueAnomaly = Math.Acos((double)(
-                    Vector2.Dot(Vector2.FromPolar(Periapsis, Eccentricity), initialPosition) /
+                    SD_Vector2.Dot(SD_Vector2.FromPolar(Periapsis, Eccentricity), initialPosition) /
                     (Eccentricity * initialPosition.Magnitude()))
                     );
                 
-                if (Vector2.Dot(initialPosition, initialVelocity) < 0)
+                if (SD_Vector2.Dot(initialPosition, initialVelocity) < 0)
                     initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
 
                 if (double.IsNaN(initialTrueAnomaly)) return;

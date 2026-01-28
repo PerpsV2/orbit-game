@@ -1,3 +1,5 @@
+using System;
+
 namespace OrbitGame;
 
 /// <summary>
@@ -7,9 +9,9 @@ public abstract class KinematicObject
 {
     public ScientificDecimal Mass;
     
-    public Vector2 Position;
-    public Vector2 Velocity;
-    public Vector2 Acceleration;
+    public SD_Vector2 Position;
+    public SD_Vector2 Velocity;
+    public SD_Vector2 Acceleration;
     public string Name;
 
     private double _angle;
@@ -20,21 +22,21 @@ public abstract class KinematicObject
     }
     public double AngularVelocity;
 
-    public Vector2 ForwardVector => Vector2.FromPolar(Angle);
-    public Vector2 RightVector => Vector2.FromPolar(Angle - Math.PI / 2);
+    public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(Angle);
+    public SD_Vector2 RightVector => SD_Vector2.FromPolar(Angle - Math.PI / 2);
     
     protected KinematicObject(
         string name,
         ScientificDecimal? mass,
-        Vector2? position, 
-        Vector2? velocity, 
+        SD_Vector2? position, 
+        SD_Vector2? velocity, 
         double? angle = null, 
         double? angularVelocity = null
-        )
+    )
     {
         Mass = mass ?? 1;
-        Position = position ?? Vector2.Zero;
-        Velocity = velocity ?? Vector2.Zero;
+        Position = position ?? SD_Vector2.Zero;
+        Velocity = velocity ?? SD_Vector2.Zero;
         Angle = angle ?? 0;
         AngularVelocity = angularVelocity ?? 0;
         Name = name;
@@ -43,17 +45,17 @@ public abstract class KinematicObject
     private Matrix3X3 GetLocalSpaceMatrix()
         => Matrix3X3.Translation(Position) * Matrix3X3.Rotation(Angle);
 
-    public Vector2 ObjectToWorldSpace(Vector2 point)
+    public SD_Vector2 ObjectToWorldSpace(SD_Vector2 point)
     {
         return GetLocalSpaceMatrix() * point;
     }
 
-    public Vector2 WorldToObjectSpace(Vector2 point)
+    public SD_Vector2 WorldToObjectSpace(SD_Vector2 point)
     {
         return Matrix3X3.Rotation(-Angle) * Matrix3X3.Translation(-Position) * point;
     }
 
-    public Vector2 ObjectToObjectSpace(Vector2 point, KinematicObject newOriginObject)
+    public SD_Vector2 ObjectToObjectSpace(SD_Vector2 point, KinematicObject newOriginObject)
     {
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }

@@ -1,5 +1,5 @@
+using System;
 using System.Drawing;
-using SkiaSharp;
 
 namespace OrbitGame;
 
@@ -19,7 +19,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
     public readonly KinematicObject Parent = parent;
     public ScientificDecimal Inertia;
         
-    public Vector2 Position => Parent.Position;
+    public SD_Vector2 Position => Parent.Position;
     public bool Fixed;
     
     /// <summary>
@@ -49,12 +49,12 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         switch (obj)
         {
             case ICollider c: return IntersectsWith(c);
-            case Vector2 c : return IntersectsWith(c);
+            case SD_Vector2 c : return IntersectsWith(c);
             default: throw new ArgumentException();
         }
     }
     
-    protected abstract PointCollision IntersectsWith(Vector2 point);
+    protected abstract PointCollision IntersectsWith(SD_Vector2 point);
     protected PhysicsCollision? IntersectsWith(ICollider collider)
     {
         switch (collider)
@@ -92,32 +92,37 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         PhysicsCollision c2 = (PhysicsCollision)collision2;
 
         if (c1.PenetrationVector.Magnitude() == 0) return;
-        Vector2 cNormal = -c1.PenetrationVector.Normalize();
+        SD_Vector2 cNormal = -c1.PenetrationVector.Normalize();
         
         KinematicObject reference = c1.Reference.Parent;
         KinematicObject incidence = c2.Reference.Parent;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
-        Vector2 cPr = c1.CollisionManifold[0];
-        Vector2 cPi = c2.CollisionManifold[0];
+        SD_Vector2 cPr = SD_Vector2.Zero;
+        foreach (var collisionPoint in c1.CollisionManifold)
+            cPr = collisionPoint;
+        
+        SD_Vector2 cPi = SD_Vector2.Zero;
+        foreach (var collisionPoint in c2.CollisionManifold)
+            cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
-        Vector2 pVr = reference.Velocity - (Vector2)Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
-        Vector2 pVi = incidence.Velocity - (Vector2)Vector3.Cross(cPi, new(0, 0, incidence.AngularVelocity));
-        Vector2 relV = pVi - pVr;
+        SD_Vector2 pVr = reference.Velocity - (SD_Vector2)SD_Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
+        SD_Vector2 pVi = incidence.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incidence.AngularVelocity));
+        SD_Vector2 relV = pVi - pVr;
         
         // calculate the magnitude of impulse
-        ScientificDecimal jV = -(1 + c1.Restitution) * Vector2.Dot(relV, cNormal);
-        Vector3 m1 = Vector3.Cross(Vector2.Cross(cPr, cNormal) / c1.Reference.Inertia, cPr);
-        Vector3 m2 = Vector3.Cross(Vector2.Cross(cPi, cNormal) / c2.Reference.Inertia, cPi);
-        ScientificDecimal j = jV / (Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) 
-                                    + Vector3.Dot(m1 + m2, cNormal));
+        ScientificDecimal jV = -(1 + c1.Restitution) * SD_Vector2.Dot(relV, cNormal);
+        SD_Vector3 m1 = SD_Vector3.Cross(SD_Vector2.Cross(cPr, cNormal) / c1.Reference.Inertia, cPr);
+        SD_Vector3 m2 = SD_Vector3.Cross(SD_Vector2.Cross(cPi, cNormal) / c2.Reference.Inertia, cPi);
+        ScientificDecimal j = jV / (SD_Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) 
+                                    + SD_Vector3.Dot(m1 + m2, cNormal));
         
         if (!Fixed) reference.Velocity -= cNormal * (j / reference.Mass);
         if (!collider.Fixed) incidence.Velocity += cNormal * (j / incidence.Mass);
 
-        if (!Fixed)reference.AngularVelocity -= (double)(Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
-        if (!collider.Fixed) incidence.AngularVelocity += (double)(Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
+        if (!Fixed)reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
+        if (!collider.Fixed) incidence.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
 
         if (!Fixed && !collider.Fixed)
         {
@@ -126,9 +131,8 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
         }
         else if (Fixed) incidence.Position += c2.PenetrationVector;
         else if (collider.Fixed) reference.Position += c1.PenetrationVector;
-        
 
-        if (Options.EnableCollisionDebug)
+        /*if (Options.EnableCollisionDebug)
             DebugCanvas.Add((cnv, cam) => {
                 cnv.GS_DrawPoint(cam, reference.Position + cPr, DebugCanvas.Blue);
                 cnv.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, DebugCanvas.Blue);
@@ -136,7 +140,7 @@ public abstract class CompactCollider(KinematicObject parent, Material material)
                     cnv.GS_DrawPoint(cam, reference.Position + point, DebugCanvas.Red);
                 cnv.GS_DrawLineR(cam, reference.Position + cPr, relV, DebugCanvas.Yellow);
                 cnv.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), DebugCanvas.Orange);
-            });
+            });*/
     }
     
     

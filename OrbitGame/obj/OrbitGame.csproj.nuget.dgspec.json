@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\josep\\RiderProjects\\orbit-game\\OrbitGame\\OrbitGame.csproj": {}
+    "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\OrbitGame\\OrbitGame.csproj": {}
   },
   "projects": {
-    "C:\\Users\\josep\\RiderProjects\\orbit-game\\OrbitGame\\OrbitGame.csproj": {
+    "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\OrbitGame\\OrbitGame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\josep\\RiderProjects\\orbit-game\\OrbitGame\\OrbitGame.csproj",
+        "projectUniqueName": "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\OrbitGame\\OrbitGame.csproj",
         "projectName": "OrbitGame",
-        "projectPath": "C:\\Users\\josep\\RiderProjects\\orbit-game\\OrbitGame\\OrbitGame.csproj",
+        "projectPath": "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\OrbitGame\\OrbitGame.csproj",
         "packagesPath": "C:\\Users\\josep\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\josep\\RiderProjects\\orbit-game\\OrbitGame\\obj\\",
+        "outputPath": "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\OrbitGame\\obj\\",
         "projectStyle": "PackageReference",
         "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
@@ -23,15 +23,15 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {}
           }
         },
@@ -47,16 +47,20 @@
         }
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
-            "Silk.NET": {
+            "MonoGame.Content.Builder.Task": {
               "target": "Package",
-              "version": "[2.22.0, )"
+              "version": "[3.8.*, )"
             },
-            "SkiaSharp": {
+            "MonoGame.Framework.DesktopGL": {
               "target": "Package",
-              "version": "[3.119.2-preview.1, )"
+              "version": "[3.8.*, )"
+            },
+            "MonoGame.Primitives2D": {
+              "target": "Package",
+              "version": "[1.1.1, )"
             }
           },
           "imports": [

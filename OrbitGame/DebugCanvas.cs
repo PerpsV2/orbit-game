@@ -1,8 +1,8 @@
-using SkiaSharp;
+using System.Collections.Generic;
 
 namespace OrbitGame;
 
-public delegate void DrawOperation(SKCanvas canvas, Camera camera);
+/*public delegate void DrawOperation(SKCanvas canvas, Camera camera);
 
 public static class DebugCanvas
 {
@@ -31,4 +31,4 @@ public static class DebugCanvas
         foreach (var operation in DrawOperationBuffer)
             operation(canvas, camera);
     }
-}
+}*/

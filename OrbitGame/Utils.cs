@@ -1,4 +1,9 @@
-using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MonoGame;
 
 namespace OrbitGame;
 
@@ -52,29 +57,114 @@ public static class Utils
         return current;
     }
 
-    public static ScientificDecimal CalculateTriangleArea(Vector2 a, Vector2 b, Vector2 c)
+    public static ScientificDecimal CalculateTriangleArea(SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)
     {
         return (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)).Abs()/ 2;
     }
 
-    public static void GS_DrawCircle(
-        this SKCanvas canvas, 
-        Camera camera, 
-        Vector2 centre, 
-        ScientificDecimal radius, 
-        SKPaint paint)
+    public readonly static int CircleVertices = 400;
+    private static VertexBuffer _circleVertexBuffer;
+    private static IndexBuffer _circleIndexBuffer;
+    
+    public static void GenerateCircleBuffers(GraphicsDevice graphicsDevice)
     {
-        SKPoint screenPosition = camera.ConvertToScreenCoordinates(centre);
-        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(radius), 
-            camera.ConvertToScreenDistance(radius, false));
-        
-        canvas.DrawOval(screenPosition, screenRadius, paint);
+        var vertices = new VertexPositionColor[CircleVertices + 1];
+        for (int i = 0; i < CircleVertices; i++)
+        {
+            double angle = i * Math.Tau / CircleVertices;
+            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
+        }
+        vertices[^1] = new VertexPositionColor(Vector3.Zero, Color.White);
+
+        var indices = new int[CircleVertices * 3];
+        for (int i = 0; i < CircleVertices; i++)
+        {
+            indices[i * 3] = CircleVertices;
+            indices[i * 3 + 1] = i;
+            indices[i * 3 + 2] = (i + 1) % CircleVertices;
+        }
+         
+        _circleVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _circleIndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+         
+        _circleVertexBuffer.SetData(vertices);
+        _circleIndexBuffer.SetData(indices);
     }
     
-    public static void GS_DrawEllipseOrbit(
-        this SKCanvas canvas, 
+    public static void GS_DrawCircle(
+        this SpriteBatch spriteBatch, 
         Camera camera, 
-        Vector2 centre, 
+        SD_Vector2 center, 
+        ScientificDecimal radius, 
+        Color colour)
+    {
+        Vector2 screenCenter = camera.ConvertToScreenCoordinates(center);
+        float screenRadius = camera.ConvertToScreenDistance(radius);
+        
+        spriteBatch.GraphicsDevice.SetVertexBuffer(_circleVertexBuffer);
+        spriteBatch.GraphicsDevice.Indices = _circleIndexBuffer;
+
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(screenRadius, screenRadius, 1)) * 
+                       Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            spriteBatch.GraphicsDevice.DrawInstancedPrimitives(
+                PrimitiveType.TriangleList, 0, 0, CircleVertices, _circleVertexBuffer.VertexCount
+                );
+        }
+    }
+    
+    private static VertexBuffer _polyVertexBuffer;
+    private static IndexBuffer _polyIndexBuffer;
+    
+    public static void DrawPoly(this SpriteBatch spriteBatch, Camera camera, List<Vector2> points, Color colour)
+    {
+        if (points.Count == 0) return;
+        
+        var vertices = new VertexPositionColor[points.Count];
+        for (int i = 0; i < vertices.Length; i++)
+            vertices[i] = new VertexPositionColor(new Vector3(points[i].X, points[i].Y, 0), Color.White);
+        
+        var indices = new int[(vertices.Length - 2) * 3];
+        for (int i = 0; i < vertices.Length - 2; i++)
+        {
+            indices[i * 3] = 0;
+            indices[i * 3 + 1] = i + 1;
+            indices[i * 3 + 2] = (i + 2) % vertices.Length;
+        }
+
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+                PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3
+            );
+        }
+    }
+
+    public static void GS_DrawPoly(this SpriteBatch spriteBatch, Camera camera, SD_Vector2[] points, Color colour)
+    {
+        DrawPoly(spriteBatch, camera, points.Select(camera.ConvertToScreenCoordinates).ToList(), colour);
+    }
+    
+    /*
+    public static void GS_DrawEllipseOrbit(
+        this SpriteBatch canvas, 
+        Camera camera, 
+        SD_Vector2 centre, 
         ScientificDecimal semiMajorAxis, 
         ScientificDecimal semiMinorAxis,
         double periapsisArgument,
@@ -84,55 +174,50 @@ public static class Utils
         SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(semiMajorAxis), 
             camera.ConvertToScreenDistance(semiMinorAxis, false));
         paint.Style = SKPaintStyle.Stroke;
-        canvas.RotateRadians(-(float)(periapsisArgument +camera.Angle), screenPosition.X, screenPosition.Y);
+        canvas.RotateRadians(-(float)(periapsisArgument + camera.Angle), screenPosition.X, screenPosition.Y);
         canvas.DrawOval(screenPosition, screenRadius, paint);
         canvas.ResetMatrix();
     }
 
-    public static void GS_DrawRect(
-        this SKCanvas canvas,
+    public static void GS_DrawAABB(
+        this SpriteBatch canvas,
         Camera camera,
-        Vector2 topLeft,
-        Vector2 bottomRight,
+        SD_Vector2 topRight,
+        SD_Vector2 bottomLeft,
         SKPaint paint)
     {
-        SKPoint topLeftScreenPosition = camera.ConvertToScreenCoordinates(topLeft);
-        SKPoint bottomRightScreenPosition = camera.ConvertToScreenCoordinates(bottomRight);
-        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(bottomRight.X, topLeft.Y));
-        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(topLeft.X, bottomRight.Y));
+        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(topRight.X, topRight.Y));
+        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(bottomLeft.X, bottomLeft.Y));
         
         SKPath path = new SKPath();
-        path.MoveTo(topLeftScreenPosition);
-        path.LineTo(topRightScreenPosition);
-        path.LineTo(bottomRightScreenPosition);
+        path.MoveTo(topRightScreenPosition);
+        path.LineTo(topRightScreenPosition.X, bottomLeftScreenPosition.Y);
         path.LineTo(bottomLeftScreenPosition);
+        path.LineTo(bottomLeftScreenPosition.X, topRightScreenPosition.Y);
         path.Close();
+        
         canvas.DrawPath(path, paint);
     }
 
     public static void GS_DrawPoly(
-        this SKCanvas canvas,
+        this SpriteBatch canvas,
         Camera camera,
-        IList<Vector2> points,
+        IList<SD_Vector2> points,
         SKPaint paint,
         bool filled = true
         )
     {
         if (points.Count < 3)
             throw new ArgumentException("A minimum of three points should be provided when drawing a polygon");
-        SKPath path = new SKPath();
-        path.MoveTo(camera.ConvertToScreenCoordinates(points[0]));
-        for (int i = 1; i < points.Count; i++)
-            path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
-        paint.Style = filled ? SKPaintStyle.Fill : SKPaintStyle.Stroke;
-        path.Close();
-        canvas.DrawPath(path, paint);
+        //SKPath path = new SKPath();
+        SKPoint vertex = camera.ConvertToScreenCoordinates(points[0]);
+        canvas.DrawCircle(vertex, 5, paint);
     }
     
     public static void GS_DrawPath(
-        this SKCanvas canvas,
+        this SpriteBatch canvas,
         Camera camera,
-        IList<Vector2> points,
+        IList<SD_Vector2> points,
         SKPaint paint
     )
     {
@@ -144,21 +229,21 @@ public static class Utils
         canvas.DrawPath(path, paint);
     }
 
-    public static void GS_DrawLine(this SKCanvas canvas, Camera camera, Vector2 start, Vector2 end, SKPaint paint)
+    public static void GS_DrawLine(this SpriteBatch canvas, Camera camera, SD_Vector2 start, SD_Vector2 end, SKPaint paint)
     {
         SKPoint screenStart = camera.ConvertToScreenCoordinates(start);
         SKPoint screenEnd = camera.ConvertToScreenCoordinates(end);
         canvas.DrawLine(screenStart, screenEnd, paint);
     }
     
-    public static void GS_DrawLineR(this SKCanvas canvas, Camera camera, Vector2 start, Vector2 offset, SKPaint paint)
+    public static void GS_DrawLineR(this SpriteBatch canvas, Camera camera, SD_Vector2 start, SD_Vector2 offset, SKPaint paint)
     {
         canvas.GS_DrawLine(camera, start, start + offset, paint);
     }
     
-    public static void GS_DrawPoint(this SKCanvas canvas, Camera camera, Vector2 point, SKPaint paint)
+    public static void GS_DrawPoint(this SpriteBatch canvas, Camera camera, SD_Vector2 point, SKPaint paint)
     {
         SKPoint screenPoint = camera.ConvertToScreenCoordinates(point);
         canvas.DrawCircle(screenPoint, 5, paint);
-    }
+    }*/
 }

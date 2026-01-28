@@ -1,5 +1,4 @@
-using Silk.NET.Input;
-using SkiaSharp;
+using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
 
@@ -8,7 +7,8 @@ public static class Options
     public static readonly (int width, int height) ScreenSize = (1600, 1200);
     public static readonly ScientificDecimal DefaultZoomScale = new(1);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
-    public static readonly bool EnablePhysics = true;
+    public static readonly double TimeWarpStepMultiplier = 10;
+    public static readonly bool EnablePhysics = false;
     public static readonly bool DrawColliders = false;
     
     public static readonly bool EnableCollisionDebug = false;
@@ -19,23 +19,23 @@ public static class Options
     public static readonly double CamRotateSpeed = 1;
     public static readonly double CamZoomSpeed = 0.05;
     
-    public static readonly Key MoveUpKey = Key.Up;
-    public static readonly Key MoveDownKey = Key.Down;
-    public static readonly Key MoveLeftKey = Key.Left;
-    public static readonly Key MoveRightKey = Key.Right;
+    public static readonly Keys MoveUpKey = Keys.Up;
+    public static readonly Keys MoveDownKey = Keys.Down;
+    public static readonly Keys MoveLeftKey = Keys.Left;
+    public static readonly Keys MoveRightKey = Keys.Right;
     
-    public static readonly Key ZoomOutKey = Key.Q;
-    public static readonly Key ZoomInKey = Key.E;
+    public static readonly Keys ZoomOutKey = Keys.Q;
+    public static readonly Keys ZoomInKey = Keys.E;
     
-    public static readonly Key RotateLeftKey = Key.A;
-    public static readonly Key RotateRightKey = Key.D;
+    public static readonly Keys RotateLeftKey = Keys.A;
+    public static readonly Keys RotateRightKey = Keys.D;
     
-    public static readonly Key TimeWarpUpKey = Key.Equal;
-    public static readonly Key TimeWarpDownKey = Key.Minus;
+    public static readonly Keys TimeWarpUpKey = Keys.OemPlus;
+    public static readonly Keys TimeWarpDownKey = Keys.OemMinus;
 
-    public static readonly Key TrackNextBodyKey = Key.M;
-    public static readonly Key TrackPrevBodyKey = Key.N;
-    public static readonly Key FocusKey = Key.F;
+    public static readonly Keys TrackNextBodyKey = Keys.M;
+    public static readonly Keys TrackPrevBodyKey = Keys.N;
+    public static readonly Keys FocusKey = Keys.F;
 
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;

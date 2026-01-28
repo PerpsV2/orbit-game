@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace OrbitGame;
 using MatrixData = ScientificDecimal[];
 
@@ -44,18 +47,18 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         return new Matrix3X3(resultData);
     }
     
-    public static Vector2 operator *(Matrix3X3 matrix, Vector2 vector)
+    public static SD_Vector2 operator *(Matrix3X3 matrix, SD_Vector2 vector)
     {
         if (matrix.Data[6] != 0 || matrix.Data[7] != 0 || matrix.Data[8] != 1)
             throw new ArithmeticException("Matrix3x3 must have identity Z-axis values when multiplying with Vector2");
-        return new Vector2(
+        return new SD_Vector2(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2],
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]);
     }
 
-    public static Vector3 operator *(Matrix3X3 matrix, Vector3 vector)
+    public static SD_Vector3 operator *(Matrix3X3 matrix, SD_Vector3 vector)
     {
-        return new Vector3(
+        return new SD_Vector3(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2] * vector.Z,
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5] * vector.Z,
             matrix.Data[6] * vector.X + matrix.Data[7] * vector.Y + matrix.Data[8] * vector.Z
@@ -94,7 +97,7 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         ]);
     }
 
-    public static Matrix3X3 Translation(Vector2 vector)
+    public static Matrix3X3 Translation(SD_Vector2 vector)
         => Translation(vector.X, vector.Y);
     
     public static Matrix3X3 Rotation(double angle)
@@ -115,7 +118,7 @@ public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
         ]);
     }
     
-    public static Matrix3X3 Scale(Vector2 scale)
+    public static Matrix3X3 Scale(SD_Vector2 scale)
         => Scale(scale.X, scale.Y);
     
     public static Matrix3X3 Scale(ScientificDecimal scale)

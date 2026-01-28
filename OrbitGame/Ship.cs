@@ -1,44 +1,46 @@
-using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MonoGame;
+
 namespace OrbitGame;
 
 public class Ship : Body
 {
-    private readonly Vector2[] _mesh;
+    private readonly SD_Vector2[] _mesh;
     
     public Ship(
-        ScientificDecimal mass, Vector2 position, Vector2 velocity, Material material, SKColor colour, Planet parent,
-        Vector2[] mesh, string name)
+        ScientificDecimal mass, SD_Vector2 position, SD_Vector2 velocity, Material material, Color colour, Planet parent,
+        SD_Vector2[] mesh, string name)
         : base(mass, position, velocity, colour, name, parent)
     {
-        LinkedList<int> colliderIndices = Vector2.GetConvexHullIndices(mesh);
+        LinkedList<int> colliderIndices = SD_Vector2.GetConvexHullIndices(mesh);
         _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
         Collider = new ConvexCollider(_mesh, this, material);
     }
 
-    public override void Draw(SKCanvas canvas, Camera camera)
+    public override void Draw(SpriteBatch spriteBatch, Camera camera)
     {
-        using SKPaint paint = new SKPaint();
-        paint.Color = Colour;
-        paint.StrokeWidth = 4;
-
-        Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
-        canvas.GS_DrawPoly(camera, polyPoints, paint);
+        SD_Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
+        spriteBatch.GS_DrawPoly(camera, polyPoints, Colour);
         
-        SKPoint screenPosition = camera.ConvertToScreenCoordinates(Position);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, 10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(10, -10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, -10), paint);
-        canvas.DrawLine(screenPosition, screenPosition + new SKPoint(-10, 10), paint);
+        Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
+        spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
+        spriteBatch.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
+        spriteBatch.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
+        spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
     }
 
-    public override void DrawCollider(SKCanvas canvas, Camera camera)
+    public override void DrawCollider(SpriteBatch canvas, Camera camera)
     {
-        using SKPaint paint = new SKPaint();
-        paint.Color = Colour;
+        /*using SKPaint paint = new SKPaint();
+        Color = Colour;
         paint.StrokeWidth = 4;
 
-        Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
-        canvas.GS_DrawPoly(camera, polyPoints, paint, false);
+        SD_Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
+        canvas.GS_DrawPoly(camera, polyPoints, paint, false);*/
     }
     
     public void CalculateShipOrbit(List<Planet> planets)

@@ -1,4 +1,8 @@
-using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -7,20 +11,20 @@ namespace OrbitGame;
 /// </summary>
 public abstract class Body : KinematicObject
 {
-    public SKColor Colour;
-    public ICollider? Collider;
+    public Color Colour;
+    public CompactCollider? Collider;
     public Body? Parent;
     public KeplerOrbit? Orbit;
     
     protected Body(ScientificDecimal mass, 
-        Vector2 position, 
-        Vector2 velocity, 
-        SKColor colour, 
+        SD_Vector2 position, 
+        SD_Vector2 velocity, 
+        Color colour, 
         string name, 
         Body? parent) 
         : base(name, mass, 
-            position + (parent?.Position ?? Vector2.Zero), 
-            velocity + (parent?.Velocity ?? Vector2.Zero)
+            position + (parent?.Position ?? SD_Vector2.Zero), 
+            velocity + (parent?.Velocity ?? SD_Vector2.Zero)
             )
     {
         Colour = colour;
@@ -28,30 +32,26 @@ public abstract class Body : KinematicObject
         Orbit = CalculateOrbit(true);
     }
 
-    public abstract void Draw(SKCanvas canvas, Camera camera);
-    public abstract void DrawCollider(SKCanvas canvas, Camera camera);
+    public abstract void Draw(SpriteBatch spriteBatch, Camera camera);
+    public abstract void DrawCollider(SpriteBatch canvas, Camera camera);
 
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPathLRL(SKCanvas canvas, Camera camera)
+    public void DrawOrbitalPathLRL(SpriteBatch canvas, Camera camera)
     {
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
         Body centralForce = Parent;
-        List<Vector2> orbitPoints = new List<Vector2>();
-        
-        using SKPaint paint = new SKPaint();
-        paint.Color = Colour;
-        paint.Style = SKPaintStyle.Stroke;
+        List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
         // find approximate angle of the orbit covered by the camera
-        Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
+        SD_Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
         double minAngle = 0;
         double maxAngle = Math.Tau;
-        if (relCamPosition != Vector2.Zero)
+        if (relCamPosition != SD_Vector2.Zero)
         {
-            Vector2 maxCamExtentVector = (Vector2)Vector3.Cross(relCamPosition.Normalize(),
+            SD_Vector2 maxCamExtentVector = (SD_Vector2)SD_Vector3.Cross(relCamPosition.Normalize(),
                 new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
             minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
             maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
@@ -90,15 +90,15 @@ public abstract class Body : KinematicObject
                 {
                     double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
                     ScientificDecimal dist = orbit.Equation(trueAngle);
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(trueAngle, dist));
+                    orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist));
                 }
             }
             // draw the entire orbit as an ellipse
             else
             {
                 if (orbit.Center == null) throw new NullReferenceException("Elliptic orbit must have a center.");
-                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
-                    semiMinorAxis, orbit.Periapsis, paint);
+                /*canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
+                    semiMinorAxis, orbit.Periapsis, paint);*/
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -111,7 +111,7 @@ public abstract class Body : KinematicObject
             {
                 double trueAngle = Utils.UnsignedMod(a + orbit.Periapsis, Math.Tau);
                 ScientificDecimal dist = orbit.Equation(trueAngle);
-                Vector2 orbitPoint = centralForce.Position + Vector2.FromPolar(trueAngle, dist);
+                SD_Vector2 orbitPoint = centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist);
                 if (parentSOIRadius != null)
                 {
                     if (dist > 0 && dist < parentSOIRadius)
@@ -121,7 +121,7 @@ public abstract class Body : KinematicObject
                     orbitPoints.Add(orbitPoint);
                 if (double.IsPositive(trueAngle - objectAngle) !=  
                     double.IsPositive(trueAngle + 2 * asymptoteAngle / Options.OrbitResolutionNumPoints - objectAngle))
-                    orbitPoints.Add(centralForce.Position + Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
+                    orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
             }
 
             if (parentSOIRadius != null)
@@ -129,56 +129,59 @@ public abstract class Body : KinematicObject
                 double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
                                                         (orbit.Eccentricity * parentSOIRadius /
                                                          orbit.SemiLatusRectum))) + Math.PI;
-                orbitPoints.Add(centralForce.Position + Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
-                orbitPoints.Insert(0, centralForce.Position + Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+                orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+                orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
             }
         }
 
-        if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, paint);
+        /*if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, paint);*/
     }
     
-    private Vector2 CalculateGravitationalAcceleration(Body attractor)
+    private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
-        Vector2 direction = Vector2.DirectionVectorBetween(Position, attractor.Position);
+        SD_Vector2 direction = SD_Vector2.DirectionVectorBetween(Position, attractor.Position);
         ScientificDecimal distance = (Position - attractor.Position).Magnitude();
         ScientificDecimal magnitude = Constants.G * attractor.Mass / (distance * distance);
         return direction * magnitude;
     }
 
-    public Vector2 SetNetGravitationalAcceleration(IEnumerable<Body> attractors)
+    public SD_Vector2 SetNetGravitationalAcceleration(IEnumerable<Body> attractors)
     {
-        Vector2 result = Vector2.Zero;
+        SD_Vector2 result = SD_Vector2.Zero;
         return Acceleration = attractors
             .Where(x => x != this)
             .Aggregate(result, (sum, next) => 
                 sum + CalculateGravitationalAcceleration(next));
     }
     
-    private KeplerOrbit CalculateOrbit(Body centralForce, bool initials)
+    private KeplerOrbit? CalculateOrbit(Body? centralForce, bool initials)
     {
-        Vector2 relVelocity = Velocity - centralForce.Velocity;
-        Vector2 relPosition = Position - centralForce.Position;
+        if (centralForce == null) return null;
         
-        Vector2 momentum = relVelocity * Mass;
-        Vector3 angularMomentum = Vector2.Cross(relPosition, momentum);
-        Vector2 directionVector = relPosition.Normalize();
+        SD_Vector2 relVelocity = Velocity - centralForce.Velocity;
+        SD_Vector2 relPosition = Position - centralForce.Position;
+        
+        SD_Vector2 momentum = relVelocity * Mass;
+        SD_Vector3 angularMomentum = SD_Vector2.Cross(relPosition, momentum);
+        SD_Vector2 directionVector = relPosition.Normalize();
         ScientificDecimal forceStrength = Mass * centralForce.Mass * Constants.G;
 
-        Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((Vector2)Vector3.Cross(momentum, angularMomentum) -
+        SD_Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) -
                             directionVector * Mass * forceStrength);
+        if (lrlVector == SD_Vector2.Zero) return null;
 
         double periapsis = Utils.UnsignedMod(Math.PI - lrlVector.GetPrincipalAngle(), Math.Tau);
         ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = 1 / c;
 
+        if (semiLatusRectum == 0) return null;
+
         return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
     protected KeplerOrbit? CalculateOrbit(bool initials)
-    {
-        return Parent == null ? null : CalculateOrbit(Parent, initials);
-    }
+        => CalculateOrbit(Parent, initials);
 
     public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
@@ -195,33 +198,33 @@ public abstract class Body : KinematicObject
                 Angle += AngularVelocity * (double)timeStep;
                 break;
             case NumericalIntegrator.RungeKutta4:
-                Vector2 originalPosition = Position;
-                Vector2 originalVelocity = Velocity;
+                SD_Vector2 originalPosition = Position;
+                SD_Vector2 originalVelocity = Velocity;
                 
-                Vector2 originalAcceleration = Acceleration;
-                Vector2 velocityK1 = originalAcceleration * timeStep;
-                Vector2 positionK1 = Velocity * timeStep;
+                SD_Vector2 originalAcceleration = Acceleration;
+                SD_Vector2 velocityK1 = originalAcceleration * timeStep;
+                SD_Vector2 positionK1 = Velocity * timeStep;
 
                 Position = originalPosition + positionK1 * 0.5f;
                 Velocity = originalVelocity + velocityK1 * 0.5f;
                 
                 updateAcceleration(this);
-                Vector2 velocityK2 = Acceleration * timeStep;
-                Vector2 positionK2 = Velocity * timeStep;
+                SD_Vector2 velocityK2 = Acceleration * timeStep;
+                SD_Vector2 positionK2 = Velocity * timeStep;
 
                 Position = originalPosition + positionK2 * 0.5f;
                 Velocity = originalVelocity + velocityK2 * 0.5f;
                 
                 updateAcceleration(this);
-                Vector2 velocityK3 = Acceleration * timeStep;
-                Vector2 positionK3 = Velocity * timeStep;
+                SD_Vector2 velocityK3 = Acceleration * timeStep;
+                SD_Vector2 positionK3 = Velocity * timeStep;
 
                 Position = originalPosition + positionK3;
                 Velocity = originalVelocity + velocityK3;
                 
                 updateAcceleration(this);
-                Vector2 velocityK4 = Acceleration * timeStep;
-                Vector2 positionK4 = Velocity * timeStep;
+                SD_Vector2 velocityK4 = Acceleration * timeStep;
+                SD_Vector2 positionK4 = Velocity * timeStep;
 
                 Velocity = originalVelocity + (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
                 Position = originalPosition + (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
@@ -262,16 +265,16 @@ public abstract class Body : KinematicObject
         if (Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
         if (orbit.Center == null) return;
-        Vector2 center = (Vector2)orbit.Center;
+        SD_Vector2 center = (SD_Vector2)orbit.Center;
         
         double meanAnomaly = (double)(Math.Tau / orbit.Period * (totalTime + orbit.InitialTime!)) + orbit.Periapsis;
         double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly - orbit.Periapsis) + orbit.Periapsis;
         double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly - orbit.Periapsis) + orbit.Periapsis;
-        Position = Parent.Position + Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
+        Position = Parent.Position + SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
         
         ScientificDecimal relDist = (Position - Parent.Position).Magnitude();
         ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / orbit.SemiMajorAxis)).Sqrt();
-        Vector2 relVelocity = Vector2.FromPolar(Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
+        SD_Vector2 relVelocity = SD_Vector2.FromPolar(SD_Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
                                                 Math.PI / 2, relSpeed);
         Velocity = Parent.Velocity + relVelocity;
     }

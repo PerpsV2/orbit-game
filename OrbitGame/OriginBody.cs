@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace OrbitGame;
 
 /// <summary>
@@ -16,7 +18,7 @@ public static class OriginBody
             if (body != Body) body.Velocity -= Body.Velocity;
         }
 
-        Body.Position = Vector2.Zero;
-        Body.Velocity = Vector2.Zero;
+        Body.Position = SD_Vector2.Zero;
+        Body.Velocity = SD_Vector2.Zero;
     }
 }
