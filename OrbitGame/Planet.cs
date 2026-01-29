@@ -100,10 +100,10 @@ public class Planet : Body
         else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-            spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
+            /*spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
             spriteBatch.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
             spriteBatch.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
-            spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
+            spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);*/
         }
         
         // otherwise draw the planet as a circle

@@ -8,7 +8,7 @@ public static class Options
     public static readonly ScientificDecimal DefaultZoomScale = new(1);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
     public static readonly double TimeWarpStepMultiplier = 10;
-    public static readonly bool EnablePhysics = false;
+    public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = false;
     
     public static readonly bool EnableCollisionDebug = false;

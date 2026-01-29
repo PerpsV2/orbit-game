@@ -23,6 +23,7 @@ public class OrbitGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
+        Graphics = _graphics.GraphicsDevice;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -49,6 +50,7 @@ public class OrbitGame : Game
     );
 
     public static Effect? CurrentEffect { get; set; } = null;
+    public static GraphicsDevice? Graphics { get; set; } = null;
     private SpriteFont _font;
     private Effect _defaultEffect;
     
@@ -62,6 +64,7 @@ public class OrbitGame : Game
 
     protected override void Initialize()
     {
+        Graphics = _graphics.GraphicsDevice;
         Utils.GenerateCircleBuffers(_graphics.GraphicsDevice);
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
@@ -225,20 +228,20 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 500; ++i)
+        for (int i = 0; i < 50; ++i)
         {
             var randColour = _rnd.Next(0, 256);
-            var randDisplacement = new SD_Vector2(_rnd.Next(-1000, 1000), _rnd.Next(-1000, 1000));
+            var randDisplacement = new SD_Vector2(_rnd.Next(-10000, 10000), _rnd.Next(-10000, 10000));
             _bodies.Add(new Ship(
                     1000, new SD_Vector2(new ScientificDecimal(6.378m, 6) + 4000000, 0) + 
                     randDisplacement,
                     new SD_Vector2(0, 10), new Material(0.5f), new Color(255, randColour, randColour, 255),
                     earth, 
                     SD_Vector2.CenterConvex([
-                        new (4,4),
-                        new (4, -4),
-                        new (-4, -4),
-                        new (-4, 4)
+                        new (10,10),
+                        new (10, -10),
+                        new (-10, -10),
+                        new (-10, 10)
                     ]),
                     "Smokestack"
                 ));
@@ -322,7 +325,7 @@ public class OrbitGame : Game
             foreach (var ship in _ships)
             {
                 ship.SetNetGravitationalAcceleration(_planets);
-                ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(_planets));
+                ship.NI_UpdatePosition(_deltaTimeStep, NumericalIntegrator.ImplicitEuler, x => x.SetNetGravitationalAcceleration(_planets));
             }
             
             /*foreach (var ship in _ships)

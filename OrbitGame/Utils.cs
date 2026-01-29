@@ -143,7 +143,7 @@ public static class Utils
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(3, 3, 3)) * 
                                             Matrix.CreateTranslation(new Vector3(0, 0, 0)));
         effect.Parameters["colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)

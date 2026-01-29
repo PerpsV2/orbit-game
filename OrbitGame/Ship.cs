@@ -9,7 +9,7 @@ namespace OrbitGame;
 
 public class Ship : Body
 {
-    private readonly SD_Vector2[] _mesh;
+    private readonly PolyMesh _polyMesh;
     
     public Ship(
         ScientificDecimal mass, SD_Vector2 position, SD_Vector2 velocity, Material material, Color colour, Planet parent,
@@ -17,30 +17,20 @@ public class Ship : Body
         : base(mass, position, velocity, colour, name, parent)
     {
         LinkedList<int> colliderIndices = SD_Vector2.GetConvexHullIndices(mesh);
-        _mesh = colliderIndices.Select(x => mesh[x]).ToArray();
-        Collider = new ConvexCollider(_mesh, this, material);
+        SD_Vector2[] meshPoints = colliderIndices.Select(x => mesh[x]).ToArray();
+        _polyMesh = new PolyMesh(OrbitGame.Graphics, colour);
+        _polyMesh.SetBuffersPoly(meshPoints);
+        Collider = new ConvexCollider(meshPoints, this, material);
     }
 
     public override void Draw(SpriteBatch spriteBatch, Camera camera)
     {
-        SD_Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
-        spriteBatch.GS_DrawPoly(camera, polyPoints, Colour);
-        
-        Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-        spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
-        spriteBatch.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
-        spriteBatch.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
-        spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
+        _polyMesh.DrawMesh(camera, this);
     }
 
     public override void DrawCollider(SpriteBatch canvas, Camera camera)
     {
-        /*using SKPaint paint = new SKPaint();
-        Color = Colour;
-        paint.StrokeWidth = 4;
-
-        SD_Vector2[] polyPoints = _mesh.Select(ObjectToWorldSpace).ToArray();
-        canvas.GS_DrawPoly(camera, polyPoints, paint, false);*/
+        throw new NotImplementedException();
     }
     
     public void CalculateShipOrbit(List<Planet> planets)
