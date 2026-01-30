@@ -26,6 +26,12 @@ public class Ship : Body
     public override void Draw(SpriteBatch spriteBatch, Camera camera)
     {
         _polyMesh.DrawMesh(camera, this);
+
+        Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
+        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
+        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
+        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
+        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
     }
 
     public override void DrawCollider(SpriteBatch canvas, Camera camera)

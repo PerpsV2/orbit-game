@@ -66,6 +66,7 @@ public class OrbitGame : Game
     {
         Graphics = _graphics.GraphicsDevice;
         Utils.GenerateCircleBuffers(_graphics.GraphicsDevice);
+        Utils.GenerateEmptyCircleBuffers(_graphics.GraphicsDevice);
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         
@@ -228,20 +229,19 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 50; ++i)
+        for (int i = 0; i < 3; ++i)
         {
             var randColour = _rnd.Next(0, 256);
             var randDisplacement = new SD_Vector2(_rnd.Next(-10000, 10000), _rnd.Next(-10000, 10000));
             _bodies.Add(new Ship(
                     1000, new SD_Vector2(new ScientificDecimal(6.378m, 6) + 4000000, 0) + 
-                    randDisplacement,
-                    new SD_Vector2(0, 10), new Material(0.5f), new Color(255, randColour, randColour, 255),
+                    randDisplacement, SD_Vector2.Zero, new Material(0.5f), new Color(255, randColour, randColour, 255),
                     earth, 
                     SD_Vector2.CenterConvex([
-                        new (10,10),
-                        new (10, -10),
-                        new (-10, -10),
-                        new (-10, 10)
+                        new (100,100),
+                        new (100, -100),
+                        new (-100, -100),
+                        new (-100, 100)
                     ]),
                     "Smokestack"
                 ));
@@ -328,12 +328,12 @@ public class OrbitGame : Game
                 ship.NI_UpdatePosition(_deltaTimeStep, NumericalIntegrator.ImplicitEuler, x => x.SetNetGravitationalAcceleration(_planets));
             }
             
-            /*foreach (var ship in _ships)
+            foreach (var ship in _ships)
                 foreach (var body in _bodies)
                     if (body != ship)
                         if (ship.Collider != null && body.Collider != null)
                             if (ship.Collider.NearsWith(body.Collider))
-                                ship.Collider.CollidesWith(body.Collider);*/
+                                ship.Collider.CollidesWith(body.Collider);
         }
         
         _camera.SetOrigin(_tracking.Position);
@@ -349,7 +349,7 @@ public class OrbitGame : Game
         
         GraphicsDevice.Clear(Color.Black);
         
-        _spriteBatch.Begin();
+        _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied);
         
         if (Options.DisplayFPS)
             _spriteBatch.DrawString(_font, _framesPerSecond.ToString(), Vector2.Zero, Color.White);
@@ -363,6 +363,10 @@ public class OrbitGame : Game
         }
 
         CurrentEffect = _defaultEffect;
+        foreach (var planet in _planets)
+            planet.DrawOrbitalPathLRL(_spriteBatch, _camera);
+        foreach (var planet in _planets)
+            planet.DrawSphereOfInfluence(_spriteBatch, _camera);
         foreach (var body in _bodies)
             body.Draw(_spriteBatch, _camera);
         

@@ -62,7 +62,7 @@ public static class Options
     /// Maximum scale of planet radius with respect to the camera's height before the surface of the planet is
     /// drawn as a line rather than a curve.
     /// </summary>
-    public const float SurfaceApproximationRadiusZoomFraction = 1000;
+    public const float SurfaceApproximationRadiusZoomFraction = 100;
     /// <summary>
     /// Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker.
     /// </summary>

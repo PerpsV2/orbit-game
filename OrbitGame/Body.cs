@@ -97,8 +97,8 @@ public abstract class Body : KinematicObject
             else
             {
                 if (orbit.Center == null) throw new NullReferenceException("Elliptic orbit must have a center.");
-                /*canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
-                    semiMinorAxis, orbit.Periapsis, paint);*/
+                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
+                    semiMinorAxis, orbit.Periapsis, Colour);
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -134,7 +134,7 @@ public abstract class Body : KinematicObject
             }
         }
 
-        /*if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, paint);*/
+        if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, Colour);
     }
     
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)

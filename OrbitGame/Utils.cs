@@ -120,9 +120,6 @@ public static class Utils
         }
     }
     
-    private static VertexBuffer _polyVertexBuffer;
-    private static IndexBuffer _polyIndexBuffer;
-    
     public static void DrawPoly(this SpriteBatch spriteBatch, Camera camera, List<Vector2> points, Color colour)
     {
         if (points.Count == 0) return;
@@ -143,7 +140,7 @@ public static class Utils
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(3, 3, 3)) * 
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
                                             Matrix.CreateTranslation(new Vector3(0, 0, 0)));
         effect.Parameters["colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
@@ -155,95 +152,118 @@ public static class Utils
         }
     }
 
-    public static void GS_DrawPoly(this SpriteBatch spriteBatch, Camera camera, SD_Vector2[] points, Color colour)
-    {
-        DrawPoly(spriteBatch, camera, points.Select(camera.ConvertToScreenCoordinates).ToList(), colour);
-    }
-    
-    /*
-    public static void GS_DrawEllipseOrbit(
-        this SpriteBatch canvas, 
+    public static void GS_DrawPath(
+        this SpriteBatch spriteBatch,
         Camera camera, 
-        SD_Vector2 centre, 
-        ScientificDecimal semiMajorAxis, 
-        ScientificDecimal semiMinorAxis,
-        double periapsisArgument,
-        SKPaint paint)
-    {
-        SKPoint screenPosition = camera.ConvertToScreenCoordinates(centre);
-        SKSize screenRadius = new SKSize(camera.ConvertToScreenDistance(semiMajorAxis), 
-            camera.ConvertToScreenDistance(semiMinorAxis, false));
-        paint.Style = SKPaintStyle.Stroke;
-        canvas.RotateRadians(-(float)(periapsisArgument + camera.Angle), screenPosition.X, screenPosition.Y);
-        canvas.DrawOval(screenPosition, screenRadius, paint);
-        canvas.ResetMatrix();
-    }
-
-    public static void GS_DrawAABB(
-        this SpriteBatch canvas,
-        Camera camera,
-        SD_Vector2 topRight,
-        SD_Vector2 bottomLeft,
-        SKPaint paint)
-    {
-        SKPoint topRightScreenPosition = camera.ConvertToScreenCoordinates(new(topRight.X, topRight.Y));
-        SKPoint bottomLeftScreenPosition = camera.ConvertToScreenCoordinates(new(bottomLeft.X, bottomLeft.Y));
-        
-        SKPath path = new SKPath();
-        path.MoveTo(topRightScreenPosition);
-        path.LineTo(topRightScreenPosition.X, bottomLeftScreenPosition.Y);
-        path.LineTo(bottomLeftScreenPosition);
-        path.LineTo(bottomLeftScreenPosition.X, topRightScreenPosition.Y);
-        path.Close();
-        
-        canvas.DrawPath(path, paint);
-    }
-
-    public static void GS_DrawPoly(
-        this SpriteBatch canvas,
-        Camera camera,
-        IList<SD_Vector2> points,
-        SKPaint paint,
-        bool filled = true
+        List<SD_Vector2> points, 
+        Color colour,
+        bool closed = false
         )
     {
-        if (points.Count < 3)
-            throw new ArgumentException("A minimum of three points should be provided when drawing a polygon");
-        //SKPath path = new SKPath();
-        SKPoint vertex = camera.ConvertToScreenCoordinates(points[0]);
-        canvas.DrawCircle(vertex, 5, paint);
-    }
-    
-    public static void GS_DrawPath(
-        this SpriteBatch canvas,
-        Camera camera,
-        IList<SD_Vector2> points,
-        SKPaint paint
-    )
-    {
-        SKPath path = new SKPath();
-        path.MoveTo(camera.ConvertToScreenCoordinates(points[0]));
-        for (int i = 1; i < points.Count; i++)
-            path.LineTo(camera.ConvertToScreenCoordinates(points[i]));
-        paint.Style = SKPaintStyle.Stroke;
-        canvas.DrawPath(path, paint);
+        List<Vector2> screenPoints = points.Select(camera.ConvertToScreenCoordinates).ToList();
+        
+        var vertices = new VertexPositionColor[screenPoints.Count];
+        for (int i = 0; i < vertices.Length - 1; ++i)
+            vertices[i] = new VertexPositionColor(new Vector3(screenPoints[i].X, screenPoints[i].Y, 0), Color.White);
+        
+        var indices = new int[vertices.Length + (closed ? 1 : 0)];
+        for (int i = 0; i < indices.Length - 1; ++i)
+            indices[i] = i;
+        if (closed) indices[^1] = 0;
+        
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+                PrimitiveType.LineStrip, vertices, 0, vertices.Length, indices, 0, indices.Length - 2
+            );
+        }
     }
 
-    public static void GS_DrawLine(this SpriteBatch canvas, Camera camera, SD_Vector2 start, SD_Vector2 end, SKPaint paint)
+    public static void DrawLine(this SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color colour)
     {
-        SKPoint screenStart = camera.ConvertToScreenCoordinates(start);
-        SKPoint screenEnd = camera.ConvertToScreenCoordinates(end);
-        canvas.DrawLine(screenStart, screenEnd, paint);
+        VertexPositionColor[] vertices = [new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)];
+        int[] indices = [0, 1];
+        
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+                PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
+            );
+        }
     }
     
-    public static void GS_DrawLineR(this SpriteBatch canvas, Camera camera, SD_Vector2 start, SD_Vector2 offset, SKPaint paint)
-    {
-        canvas.GS_DrawLine(camera, start, start + offset, paint);
-    }
+    public readonly static int EmptyCircleVertices = 400;
+    private static VertexBuffer _emptyCircleVertexBuffer;
+    private static IndexBuffer _emptyCircleIndexBuffer;
     
-    public static void GS_DrawPoint(this SpriteBatch canvas, Camera camera, SD_Vector2 point, SKPaint paint)
+    public static void GenerateEmptyCircleBuffers(GraphicsDevice graphicsDevice)
     {
-        SKPoint screenPoint = camera.ConvertToScreenCoordinates(point);
-        canvas.DrawCircle(screenPoint, 5, paint);
-    }*/
+        var vertices = new VertexPositionColor[EmptyCircleVertices + 1];
+        for (int i = 0; i < EmptyCircleVertices; i++)
+        {
+            double angle = i * Math.Tau / EmptyCircleVertices;
+            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
+        }
+        vertices[^1] = vertices[0];
+
+        var indices = new int[vertices.Length];
+        for (int i = 0; i < indices.Length; i++)
+            indices[i] = i;
+         
+        _emptyCircleVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _emptyCircleIndexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+         
+        _emptyCircleVertexBuffer.SetData(vertices);
+        _emptyCircleIndexBuffer.SetData(indices);
+    }
+
+    public static void GS_DrawEllipseOrbit(
+        this SpriteBatch spriteBatch, 
+        Camera camera, 
+        SD_Vector2 center, 
+        ScientificDecimal semiMajorAxis, 
+        ScientificDecimal semiMinorAxis, 
+        double periapsisArgument,
+        Color colour
+        )
+    {
+        Vector2 screenPosition = camera.ConvertToScreenCoordinates(center);
+        float screenMajorRadius = camera.ConvertToScreenDistance(semiMajorAxis);
+        float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
+        
+        spriteBatch.GraphicsDevice.SetVertexBuffer(_emptyCircleVertexBuffer);
+        spriteBatch.GraphicsDevice.Indices = _emptyCircleIndexBuffer;
+
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) * 
+                                            Matrix.CreateRotationZ(-(float)periapsisArgument) * 
+                                            Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            spriteBatch.GraphicsDevice.DrawInstancedPrimitives(
+                PrimitiveType.LineStrip, 0, 0, EmptyCircleVertices, _emptyCircleVertexBuffer.VertexCount
+            );
+        }
+    }
 }

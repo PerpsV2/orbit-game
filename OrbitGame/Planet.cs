@@ -100,10 +100,10 @@ public class Planet : Body
         else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-            /*spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
+            spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
             spriteBatch.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
             spriteBatch.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
-            spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);*/
+            spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
         }
         
         // otherwise draw the planet as a circle
@@ -124,8 +124,8 @@ public class Planet : Body
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
         
         // paint for spheres of influence
-        Color colour = new Color(Colour.R, Colour.G, Colour.B);
+        Color colour = new Color((int)Colour.R, Colour.G, Colour.B, 1);
         
-        //canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, paint);
+        canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, colour);
     }
 }

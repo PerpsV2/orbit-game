@@ -28,7 +28,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     VertexShaderOutput output = (VertexShaderOutput)0;
 
     output.Position = mul(input.Position, mul(world, projection));
-    output.Color = input.Color;
+    output.Color = colour;
 
     return output;
 }

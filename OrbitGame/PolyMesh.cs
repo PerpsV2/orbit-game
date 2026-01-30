@@ -63,7 +63,10 @@ public class PolyMesh
         Vector3 scale = new Vector3((float)(Options.ScreenSize.height / camera.Height),
             (float)(Options.ScreenSize.width / camera.Width), 1);
         if (_radius * scale.X < 0.5) return;
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(scale) * Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0)));
+        effect.Parameters["world"].SetValue(
+            Matrix.CreateScale(scale) * 
+            Matrix.CreateRotationZ(-(float)kinObj.Angle) *
+            Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0)));
         effect.Parameters["colour"].SetValue(_colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
