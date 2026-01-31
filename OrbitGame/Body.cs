@@ -28,6 +28,8 @@ public abstract class Body : KinematicObject, IGameDrawable
     {
         Colour = colour;
         Parent = parent;
+        Position = position + (parent?.Position ?? SD_Vector2.Zero);
+        Velocity = velocity + (parent?.Velocity ?? SD_Vector2.Zero);
         Orbit = CalculateOrbit(true);
     }
     
@@ -139,8 +141,7 @@ public abstract class Body : KinematicObject, IGameDrawable
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
         SD_Vector2 direction = SD_Vector2.DirectionVectorBetween(Position, attractor.Position);
-        ScientificDecimal distance = (Position - attractor.Position).Magnitude();
-        ScientificDecimal magnitude = Constants.G * attractor.Mass / (distance * distance);
+        ScientificDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
         return direction * magnitude;
     }
 

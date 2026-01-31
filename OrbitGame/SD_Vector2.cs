@@ -16,8 +16,6 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
 
     public static SD_Vector2 FromPolar(double angle, ScientificDecimal magnitude)
         => new(magnitude * Math.Cos(angle), magnitude * Math.Sin(angle));
-
-    #region Operators
     
     public static ScientificDecimal Dot(SD_Vector2 left, SD_Vector2 right)
         => left.X * right.X + left.Y * right.Y;
@@ -30,6 +28,9 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     
     public readonly ScientificDecimal Magnitude()
         => (X * X + Y * Y).Sqrt();
+    
+    public readonly ScientificDecimal MagnitudeSquared()
+        => X * X + Y * Y;
 
     public readonly SD_Vector2 Normalize()
     {
@@ -37,6 +38,8 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
         if (magnitude == 0) throw new ArithmeticException("Cannot normalize zero vector");
         return new(X / magnitude, Y / magnitude);
     }
+    
+    #region Operators
 
     public static SD_Vector2 operator +(SD_Vector2 value) 
         => value;
@@ -146,9 +149,9 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
 
     public double GetPrincipalAngle()
     {
-        if (x == 0 && y == 0) throw new DivideByZeroException();
-        if (x == 0 && y > 0) return Math.PI / 2;
-        if (x == 0 && y < 0) return 3 * Math.PI / 2;
+        if (X == 0 && Y == 0) throw new DivideByZeroException();
+        if (X == 0 && Y > 0) return Math.PI / 2;
+        if (X == 0 && Y < 0) return 3 * Math.PI / 2;
         
         double angle = Math.Atan2((double)Y, (double)X);
         return Utils.UnsignedMod(angle, Math.Tau);

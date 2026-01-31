@@ -8,18 +8,16 @@ namespace OrbitGame;
 
 public class PolyMesh : IMesh
 {
-    private VertexPositionColor[] _vertices;
-    private int[] _indices;
+    private VertexPositionColor[]? _vertices;
+    private int[]? _indices;
     
-    private VertexBuffer _vertexBuffer;
-    private IndexBuffer _indexBuffer;
+    private VertexBuffer? _vertexBuffer;
+    private IndexBuffer? _indexBuffer;
 
-    private Vector2[] _points;
-    public SD_Vector2[] SD_Points;
+    private readonly Vector2[] _points;
 
     public PolyMesh(SD_Vector2[] points)
     {
-        SD_Points = points;
         _points = points.Select(v => new Vector2((float)v.X, (float)v.Y)).ToArray();
     }
 
@@ -48,6 +46,8 @@ public class PolyMesh : IMesh
 
     public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
     {
+        if (_vertexBuffer == null || _indexBuffer == null || _vertices == null || _indices == null) 
+            throw new NullReferenceException("Buffers not generated for this mesh");
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
         

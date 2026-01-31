@@ -152,12 +152,13 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 1000; ++i)
+        for (int i = 0; i < 60; ++i)
         {
             int randomRed = _rnd.Next(0, 256);
             SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-10000000, 10000000), _rnd.Next(-10000000, 10000000));
+            SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(2000, 3000));
             Ship smokestack = smokestackTemplate.Instantiate("Smokestack " + i,
-                new SD_Vector2(new ScientificDecimal(6.378m, 7), 0) + randomPosition, SD_Vector2.Zero,
+                new SD_Vector2(new ScientificDecimal(6.378m, 7), 0) + randomPosition, randomVelocity,
                 new Color(0, randomRed, 0, 255), earth);
             _bodies.Add(smokestack);
         }
@@ -238,11 +239,11 @@ public class OrbitGame : Game
             foreach (var planet in _planets)
                 planet.Kepler_UpdatePosition(_time);
 
-            /*foreach (var ship in _ships)
+            foreach (var ship in _ships)
             {
                 ship.SetNetGravitationalAcceleration(_planets);
-                ship.NI_UpdatePosition(_deltaTimeStep, NumericalIntegrator.ImplicitEuler, x => x.SetNetGravitationalAcceleration(_planets));
-            }*/
+                ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(_planets));
+            }
             
             /*foreach (var ship in _ships)
                 foreach (var body in _bodies)

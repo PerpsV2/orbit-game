@@ -8,8 +8,8 @@ namespace OrbitGame;
 public class CircularMesh : IMesh
 {
     public readonly static int CircleVertices = 400;
-    private static VertexBuffer _vertexBuffer;
-    private static IndexBuffer _indexBuffer;
+    private static VertexBuffer? _vertexBuffer;
+    private static IndexBuffer? _indexBuffer;
     
     public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
@@ -38,6 +38,9 @@ public class CircularMesh : IMesh
     
     public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
     {
+        if (_vertexBuffer == null || _indexBuffer == null) 
+            throw new NullReferenceException("Buffers not generated for this mesh");
+        
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
         
@@ -51,22 +54,5 @@ public class CircularMesh : IMesh
                 PrimitiveType.TriangleList, 0, 0, CircleVertices, _vertexBuffer.VertexCount
                 );
         }
-    }
-
-    public void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect, Vector2 center, float radius, Color colour)
-    {
-        Matrix transform = Matrix.CreateScale(radius, radius, 1) *
-                           Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0));
-        Draw(graphicsDevice, effect, transform, new() {
-                {"colour", colour.ToVector4()}
-        });
-    }
-
-    public void GS_Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect, SD_Vector2 center,
-        ScientificDecimal radius, Color colour)
-    {
-        Vector2 screenCenter = camera.ConvertToScreenCoordinates(center);
-        float screenRadius = camera.ConvertToScreenDistance(radius);
-        Draw(graphicsDevice, camera, effect, screenCenter, screenRadius, colour);
     }
 }

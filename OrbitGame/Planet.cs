@@ -22,8 +22,6 @@ public class Planet : Body, IGameDrawable
     )
         : base(identifier, mass, material, position, velocity, colour, parent)
     {
-        Position += parent?.Position ?? SD_Vector2.Zero;
-        Velocity += parent?.Velocity ?? SD_Vector2.Zero;
         Radius = radius;
     }
 

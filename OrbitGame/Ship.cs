@@ -23,8 +23,6 @@ public class Ship : Body, IGameDrawable
         IMesh mesh)
         : base(identifier, mass, material, position, velocity, colour, parent)
     {
-        Position += parent.Position;
-        Velocity += parent.Velocity;
         Mesh = mesh;
         Collider = new ConvexCollider(points, this);
     }
