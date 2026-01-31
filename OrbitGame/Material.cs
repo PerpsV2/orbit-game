@@ -2,7 +2,7 @@ using System;
 
 namespace OrbitGame;
 
-public struct Material
+public class Material
 {
     public float RestitutionCoefficient;
     public float StaticFrictionCoefficient;

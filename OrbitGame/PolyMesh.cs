@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public class PolyMesh
+public class PolyMesh : IMesh
 {
     private VertexPositionColor[] _vertices;
     private int[] _indices;
@@ -13,23 +14,22 @@ public class PolyMesh
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
 
-    private Color _colour;
-    private GraphicsDevice _graphics;
-    private double _radius;
+    private Vector2[] _points;
+    public SD_Vector2[] SD_Points;
 
-    public PolyMesh(GraphicsDevice graphicsDevice, Color colour)
+    public PolyMesh(SD_Vector2[] points)
     {
-        _colour = colour;
-        _graphics = graphicsDevice;
+        SD_Points = points;
+        _points = points.Select(v => new Vector2((float)v.X, (float)v.Y)).ToArray();
     }
 
-    private void SetBuffersPoly(Vector2[] points)
+    public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
-        if (points.Length == 0) return;
+        if (_points.Length == 0) return;
         
-        _vertices = new VertexPositionColor[points.Length];
+        _vertices = new VertexPositionColor[_points.Length];
         for (int i = 0; i < _vertices.Length; i++)
-            _vertices[i] = new VertexPositionColor(new Vector3(points[i].X, points[i].Y, 0), Color.White);
+            _vertices[i] = new VertexPositionColor(new Vector3(_points[i].X, _points[i].Y, 0), Color.White);
         
         _indices = new int[(_vertices.Length - 2) * 3];
         for (int i = 0; i < _vertices.Length - 2; i++)
@@ -38,40 +38,26 @@ public class PolyMesh
             _indices[i * 3 + 1] = i + 1;
             _indices[i * 3 + 2] = (i + 2) % _vertices.Length;
         }
-        
-        _radius = _vertices.Select(v => Math.Sqrt(v.Position.X * v.Position.X + v.Position.Y * v.Position.Y)).Max();
-        
-        _vertexBuffer = new VertexBuffer(_graphics, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
-        _indexBuffer = new IndexBuffer(_graphics, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
+
+        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
         
         _vertexBuffer.SetData(_vertices);
         _indexBuffer.SetData(_indices);
     }
 
-    public void SetBuffersPoly(SD_Vector2[] points)
+    public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
     {
-        SetBuffersPoly(points.Select(v => new Vector2((float)v.X, (float)v.Y)).ToArray());
-    }
-
-    public void DrawMesh(Camera camera, KinematicObject kinObj)
-    {
-        _graphics.SetVertexBuffer(_vertexBuffer);
-        _graphics.Indices = _indexBuffer;
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        graphicsDevice.Indices = _indexBuffer;
         
-        Effect effect = OrbitGame.CurrentEffect;
-        Vector2 center = camera.ConvertToScreenCoordinates(kinObj.Position);
-        Vector3 scale = new Vector3((float)(Options.ScreenSize.height / camera.Height),
-            (float)(Options.ScreenSize.width / camera.Width), 1);
-        if (_radius * scale.X < 0.5) return;
-        effect.Parameters["world"].SetValue(
-            Matrix.CreateScale(scale) * 
-            Matrix.CreateRotationZ(-(float)kinObj.Angle) *
-            Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0)));
-        effect.Parameters["colour"].SetValue(_colour.ToVector4());
+        effect.Parameters["world"].SetValue(transform);
+        foreach (var pair in shaderParameters)
+            effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            _graphics.DrawInstancedPrimitives(
+            graphicsDevice.DrawInstancedPrimitives(
                 PrimitiveType.TriangleList, 0, 0, _vertices.Length - 2, _vertices.Length
             );
         }

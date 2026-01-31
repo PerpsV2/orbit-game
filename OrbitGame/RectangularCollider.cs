@@ -23,8 +23,7 @@ public class RectangularCollider : CompactCollider, ICollider
     public RectangularCollider(SD_Vector2 center,
         ScientificDecimal width,
         ScientificDecimal height, 
-        KinematicObject parent,
-        Material material) : base(parent, material)
+        KinematicObject parent) : base(parent)
     {
         _top = center.Y + height / 2;
         _right = center.X + width / 2;
@@ -33,12 +32,12 @@ public class RectangularCollider : CompactCollider, ICollider
         Inertia = parent.Mass * (height * height + width * width) / 12;
     }
     
-    public RectangularCollider(SD_Vector2 topRight, SD_Vector2 bottomLeft, KinematicObject parent, Material material)
+    public RectangularCollider(SD_Vector2 topRight, SD_Vector2 bottomLeft, KinematicObject parent)
         : this(
             (topRight + bottomLeft) / 2, 
             topRight.X - bottomLeft.X, 
             topRight.Y - bottomLeft.Y, 
-            parent, material
+            parent
         ) 
     { }
 

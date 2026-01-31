@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
@@ -7,12 +9,14 @@ namespace OrbitGame;
 /// </summary>
 public abstract class KinematicObject
 {
+    public string Identifier;
+    
     public ScientificDecimal Mass;
+    public Material Material;
     
     public SD_Vector2 Position;
     public SD_Vector2 Velocity;
     public SD_Vector2 Acceleration;
-    public string Name;
 
     private double _angle;
     public double Angle
@@ -25,21 +29,21 @@ public abstract class KinematicObject
     public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(Angle);
     public SD_Vector2 RightVector => SD_Vector2.FromPolar(Angle - Math.PI / 2);
     
-    protected KinematicObject(
-        string name,
-        ScientificDecimal? mass,
-        SD_Vector2? position, 
-        SD_Vector2? velocity, 
-        double? angle = null, 
-        double? angularVelocity = null
-    )
+    protected KinematicObject(string identifier, ScientificDecimal mass, Material material, SD_Vector2 position, SD_Vector2 velocity)
     {
-        Mass = mass ?? 1;
-        Position = position ?? SD_Vector2.Zero;
-        Velocity = velocity ?? SD_Vector2.Zero;
-        Angle = angle ?? 0;
-        AngularVelocity = angularVelocity ?? 0;
-        Name = name;
+        Identifier = identifier;
+        Mass = mass;
+        Material = material;
+        Position = position;
+        Velocity = velocity;
+    }
+
+    protected KinematicObject(string identifier, ScientificDecimal mass, Material material, SD_Vector2 position, SD_Vector2 velocity,
+        double angle, double angularVelocity)
+        : this(identifier, mass, material, position, velocity)
+    {
+        Angle = angle;
+        AngularVelocity = angularVelocity;
     }
 
     private Matrix3X3 GetLocalSpaceMatrix()

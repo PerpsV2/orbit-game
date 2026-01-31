@@ -1,42 +1,39 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame;
 
 namespace OrbitGame;
 
-public class Planet : Body
+public class Planet : Body, IGameDrawable
 {
+    public IMesh Mesh;
     public readonly ScientificDecimal Radius;
-    
-    public Planet(
+
+    private Planet(
+        string identifier,
         ScientificDecimal mass,
+        Material material,
         SD_Vector2 position,
         SD_Vector2 velocity,
-        ScientificDecimal radius,
-        Material material,
         Color colour,
         Body? parent,
-        string name
+        ScientificDecimal radius
     )
-        : base(mass, position, velocity, colour, name, parent)
+        : base(identifier, mass, material, position, velocity, colour, parent)
     {
+        Position += parent?.Position ?? SD_Vector2.Zero;
+        Velocity += parent?.Velocity ?? SD_Vector2.Zero;
         Radius = radius;
-        CircularCollider collider = new CircularCollider(Radius, this, material) {
-            Fixed = true
-        };
-        Collider = collider;
     }
 
-    public override void Draw(SpriteBatch spriteBatch, Camera camera)
+    public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             SD_Vector2 screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
-            
+
             float h = Options.ScreenSize.height;
             float w = Options.ScreenSize.width;
             ScientificDecimal p1 = screenPosition.Y;
@@ -50,7 +47,7 @@ public class Planet : Body
             ScientificDecimal radical;
 
             List<SD_Vector2> intersectionPoints = new();
-            
+
             if (topDiscriminant >= 0)
             {
                 radical = topDiscriminant.Sqrt();
@@ -60,6 +57,7 @@ public class Planet : Body
                     intersectionPoints.Add(new SD_Vector2((p2 + radical).Clamp(0, w), h));
                 }
             }
+
             if (rightDiscriminant >= 0)
             {
                 radical = rightDiscriminant.Sqrt();
@@ -69,6 +67,7 @@ public class Planet : Body
                     intersectionPoints.Add(new SD_Vector2(w, (p1 - radical).Clamp(0, h)));
                 }
             }
+
             if (bottomDiscriminant >= 0)
             {
                 radical = bottomDiscriminant.Sqrt();
@@ -78,6 +77,7 @@ public class Planet : Body
                     intersectionPoints.Add(new SD_Vector2((p2 - radical).Clamp(0, w), 0));
                 }
             }
+
             if (leftDiscriminant >= 0)
             {
                 radical = leftDiscriminant.Sqrt();
@@ -89,43 +89,72 @@ public class Planet : Body
             }
 
             if (intersectionPoints.Count == 0) return;
-            
+
             intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
             var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
-            
-            spriteBatch.DrawPoly(camera, polyPoints, Colour);
+
+            Utils.DrawPoly(graphicsDevice, camera, effect, polyPoints, Colour);
         }
-        
+
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
         else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-            spriteBatch.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
-            spriteBatch.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
-            spriteBatch.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
-            spriteBatch.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
         }
-        
+
         // otherwise draw the planet as a circle
-        else spriteBatch.GS_DrawCircle(camera, Position, Radius, Colour);
+        else
+        {
+            Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
+            float screenRadius = camera.ConvertToScreenDistance(Radius);
+            Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
+                               Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
+            Mesh.Draw(graphicsDevice, effect, transform, new()
+            {
+                {"colour", Colour.ToVector4()}
+            });
+        }
     }
 
-    public override void DrawCollider(SpriteBatch canvas, Camera camera)
+    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
-        Draw(canvas, camera);
+        Draw(graphicsDevice, camera, effect);
     }
-    
+
     public void DrawSphereOfInfluence(SpriteBatch canvas, Camera camera)
     {
         if (Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        
+
         if (orbit.SphereOfInfluenceRadius == null) return;
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
-        
+
         // paint for spheres of influence
         Color colour = new Color((int)Colour.R, Colour.G, Colour.B, 1);
-        
-        canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, colour);
+
+        //canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, colour);
+    }
+
+    public class PlanetTemplate(CircularMesh mesh, Material material) : KinematicObjectTemplate(mesh, material)
+    {
+        public Planet Instantiate(
+            string identifier,
+            ScientificDecimal mass,
+            SD_Vector2 position,
+            SD_Vector2 velocity,
+            Color colour,
+            Body? parent,
+            ScientificDecimal radius
+        )
+        {
+            Planet planet = new Planet(identifier, mass, Material, position, velocity, colour, parent, radius);
+            planet.Mesh = Mesh;
+            planet.Collider = new CircularCollider(radius, planet, Material);
+            return planet;
+        }
     }
 }

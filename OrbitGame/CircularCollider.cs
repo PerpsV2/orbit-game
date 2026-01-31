@@ -8,7 +8,7 @@ public class CircularCollider
     public readonly ScientificDecimal Radius;
 
     public CircularCollider(ScientificDecimal radius, KinematicObject parent, Material material) 
-        : base(parent, material)
+        : base(parent)
     {
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
@@ -16,7 +16,7 @@ public class CircularCollider
     }
 
     public override RectangularCollider GetBoundingBox() =>
-        new (SD_Vector2.Zero, Radius * 2, Radius * 2, Parent, Material);
+        new (SD_Vector2.Zero, Radius * 2, Radius * 2, Parent);
     
     public static explicit operator RectangularCollider(CircularCollider value)
         => value.GetBoundingBox();

@@ -72,184 +72,100 @@ public class OrbitGame : Game
         
         #region Bodies
 
-        Planet sun = new Planet(
-            new ScientificDecimal(1.989m, 30),
-            SD_Vector2.Zero,
-            SD_Vector2.Zero,
-            new ScientificDecimal(6.96340m, 8),
-            new Material(0f),
-            Color.White, null,
-            "Sun"
+        CircularMesh planetMesh = new CircularMesh();
+        planetMesh.GenerateBuffers(Graphics);
+        Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMesh, new Material(0.2f));
+        Planet sun = planetTemplate.Instantiate(
+            "Sun", new ScientificDecimal(1.989m, 30), SD_Vector2.Zero, SD_Vector2.Zero, 
+            Color.White, null, new ScientificDecimal(6.98340m, 8)
         );
-        Planet mercury = new Planet(
-            new ScientificDecimal(3.285m, 23),
-            new SD_Vector2(
-                new ScientificDecimal(-5.6940545m, 10), 
-                new ScientificDecimal( 3.2977160m, 9)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal(-1.2946428m, 4), 
-                new ScientificDecimal(-4.6540563m, 4)
-            ),
-            new ScientificDecimal(2.4397m, 6),
-            new Material(0.2f), new Color(140, 140, 140, 255), sun, "Mercury"
+        Planet mercury = planetTemplate.Instantiate(
+            "Mercury", new ScientificDecimal(3.285m, 23),
+            new SD_Vector2(new ScientificDecimal(-5.6940545m, 10), new ScientificDecimal(3.2977160m, 9)), 
+            new SD_Vector2(new ScientificDecimal(-1.2946428m, 4), new ScientificDecimal(-4.6540563m, 4)), 
+            new Color(140, 140, 140, 255), sun, new ScientificDecimal(2.4397m, 6)
         );
-        Planet venus = new Planet(
-            new ScientificDecimal(4.867m, 24),
-            new SD_Vector2(
-                new ScientificDecimal( 8.2978939m, 10), 
-                new ScientificDecimal( 6.9376114m, 10)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal(-2.2569107m, 4), 
-                new ScientificDecimal( 2.6718186m, 4)
-            ),
-            new ScientificDecimal(6.0518m, 6),
-            new Material(0.2f), new Color(230, 160, 40, 255), sun, "Venus"
+        Planet venus = planetTemplate.Instantiate(
+            "Venus", new ScientificDecimal(4.867m, 24),
+            new SD_Vector2(new ScientificDecimal(8.2978939m, 10), new ScientificDecimal(6.9376114m, 10)),
+            new SD_Vector2(new ScientificDecimal(-2.2569107m, 4), new ScientificDecimal(2.6718186m, 4)), 
+            new Color(230, 160, 40, 255), sun, new ScientificDecimal(6.0518m, 6)
         );
-        Planet earth = new Planet(
-            new ScientificDecimal(5.9722m, 24),
-            new SD_Vector2(
-                new ScientificDecimal(-8.5613233m, 8),
-                new ScientificDecimal(1.4688537m, 11)
-            ),
-            new SD_Vector2(
-                new ScientificDecimal(-3.0223357m, 4),
-                new ScientificDecimal(-1.8447646m, 3)
-            ),
-            new ScientificDecimal(6.378m, 6),
-            new Material(0.2f), new Color(100, 200, 255, 255), sun, "Earth"
+        Planet earth = planetTemplate.Instantiate(
+            "Earth", new ScientificDecimal(5.9722m, 24),
+            new SD_Vector2(new ScientificDecimal(-8.5613233m, 8), new ScientificDecimal(1.4688537m, 11)),
+            new SD_Vector2(new ScientificDecimal(-3.0223357m, 4), new ScientificDecimal(-1.8447646m, 3)), 
+            new Color(100, 200, 255, 255), sun, new ScientificDecimal(6.378m, 6)
         );
-        Planet moon = new Planet(
-            new ScientificDecimal(7.349m, 22), 
-            new SD_Vector2(
-                new ScientificDecimal(-3.6413936m, 8), 
-                new ScientificDecimal(-1.7481022m, 8)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal( 4.2899598m, 2), 
-                new ScientificDecimal(-8.6413934m, 2)
-            ),
-            new ScientificDecimal(1.737m, 6), 
-            new Material(0.2f), new Color(180, 180, 180, 255), earth, "Moon"
+        Planet moon = planetTemplate.Instantiate(
+            "The Moon", new ScientificDecimal(7.349m, 22),
+            new SD_Vector2(new ScientificDecimal(-3.6413936m, 8), new ScientificDecimal(-1.7481022m, 8)), 
+            new SD_Vector2(new ScientificDecimal( 4.2899598m, 2), new ScientificDecimal(-8.6413934m, 2)), 
+            new Color(180, 180, 180, 255), earth, new ScientificDecimal(1.737m, 6)
         );
-        Planet mars = new Planet(
-            new ScientificDecimal(6.39m, 23),
-            new SD_Vector2(
-                new ScientificDecimal(-6.4603691m, 10), 
-                new ScientificDecimal( 2.3127019m, 11)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal(-2.2420469m, 4), 
-                new ScientificDecimal(-4.6499686m, 3)
-            ),
-            new ScientificDecimal(3.3895m, 6),
-            new Material(0.2f), new Color(230, 60, 50, 255), sun, "Mars"
+        Planet mars = planetTemplate.Instantiate(
+            "Mars", new ScientificDecimal(6.39m, 23),
+            new SD_Vector2(new ScientificDecimal(-6.4603691m, 10), new ScientificDecimal( 2.3127019m, 11)), 
+            new SD_Vector2(new ScientificDecimal(-2.2420469m, 4), new ScientificDecimal(-4.6499686m, 3)), 
+            new Color(230, 60, 50, 255), sun, new ScientificDecimal(3.3895m, 6)
         );
-        Planet jupiter = new Planet(
-            new ScientificDecimal(1.898m, 27),
-            new SD_Vector2(
-                new ScientificDecimal( 1.6580000m, 11), 
-                new ScientificDecimal( 7.4166230m, 11)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal(-1.2915655m, 4), 
-                new ScientificDecimal( 3.4670152m, 3)
-            ), 
-            new ScientificDecimal(6.9911m, 7), 
-            new Material(0.2f), new Color(175, 125, 50, 255), sun, "Jupiter"
+        Planet jupiter = planetTemplate.Instantiate(
+            "Jupiter", new ScientificDecimal(1.898m, 27),
+            new SD_Vector2(new ScientificDecimal(1.6580000m, 11), new ScientificDecimal(7.4166230m, 11)),
+            new SD_Vector2(new ScientificDecimal(-1.2915655m, 4), new ScientificDecimal(3.4670152m, 3)), 
+            new Color(175, 125, 50, 255), sun, new ScientificDecimal(6.9911m, 7)
         );
-        Planet saturn = new Planet(
-            new ScientificDecimal(5.683m, 26),
-            new SD_Vector2(
-                new ScientificDecimal( 1.4146019m, 12), 
-                new ScientificDecimal(-2.6971440m, 11)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal( 1.2650097m, 3), 
-                new ScientificDecimal( 9.4749677m, 3)
-            ),
-            new ScientificDecimal(5.8232m, 7),
-            new Material(0.2f), new Color(150, 150, 80, 255), sun, "Saturn"
+        Planet saturn = planetTemplate.Instantiate(
+            "Saturn", new ScientificDecimal(5.683m, 26),
+            new SD_Vector2(new ScientificDecimal( 1.4146019m, 12), new ScientificDecimal(-2.6971440m, 11)), 
+            new SD_Vector2(new ScientificDecimal( 1.2650097m, 3), new ScientificDecimal( 9.4749677m, 3)), 
+            new Color(150, 150, 80, 255), sun, new ScientificDecimal(5.8232m, 7)
         );
-        Planet uranus = new Planet(
-            new ScientificDecimal(8.681m, 25),
-            new SD_Vector2(
-                new ScientificDecimal( 1.6645067m, 12), 
-                new ScientificDecimal( 2.4055482m, 12)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal(-5.6626764m, 3), 
-                new ScientificDecimal( 3.5634117m, 3)
-            ),
-            new ScientificDecimal(2.5362m, 7),
-            new Material(0.2f), new Color(170, 200, 255, 255), sun, "Uranus"
+        Planet uranus = planetTemplate.Instantiate(
+            "Uranus", new ScientificDecimal(8.681m, 25),
+            new SD_Vector2(new ScientificDecimal(1.6645067m, 12), new ScientificDecimal(2.4055482m, 12)),
+            new SD_Vector2(new ScientificDecimal(-5.6626764m, 3), new ScientificDecimal(3.5634117m, 3)), 
+            new Color(170, 200, 255, 255), sun, new ScientificDecimal(2.5362m, 7)
         );
-        Planet neptune = new Planet(
-            new ScientificDecimal(1.024m, 26),
-            new SD_Vector2(
-                new ScientificDecimal( 4.4699311m, 12), 
-                new ScientificDecimal(-9.8183016m, 10)
-            ), 
-            new SD_Vector2(
-                new ScientificDecimal( 7.2829293m, 1), 
-                new ScientificDecimal( 5.4729751m, 3)
-            ),
-            new ScientificDecimal(2.4622m, 7),
-            new Material(0.2f), new Color(100, 120, 200, 255), sun, "Neptune"
+        Planet neptune = planetTemplate.Instantiate(
+            "Neptune", new ScientificDecimal(1.024m, 26),
+            new SD_Vector2(new ScientificDecimal(4.4699311m, 12), new ScientificDecimal(-9.8183016m, 10)),
+            new SD_Vector2(new ScientificDecimal(7.2829293m, 1), new ScientificDecimal(5.4729751m, 3)), 
+            new Color(100, 120, 200, 255), sun, new ScientificDecimal(2.4622m, 7)
         );
-        Planet halley = new Planet(
-            new ScientificDecimal(2.2m, 14),
-            new SD_Vector2(
-                new ScientificDecimal(-2.9450469m, 12),
-                new ScientificDecimal(4.0907881m, 12)
-            ),
-            new SD_Vector2(
-                new ScientificDecimal(8.0919083m, 2),
-                new ScientificDecimal(8.0919083m, 2)
-            ),
-            new ScientificDecimal(5.5m, 3),
-            new Material(0.2f), new Color(200, 100, 200, 255), sun, "Halley"
+        Planet halley = planetTemplate.Instantiate(
+            "Halley", new ScientificDecimal(2.2m, 14),
+            new SD_Vector2(new ScientificDecimal(-2.9450469m, 12), new ScientificDecimal(4.0907881m, 12)),
+            new SD_Vector2(new ScientificDecimal(8.0919083m, 2), new ScientificDecimal(8.0919083m, 2)),
+            new Color(200, 100, 200, 255), sun, new ScientificDecimal(5.5m, 3)
         );
-        /*Ship smokestack = new Ship(
-            1000, new SD_Vector2(new ScientificDecimal(6.378m, 6) + 4000000, 0), 
-            new SD_Vector2(0, 10), new Material(0.5f), new Color(0, 125, 0, 255),
-            earth,
-            SD_Vector2.CenterConvex([
-                new (4,4),
-                new (4, -3),
-                new (-2, -5),
-                new (-50, 0),
-                new (-3, 5)
-            ]),
-            "Smokestack"
-        );*/
+        SD_Vector2[] points = SD_Vector2.CenterConvex([
+            new(4, 4),
+            new(4, -3),
+            new(-2, -5),
+            new(-50, 0),
+            new(-3, 5)
+        ]);
+        Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, GraphicsDevice, new Material(0.5f), 1000);
         
         #endregion
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < 1000; ++i)
         {
-            var randColour = _rnd.Next(0, 256);
-            var randDisplacement = new SD_Vector2(_rnd.Next(-10000, 10000), _rnd.Next(-10000, 10000));
-            _bodies.Add(new Ship(
-                    1000, new SD_Vector2(new ScientificDecimal(6.378m, 6) + 4000000, 0) + 
-                    randDisplacement, SD_Vector2.Zero, new Material(0.5f), new Color(255, randColour, randColour, 255),
-                    earth, 
-                    SD_Vector2.CenterConvex([
-                        new (100,100),
-                        new (100, -100),
-                        new (-100, -100),
-                        new (-100, 100)
-                    ]),
-                    "Smokestack"
-                ));
+            int randomRed = _rnd.Next(0, 256);
+            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-10000000, 10000000), _rnd.Next(-10000000, 10000000));
+            Ship smokestack = smokestackTemplate.Instantiate("Smokestack " + i,
+                new SD_Vector2(new ScientificDecimal(6.378m, 7), 0) + randomPosition, SD_Vector2.Zero,
+                new Color(0, randomRed, 0, 255), earth);
+            _bodies.Add(smokestack);
         }
         _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = earth;
         _tracking = OriginBody.Body;
+        _trackingIndex = _bodies.IndexOf(OriginBody.Body);
         
         base.Initialize();
     }
@@ -322,18 +238,18 @@ public class OrbitGame : Game
             foreach (var planet in _planets)
                 planet.Kepler_UpdatePosition(_time);
 
-            foreach (var ship in _ships)
+            /*foreach (var ship in _ships)
             {
                 ship.SetNetGravitationalAcceleration(_planets);
                 ship.NI_UpdatePosition(_deltaTimeStep, NumericalIntegrator.ImplicitEuler, x => x.SetNetGravitationalAcceleration(_planets));
-            }
+            }*/
             
-            foreach (var ship in _ships)
+            /*foreach (var ship in _ships)
                 foreach (var body in _bodies)
                     if (body != ship)
                         if (ship.Collider != null && body.Collider != null)
                             if (ship.Collider.NearsWith(body.Collider))
-                                ship.Collider.CollidesWith(body.Collider);
+                                ship.Collider.CollidesWith(body.Collider);*/
         }
         
         _camera.SetOrigin(_tracking.Position);
@@ -363,12 +279,12 @@ public class OrbitGame : Game
         }
 
         CurrentEffect = _defaultEffect;
-        foreach (var planet in _planets)
-            planet.DrawOrbitalPathLRL(_spriteBatch, _camera);
+        /*foreach (var planet in _planets)
+            planet.DrawOrbitalPathLRL(GraphicsDevice, _camera, _defaultEffect);*/
         foreach (var planet in _planets)
             planet.DrawSphereOfInfluence(_spriteBatch, _camera);
         foreach (var body in _bodies)
-            body.Draw(_spriteBatch, _camera);
+            body.Draw(GraphicsDevice, _camera, _defaultEffect);
         
         _spriteBatch.End();
         

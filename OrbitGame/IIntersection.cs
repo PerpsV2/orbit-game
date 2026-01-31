@@ -24,7 +24,7 @@ public readonly struct PhysicsCollision(CompactCollider reference, CompactCollid
     public readonly SD_Vector2 PenetrationVector = penetrationVector;
     
     public ScientificDecimal Restitution =>
-        (Reference.Material.RestitutionCoefficient + Incident.Material.RestitutionCoefficient) / 2;
+        (Reference.Parent.Material.RestitutionCoefficient + Incident.Parent.Material.RestitutionCoefficient) / 2;
 
     public PhysicsCollision GetInverse()
     {

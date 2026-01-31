@@ -9,7 +9,7 @@ public class ConvexCollider : CompactCollider, ICollider
     private readonly SD_Vector2[] _points;
     private SD_Vector2[] RotatedPoints => _points.Select(x => Matrix3X3.Rotation(Parent.Angle) * x).ToArray();
 
-    public ConvexCollider(SD_Vector2[] points, KinematicObject parent, Material material) : base(parent, material)
+    public ConvexCollider(SD_Vector2[] points, KinematicObject parent) : base(parent)
     {
         _points = points.Distinct().ToArray();
         Inertia = CalculateInertia();
@@ -61,7 +61,7 @@ public class ConvexCollider : CompactCollider, ICollider
         SD_Vector2 topRight = new SD_Vector2(maxX, maxY);
         SD_Vector2 bottomLeft = new SD_Vector2(minX, minY);
         
-        return new RectangularCollider(topRight, bottomLeft, Parent, Material);
+        return new RectangularCollider(topRight, bottomLeft, Parent);
     }
     
     public static explicit operator RectangularCollider(ConvexCollider value)
@@ -212,7 +212,7 @@ public class ConvexCollider : CompactCollider, ICollider
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
             [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft], 
-            collider.Parent, collider.Material);
+            collider.Parent);
         return IntersectsWith(convexRect);
     }
 

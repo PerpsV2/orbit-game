@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace OrbitGame;
+
+public class CircularMesh : IMesh
+{
+    public readonly static int CircleVertices = 400;
+    private static VertexBuffer _vertexBuffer;
+    private static IndexBuffer _indexBuffer;
+    
+    public void GenerateBuffers(GraphicsDevice graphicsDevice)
+    {
+        var vertices = new VertexPositionColor[CircleVertices + 1];
+        for (int i = 0; i < CircleVertices; i++)
+        {
+            double angle = i * Math.Tau / CircleVertices;
+            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
+        }
+        vertices[^1] = new VertexPositionColor(Vector3.Zero, Color.White);
+
+        var indices = new int[CircleVertices * 3];
+        for (int i = 0; i < CircleVertices; i++)
+        {
+            indices[i * 3] = CircleVertices;
+            indices[i * 3 + 1] = i;
+            indices[i * 3 + 2] = (i + 1) % CircleVertices;
+        }
+         
+        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+         
+        _vertexBuffer.SetData(vertices);
+        _indexBuffer.SetData(indices);
+    }
+    
+    public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
+    {
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        graphicsDevice.Indices = _indexBuffer;
+        
+        effect.Parameters["world"].SetValue(transform);
+        foreach (var pair in shaderParameters)
+            effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            graphicsDevice.DrawInstancedPrimitives(
+                PrimitiveType.TriangleList, 0, 0, CircleVertices, _vertexBuffer.VertexCount
+                );
+        }
+    }
+
+    public void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect, Vector2 center, float radius, Color colour)
+    {
+        Matrix transform = Matrix.CreateScale(radius, radius, 1) *
+                           Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0));
+        Draw(graphicsDevice, effect, transform, new() {
+                {"colour", colour.ToVector4()}
+        });
+    }
+
+    public void GS_Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect, SD_Vector2 center,
+        ScientificDecimal radius, Color colour)
+    {
+        Vector2 screenCenter = camera.ConvertToScreenCoordinates(center);
+        float screenRadius = camera.ConvertToScreenDistance(radius);
+        Draw(graphicsDevice, camera, effect, screenCenter, screenRadius, colour);
+    }
+}

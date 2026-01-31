@@ -9,36 +9,35 @@ namespace OrbitGame;
 /// <summary>
 /// A KinematicObject with information about shape, trajectory, material and methods for physics.
 /// </summary>
-public abstract class Body : KinematicObject
+public abstract class Body : KinematicObject, IGameDrawable
 {
     public Color Colour;
-    public CompactCollider? Collider;
     public Body? Parent;
+    public ICollider? Collider;
     public KeplerOrbit? Orbit;
     
-    protected Body(ScientificDecimal mass, 
-        SD_Vector2 position, 
-        SD_Vector2 velocity, 
-        Color colour, 
-        string name, 
+    protected Body(
+        string identifier, 
+        ScientificDecimal mass, 
+        Material material,
+        SD_Vector2 position,
+        SD_Vector2 velocity,
+        Color colour,
         Body? parent) 
-        : base(name, mass, 
-            position + (parent?.Position ?? SD_Vector2.Zero), 
-            velocity + (parent?.Velocity ?? SD_Vector2.Zero)
-            )
+        : base(identifier, mass, material, position, velocity)
     {
         Colour = colour;
         Parent = parent;
         Orbit = CalculateOrbit(true);
     }
-
-    public abstract void Draw(SpriteBatch spriteBatch, Camera camera);
-    public abstract void DrawCollider(SpriteBatch canvas, Camera camera);
+    
+    public abstract void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect);
+    public abstract void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect);
 
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPathLRL(SpriteBatch canvas, Camera camera)
+    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
@@ -97,8 +96,8 @@ public abstract class Body : KinematicObject
             else
             {
                 if (orbit.Center == null) throw new NullReferenceException("Elliptic orbit must have a center.");
-                canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
-                    semiMinorAxis, orbit.Periapsis, Colour);
+                //canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
+                //    semiMinorAxis, orbit.Periapsis, Colour);
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -124,17 +123,17 @@ public abstract class Body : KinematicObject
                     orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
             }
 
-            if (parentSOIRadius != null)
+            /*if (parentSOIRadius != null)
             {
                 double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
                                                         (orbit.Eccentricity * parentSOIRadius /
                                                          orbit.SemiLatusRectum))) + Math.PI;
                 orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
                 orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
-            }
+            }*/
         }
 
-        if (orbitPoints.Count > 0) canvas.GS_DrawPath(camera, orbitPoints, Colour);
+        //if (orbitPoints.Count > 0) Utils.GS_DrawPath(graphicsDevice, camera, effect, orbitPoints, Colour);
     }
     
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)

@@ -13,9 +13,8 @@ namespace OrbitGame;
 /// Complexity of colliders follows this order
 /// Convex > Rectangular > Circular
 /// </remarks>
-public abstract class CompactCollider(KinematicObject parent, Material material) : ICollider
+public abstract class CompactCollider(KinematicObject parent) : ICollider
 {
-    public readonly Material Material = material;
     public readonly KinematicObject Parent = parent;
     public ScientificDecimal Inertia;
         

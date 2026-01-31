@@ -91,36 +91,8 @@ public static class Utils
         _circleIndexBuffer.SetData(indices);
     }
     
-    public static void GS_DrawCircle(
-        this SpriteBatch spriteBatch, 
-        Camera camera, 
-        SD_Vector2 center, 
-        ScientificDecimal radius, 
+    public static void DrawPoly(GraphicsDevice graphicsDevice, Camera camera, Effect effect, List<Vector2> points, 
         Color colour)
-    {
-        Vector2 screenCenter = camera.ConvertToScreenCoordinates(center);
-        float screenRadius = camera.ConvertToScreenDistance(radius);
-        
-        spriteBatch.GraphicsDevice.SetVertexBuffer(_circleVertexBuffer);
-        spriteBatch.GraphicsDevice.Indices = _circleIndexBuffer;
-
-        Effect effect = OrbitGame.CurrentEffect;
-        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
-            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
-            0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(screenRadius, screenRadius, 1)) * 
-                       Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0)));
-        effect.Parameters["colour"].SetValue(colour.ToVector4());
-        foreach (var pass in effect.CurrentTechnique.Passes)
-        {
-            pass.Apply();
-            spriteBatch.GraphicsDevice.DrawInstancedPrimitives(
-                PrimitiveType.TriangleList, 0, 0, CircleVertices, _circleVertexBuffer.VertexCount
-                );
-        }
-    }
-    
-    public static void DrawPoly(this SpriteBatch spriteBatch, Camera camera, List<Vector2> points, Color colour)
     {
         if (points.Count == 0) return;
         
@@ -136,7 +108,6 @@ public static class Utils
             indices[i * 3 + 2] = (i + 2) % vertices.Length;
         }
 
-        Effect effect = OrbitGame.CurrentEffect;
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
@@ -146,19 +117,14 @@ public static class Utils
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+            graphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3
             );
         }
     }
 
-    public static void GS_DrawPath(
-        this SpriteBatch spriteBatch,
-        Camera camera, 
-        List<SD_Vector2> points, 
-        Color colour,
-        bool closed = false
-        )
+    public static void GS_DrawPath(GraphicsDevice graphicsDevice, Camera camera, Effect effect, List<SD_Vector2> points, 
+        Color colour, bool closed = false)
     {
         List<Vector2> screenPoints = points.Select(camera.ConvertToScreenCoordinates).ToList();
         
@@ -171,7 +137,6 @@ public static class Utils
             indices[i] = i;
         if (closed) indices[^1] = 0;
         
-        Effect effect = OrbitGame.CurrentEffect;
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
@@ -181,13 +146,13 @@ public static class Utils
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+            graphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.LineStrip, vertices, 0, vertices.Length, indices, 0, indices.Length - 2
             );
         }
     }
 
-    public static void DrawLine(this SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color colour)
+    public static void DrawLine(this GraphicsDevice graphicsDevice, Vector2 start, Vector2 end, Color colour)
     {
         VertexPositionColor[] vertices = [new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)];
         int[] indices = [0, 1];
@@ -202,7 +167,7 @@ public static class Utils
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            spriteBatch.GraphicsDevice.DrawUserIndexedPrimitives(
+            graphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
             );
         }

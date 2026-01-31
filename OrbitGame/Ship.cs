@@ -7,34 +7,47 @@ using MonoGame;
 
 namespace OrbitGame;
 
-public class Ship : Body
+public class Ship : Body, IGameDrawable
 {
-    private readonly PolyMesh _polyMesh;
-    
-    public Ship(
-        ScientificDecimal mass, SD_Vector2 position, SD_Vector2 velocity, Material material, Color colour, Planet parent,
-        SD_Vector2[] mesh, string name)
-        : base(mass, position, velocity, colour, name, parent)
+    public readonly IMesh Mesh;
+        
+    private Ship(
+        string identifier,
+        ScientificDecimal mass,
+        Material material, 
+        SD_Vector2 position,
+        SD_Vector2 velocity, 
+        Color colour, 
+        Planet parent,
+        SD_Vector2[] points,
+        IMesh mesh)
+        : base(identifier, mass, material, position, velocity, colour, parent)
     {
-        LinkedList<int> colliderIndices = SD_Vector2.GetConvexHullIndices(mesh);
-        SD_Vector2[] meshPoints = colliderIndices.Select(x => mesh[x]).ToArray();
-        _polyMesh = new PolyMesh(OrbitGame.Graphics, colour);
-        _polyMesh.SetBuffersPoly(meshPoints);
-        Collider = new ConvexCollider(meshPoints, this, material);
+        Position += parent.Position;
+        Velocity += parent.Velocity;
+        Mesh = mesh;
+        Collider = new ConvexCollider(points, this);
     }
 
-    public override void Draw(SpriteBatch spriteBatch, Camera camera)
+    public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
-        _polyMesh.DrawMesh(camera, this);
-
+        Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height), (float)(Options.ScreenSize.width / camera.Width));
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
-        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
-        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
-        spriteBatch.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
+        Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
+                           Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
+                           Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
+        Mesh.Draw(graphicsDevice, effect, transform, new()
+        {
+            {"colour", Colour.ToVector4()}
+        });
+
+        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
+        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
+        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
+        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
     }
 
-    public override void DrawCollider(SpriteBatch canvas, Camera camera)
+    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
         throw new NotImplementedException();
     }
@@ -42,7 +55,7 @@ public class Ship : Body
     public void CalculateShipOrbit(List<Planet> planets)
     {
         if (Parent == null)
-            throw new NullReferenceException($"Ship \"{Name}\" has no parent");
+            throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
         
         ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
@@ -59,5 +72,22 @@ public class Ship : Body
         }
         
         Orbit = CalculateOrbit(false);
+    }
+    
+    /// <summary>
+    /// Optimize the creation of multiple similar ships by using the same object for multiple instance's properties
+    /// </summary>
+    public class ShipTemplate(SD_Vector2[] points, GraphicsDevice graphics, Material material, ScientificDecimal mass)
+        : KinematicObjectTemplate(new PolyMesh(points), material)
+    {
+        private readonly Material _material = material;
+
+        public Ship Instantiate(string identifier, SD_Vector2 position, SD_Vector2 velocity, Color colour, Planet parent)
+        {
+            Mesh.GenerateBuffers(graphics);
+            Ship instance = new Ship(identifier, mass, _material, position, velocity, colour, parent, points, Mesh);
+            Instances.Add(identifier, instance);
+            return instance;
+        }
     }
 }

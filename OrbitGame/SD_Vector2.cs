@@ -103,8 +103,8 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     public static RotationDirection TripletRotationDirection(SD_Vector2[] triplet)
     {
         if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
-        ScientificDecimal edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
-        ScientificDecimal edgeSlope2 = (triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X);
+        double edgeSlope1 = (double)((triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X));
+        double edgeSlope2 = (double)((triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X));
         return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
             edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
     }
