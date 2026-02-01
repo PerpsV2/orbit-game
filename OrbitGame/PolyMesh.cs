@@ -21,7 +21,7 @@ public class PolyMesh : IMesh
         _points = points.Select(v => new Vector2((float)v.X, (float)v.Y)).ToArray();
     }
 
-    public void GenerateBuffers(GraphicsDevice graphicsDevice)
+    public void GenerateBuffers()
     {
         if (_points.Length == 0) return;
         
@@ -37,8 +37,8 @@ public class PolyMesh : IMesh
             _indices[i * 3 + 2] = (i + 2) % _vertices.Length;
         }
 
-        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
-        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
+        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
         
         _vertexBuffer.SetData(_vertices);
         _indexBuffer.SetData(_indices);

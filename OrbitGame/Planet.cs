@@ -7,20 +7,20 @@ namespace OrbitGame;
 
 public class Planet : Body, IGameDrawable
 {
-    public IMesh Mesh;
     public readonly ScientificDecimal Radius;
 
     private Planet(
+        PlanetTemplate template,
         string identifier,
         ScientificDecimal mass,
-        Material material,
         SD_Vector2 position,
         SD_Vector2 velocity,
         Color colour,
         Body? parent,
-        ScientificDecimal radius
+        ScientificDecimal radius,
+        CompactCollider collider
     )
-        : base(identifier, mass, material, position, velocity, colour, parent)
+        : base(template, identifier, mass, position, velocity, colour, parent, null, collider)
     {
         Radius = radius;
     }
@@ -137,21 +137,27 @@ public class Planet : Body, IGameDrawable
         //canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, colour);
     }
 
-    public class PlanetTemplate(CircularMesh mesh, Material material) : KinematicObjectTemplate(mesh, material)
+    public class PlanetTemplate(Material material) 
+        : KinematicObjectTemplate(new CircularMesh(), null, material)
     {
-        public Planet Instantiate(
+        public Planet CreateInstance(
             string identifier,
             ScientificDecimal mass,
-            SD_Vector2 position,
-            SD_Vector2 velocity,
+            SD_Vector2 position, 
+            SD_Vector2 velocity, 
+            double angle,
+            double angularVelocity,
             Color colour,
             Body? parent,
             ScientificDecimal radius
-        )
+            )
         {
-            Planet planet = new Planet(identifier, mass, Material, position, velocity, colour, parent, radius);
-            planet.Mesh = Mesh;
-            planet.Collider = new CircularCollider(radius, planet, Material);
+            CircularCollider collider = new CircularCollider(radius);
+            Planet planet = new Planet(this, identifier, mass, position, velocity, colour, parent, radius, collider) {
+                    Angle = angle,
+                    AngularVelocity = angularVelocity
+                };
+            AddInstance(identifier, planet);
             return planet;
         }
     }

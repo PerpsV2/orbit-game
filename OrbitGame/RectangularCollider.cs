@@ -7,7 +7,7 @@ namespace OrbitGame;
 /// <summary>
 /// Rectangular collider is unaffected by rotations
 /// </summary>
-public class RectangularCollider : CompactCollider, ICollider
+public class RectangularCollider : CompactCollider
 {
     // Values are the signed ordinates of the vertex points of the collider
     private readonly ScientificDecimal _top;
@@ -20,71 +20,63 @@ public class RectangularCollider : CompactCollider, ICollider
     public SD_Vector2 BottomRight => new(_right, _bottom);
     public SD_Vector2 BottomLeft => new(_left, _bottom);
     
-    public RectangularCollider(SD_Vector2 center,
-        ScientificDecimal width,
-        ScientificDecimal height, 
-        KinematicObject parent) : base(parent)
+    public RectangularCollider(SD_Vector2 center, ScientificDecimal width, ScientificDecimal height)
     {
         _top = center.Y + height / 2;
         _right = center.X + width / 2;
         _bottom = center.Y - height / 2;
         _left = center.X - width / 2;
-        Inertia = parent.Mass * (height * height + width * width) / 12;
+        // parent.Mass * (height * height + width * width) / 12;
     }
     
-    public RectangularCollider(SD_Vector2 topRight, SD_Vector2 bottomLeft, KinematicObject parent)
+    public RectangularCollider(SD_Vector2 topRight, SD_Vector2 bottomLeft)
         : this(
             (topRight + bottomLeft) / 2, 
             topRight.X - bottomLeft.X, 
-            topRight.Y - bottomLeft.Y, 
-            parent
+            topRight.Y - bottomLeft.Y
         ) 
     { }
 
     public override RectangularCollider GetBoundingBox() => this;
 
-    protected override bool NearsWith(ICollider collider)
+    public override bool NearsWith(CompactCollider collider, SD_Vector2 relPosition, double relAngle)
     {
         if (collider is RectangularCollider rect)
-            return Position.Y + _top >= rect.Position.Y + rect._bottom && 
-                   Position.Y + _bottom <= rect.Position.Y + rect._top && 
-                   Position.X + _right >= rect.Position.X + rect._left && 
-                   Position.X + _left <= rect.Position.X + rect._right;
+            return _top >= relPosition.Y + rect._bottom && _bottom <= relPosition.Y + rect._top && 
+                   _right >= relPosition.X + rect._left && _left <= relPosition.X + rect._right;
         // convert the other collider into a rectangular collider if it is not one
-        else if (collider is CompactCollider compact)
-            return NearsWith(compact.GetBoundingBox());
-        else throw new ArgumentException("RectangularCollider cannot be near invalid collider type");
+        return NearsWith(collider.GetBoundingBox(), relPosition, relAngle);
     }
 
-    protected override PointCollision IntersectsWith(SD_Vector2 point)
+    public override PointCollision IntersectsWith(SD_Vector2 position, SD_Vector2 point)
     {
         if (IsEmpty()) return new(false);
-        point -= Parent.Position;
+        point -= position;
         return new(point.Y <= _top && point.Y >= _bottom && point.X <= _right && point.X >= _left);
     }
     
-    protected override PhysicsCollision? IntersectsWith(CircularCollider collider)
+    protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SD_Vector2 relPosition, double relAngle)
     {
         throw new NotImplementedException();
     }
 
-    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider)
-        => ((PhysicsCollision?)collider.IntersectsWith(this))?.GetInverse() ?? null;
+    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SD_Vector2 relPosition,
+        double relAngle)
+        => throw new NotImplementedException(); // collider.IntersectsWith(this, -relPosition, -relAngle)?.GetInverse() ?? null;
 
-    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider)
+    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider, SD_Vector2 relPosition, double relAngle)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
         HashSet<SD_Vector2> collisionManifold = new();
         SD_Vector2? minPenetrationVector = null;
         SD_Vector2[] penetrationVectors = new SD_Vector2[4];
-        if (Position.Y + _bottom <= collider.Position.Y + collider._top && 
-            Position.Y + _top >= collider.Position.Y + collider._bottom)
+        if (_bottom <= relPosition.Y + collider._top && _top >= relPosition.Y + collider._bottom)
         {
-            penetrationVectors[0] = new(0, collider.Position.Y + collider._top - Position.Y - _bottom);
-            penetrationVectors[1] = new(0, Position.Y + _top - collider.Position.Y - collider._bottom);
-            penetrationVectors[2] = new(collider.Position.X + collider._right - Position.X - _left, 0);
-            penetrationVectors[3] = new(Position.X + _right - collider.Position.X - _left, 0);
+            penetrationVectors[0] = new(0, relPosition.Y + collider._top - _bottom);
+            penetrationVectors[1] = new(0, _top - relPosition.Y - collider._bottom);
+            penetrationVectors[2] = new(relPosition.X + collider._right - _left, 0);
+            penetrationVectors[3] = new(_right - relPosition.X - _left, 0);
             minPenetrationVector = penetrationVectors.MinBy(x => x.Magnitude());
         }
 

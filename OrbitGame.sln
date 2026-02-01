@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame", "OrbitGame\Orbi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame.Tests", "OrbitGame.Tests\OrbitGame.Tests.csproj", "{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame.Profiling", "OrbitGame.Profiling\OrbitGame.Profiling.csproj", "{CD149F91-B072-415F-B6BB-E6AEDBE2FB6D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD149F91-B072-415F-B6BB-E6AEDBE2FB6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD149F91-B072-415F-B6BB-E6AEDBE2FB6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD149F91-B072-415F-B6BB-E6AEDBE2FB6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD149F91-B072-415F-B6BB-E6AEDBE2FB6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

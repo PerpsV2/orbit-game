@@ -20,8 +20,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     
     private readonly bool _infinite = false;
 
-    private decimal _mantissa;
-    public decimal Mantissa
+    private double _mantissa;
+    public double Mantissa
     {
         get
         {
@@ -50,12 +50,12 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         }
     }
     
-    public bool Positive => decimal.IsPositive(_mantissa);
-    public bool Negative => decimal.IsNegative(_mantissa);
+    public bool Positive => double.IsPositive(_mantissa);
+    public bool Negative => double.IsNegative(_mantissa);
     public bool IsInfinite => _infinite;
     
 
-    public ScientificDecimal(decimal mantissa, int exponent)
+    public ScientificDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
         Exponent = exponent;
@@ -63,7 +63,7 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     }
 
     public ScientificDecimal(int exponent)
-        : this(1m, exponent) {}
+        : this(1, exponent) {}
 
     public ScientificDecimal()
         : this(0, 0) {}
@@ -109,12 +109,10 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     {
         int exponentDifference = exponent - Exponent;
         if (exponentDifference < 0) throw new ArgumentOutOfRangeException();
-        if (exponentDifference == 0) return Normalize();
-        while (Exponent != exponent)
-        {
-            Mantissa /= 10;
-            Exponent++;
-        }
+        if (exponentDifference == 0) return this;
+        Mantissa /= Math.Pow(10, exponentDifference);
+        Exponent += exponentDifference;
+
         return this;
     }
     
@@ -125,23 +123,23 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         => new(value, 0);
 
     public static implicit operator ScientificDecimal(double value)
-        => new((decimal)value, 0);
+        => new(value, 0);
     
     public static implicit operator ScientificDecimal(decimal value) 
-        => new(value, 0);
+        => new((double)value, 0);
 
     // from scientific decimal
     public static explicit operator double(ScientificDecimal value)
-        => (double)value.Mantissa * Math.Pow(10, value.Exponent);
+        => value.Mantissa * Math.Pow(10, value.Exponent);
     
     public static explicit operator float(ScientificDecimal value)
         => Convert.ToSingle((double)value);
     
     public static explicit operator int (ScientificDecimal value)
-        => (int)((double)value.Mantissa * Math.Pow(10, value.Exponent));
+        => (int)(value.Mantissa * Math.Pow(10, value.Exponent));
     
     public static explicit operator uint (ScientificDecimal value)
-        => (uint)((double)value.Mantissa * Math.Pow(10, value.Exponent));
+        => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
     
     #endregion
     
@@ -156,10 +154,11 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         }
         if (left._infinite) return left;
         if (right._infinite) return right;
-        return (left.Exponent > right.Exponent ? 
-            new ScientificDecimal(right.IncreaseExponent(left.Exponent).Mantissa + left.Mantissa, left.Exponent) :
-            new ScientificDecimal(left.IncreaseExponent(right.Exponent).Mantissa + right.Mantissa, right.Exponent))
-            .Normalize();
+        if (left.Exponent > right.Exponent)
+            return new ScientificDecimal(right.IncreaseExponent(left.Exponent).Mantissa + left.Mantissa, left.Exponent);
+        if (right.Exponent > left.Exponent)
+            return new ScientificDecimal(left.IncreaseExponent(right.Exponent).Mantissa + right.Mantissa, right.Exponent);
+        return new ScientificDecimal(left.Mantissa + right.Mantissa, left.Exponent);
     }
 
     private static ScientificDecimal Multiply(ScientificDecimal left, ScientificDecimal right)

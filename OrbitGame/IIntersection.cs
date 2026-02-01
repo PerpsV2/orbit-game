@@ -16,9 +16,8 @@ public readonly struct PointCollision(bool intersects = true)
 /// Values are relative to the reference collider's parent without respect for angle
 /// </summary>
 public readonly struct PhysicsCollision(CompactCollider reference, CompactCollider incident, HashSet<SD_Vector2> manifold, SD_Vector2 penetrationVector)
-    : IIntersection, IFormattable
 {
-    public readonly CompactCollider Reference = reference;
+    /*public readonly CompactCollider Reference = reference;
     public readonly CompactCollider Incident = incident;
     public readonly HashSet<SD_Vector2> CollisionManifold = manifold;
     public readonly SD_Vector2 PenetrationVector = penetrationVector;
@@ -30,7 +29,7 @@ public readonly struct PhysicsCollision(CompactCollider reference, CompactCollid
     {
         HashSet<SD_Vector2> newManifold = new();
         foreach (SD_Vector2 point in CollisionManifold)
-            newManifold.Add(point + PenetrationVector + Reference.Position - Incident.Position);
+            newManifold.Add(point + PenetrationVector + Reference.Parent.Position - Incident.Parent.Position);
         
         return new PhysicsCollision(
             Incident, Reference, newManifold, -PenetrationVector
@@ -40,5 +39,5 @@ public readonly struct PhysicsCollision(CompactCollider reference, CompactCollid
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         return $"({Incident}, {Reference}, {CollisionManifold}, {PenetrationVector})";
-    }
+    }*/
 }

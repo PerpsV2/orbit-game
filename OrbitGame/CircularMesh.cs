@@ -5,13 +5,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public class CircularMesh : IMesh
+public class CircularMesh() : IMesh
 {
     public readonly static int CircleVertices = 400;
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
-    
-    public void GenerateBuffers(GraphicsDevice graphicsDevice)
+
+    public void GenerateBuffers()
     {
         var vertices = new VertexPositionColor[CircleVertices + 1];
         for (int i = 0; i < CircleVertices; i++)
@@ -29,8 +29,8 @@ public class CircularMesh : IMesh
             indices[i * 3 + 2] = (i + 1) % CircleVertices;
         }
          
-        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
-        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
          
         _vertexBuffer.SetData(vertices);
         _indexBuffer.SetData(indices);

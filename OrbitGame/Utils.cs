@@ -9,7 +9,7 @@ namespace OrbitGame;
 
 public static class Constants
 {
-    public static readonly ScientificDecimal G = new(6.6743m, -11);
+    public static readonly ScientificDecimal G = new(6.6743, -11);
 }
 
 public enum RotationDirection
@@ -42,15 +42,15 @@ public static class Utils
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
     
-    public static decimal DecimalSqrt(decimal x, decimal epsilon = 0.0M)
+    public static double DecimalSqrt(double x, double epsilon = 0.0)
     {
         if (x < 0) throw new ArithmeticException("Cannot calculate square root from a negative number");
 
-        decimal current = (decimal)Math.Sqrt((double)x), previous;
+        double current = Math.Sqrt(x), previous;
         do
         {
             previous = current;
-            if (previous == 0.0M) return 0;
+            if (previous == 0.0) return 0;
             current = (previous + x / previous) / 2;
         }
         while (Math.Abs(previous - current) > epsilon);
@@ -60,6 +60,35 @@ public static class Utils
     public static ScientificDecimal CalculateTriangleArea(SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)
     {
         return (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)).Abs()/ 2;
+    }
+    
+    public static ScientificDecimal CalculateConvexInertia(SD_Vector2[] points, ScientificDecimal mass)
+    {
+        var triangles = SD_Vector2.TriangulateConvex(points);
+        ScientificDecimal totalArea = triangles.Aggregate(new ScientificDecimal(0),
+            (a, t) => a + CalculateTriangleArea(t.a, t.b, t.c));
+        
+        ScientificDecimal[] masses = new ScientificDecimal[triangles.Length];
+        SD_Vector2[] centroids = new SD_Vector2[triangles.Length];
+        ScientificDecimal[] inertias = new ScientificDecimal[triangles.Length];
+        for (int i = 0; i < triangles.Length; ++i)
+        {
+            SD_Vector2 a = triangles[i].a;
+            SD_Vector2 b = triangles[i].b;
+            SD_Vector2 c = triangles[i].c;
+            
+            masses[i] = mass / totalArea * Utils.CalculateTriangleArea(a, b, c);
+            centroids[i] = (a + b + c) / 3;
+            inertias[i] = masses[i] * (SD_Vector2.Dot(a, a) + SD_Vector2.Dot(b, b) + SD_Vector2.Dot(c, c) +
+                                       SD_Vector2.Dot(c, c) + SD_Vector2.Dot(a, b) + SD_Vector2.Dot(b, c) + 
+                                       SD_Vector2.Dot(c, a))/ 6;
+        }
+
+        ScientificDecimal totalInertia = 0;
+        for (int i = 0; i < triangles.Length; ++i)
+            totalInertia += inertias[i] + masses[i] * (centroids[i].X.Square() + centroids[i].Y.Square());
+        
+        return totalInertia;
     }
 
     public readonly static int CircleVertices = 400;

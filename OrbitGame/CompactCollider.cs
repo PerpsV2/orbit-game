@@ -13,12 +13,10 @@ namespace OrbitGame;
 /// Complexity of colliders follows this order
 /// Convex > Rectangular > Circular
 /// </remarks>
-public abstract class CompactCollider(KinematicObject parent) : ICollider
+public abstract class CompactCollider
 {
-    public readonly KinematicObject Parent = parent;
     public ScientificDecimal Inertia;
         
-    public SD_Vector2 Position => Parent.Position;
     public bool Fixed;
     
     /// <summary>
@@ -26,75 +24,39 @@ public abstract class CompactCollider(KinematicObject parent) : ICollider
     /// </summary>
     public abstract RectangularCollider GetBoundingBox();
     
-    public bool NearsWith(object? obj)
-    {
-        if (obj is ICollider col) return NearsWith(col);
-        throw new ArgumentException();
+    public virtual bool NearsWith(CompactCollider collider, SD_Vector2 relPosition, double relAngle)
+    { 
+        return GetBoundingBox().NearsWith(collider.GetBoundingBox(), relPosition, relAngle);
     }
     
-    protected virtual bool NearsWith(ICollider collider)
+    public abstract PointCollision IntersectsWith(SD_Vector2 position, SD_Vector2 point);
+    public PhysicsCollision? IntersectsWith(CompactCollider collider, SD_Vector2 relPosition, double relAngle)
     {
         switch (collider)
         {
-            case CompactCollider c: 
-                return GetBoundingBox().NearsWith(c.GetBoundingBox());
-            default: throw new NotSupportedException();
-        }
-    }
-    
-    
-    public IIntersection? IntersectsWith(object? obj)
-    {
-        switch (obj)
-        {
-            case ICollider c: return IntersectsWith(c);
-            case SD_Vector2 c : return IntersectsWith(c);
-            default: throw new ArgumentException();
-        }
-    }
-    
-    protected abstract PointCollision IntersectsWith(SD_Vector2 point);
-    protected PhysicsCollision? IntersectsWith(ICollider collider)
-    {
-        switch (collider)
-        {
-            case CircularCollider c: return IntersectsWith(c);
-            case ConvexCollider c: return IntersectsWith(c);
-            case RectangularCollider c : return IntersectsWith(c);
+            case CircularCollider c: return IntersectsWith(c, relPosition, relAngle);
+            case ConvexCollider c: return IntersectsWith(c, relPosition, relAngle);
+            case RectangularCollider c : return IntersectsWith(c, relPosition, relAngle);
             default: throw new ArgumentException();
         }
     }
 
-    protected abstract PhysicsCollision? IntersectsWith(CircularCollider collider);
-    protected abstract PhysicsCollision? IntersectsWith(ConvexCollider collider);
-    protected abstract PhysicsCollision? IntersectsWith(RectangularCollider collider);
-    
-    
-    public void CollidesWith(object? obj)
-    {
-        if (obj is ICollider col) CollidesWith(col);
-        else throw new ArgumentException();
-    }
+    protected abstract PhysicsCollision? IntersectsWith(CircularCollider collider, SD_Vector2 relPosition, double relAngle);
+    protected abstract PhysicsCollision? IntersectsWith(ConvexCollider collider, SD_Vector2 relPosition, double relAngle);
+    protected abstract PhysicsCollision? IntersectsWith(RectangularCollider collider, SD_Vector2 relPosition, double relAngle);
 
-    private void CollidesWith(ICollider collider)
+    public void CollidesWith(KinematicObject reference, CompactCollider collider, KinematicObject incident)
     {
-        if (collider is CompactCollider c) CollidesWith(c);
-        else throw new ArgumentException();
-    }
-
-    public void CollidesWith(CompactCollider collider)
-    {
-        PhysicsCollision? collision1 = IntersectsWith(collider);
-        PhysicsCollision? collision2 = collider.IntersectsWith(this);
+        /*SD_Vector2 relPosition = incident.Position - reference.Position;
+        double relAngle = incident.Angle - reference.Angle;
+        PhysicsCollision? collision1 = IntersectsWith(collider, relPosition, relAngle);
+        PhysicsCollision? collision2 = collider.IntersectsWith(this, -relPosition, -relAngle);
         if (collision1 == null || collision2 == null) return;
         PhysicsCollision c1 = (PhysicsCollision)collision1;
         PhysicsCollision c2 = (PhysicsCollision)collision2;
 
         if (c1.PenetrationVector.Magnitude() == 0) return;
         SD_Vector2 cNormal = -c1.PenetrationVector.Normalize();
-        
-        KinematicObject reference = c1.Reference.Parent;
-        KinematicObject incidence = c2.Reference.Parent;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
         SD_Vector2 cPr = SD_Vector2.Zero;
@@ -107,29 +69,29 @@ public abstract class CompactCollider(KinematicObject parent) : ICollider
         
         // calculation combined linear and angular velocity of collision point
         SD_Vector2 pVr = reference.Velocity - (SD_Vector2)SD_Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
-        SD_Vector2 pVi = incidence.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incidence.AngularVelocity));
+        SD_Vector2 pVi = incident.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incident.AngularVelocity));
         SD_Vector2 relV = pVi - pVr;
         
         // calculate the magnitude of impulse
         ScientificDecimal jV = -(1 + c1.Restitution) * SD_Vector2.Dot(relV, cNormal);
         SD_Vector3 m1 = SD_Vector3.Cross(SD_Vector2.Cross(cPr, cNormal) / c1.Reference.Inertia, cPr);
         SD_Vector3 m2 = SD_Vector3.Cross(SD_Vector2.Cross(cPi, cNormal) / c2.Reference.Inertia, cPi);
-        ScientificDecimal j = jV / (SD_Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) 
+        ScientificDecimal j = jV / (SD_Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incident.Mass)) 
                                     + SD_Vector3.Dot(m1 + m2, cNormal));
         
         if (!Fixed) reference.Velocity -= cNormal * (j / reference.Mass);
-        if (!collider.Fixed) incidence.Velocity += cNormal * (j / incidence.Mass);
+        if (!collider.Fixed) incident.Velocity += cNormal * (j / incident.Mass);
 
         if (!Fixed)reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / c1.Reference.Inertia);
-        if (!collider.Fixed) incidence.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
+        if (!collider.Fixed) incident.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / c2.Reference.Inertia);
 
         if (!Fixed && !collider.Fixed)
         {
-            reference.Position += c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
-            incidence.Position += c2.PenetrationVector * reference.Mass / (incidence.Mass + reference.Mass);
+            reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
+            incident.Position += c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
         }
-        else if (Fixed) incidence.Position += c2.PenetrationVector;
-        else if (collider.Fixed) reference.Position += c1.PenetrationVector;
+        else if (Fixed) incident.Position += c2.PenetrationVector;
+        else if (collider.Fixed) reference.Position += c1.PenetrationVector;*/
 
         /*if (Options.EnableCollisionDebug)
             DebugCanvas.Add((cnv, cam) => {

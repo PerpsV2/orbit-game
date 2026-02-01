@@ -15,5 +15,10 @@
   </ItemGroup>
   <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)monogame.content.builder.task\3.8.4.1\build\MonoGame.Content.Builder.Task.props" Condition="Exists('$(NuGetPackageRoot)monogame.content.builder.task\3.8.4.1\build\MonoGame.Content.Builder.Task.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.diagnostics.tracing.traceevent\3.1.21\buildTransitive\Microsoft.Diagnostics.Tracing.TraceEvent.props" Condition="Exists('$(NuGetPackageRoot)microsoft.diagnostics.tracing.traceevent\3.1.21\buildTransitive\Microsoft.Diagnostics.Tracing.TraceEvent.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.codeanalysis.analyzers\3.11.0\buildTransitive\Microsoft.CodeAnalysis.Analyzers.props" Condition="Exists('$(NuGetPackageRoot)microsoft.codeanalysis.analyzers\3.11.0\buildTransitive\Microsoft.CodeAnalysis.Analyzers.props')" />
   </ImportGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">C:\Users\josep\.nuget\packages\microsoft.codeanalysis.analyzers\3.11.0</PkgMicrosoft_CodeAnalysis_Analyzers>
+  </PropertyGroup>
 </Project>

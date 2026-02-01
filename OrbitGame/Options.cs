@@ -13,7 +13,7 @@ public static class Options
     
     public static readonly bool EnableCollisionDebug = false;
 
-    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
+    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ImplicitEuler;
 
     public static readonly double CamMoveSpeed = 1;
     public static readonly double CamRotateSpeed = 1;

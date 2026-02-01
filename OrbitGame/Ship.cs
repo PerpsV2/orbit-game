@@ -9,23 +9,16 @@ namespace OrbitGame;
 
 public class Ship : Body, IGameDrawable
 {
-    public readonly IMesh Mesh;
-        
     private Ship(
+        ShipTemplate template,
         string identifier,
         ScientificDecimal mass,
-        Material material, 
         SD_Vector2 position,
         SD_Vector2 velocity, 
         Color colour, 
-        Planet parent,
-        SD_Vector2[] points,
-        IMesh mesh)
-        : base(identifier, mass, material, position, velocity, colour, parent)
-    {
-        Mesh = mesh;
-        Collider = new ConvexCollider(points, this);
-    }
+        Planet parent)
+        : base(template, identifier, mass, position, velocity, colour, parent)
+    { }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
@@ -75,17 +68,27 @@ public class Ship : Body, IGameDrawable
     /// <summary>
     /// Optimize the creation of multiple similar ships by using the same object for multiple instance's properties
     /// </summary>
-    public class ShipTemplate(SD_Vector2[] points, GraphicsDevice graphics, Material material, ScientificDecimal mass)
-        : KinematicObjectTemplate(new PolyMesh(points), material)
+    public class ShipTemplate(SD_Vector2[] shipVertices, Material material)
+        : KinematicObjectTemplate(new PolyMesh(shipVertices), new ConvexCollider(shipVertices), material)
     {
-        private readonly Material _material = material;
-
-        public Ship Instantiate(string identifier, SD_Vector2 position, SD_Vector2 velocity, Color colour, Planet parent)
+        public Ship CreateInstance(
+            string identifier, 
+            ScientificDecimal mass, 
+            SD_Vector2 position, 
+            SD_Vector2 velocity, 
+            double angle, 
+            double angularVelocity,
+            Color colour,
+            Planet parent
+            )
         {
-            Mesh.GenerateBuffers(graphics);
-            Ship instance = new Ship(identifier, mass, _material, position, velocity, colour, parent, points, Mesh);
-            Instances.Add(identifier, instance);
-            return instance;
+            Ship ship = new Ship(this, identifier, mass, position, velocity, colour, parent)
+            {
+                Angle = angle,
+                AngularVelocity = angularVelocity
+            };
+            AddInstance(identifier, ship);
+            return ship;
         }
     }
 }

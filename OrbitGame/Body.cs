@@ -13,18 +13,21 @@ public abstract class Body : KinematicObject, IGameDrawable
 {
     public Color Colour;
     public Body? Parent;
-    public ICollider? Collider;
     public KeplerOrbit? Orbit;
     
     protected Body(
+        KinematicObjectTemplate template,
         string identifier, 
         ScientificDecimal mass, 
-        Material material,
         SD_Vector2 position,
         SD_Vector2 velocity,
         Color colour,
-        Body? parent) 
-        : base(identifier, mass, material, position, velocity)
+        Body? parent,
+        IMesh? mesh = null,
+        CompactCollider? collider = null,
+        Material? material = null
+        ) 
+        : base(template, identifier, mass, position, velocity, mesh, collider, material)
     {
         Colour = colour;
         Parent = parent;
@@ -238,7 +241,7 @@ public abstract class Body : KinematicObject, IGameDrawable
     {
         if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        ScientificDecimal epsilon = new ScientificDecimal(1m, -35);
+        ScientificDecimal epsilon = new ScientificDecimal(1, -35);
         double eccentricAnomaly = meanAnomaly;
         int iterations = 0;
         while (double.Abs(eccentricAnomaly - orbit.Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) > epsilon)
