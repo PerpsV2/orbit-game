@@ -7,7 +7,7 @@ namespace OrbitGame;
 public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y) 
     : IEquatable<SD_Vector2>, IFormattable
 {
-    public static SD_Vector2 Zero => new(0, 0);
+    public static SD_Vector2 Zero = new(0, 0);
     public ScientificDecimal X { get; set; } = x;
     public ScientificDecimal Y { get; set; } = y;
     

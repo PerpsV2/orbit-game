@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -152,13 +153,13 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 30; ++i)
+        for (int i = 0; i < 10000; ++i)
         {
             int randomRed = _rnd.Next(0, 256);
-            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-1000000, 1000000), _rnd.Next(-1000000, 1000000));
-            SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(3000, 3000));
+            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-400000000, 400000000), _rnd.Next(-400000000, 400000000));
+            SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1000, 1000));
             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 1000,
-                new SD_Vector2(new ScientificDecimal(6.378, 6) + 40000000, 0) + randomPosition, 
+                new SD_Vector2(new ScientificDecimal(6.378, 6) + 400000000, 0) + randomPosition, 
                 randomVelocity, 
                 0, 0, new Color(0, randomRed, 0, 255), earth);
             _bodies.Add(smokestack);
@@ -232,14 +233,28 @@ public class OrbitGame : Game
         _deltaTimeStep = _deltaTime * _timeStep;
         _time += _deltaTimeStep;
         _frameCountPerSecond++;
-        
+
         if (Options.EnablePhysics)
         {
-            foreach (var ship in _ships)
+            List<Task> tasks = new List<Task>();
+
+            for (int i = 0; i < 100; ++i)
             {
-                ship.SetNetGravitationalAcceleration(_planets);
-                ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod, x => x.SetNetGravitationalAcceleration(_planets));
+                int i1 = i;
+                Task task = Task.Run(() =>
+                {
+                    for (int j = i1 * _ships.Count / 100; j < (i1 + 1) * _ships.Count / 100; ++j)
+                    {
+                        Ship ship = _ships[j];
+                        ship.SetNetGravitationalAcceleration(_planets);
+                        ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod,
+                            x => x.SetNetGravitationalAcceleration(_planets));
+                    }
+                });
+                tasks.Add(task);
             }
+            
+            Task.WaitAll(tasks.ToArray());
             
             foreach (var planet in _planets)
                 planet.Kepler_UpdatePosition(_time);

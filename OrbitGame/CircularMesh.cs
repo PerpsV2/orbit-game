@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public class CircularMesh() : IMesh
+public class CircularMesh : IMesh
 {
     public readonly static int CircleVertices = 400;
     private static VertexBuffer? _vertexBuffer;

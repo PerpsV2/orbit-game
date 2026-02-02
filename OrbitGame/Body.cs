@@ -143,7 +143,8 @@ public abstract class Body : KinematicObject, IGameDrawable
     
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
-        SD_Vector2 direction = SD_Vector2.DirectionVectorBetween(Position, attractor.Position);
+        double angle = SD_Vector2.GetPrincipalAngle(Position, attractor.Position);
+        SD_Vector2 direction = SD_Vector2.FromPolar(angle);
         ScientificDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
         return direction * magnitude;
     }

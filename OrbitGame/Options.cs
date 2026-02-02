@@ -7,7 +7,7 @@ public static class Options
     public static readonly (int width, int height) ScreenSize = (1600, 1200);
     public static readonly ScientificDecimal DefaultZoomScale = new(1);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
-    public static readonly double TimeWarpStepMultiplier = 10;
+    public static readonly double TimeWarpStepMultiplier = 2;
     public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = false;
     

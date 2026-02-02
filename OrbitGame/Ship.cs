@@ -9,33 +9,41 @@ namespace OrbitGame;
 
 public class Ship : Body, IGameDrawable
 {
+    public ScientificDecimal MaximumRadius;
+    
     private Ship(
         ShipTemplate template,
         string identifier,
         ScientificDecimal mass,
         SD_Vector2 position,
-        SD_Vector2 velocity, 
-        Color colour, 
+        SD_Vector2 velocity,
+        Color colour,
         Planet parent)
         : base(template, identifier, mass, position, velocity, colour, parent)
     { }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
-        Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height), (float)(Options.ScreenSize.width / camera.Width));
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-        Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
-                           Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
-                           Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-        Mesh.Draw(graphicsDevice, effect, transform, new()
+        if (camera.ConvertToScreenDistance(MaximumRadius) > 1)
         {
-            {"colour", Colour.ToVector4()}
-        });
-
-        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
-        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
-        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
-        graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
+            Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
+                (float)(Options.ScreenSize.width / camera.Width));
+            Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
+                               Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
+                               Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
+            Mesh.Draw(graphicsDevice, effect, transform, new()
+            {
+                { "colour", Colour.ToVector4() }
+            });
+        }
+        else
+        {
+            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
+            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
+            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
+            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
+        }
     }
 
     public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
@@ -71,6 +79,8 @@ public class Ship : Body, IGameDrawable
     public class ShipTemplate(SD_Vector2[] shipVertices, Material material)
         : KinematicObjectTemplate(new PolyMesh(shipVertices), new ConvexCollider(shipVertices), material)
     {
+        private SD_Vector2[] _shipVertices = shipVertices;
+        
         public Ship CreateInstance(
             string identifier, 
             ScientificDecimal mass, 
@@ -85,7 +95,8 @@ public class Ship : Body, IGameDrawable
             Ship ship = new Ship(this, identifier, mass, position, velocity, colour, parent)
             {
                 Angle = angle,
-                AngularVelocity = angularVelocity
+                AngularVelocity = angularVelocity,
+                MaximumRadius = _shipVertices.Select(x => x.Magnitude()).Max()
             };
             AddInstance(identifier, ship);
             return ship;
