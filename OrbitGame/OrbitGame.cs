@@ -290,8 +290,6 @@ public class OrbitGame : Game
 
         CurrentEffect = _defaultEffect;
         // foreach (var planet in _planets)
-        //     planet.DrawOrbitalPathLRL(GraphicsDevice, _camera, _defaultEffect);
-        // foreach (var planet in _planets)
         //     planet.DrawSphereOfInfluence(GraphicsDevice, _camera, _defaultEffect);
         foreach (var body in _bodies)
             body.Draw(GraphicsDevice, _camera, _defaultEffect);

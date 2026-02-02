@@ -9,7 +9,7 @@ namespace OrbitGame;
 
 public class Ship : Body, IGameDrawable
 {
-    public ScientificDecimal MaximumRadius;
+    private ScientificDecimal _maximumRadius;
     
     private Ship(
         ShipTemplate template,
@@ -24,13 +24,13 @@ public class Ship : Body, IGameDrawable
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
-        if (Position.X < camera.Left - MaximumRadius) return;
-        if (Position.X > camera.Right + MaximumRadius) return;
-        if (Position.Y > camera.Top + MaximumRadius) return;
-        if (Position.Y < camera.Bottom - MaximumRadius) return;
+        if (Position.X < camera.Left - _maximumRadius) return;
+        if (Position.X > camera.Right + _maximumRadius) return;
+        if (Position.Y > camera.Top + _maximumRadius) return;
+        if (Position.Y < camera.Bottom - _maximumRadius) return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-        if (camera.ConvertToScreenDistance(MaximumRadius) > 1)
+        if (camera.ConvertToScreenDistance(_maximumRadius) > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
                 (float)(Options.ScreenSize.width / camera.Width));
@@ -101,7 +101,7 @@ public class Ship : Body, IGameDrawable
             {
                 Angle = angle,
                 AngularVelocity = angularVelocity,
-                MaximumRadius = _shipVertices.Select(x => x.Magnitude()).Max()
+                _maximumRadius = _shipVertices.Select(x => x.Magnitude()).Max()
             };
             AddInstance(identifier, ship);
             return ship;

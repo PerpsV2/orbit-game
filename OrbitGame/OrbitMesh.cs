@@ -5,29 +5,30 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public class CircularMesh : IMesh
+public class OrbitMesh : IMesh
 {
-    public static readonly int CircleVertices = 400;
+    public static readonly int OrbitVertices = 400;
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
 
+    public OrbitMesh()
+    {
+        GenerateBuffers();
+    }
+
     public void GenerateBuffers()
     {
-        var vertices = new VertexPositionColor[CircleVertices + 1];
-        for (int i = 0; i < CircleVertices; i++)
+        var vertices = new VertexPositionColor[OrbitVertices + 1];
+        for (int i = 0; i < OrbitVertices; i++)
         {
-            double angle = i * Math.Tau / CircleVertices;
+            double angle = i * Math.Tau / OrbitVertices;
             vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
         }
-        vertices[^1] = new VertexPositionColor(Vector3.Zero, Color.White);
+        vertices[^1] = vertices[0];
 
-        var indices = new int[CircleVertices * 3];
-        for (int i = 0; i < CircleVertices; i++)
-        {
-            indices[i * 3] = CircleVertices;
-            indices[i * 3 + 1] = i;
-            indices[i * 3 + 2] = (i + 1) % CircleVertices;
-        }
+        var indices = new int[vertices.Length];
+        for (int i = 0; i < indices.Length; i++)
+            indices[i] = i;
          
         _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
         _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
@@ -51,8 +52,8 @@ public class CircularMesh : IMesh
         {
             pass.Apply();
             graphicsDevice.DrawInstancedPrimitives(
-                PrimitiveType.TriangleList, 0, 0, CircleVertices, _vertexBuffer.VertexCount
-                );
+                PrimitiveType.LineStrip, 0, 0, OrbitVertices, _vertexBuffer.VertexCount
+            );
         }
     }
 }

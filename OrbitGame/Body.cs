@@ -42,7 +42,7 @@ public abstract class Body : KinematicObject, IGameDrawable
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, Effect effect, OrbitMesh orbitMesh)
     {
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
@@ -100,9 +100,18 @@ public abstract class Body : KinematicObject, IGameDrawable
             // draw the entire orbit as an ellipse
             else
             {
-                if (orbit.Center == null) throw new NullReferenceException("Elliptic orbit must have a center.");
-                //canvas.GS_DrawEllipseOrbit(camera, centralForce.Position + orbit.Center.Value, semiMajorAxis, 
-                //    semiMinorAxis, orbit.Periapsis, Colour);
+                if (orbit.Center == null) 
+                    throw new NullReferenceException("Elliptic orbit must have a center.");
+                Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value);
+                float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
+                float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
+        
+                Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
+                                   Matrix.CreateRotationZ(-(float)orbit.Periapsis) *
+                                   Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
+                orbitMesh.Draw(graphicsDevice, effect, transform, new() {
+                    {"colour", Colour.ToVector4()}
+                });
             }
         }
         // draw parabolic and hyperbolic orbits
@@ -128,14 +137,14 @@ public abstract class Body : KinematicObject, IGameDrawable
                     orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
             }
 
-            /*if (parentSOIRadius != null)
+            if (parentSOIRadius != null)
             {
                 double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
                                                         (orbit.Eccentricity * parentSOIRadius /
                                                          orbit.SemiLatusRectum))) + Math.PI;
                 orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
                 orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
-            }*/
+            }
         }
 
         //if (orbitPoints.Count > 0) Utils.GS_DrawPath(graphicsDevice, camera, effect, orbitPoints, Colour);

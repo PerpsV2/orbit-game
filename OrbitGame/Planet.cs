@@ -8,6 +8,7 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly ScientificDecimal Radius;
+    private OrbitMesh _orbitMesh;
 
     private Planet(
         PlanetTemplate template,
@@ -27,6 +28,8 @@ public class Planet : Body, IGameDrawable
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
+        DrawOrbitalPathLRL(graphicsDevice, camera, effect, _orbitMesh);
+        
         if (Position.X < camera.Left - Radius) return;
         if (Position.X > camera.Right + Radius) return;
         if (Position.Y > camera.Top + Radius) return;
@@ -145,6 +148,8 @@ public class Planet : Body, IGameDrawable
     public class PlanetTemplate(Material material) 
         : KinematicObjectTemplate(new CircularMesh(), null, material)
     {
+        private readonly OrbitMesh _orbitMesh = new();
+        
         public Planet CreateInstance(
             string identifier,
             ScientificDecimal mass,
@@ -160,7 +165,8 @@ public class Planet : Body, IGameDrawable
             CircularCollider collider = new CircularCollider(radius);
             Planet planet = new Planet(this, identifier, mass, position, velocity, colour, parent, radius, collider) {
                     Angle = angle,
-                    AngularVelocity = angularVelocity
+                    AngularVelocity = angularVelocity,
+                    _orbitMesh = _orbitMesh
                 };
             AddInstance(identifier, planet);
             return planet;
