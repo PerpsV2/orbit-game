@@ -27,6 +27,11 @@ public class Planet : Body, IGameDrawable
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
+        if (Position.X < camera.Left - Radius) return;
+        if (Position.X > camera.Right + Radius) return;
+        if (Position.Y > camera.Top + Radius) return;
+        if (Position.Y < camera.Bottom - Radius) return;
+        
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {

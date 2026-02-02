@@ -24,6 +24,11 @@ public class Ship : Body, IGameDrawable
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
+        if (Position.X < camera.Left - MaximumRadius) return;
+        if (Position.X > camera.Right + MaximumRadius) return;
+        if (Position.Y > camera.Top + MaximumRadius) return;
+        if (Position.Y < camera.Bottom - MaximumRadius) return;
+        
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         if (camera.ConvertToScreenDistance(MaximumRadius) > 1)
         {
@@ -40,9 +45,9 @@ public class Ship : Body, IGameDrawable
         else
         {
             graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
-            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
-            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
-            //graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
+            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
+            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
+            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
         }
     }
 

@@ -43,7 +43,7 @@ public class OrbitGame : Game
     private List<Ship> _ships = [];
 
     private Body _tracking;
-    private int _trackingIndex = 0;
+    private int _trackingIndex;
     
     Camera _camera = new Camera(new SD_Vector2(0, 0), 
         Options.ScreenSize.width * Options.DefaultZoomScale, 
@@ -153,10 +153,10 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 10000; ++i)
+        for (int i = 0; i < 100; ++i)
         {
             int randomRed = _rnd.Next(0, 256);
-            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-400000000, 400000000), _rnd.Next(-400000000, 400000000));
+            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-40000000, 40000000), _rnd.Next(-40000000, 40000000));
             SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1000, 1000));
             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 1000,
                 new SD_Vector2(new ScientificDecimal(6.378, 6) + 400000000, 0) + randomPosition, 
@@ -289,10 +289,10 @@ public class OrbitGame : Game
         }
 
         CurrentEffect = _defaultEffect;
-        /*foreach (var planet in _planets)
-            planet.DrawOrbitalPathLRL(GraphicsDevice, _camera, _defaultEffect);*/
-        foreach (var planet in _planets)
-            planet.DrawSphereOfInfluence(_spriteBatch, _camera);
+        // foreach (var planet in _planets)
+        //     planet.DrawOrbitalPathLRL(GraphicsDevice, _camera, _defaultEffect);
+        // foreach (var planet in _planets)
+        //     planet.DrawSphereOfInfluence(GraphicsDevice, _camera, _defaultEffect);
         foreach (var body in _bodies)
             body.Draw(GraphicsDevice, _camera, _defaultEffect);
         

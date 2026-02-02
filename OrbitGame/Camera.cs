@@ -45,9 +45,9 @@ public class Camera
     private readonly int _screenHeight;
     
     public ScientificDecimal Left => AbsolutePosition.X - Width * 0.5f;
-    public ScientificDecimal Top => AbsolutePosition.Y - Height * 0.5f;
+    public ScientificDecimal Top => AbsolutePosition.Y + Height * 0.5f;
     public ScientificDecimal Right => AbsolutePosition.X + Width * 0.5f;
-    public ScientificDecimal Bottom => AbsolutePosition.Y + Height * 0.5f;
+    public ScientificDecimal Bottom => AbsolutePosition.Y - Height * 0.5f;
 
     public Matrix3X3 ViewMatrix;
     
