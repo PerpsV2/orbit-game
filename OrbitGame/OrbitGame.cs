@@ -66,8 +66,6 @@ public class OrbitGame : Game
     protected override void Initialize()
     {
         Graphics = _graphics.GraphicsDevice;
-        Utils.GenerateCircleBuffers(_graphics.GraphicsDevice);
-        Utils.GenerateEmptyCircleBuffers(_graphics.GraphicsDevice);
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         

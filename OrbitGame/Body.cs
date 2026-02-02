@@ -102,9 +102,9 @@ public abstract class Body : KinematicObject, IGameDrawable
             {
                 if (orbit.Center == null) 
                     throw new NullReferenceException("Elliptic orbit must have a center.");
-                Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value);
-                float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
-                float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
+                Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value + Parent.Position);
+                float screenMajorRadius = camera.ConvertToScreenDistance(semiMajorAxis);
+                float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
                                    Matrix.CreateRotationZ(-(float)orbit.Periapsis) *
