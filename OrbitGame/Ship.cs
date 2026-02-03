@@ -15,11 +15,10 @@ public class Ship : Body, IGameDrawable
         ShipTemplate template,
         string identifier,
         ScientificDecimal mass,
-        SD_Vector2 position,
-        SD_Vector2 velocity,
+        SpatialInfo spatialInfo,
         Color colour,
         Planet parent)
-        : base(template, identifier, mass, position, velocity, colour, parent)
+        : base(template, identifier, mass, spatialInfo, colour, parent)
     { }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
@@ -97,7 +96,8 @@ public class Ship : Body, IGameDrawable
             Planet parent
             )
         {
-            Ship ship = new Ship(this, identifier, mass, position, velocity, colour, parent)
+            SpatialInfo spatialInfo = new SpatialInfo(position, velocity, SD_Vector2.Zero, angle, angularVelocity);
+            Ship ship = new Ship(this, identifier, mass, spatialInfo, colour, parent)
             {
                 Angle = angle,
                 AngularVelocity = angularVelocity,

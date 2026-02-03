@@ -19,20 +19,19 @@ public abstract class Body : KinematicObject, IGameDrawable
         KinematicObjectTemplate template,
         string identifier, 
         ScientificDecimal mass, 
-        SD_Vector2 position,
-        SD_Vector2 velocity,
+        SpatialInfo spatialInfo,
         Color colour,
         Body? parent,
         IMesh? mesh = null,
         CompactCollider? collider = null,
         Material? material = null
         ) 
-        : base(template, identifier, mass, position, velocity, mesh, collider, material)
+        : base(template, identifier, mass, spatialInfo, mesh, collider, material)
     {
         Colour = colour;
         Parent = parent;
-        Position = position + (parent?.Position ?? SD_Vector2.Zero);
-        Velocity = velocity + (parent?.Velocity ?? SD_Vector2.Zero);
+        Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
+        Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
         Orbit = CalculateOrbit(true);
     }
     

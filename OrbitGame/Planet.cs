@@ -14,14 +14,13 @@ public class Planet : Body, IGameDrawable
         PlanetTemplate template,
         string identifier,
         ScientificDecimal mass,
-        SD_Vector2 position,
-        SD_Vector2 velocity,
+        SpatialInfo spatialInfo,
         Color colour,
         Body? parent,
         ScientificDecimal radius,
         CompactCollider collider
     )
-        : base(template, identifier, mass, position, velocity, colour, parent, null, collider)
+        : base(template, identifier, mass, spatialInfo, colour, parent, null, collider)
     {
         Radius = radius;
     }
@@ -172,8 +171,9 @@ public class Planet : Body, IGameDrawable
             ScientificDecimal radius
             )
         {
+            SpatialInfo spatialInfo = new SpatialInfo(position, velocity, SD_Vector2.Zero, angle, angularVelocity);
             CircularCollider collider = new CircularCollider(radius);
-            Planet planet = new Planet(this, identifier, mass, position, velocity, colour, parent, radius, collider) {
+            Planet planet = new Planet(this, identifier, mass, spatialInfo, colour, parent, radius, collider) {
                     Angle = angle,
                     AngularVelocity = angularVelocity,
                     _orbitMesh = _orbitMesh

@@ -165,20 +165,29 @@ public class OrbitGame : Game
         Planet testPlanet = planetTemplate.CreateInstance("Manatee", 1000, SD_Vector2.Zero,
             SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 2);
 
-        Ship.ShipTemplate shipTemplate = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+        Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
             new(4, 4),
             new(4, -3),
             new(-2, -5),
             new(-4, 0),
             new(-3, 5)
         ]), new Material(0.2f));
-        Ship testShip = shipTemplate.CreateInstance("Strawhat", 250, new SD_Vector2(0, 10),
+        Ship testShip1 = shipTemplate1.CreateInstance("Strawhat", 250, new SD_Vector2(0, 10),
             SD_Vector2.Zero, 0, 0, new Color(235, 100, 100, 255), testPlanet);
+        
+        Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+            new(4, 3),
+            new(3, -5),
+            new(-2, -5),
+            new(-4, 2)
+        ]), new Material(0.2f));
+        Ship testShip2 = shipTemplate2.CreateInstance("Chimneypipe", 250, new SD_Vector2(0, 10),
+            SD_Vector2.Zero, 0, 0, new Color(120, 200, 255, 255), testPlanet);
 
-        _bodies = [testPlanet, testShip];
+        _bodies = [testPlanet, testShip1, testShip2];
         _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-        OriginBody.Body = testShip;
+        OriginBody.Body = testShip1;
         _tracking = OriginBody.Body;
         _trackingIndex = _bodies.IndexOf(OriginBody.Body);
         
@@ -239,6 +248,9 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.K)) _tracking.Position += new SD_Vector2(0, -0.1);
         if (keyboardState.IsKeyDown(Keys.J)) _tracking.Position += new SD_Vector2(-0.1, 0);
         if (keyboardState.IsKeyDown(Keys.L)) _tracking.Position += new SD_Vector2(0.1, 0);
+
+        if (keyboardState.IsKeyDown(Keys.U)) _tracking.Angle += 0.01;
+        if (keyboardState.IsKeyDown(Keys.O)) _tracking.Angle -= 0.01;
         
         _lastKeyboardState = keyboardState;
     }
