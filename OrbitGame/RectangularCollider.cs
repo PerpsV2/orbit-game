@@ -36,6 +36,13 @@ public class RectangularCollider : CompactCollider
             topRight.Y - bottomLeft.Y
         ) 
     { }
+    
+    public override void CalculateInertia(ScientificDecimal mass)
+    {
+        ScientificDecimal height = _top - _bottom;
+        ScientificDecimal width = _right - _left;
+        Inertia = mass * (height * height + width * width) / 12;
+    }
 
     public override RectangularCollider GetBoundingBox() => this;
 
@@ -48,35 +55,35 @@ public class RectangularCollider : CompactCollider
         return NearsWith(collider.GetBoundingBox(), relPosition, relAngle);
     }
 
-    public override PointCollision IntersectsWith(SD_Vector2 position, SD_Vector2 point)
+    public override PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo spatial)
     {
         if (IsEmpty()) return new(false);
-        point -= position;
+        point -= spatial.Position;
         return new(point.Y <= _top && point.Y >= _bottom && point.X <= _right && point.X >= _left);
     }
     
-    protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SD_Vector2 relPosition, double relAngle)
+    protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         throw new NotImplementedException();
     }
 
-    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SD_Vector2 relPosition,
-        double relAngle)
+    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
         => throw new NotImplementedException(); // collider.IntersectsWith(this, -relPosition, -relAngle)?.GetInverse() ?? null;
 
-    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider, SD_Vector2 relPosition, double relAngle)
+    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
         HashSet<SD_Vector2> collisionManifold = new();
         SD_Vector2? minPenetrationVector = null;
         SD_Vector2[] penetrationVectors = new SD_Vector2[4];
-        if (_bottom <= relPosition.Y + collider._top && _top >= relPosition.Y + collider._bottom)
+        if (referenceSpatial.Position.Y + _bottom <= incidentSpatial.Position.Y + collider._top && 
+            referenceSpatial.Position.Y + _top >= incidentSpatial.Position.Y + collider._bottom)
         {
-            penetrationVectors[0] = new(0, relPosition.Y + collider._top - _bottom);
-            penetrationVectors[1] = new(0, _top - relPosition.Y - collider._bottom);
-            penetrationVectors[2] = new(relPosition.X + collider._right - _left, 0);
-            penetrationVectors[3] = new(_right - relPosition.X - _left, 0);
+            penetrationVectors[0] = new(0, incidentSpatial.Position.Y + collider._top - referenceSpatial.Position.Y - _bottom);
+            penetrationVectors[1] = new(0, referenceSpatial.Position.Y + _top - incidentSpatial.Position.Y - collider._bottom);
+            penetrationVectors[2] = new(incidentSpatial.Position.X + collider._right - referenceSpatial.Position.X - _left, 0);
+            penetrationVectors[3] = new(referenceSpatial.Position.X + _right - incidentSpatial.Position.X - _left, 0);
             minPenetrationVector = penetrationVectors.MinBy(x => x.Magnitude());
         }
 
@@ -88,13 +95,13 @@ public class RectangularCollider : CompactCollider
             (BottomRight, BottomLeft),
             (TopRight, BottomRight)
         ];
-        
+
         (SD_Vector2 a, SD_Vector2 b) incidentEdge = edges.MinBy(x =>
             Math.Abs((x.a - x.b).GetPrincipalAngle() - minPenetrationVector.Value.GetPrincipalAngle() - Math.PI / 2));
         collisionManifold.Add(incidentEdge.a);
         collisionManifold.Add(incidentEdge.b);
 
-        return new PhysicsCollision(this, collider, collisionManifold, minPenetrationVector.Value);
+        return new PhysicsCollision(referenceSpatial, incidentSpatial, collisionManifold, minPenetrationVector.Value);
     }
 
     public override bool IsEmpty() =>

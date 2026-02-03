@@ -10,7 +10,7 @@ namespace OrbitGame;
 public class Ship : Body, IGameDrawable
 {
     private ScientificDecimal _maximumRadius;
-    
+
     private Ship(
         ShipTemplate template,
         string identifier,
@@ -19,7 +19,9 @@ public class Ship : Body, IGameDrawable
         Color colour,
         Planet parent)
         : base(template, identifier, mass, spatialInfo, colour, parent)
-    { }
+    {
+        Collider.CalculateInertia(mass);
+    }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {

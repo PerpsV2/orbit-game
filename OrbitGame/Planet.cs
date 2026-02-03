@@ -23,6 +23,7 @@ public class Planet : Body, IGameDrawable
         : base(template, identifier, mass, spatialInfo, colour, parent, null, collider)
     {
         Radius = radius;
+        collider.CalculateInertia(mass);
     }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)

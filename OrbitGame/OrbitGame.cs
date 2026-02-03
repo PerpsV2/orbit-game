@@ -287,6 +287,14 @@ public class OrbitGame : Game
             
             foreach (var planet in _planets)
                 planet.Kepler_UpdatePosition(_time);
+
+            foreach (var ship in _ships)
+            {
+                foreach (var planet in _planets)
+                {
+                    ship.Collider.CollidesWith(planet.Collider, ship, planet);
+                }
+            }
         }
         
         HandleInput(_deltaTime);

@@ -13,6 +13,11 @@ public class ConvexCollider : CompactCollider
         _points = points.Distinct().ToArray();
     }
 
+    public override void CalculateInertia(ScientificDecimal mass)
+    {
+        Inertia = Utils.CalculateConvexInertia(_points, mass);
+    }
+
     public override RectangularCollider GetBoundingBox()
     {
         SD_Vector2[] points = _points;
@@ -30,18 +35,20 @@ public class ConvexCollider : CompactCollider
     public static explicit operator RectangularCollider(ConvexCollider value)
         => value.GetBoundingBox();
 
-    public override PointCollision IntersectsWith(SD_Vector2 position, SD_Vector2 point)
+    public override PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo spatial)
     {
         throw new NotImplementedException();
     }
     
-    protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SD_Vector2 relPosition, double relAngle)
+    protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
         SD_Vector2 collisionPoint = SD_Vector2.Zero;
         SD_Vector2 minPenetrationVector = SD_Vector2.Zero;
-        
+        SD_Vector2 relativeCenter = Matrix3X3.Rotation(-referenceSpatial.Angle) * 
+                                    Matrix3X3.Translation(-referenceSpatial.Position) * incidentSpatial.Position;
+
         // edge case (literally)
         // TODO: fix cases where one object is fully within the other
         for (int i = 0; i < _points.Length; ++i)
@@ -49,55 +56,58 @@ public class ConvexCollider : CompactCollider
             SD_Vector2 currentVertex = _points[i];
             SD_Vector2 nextVertex = _points[(i + 1) % _points.Length];
             double edgeAngle = SD_Vector2.GetPrincipalAngle(currentVertex, nextVertex);
-            
+
             Matrix3X3 transformation = Matrix3X3.Rotation(-edgeAngle) * Matrix3X3.Translation(-currentVertex);
             Matrix3X3 invTransformation = Matrix3X3.Translation(currentVertex) * Matrix3X3.Rotation(edgeAngle);
-            
+
             ScientificDecimal edgeUpperBound = (transformation * nextVertex).X;
-            SD_Vector2 transformedCenter = transformation * relPosition;
+            SD_Vector2 transformedCenter = transformation * relativeCenter;
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
                 transformedCenter.Y.Abs() <= collider.Radius)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
                 if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(SD_Vector2.Zero))
                 {
-                    minPenetrationVector = SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, -penetrationDistance);
-                    collisionPoint = invTransformation * new SD_Vector2(transformedCenter.X, 0);
+                    minPenetrationVector = Matrix3X3.Rotation(referenceSpatial.Angle) * 
+                                           SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, -penetrationDistance);
+                    collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * invTransformation *
+                                     new SD_Vector2(transformedCenter.X, 0);
                 }
             }
         }
-        
+
         if (!minPenetrationVector.Equals(SD_Vector2.Zero))
-            return new PhysicsCollision(this, collider, [collisionPoint], minPenetrationVector);
-        
+            return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
+
         // vertex case
         minPenetrationVector = SD_Vector2.Zero;
-        SD_Vector2[] sortedPoints = _points.OrderBy(v => (v - relPosition).Magnitude()).ToArray();
-        
-        SD_Vector2 diffVector = sortedPoints[0] - relPosition;
+        SD_Vector2[] sortedPoints = _points.OrderBy(v => (v - relativeCenter).Magnitude()).ToArray();
+
+        SD_Vector2 diffVector = sortedPoints[0] - relativeCenter;
         if (diffVector.Magnitude() <= collider.Radius) {
-            collisionPoint = sortedPoints[0];
-            minPenetrationVector = diffVector.Normalize() * (collider.Radius - diffVector.Magnitude());
+            collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * sortedPoints[0];
+            minPenetrationVector = Matrix3X3.Rotation(referenceSpatial.Angle) * diffVector.Normalize() * 
+                                   (collider.Radius - diffVector.Magnitude());
         }
 
         if (!minPenetrationVector.Equals(SD_Vector2.Zero))
-            return new PhysicsCollision(this, collider, [collisionPoint], minPenetrationVector);
+            return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
 
         return null;
     }
 
-    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SD_Vector2 relPosition, double relAngle)
+    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         throw new NotImplementedException();
     }
 
-    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider, SD_Vector2 relPosition, double relAngle)
+    protected override PhysicsCollision? IntersectsWith(RectangularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
         // convert rect collider to a convex collider and use the respective intersect method
         ConvexCollider convexRect = new ConvexCollider(
             [collider.TopLeft, collider.TopRight, collider.BottomRight, collider.BottomLeft]);
-        return IntersectsWith(convexRect, relPosition, relAngle);
+        return IntersectsWith(convexRect, referenceSpatial, incidentSpatial);
     }
 
     public override bool IsEmpty()
