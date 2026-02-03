@@ -77,7 +77,7 @@ public static class Utils
             SD_Vector2 b = triangles[i].b;
             SD_Vector2 c = triangles[i].c;
             
-            masses[i] = mass / totalArea * Utils.CalculateTriangleArea(a, b, c);
+            masses[i] = mass / totalArea * CalculateTriangleArea(a, b, c);
             centroids[i] = (a + b + c) / 3;
             inertias[i] = masses[i] * (SD_Vector2.Dot(a, a) + SD_Vector2.Dot(b, b) + SD_Vector2.Dot(c, c) +
                                        SD_Vector2.Dot(c, c) + SD_Vector2.Dot(a, b) + SD_Vector2.Dot(b, c) + 

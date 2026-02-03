@@ -28,6 +28,7 @@ public class Planet : Body, IGameDrawable
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
+        DrawSphereOfInfluence(graphicsDevice, camera, effect);
         DrawOrbitalPathLRL(graphicsDevice, camera, effect, _orbitMesh);
         
         if (Position.X < camera.Left - Radius) return;
@@ -131,7 +132,7 @@ public class Planet : Body, IGameDrawable
         Draw(graphicsDevice, camera, effect);
     }
 
-    public void DrawSphereOfInfluence(SpriteBatch canvas, Camera camera)
+    private void DrawSphereOfInfluence(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
     {
         if (Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
@@ -140,7 +141,16 @@ public class Planet : Body, IGameDrawable
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
 
         // paint for spheres of influence
-        Color colour = new Color((int)Colour.R, Colour.G, Colour.B, 1);
+        Color soiColour = new Color((int)Colour.R, Colour.G, Colour.B, 1);
+        
+        Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
+        float screenRadius = camera.ConvertToScreenDistance(sphereOfInfluenceRadius);
+        Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
+                           Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
+        Mesh.Draw(graphicsDevice, effect, transform, new()
+        {
+            {"colour", soiColour.ToVector4()}
+        });
 
         //canvas.GS_DrawCircle(camera, Position, sphereOfInfluenceRadius, colour);
     }

@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using MonoGame;
 
 namespace OrbitGame;
-
-#nullable enable
 
 public class OrbitGame : Game
 {
@@ -69,8 +66,9 @@ public class OrbitGame : Game
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         
-        #region Bodies
+        //f#region Bodies
 
+        /*
         Material planetMaterial = new Material(0.2f);
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMaterial);
         Planet sun = planetTemplate.CreateInstance(
@@ -151,20 +149,36 @@ public class OrbitGame : Game
 
         _bodies = new List<Body>();
         _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 200; ++i)
         {
             int randomRed = _rnd.Next(0, 256);
-            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-40000000, 40000000), _rnd.Next(-40000000, 40000000));
-            SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1000, 1000));
+            SD_Vector2 randomPosition = new SD_Vector2(0, _rnd.Next(-40000000, 40000000));
+            SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1022, 1022));
             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 1000,
-                new SD_Vector2(new ScientificDecimal(6.378, 6) + 400000000, 0) + randomPosition, 
+                new SD_Vector2(new ScientificDecimal(6.378, 6) + 354000000, 0) + randomPosition, 
                 randomVelocity, 
                 0, 0, new Color(0, randomRed, 0, 255), earth);
             _bodies.Add(smokestack);
-        }
+        }*/
+
+        Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
+        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 1000, SD_Vector2.Zero,
+            SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 2);
+
+        Ship.ShipTemplate shipTemplate = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+            new(4, 4),
+            new(4, -3),
+            new(-2, -5),
+            new(-4, 0),
+            new(-3, 5)
+        ]), new Material(0.2f));
+        Ship testShip = shipTemplate.CreateInstance("Strawhat", 250, new SD_Vector2(0, 10),
+            SD_Vector2.Zero, 0, 0, new Color(235, 100, 100, 255), testPlanet);
+
+        _bodies = [testPlanet, testShip];
         _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-        OriginBody.Body = earth;
+        OriginBody.Body = testShip;
         _tracking = OriginBody.Body;
         _trackingIndex = _bodies.IndexOf(OriginBody.Body);
         
@@ -220,6 +234,11 @@ public class OrbitGame : Game
         float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(-camRotateSpeed);
+
+        if (keyboardState.IsKeyDown(Keys.I)) _tracking.Position += new SD_Vector2(0, 0.1);
+        if (keyboardState.IsKeyDown(Keys.K)) _tracking.Position += new SD_Vector2(0, -0.1);
+        if (keyboardState.IsKeyDown(Keys.J)) _tracking.Position += new SD_Vector2(-0.1, 0);
+        if (keyboardState.IsKeyDown(Keys.L)) _tracking.Position += new SD_Vector2(0.1, 0);
         
         _lastKeyboardState = keyboardState;
     }
@@ -290,8 +309,10 @@ public class OrbitGame : Game
         // foreach (var planet in _planets)
         //     planet.DrawSphereOfInfluence(GraphicsDevice, _camera, _defaultEffect);
         foreach (var body in _bodies)
+        {
             body.Draw(GraphicsDevice, _camera, _defaultEffect);
-        
+        }
+
         _spriteBatch.End();
         
         base.Draw(gameTime);
