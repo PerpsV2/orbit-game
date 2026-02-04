@@ -15,7 +15,7 @@ namespace OrbitGame;
 /// </remarks>
 public abstract class CompactCollider
 {
-    public ScientificDecimal Inertia;
+    protected ScientificDecimal Inertia;
         
     public bool Fixed;
 
@@ -24,11 +24,13 @@ public abstract class CompactCollider
     /// <summary>
     /// Method to return the axis-aligned rectangular collider which best fits the set of points in the collider
     /// </summary>
-    public abstract RectangularCollider GetBoundingBox();
+    protected abstract BoundingBox GetBoundingBox(double angle);
     
-    public virtual bool NearsWith(CompactCollider collider, SD_Vector2 relPosition, double relAngle)
-    { 
-        return GetBoundingBox().NearsWith(collider.GetBoundingBox(), relPosition, relAngle);
+    public bool NearsWith(CompactCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial)
+    {
+        return GetBoundingBox(referenceSpatial.Angle).IntersectsWith(
+            collider.GetBoundingBox(colliderSpatial.Angle), referenceSpatial, colliderSpatial
+        );
     }
     
     public abstract PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo referenceSpatial);
@@ -38,7 +40,6 @@ public abstract class CompactCollider
         {
             case CircularCollider c: return IntersectsWith(c, referenceSpatial, colliderSpatial);
             case ConvexCollider c: return IntersectsWith(c, referenceSpatial, colliderSpatial);
-            case RectangularCollider c : return IntersectsWith(c, referenceSpatial, colliderSpatial);
             default: throw new ArgumentException();
         }
     }
@@ -48,9 +49,6 @@ public abstract class CompactCollider
     );
     protected abstract PhysicsCollision? IntersectsWith(
         ConvexCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial
-    );
-    protected abstract PhysicsCollision? IntersectsWith(
-        RectangularCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial
     );
 
     public void CollidesWith(CompactCollider collider, KinematicObject reference, KinematicObject incidence)

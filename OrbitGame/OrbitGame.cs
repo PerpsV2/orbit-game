@@ -162,7 +162,7 @@ public class OrbitGame : Game
         }*/
 
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
-        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 5000, SD_Vector2.Zero,
+        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 50000, SD_Vector2.Zero,
             SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);
 
         Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
@@ -182,12 +182,12 @@ public class OrbitGame : Game
             new(-4, 2)
         ]), new Material(0.2f));
         _bodies = [testPlanet, testShip1];
-        for (int i = 0; i < 20; ++i)
+        for (int i = 0; i < 3000; ++i)
         {
-            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-30, 30), _rnd.Next(-50, 50));
+            SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
             int randomColour = _rnd.Next(200, 255);
             Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i, 250, 
-                new SD_Vector2(550, 0) + randomPosition,
+                randomPosition,
                 SD_Vector2.Zero, 0, 0, new Color(120, 200, randomColour, 255), testPlanet);
             _bodies.Add(chimneyPipe);
         }
@@ -277,24 +277,17 @@ public class OrbitGame : Game
         if (Options.EnablePhysics)
         {
             List<Task> tasks = new List<Task>();
-
-            for (int i = 0; i < 100; ++i)
+            
+            foreach (var ship in _ships)
             {
-                int i1 = i;
                 Task task = Task.Run(() =>
                 {
-                    for (int j = i1 * _ships.Count / 100; j < (i1 + 1) * _ships.Count / 100; ++j)
-                    {
-                        Ship ship = _ships[j];
-                        ship.SetNetGravitationalAcceleration(_planets);
-                        ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod,
-                            x => x.SetNetGravitationalAcceleration(_planets));
-                    }
+                    ship.SetNetGravitationalAcceleration(_planets);
+                    ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod,
+                        x => x.SetNetGravitationalAcceleration(_planets));
                 });
                 tasks.Add(task);
             }
-            
-            Task.WaitAll(tasks.ToArray());
             
             foreach (var planet in _planets)
                 planet.Kepler_UpdatePosition(_time);
@@ -303,9 +296,15 @@ public class OrbitGame : Game
             {
                 foreach (var planet in _planets)
                 {
-                    ship.Collider.CollidesWith(planet.Collider, ship, planet);
+                    Task task = Task.Run(() => {
+                        if (ship.Collider.NearsWith(planet.Collider, ship.SpatialInfo, planet.SpatialInfo))
+                            ship.Collider.CollidesWith(planet.Collider, ship, planet);
+                    });
+                    tasks.Add(task);
                 }
             }
+            
+            Task.WaitAll(tasks.ToArray());
         }
         
         HandleInput(_deltaTime);
