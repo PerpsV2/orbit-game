@@ -11,7 +11,7 @@ public static class Options
     public static readonly bool EnablePhysics = true;
     public static readonly bool DrawColliders = false;
     
-    public static readonly bool EnableCollisionDebug = false;
+    public static readonly bool EnableCollisionDebug = true;
 
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ImplicitEuler;
 

@@ -106,7 +106,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                 float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                                   Matrix.CreateRotationZ(-(float)orbit.Periapsis) *
+                                   Matrix.CreateRotationZ((float)orbit.Periapsis) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, effect, transform, new() {
                     {"colour", Colour.ToVector4()}

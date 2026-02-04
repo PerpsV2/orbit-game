@@ -4,27 +4,20 @@ using System.Linq;
 
 namespace OrbitGame;
 
-public class ConvexCollider : CompactCollider
+public class ConvexCollider(SD_Vector2[] points) : CompactCollider
 {
-    private readonly SD_Vector2[] _points;
-
-    public ConvexCollider(SD_Vector2[] points)
-    {
-        _points = points.Distinct().ToArray();
-    }
-
     public override void CalculateInertia(ScientificDecimal mass)
     {
-        Inertia = Utils.CalculateConvexInertia(_points, mass);
+        Inertia = Utils.CalculateConvexInertia(points, mass);
     }
 
     public override RectangularCollider GetBoundingBox()
     {
-        SD_Vector2[] points = _points;
-        ScientificDecimal minX = points.MinBy(v => v.X).X;
-        ScientificDecimal maxX = points.MaxBy(v => v.X).X;
-        ScientificDecimal minY = points.MinBy(v => v.Y).Y;
-        ScientificDecimal maxY = points.MaxBy(v => v.Y).Y;
+        SD_Vector2[] points1 = points;
+        ScientificDecimal minX = points1.MinBy(v => v.X).X;
+        ScientificDecimal maxX = points1.MaxBy(v => v.X).X;
+        ScientificDecimal minY = points1.MinBy(v => v.Y).Y;
+        ScientificDecimal maxY = points1.MaxBy(v => v.Y).Y;
 
         SD_Vector2 topRight = new SD_Vector2(maxX, maxY);
         SD_Vector2 bottomLeft = new SD_Vector2(minX, minY);
@@ -43,56 +36,53 @@ public class ConvexCollider : CompactCollider
     protected override PhysicsCollision? IntersectsWith(CircularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
-
         SD_Vector2 collisionPoint = SD_Vector2.Zero;
         SD_Vector2 minPenetrationVector = SD_Vector2.Zero;
-        SD_Vector2 relativeCenter = Matrix3X3.Rotation(-referenceSpatial.Angle) * 
-                                    Matrix3X3.Translation(-referenceSpatial.Position) * incidentSpatial.Position;
-
-        // edge case (literally)
-        // TODO: fix cases where one object is fully within the other
-        for (int i = 0; i < _points.Length; ++i)
+        SD_Vector2 relativeCenter = Matrix3X3.Rotation(incidentSpatial.Angle - referenceSpatial.Angle) * 
+                                    (incidentSpatial.Position - referenceSpatial.Position);
+        
+        // // edge case (literally)
+        // // TODO: fix cases where one object is fully within the other
+        for (int i = 0; i < points.Length; ++i)
         {
-            SD_Vector2 currentVertex = _points[i];
-            SD_Vector2 nextVertex = _points[(i + 1) % _points.Length];
+            SD_Vector2 currentVertex = points[i];
+            SD_Vector2 nextVertex = points[(i + 1) % points.Length];
             double edgeAngle = SD_Vector2.GetPrincipalAngle(currentVertex, nextVertex);
-
+            
             Matrix3X3 transformation = Matrix3X3.Rotation(-edgeAngle) * Matrix3X3.Translation(-currentVertex);
             Matrix3X3 invTransformation = Matrix3X3.Translation(currentVertex) * Matrix3X3.Rotation(edgeAngle);
-
+            
             ScientificDecimal edgeUpperBound = (transformation * nextVertex).X;
             SD_Vector2 transformedCenter = transformation * relativeCenter;
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
                 transformedCenter.Y.Abs() <= collider.Radius)
             {
-                ScientificDecimal penetrationDistance = -collider.Radius - transformedCenter.Y;
+                ScientificDecimal penetrationDistance = -collider.Radius + transformedCenter.Y;
                 if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(SD_Vector2.Zero))
                 {
                     minPenetrationVector = Matrix3X3.Rotation(referenceSpatial.Angle) * 
-                                           SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, -penetrationDistance);
-                    collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * invTransformation *
+                                           SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance);
+                    collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * invTransformation * 
                                      new SD_Vector2(transformedCenter.X, 0);
                 }
             }
         }
-
+        
         if (!minPenetrationVector.Equals(SD_Vector2.Zero))
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
-
+        
         // vertex case
+        // sort vertices by distance to relative circular center
         minPenetrationVector = SD_Vector2.Zero;
-        SD_Vector2[] sortedPoints = _points.OrderBy(v => (v - relativeCenter).Magnitude()).ToArray();
-
-        SD_Vector2 diffVector = sortedPoints[0] - relativeCenter;
+        SD_Vector2 closestVertex = points.MinBy(v => (v - relativeCenter).Magnitude());
+        SD_Vector2 diffVector = closestVertex - relativeCenter;
         if (diffVector.Magnitude() <= collider.Radius) {
-            collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * sortedPoints[0];
+            collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * closestVertex;
             minPenetrationVector = Matrix3X3.Rotation(referenceSpatial.Angle) * diffVector.Normalize() * 
                                    (collider.Radius - diffVector.Magnitude());
         }
-
         if (!minPenetrationVector.Equals(SD_Vector2.Zero))
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
-
         return null;
     }
 

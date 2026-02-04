@@ -22,7 +22,7 @@ public class OrbitMesh : IMesh
         for (int i = 0; i < OrbitVertices; i++)
         {
             double angle = i * Math.Tau / OrbitVertices;
-            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
+            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), -(float)Math.Sin(angle), 0), Color.White);
         }
         vertices[^1] = vertices[0];
 

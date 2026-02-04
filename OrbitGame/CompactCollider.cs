@@ -55,8 +55,8 @@ public abstract class CompactCollider
 
     public void CollidesWith(CompactCollider collider, KinematicObject reference, KinematicObject incidence)
     {
-        PhysicsCollision? collision1 = IntersectsWith(collider, reference.SpatialInfo, incidence.SpatialInfo);
-        PhysicsCollision? collision2 = collider.IntersectsWith(this, reference.SpatialInfo, incidence.SpatialInfo);
+        PhysicsCollision? collision1 = this.IntersectsWith(collider, reference.SpatialInfo, incidence.SpatialInfo);
+        PhysicsCollision? collision2 = collider.IntersectsWith(this, incidence.SpatialInfo, reference.SpatialInfo);
         if (collision1 == null || collision2 == null) return;
         PhysicsCollision c1 = (PhysicsCollision)collision1;
         PhysicsCollision c2 = (PhysicsCollision)collision2;
@@ -91,27 +91,27 @@ public abstract class CompactCollider
         
         if (!Fixed) reference.Velocity -= cNormal * (j / reference.Mass);
         if (!collider.Fixed) incidence.Velocity += cNormal * (j / incidence.Mass);
-
+        
         if (!Fixed)reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / Inertia);
         if (!collider.Fixed) incidence.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / collider.Inertia);
-
+        
         if (!Fixed && !collider.Fixed)
         {
-            reference.Position -= c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
-            incidence.Position += c2.PenetrationVector * reference.Mass / (incidence.Mass + reference.Mass);
+            reference.Position += c1.PenetrationVector * incidence.Mass / (incidence.Mass + reference.Mass);
+            incidence.Position -= c2.PenetrationVector * reference.Mass / (incidence.Mass + reference.Mass);
         }
         else if (Fixed) incidence.Position += c2.PenetrationVector;
         else if (collider.Fixed) reference.Position += c1.PenetrationVector;
 
-        /*if (Options.EnableCollisionDebug)
-            DebugCanvas.Add((cnv, cam) => {
-                cnv.GS_DrawPoint(cam, reference.Position + cPr, DebugCanvas.Blue);
-                cnv.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, DebugCanvas.Blue);
+        if (Options.EnableCollisionDebug)
+            DrawDebug.Add((g, cam) => {
+                g.GS_DrawPoint(cam, reference.Position + cPr, DrawDebug.Blue);
+                g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, DrawDebug.Blue);
                 foreach (var point in c1.CollisionManifold)
-                    cnv.GS_DrawPoint(cam, reference.Position + point, DebugCanvas.Red);
-                cnv.GS_DrawLineR(cam, reference.Position + cPr, relV, DebugCanvas.Yellow);
-                cnv.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), DebugCanvas.Orange);
-            });*/
+                    g.GS_DrawPoint(cam, reference.Position + point, DrawDebug.Red);
+                g.GS_DrawLineR(cam, reference.Position + cPr, relV, DrawDebug.Yellow);
+                g.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), DrawDebug.Orange);
+            });
     }
     
     

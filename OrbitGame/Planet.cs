@@ -100,7 +100,7 @@ public class Planet : Body, IGameDrawable
             intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
             var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
 
-            Utils.DrawPoly(graphicsDevice, camera, effect, polyPoints, Colour);
+            Utils.DrawPoly(graphicsDevice, effect, polyPoints, Colour);
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker

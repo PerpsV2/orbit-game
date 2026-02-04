@@ -85,8 +85,6 @@ public class Ship : Body, IGameDrawable
     public class ShipTemplate(SD_Vector2[] shipVertices, Material material)
         : KinematicObjectTemplate(new PolyMesh(shipVertices), new ConvexCollider(shipVertices), material)
     {
-        private SD_Vector2[] _shipVertices = shipVertices;
-        
         public Ship CreateInstance(
             string identifier, 
             ScientificDecimal mass, 
@@ -103,7 +101,7 @@ public class Ship : Body, IGameDrawable
             {
                 Angle = angle,
                 AngularVelocity = angularVelocity,
-                _maximumRadius = _shipVertices.Select(x => x.Magnitude()).Max()
+                _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max()
             };
             AddInstance(identifier, ship);
             return ship;

@@ -162,8 +162,8 @@ public class OrbitGame : Game
         }*/
 
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
-        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 1000, SD_Vector2.Zero,
-            SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 2);
+        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 5000, SD_Vector2.Zero,
+            SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);
 
         Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
             new(4, 4),
@@ -172,7 +172,7 @@ public class OrbitGame : Game
             new(-4, 0),
             new(-3, 5)
         ]), new Material(0.2f));
-        Ship testShip1 = shipTemplate1.CreateInstance("Strawhat", 250, new SD_Vector2(0, 10),
+        Ship testShip1 = shipTemplate1.CreateInstance("Strawhat", 250, new SD_Vector2(505, 10),
             SD_Vector2.Zero, 0, 0, new Color(235, 100, 100, 255), testPlanet);
         
         Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
@@ -181,10 +181,16 @@ public class OrbitGame : Game
             new(-2, -5),
             new(-4, 2)
         ]), new Material(0.2f));
-        Ship testShip2 = shipTemplate2.CreateInstance("Chimneypipe", 250, new SD_Vector2(0, 10),
-            SD_Vector2.Zero, 0, 0, new Color(120, 200, 255, 255), testPlanet);
-
-        _bodies = [testPlanet, testShip1, testShip2];
+        _bodies = [testPlanet, testShip1];
+        for (int i = 0; i < 20; ++i)
+        {
+            SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-30, 30), _rnd.Next(-50, 50));
+            int randomColour = _rnd.Next(200, 255);
+            Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i, 250, 
+                new SD_Vector2(550, 0) + randomPosition,
+                SD_Vector2.Zero, 0, 0, new Color(120, 200, randomColour, 255), testPlanet);
+            _bodies.Add(chimneyPipe);
+        }
         _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = testShip1;
@@ -248,6 +254,11 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.K)) _tracking.Position += new SD_Vector2(0, -0.1);
         if (keyboardState.IsKeyDown(Keys.J)) _tracking.Position += new SD_Vector2(-0.1, 0);
         if (keyboardState.IsKeyDown(Keys.L)) _tracking.Position += new SD_Vector2(0.1, 0);
+        
+        if (keyboardState.IsKeyDown(Keys.D1)) _tracking.Velocity += new SD_Vector2(0, 0.1);
+        if (keyboardState.IsKeyDown(Keys.D2)) _tracking.Velocity += new SD_Vector2(0, -0.1);
+        if (keyboardState.IsKeyDown(Keys.D3)) _tracking.Velocity += new SD_Vector2(-0.1, 0);
+        if (keyboardState.IsKeyDown(Keys.D4)) _tracking.Velocity += new SD_Vector2(0.1, 0);
 
         if (keyboardState.IsKeyDown(Keys.U)) _tracking.Angle += 0.01;
         if (keyboardState.IsKeyDown(Keys.O)) _tracking.Angle -= 0.01;
@@ -332,6 +343,9 @@ public class OrbitGame : Game
         {
             body.Draw(GraphicsDevice, _camera, _defaultEffect);
         }
+        
+        DrawDebug.Draw(GraphicsDevice, _camera);
+        DrawDebug.ClearBuffer();
 
         _spriteBatch.End();
         

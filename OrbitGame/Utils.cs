@@ -91,7 +91,7 @@ public static class Utils
         return totalInertia;
     }
     
-    public static void DrawPoly(GraphicsDevice graphicsDevice, Camera camera, Effect effect, List<Vector2> points, 
+    public static void DrawPoly(GraphicsDevice graphicsDevice, Effect effect, List<Vector2> points, 
         Color colour)
     {
         if (points.Count == 0) return;
@@ -123,35 +123,6 @@ public static class Utils
         }
     }
 
-    public static void GS_DrawPath(GraphicsDevice graphicsDevice, Camera camera, Effect effect, List<SD_Vector2> points, 
-        Color colour, bool closed = false)
-    {
-        List<Vector2> screenPoints = points.Select(camera.ConvertToScreenCoordinates).ToList();
-        
-        var vertices = new VertexPositionColor[screenPoints.Count];
-        for (int i = 0; i < vertices.Length - 1; ++i)
-            vertices[i] = new VertexPositionColor(new Vector3(screenPoints[i].X, screenPoints[i].Y, 0), Color.White);
-        
-        var indices = new int[vertices.Length + (closed ? 1 : 0)];
-        for (int i = 0; i < indices.Length - 1; ++i)
-            indices[i] = i;
-        if (closed) indices[^1] = 0;
-        
-        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
-            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
-            0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
-                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
-        effect.Parameters["colour"].SetValue(colour.ToVector4());
-        foreach (var pass in effect.CurrentTechnique.Passes)
-        {
-            pass.Apply();
-            graphicsDevice.DrawUserIndexedPrimitives(
-                PrimitiveType.LineStrip, vertices, 0, vertices.Length, indices, 0, indices.Length - 2
-            );
-        }
-    }
-
     public static void DrawLine(this GraphicsDevice graphicsDevice, Vector2 start, Vector2 end, Color colour)
     {
         VertexPositionColor[] vertices = [new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)];
@@ -169,6 +140,45 @@ public static class Utils
             pass.Apply();
             graphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
+            );
+        }
+    }
+
+    public static void GS_DrawLine(this GraphicsDevice graphicsDevice, Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
+    {
+        Vector2 screenStart = camera.ConvertToScreenCoordinates(start);
+        Vector2 screenEnd = camera.ConvertToScreenCoordinates(end);
+        DrawLine(graphicsDevice, screenStart, screenEnd, colour);
+    }
+
+    public static void GS_DrawLineR(this GraphicsDevice graphicsDevice, Camera camera, SD_Vector2 start,
+        SD_Vector2 displacement, Color colour)
+    {
+        GS_DrawLine(graphicsDevice, camera, start, start + displacement, colour);
+    }
+    
+    public static void GS_DrawPoint(this GraphicsDevice graphicsDevice, Camera camera, SD_Vector2 position, Color colour)
+    {
+        Vector2 screenPosition = camera.ConvertToScreenCoordinates(position);
+        VertexPositionColor[] vertices = [
+            new(new Vector3(0, 5, 0), colour), 
+            new(new Vector3(5, 0, 0), colour),
+            new(new Vector3(0, -5, 0), colour), 
+            new(new Vector3(-5, 0, 0), colour)];
+        int[] indices = [0, 1, 3, 3, 1, 2];
+        
+        Effect effect = OrbitGame.CurrentEffect;
+        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
+        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+                                            Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
+        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            graphicsDevice.DrawUserIndexedPrimitives(
+                PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, 2
             );
         }
     }
