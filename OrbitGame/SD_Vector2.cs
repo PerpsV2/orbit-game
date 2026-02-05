@@ -34,9 +34,9 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
 
     public readonly SD_Vector2 Normalize()
     {
-        ScientificDecimal magnitude = Magnitude();
-        if (magnitude == 0) throw new ArithmeticException("Cannot normalize zero vector");
-        return new(X / magnitude, Y / magnitude);
+        if (this == Zero)
+            throw new ArithmeticException("Cannot normalize zero vector");
+        return FromPolar(GetPrincipalAngle());
     }
     
     #region Operators
@@ -60,8 +60,23 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     
     #endregion
     
+    #region Casts
     public static implicit operator SD_Vector3(SD_Vector2 value)
         => new (value.X, value.Y, 0);
+    #endregion
+    
+    #region Non-Matrix Transformations
+    
+    public static SD_Vector2 RotatePoint(SD_Vector2 point, double angle)
+        => new(
+            point.X * Math.Cos(angle) - point.Y * Math.Sin(angle),
+            point.X * Math.Sin(angle) + point.Y * Math.Cos(angle)
+        );
+
+    public static SD_Vector2 ScalePoint(SD_Vector2 point, SD_Vector2 scale)
+        => new(point.X * scale.X, point.Y * scale.Y);
+    
+    #endregion
 
     /// <summary>
     /// Decomposes the vertices of a convex polygon into triangles
@@ -144,10 +159,10 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     public static SD_Vector2 DirectionVectorBetween(SD_Vector2 start, SD_Vector2 end)
     {
         SD_Vector2 difference = end - start;
-        return difference / difference.Magnitude();
+        return FromPolar(difference.GetPrincipalAngle());
     }
 
-    public double GetPrincipalAngle()
+    public readonly double GetPrincipalAngle()
     {
         if (X == 0 && Y == 0) throw new DivideByZeroException();
         if (X == 0 && Y > 0) return Math.PI / 2;

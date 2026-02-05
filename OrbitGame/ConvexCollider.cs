@@ -34,8 +34,10 @@ public class ConvexCollider : CompactCollider
         if (IsEmpty() || collider.IsEmpty()) return null;
         SD_Vector2 collisionPoint = SD_Vector2.Zero;
         SD_Vector2 minPenetrationVector = SD_Vector2.Zero;
-        SD_Vector2 relativeCenter = Matrix3X3.Rotation(incidentSpatial.Angle - referenceSpatial.Angle) * 
-                                    (incidentSpatial.Position - referenceSpatial.Position);
+        SD_Vector2 relativeCenter = SD_Vector2.RotatePoint(
+            incidentSpatial.Position - referenceSpatial.Position,
+            incidentSpatial.Angle - referenceSpatial.Angle
+        );
         
         // // edge case (literally)
         // // TODO: fix cases where one object is fully within the other
@@ -45,21 +47,21 @@ public class ConvexCollider : CompactCollider
             SD_Vector2 nextVertex = _points[(i + 1) % _points.Length];
             double edgeAngle = SD_Vector2.GetPrincipalAngle(currentVertex, nextVertex);
             
-            Matrix3X3 transformation = Matrix3X3.Rotation(-edgeAngle) * Matrix3X3.Translation(-currentVertex);
-            Matrix3X3 invTransformation = Matrix3X3.Translation(currentVertex) * Matrix3X3.Rotation(edgeAngle);
-            
-            ScientificDecimal edgeUpperBound = (transformation * nextVertex).X;
-            SD_Vector2 transformedCenter = transformation * relativeCenter;
+            ScientificDecimal edgeUpperBound = SD_Vector2.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
+            SD_Vector2 transformedCenter = SD_Vector2.RotatePoint(relativeCenter - currentVertex, -edgeAngle);
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
                 transformedCenter.Y.Abs() <= collider.Radius)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius + transformedCenter.Y;
                 if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(SD_Vector2.Zero))
                 {
-                    minPenetrationVector = Matrix3X3.Rotation(referenceSpatial.Angle) * 
-                                           SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance);
-                    collisionPoint = Matrix3X3.Rotation(referenceSpatial.Angle) * invTransformation * 
-                                     new SD_Vector2(transformedCenter.X, 0);
+                    minPenetrationVector = SD_Vector2.RotatePoint(
+                        SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance), referenceSpatial.Angle
+                    );
+                    
+                    collisionPoint = SD_Vector2.RotatePoint(
+                        SD_Vector2.RotatePoint(new SD_Vector2(transformedCenter.X, 0), edgeAngle) + currentVertex,
+                        referenceSpatial.Angle);
                 }
             }
         }

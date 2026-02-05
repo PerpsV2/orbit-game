@@ -7,13 +7,12 @@ public static class Options
     public static readonly (int width, int height) ScreenSize = (800, 600);
     public static readonly ScientificDecimal DefaultZoomScale = new(1);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
-    public static readonly double TimeWarpStepMultiplier = 2;
+    public static readonly double TimeWarpStepMultiplier = 5;
     public static readonly bool EnablePhysics = true;
-    public static readonly bool DrawColliders = false;
     
-    public static readonly bool EnableCollisionDebug = true;
+    public static readonly bool EnableCollisionDebug = false;
 
-    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ImplicitEuler;
+    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
 
     public static readonly double CamMoveSpeed = 1;
     public static readonly double CamRotateSpeed = 1;

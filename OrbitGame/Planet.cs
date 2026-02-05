@@ -122,7 +122,7 @@ public class Planet : Body, IGameDrawable
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
             Mesh.Draw(graphicsDevice, effect, transform, new()
             {
-                {"colour", Colour.ToVector4()}
+                
             });
         }
     }

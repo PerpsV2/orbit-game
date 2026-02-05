@@ -30,6 +30,7 @@
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
     </ItemGroup>
     <ItemGroup>
+      <ClCompile Include="Content\effects\circleEffect.fx" />
       <ClCompile Include="Content\effects\defaultEffect.fx" />
     </ItemGroup>
 </Project>

@@ -51,6 +51,7 @@ public class OrbitGame : Game
     public static GraphicsDevice Graphics;
     private SpriteFont _font;
     private Effect _defaultEffect;
+    private Effect _circleEffect;
     
     private Random _rnd = new Random();
     
@@ -162,7 +163,7 @@ public class OrbitGame : Game
         }*/
 
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
-        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 50000, SD_Vector2.Zero,
+        Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
             SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);
 
         Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
@@ -182,7 +183,7 @@ public class OrbitGame : Game
             new(-4, 2)
         ]), new Material(0.2f));
         _bodies = [testPlanet, testShip1];
-        for (int i = 0; i < 3000; ++i)
+        for (int i = 0; i < 50; ++i)
         {
             SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
             int randomColour = _rnd.Next(200, 255);
@@ -204,6 +205,7 @@ public class OrbitGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _defaultEffect = Content.Load<Effect>("effects/defaultEffect");
+        _circleEffect = Content.Load<Effect>("effects/circleEffect");
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 
@@ -338,9 +340,14 @@ public class OrbitGame : Game
         CurrentEffect = _defaultEffect;
         // foreach (var planet in _planets)
         //     planet.DrawSphereOfInfluence(GraphicsDevice, _camera, _defaultEffect);
-        foreach (var body in _bodies)
+        foreach (var planet in _planets)
         {
-            body.Draw(GraphicsDevice, _camera, _defaultEffect);
+            planet.Draw(GraphicsDevice, _camera, _circleEffect);
+        }
+
+        foreach (var ship in _ships)
+        {
+            ship.Draw(GraphicsDevice, _camera, _defaultEffect);
         }
         
         DrawDebug.Draw(GraphicsDevice, _camera);
