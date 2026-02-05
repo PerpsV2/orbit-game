@@ -113,6 +113,30 @@ namespace OrbitGame
                 new SD_Vector2(new ScientificDecimal(-1.2915655, 4), new ScientificDecimal(3.4670152, 3)),
                 0, 0, new Color(175, 125, 50, 255), sun, new ScientificDecimal(6.9911, 7)
             );
+            Planet io = planetTemplate.CreateInstance(
+                "Io", new ScientificDecimal(8.931938, 22),
+                new SD_Vector2(new ScientificDecimal(-2.4992437, 8), new ScientificDecimal(-3.3952711, 8)),
+                new SD_Vector2(new ScientificDecimal(1.3919142, 4), new ScientificDecimal(-1.0326546, 4)),
+                0, 0, new Color(195, 200, 40, 255), jupiter, new ScientificDecimal(1.8216, 6)
+            );
+            Planet europa = planetTemplate.CreateInstance(
+                "Europa", new ScientificDecimal(4.79984, 22),
+                new SD_Vector2(new ScientificDecimal(6.6134371, 8), new ScientificDecimal(8.2686051, 7)),
+                new SD_Vector2(new ScientificDecimal(-1.6290520, 3), new ScientificDecimal(1.3728682, 4)),
+                0, 0, new Color(195, 200, 40, 255), jupiter, new ScientificDecimal(1.5608, 6)
+            );
+            Planet ganymede = planetTemplate.CreateInstance(
+                "Ganymede", new ScientificDecimal(1.4819, 23),
+                new SD_Vector2(new ScientificDecimal(1.0221162, 9), new ScientificDecimal(-3.1228698, 8)),
+                new SD_Vector2(new ScientificDecimal(3.1804035, 3), new ScientificDecimal(1.0413910, 4)),
+                0, 0, new Color(195, 200, 40, 255), jupiter, new ScientificDecimal(2.6341, 6)
+            );
+            Planet callisto = planetTemplate.CreateInstance(
+                "Callisto", new ScientificDecimal(1.075938, 23),
+                new SD_Vector2(new ScientificDecimal(1.7988510, 9), new ScientificDecimal(-5.1363150, 8)),
+                new SD_Vector2(new ScientificDecimal(2.2405056, 3), new ScientificDecimal(7.9426031, 3)),
+                0, 0, new Color(195, 200, 40, 255), jupiter, new ScientificDecimal(2.4103, 6)
+            );
             Planet saturn = planetTemplate.CreateInstance(
                 "Saturn", new ScientificDecimal(5.683, 26),
                 new SD_Vector2(new ScientificDecimal( 1.4146019, 12), new ScientificDecimal(-2.6971440, 11)),
@@ -150,7 +174,7 @@ namespace OrbitGame
             #endregion
 
             _bodies = new List<Body>();
-            _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
+            _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
             for (int i = 0; i < 2000; ++i)
             {
                 int randomRed = _rnd.Next(0, 256);

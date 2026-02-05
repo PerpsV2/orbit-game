@@ -141,7 +141,7 @@ public class Planet : Body, IGameDrawable
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
 
         // paint for spheres of influence
-        Color soiColour = new Color((int)Colour.R, Colour.G, Colour.B, 25);
+        Color soiColour = new Color((int)Colour.R, Colour.G, Colour.B, Options.SOIAlpha);
         
         Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
         float screenRadius = camera.ConvertToScreenDistance(sphereOfInfluenceRadius);
