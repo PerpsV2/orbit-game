@@ -107,6 +107,7 @@ public abstract class Body : KinematicObject, IGameDrawable
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
                                    Matrix.CreateRotationZ((float)orbit.Periapsis) *
+                                   Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, transform, new() {
                     {"colour", Colour.ToVector4()}

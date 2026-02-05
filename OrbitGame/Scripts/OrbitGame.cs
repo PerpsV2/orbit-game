@@ -69,9 +69,8 @@ namespace OrbitGame
 
             Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
 
-            //f#region Bodies
-
-            /*
+            #region Bodies
+            
             Material planetMaterial = new Material(0.2f);
             Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMaterial);
             Planet sun = planetTemplate.CreateInstance(
@@ -152,19 +151,19 @@ namespace OrbitGame
 
             _bodies = new List<Body>();
             _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
-            for (int i = 0; i < 200; ++i)
+            for (int i = 0; i < 2000; ++i)
             {
                 int randomRed = _rnd.Next(0, 256);
-                SD_Vector2 randomPosition = new SD_Vector2(0, _rnd.Next(-40000000, 40000000));
-                SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1022, 1022));
+                SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-40000000, 40000000), _rnd.Next(-40000000, 40000000));
+                SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1000, 1000));
                 Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 1000,
                     new SD_Vector2(new ScientificDecimal(6.378, 6) + 354000000, 0) + randomPosition,
                     randomVelocity,
                     0, 0, new Color(0, randomRed, 0, 255), earth);
                 _bodies.Add(smokestack);
-            }*/
+            }
 
-            Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
+            /*Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
             Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
                 SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);
 
@@ -185,7 +184,7 @@ namespace OrbitGame
                 new(-4, 2)
             ]), new Material(0.2f));
             _bodies = [testPlanet, testShip1];
-            for (int i = 0; i < 1000; ++i)
+            for (int i = 0; i < 9000; ++i)
             {
                 SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
                 int randomColour = _rnd.Next(200, 255);
@@ -193,11 +192,11 @@ namespace OrbitGame
                     randomPosition,
                     SD_Vector2.Zero, 0, 0, new Color(120, 200, randomColour, 255), testPlanet);
                 _bodies.Add(chimneyPipe);
-            }
+            }*/
 
             _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
             _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-            OriginBody.Body = testShip1;
+            OriginBody.Body = earth;
             _tracking = OriginBody.Body;
             _trackingIndex = _bodies.IndexOf(OriginBody.Body);
 
