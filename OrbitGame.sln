@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame", "OrbitGame\OrbitGame.csproj", "{260D704A-A4D9-4957-ACAA-BABBE526DD83}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame", "OrbitGame\OrbitGame.csproj", "{87B75D0F-17B0-45D8-B670-F35BC18943E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame.Tests", "OrbitGame.Tests\OrbitGame.Tests.csproj", "{16733D92-8CA5-42EC-A0C2-69F940F31E4C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame.Tests", "OrbitGame.Tests\OrbitGame.Tests.csproj", "{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,13 +10,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{260D704A-A4D9-4957-ACAA-BABBE526DD83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{260D704A-A4D9-4957-ACAA-BABBE526DD83}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{260D704A-A4D9-4957-ACAA-BABBE526DD83}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{260D704A-A4D9-4957-ACAA-BABBE526DD83}.Release|Any CPU.Build.0 = Release|Any CPU
-		{16733D92-8CA5-42EC-A0C2-69F940F31E4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{16733D92-8CA5-42EC-A0C2-69F940F31E4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{16733D92-8CA5-42EC-A0C2-69F940F31E4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{16733D92-8CA5-42EC-A0C2-69F940F31E4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87B75D0F-17B0-45D8-B670-F35BC18943E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87B75D0F-17B0-45D8-B670-F35BC18943E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87B75D0F-17B0-45D8-B670-F35BC18943E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87B75D0F-17B0-45D8-B670-F35BC18943E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79B1AA0C-5DC4-4360-AEEB-E8587F35DD66}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

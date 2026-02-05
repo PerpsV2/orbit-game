@@ -1,0 +1,53 @@
+using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace OrbitGame;
+
+public class CircularMesh : IMesh
+{
+    private static VertexBuffer? _vertexBuffer;
+    private static IndexBuffer? _indexBuffer;
+
+    public void GenerateBuffers()
+    {
+        VertexPositionTexture[] vertices = [
+            new (new Vector3(1, 1, 0), new Vector2(1, 1)),
+            new (new Vector3(1, -1, 0), new Vector2(1, -1)),
+            new (new Vector3(-1, 1, 0), new Vector2(-1, 1)),
+            new (new Vector3(-1, -1, 0), new Vector2(-1, -1)),
+        ];
+
+        int[] indices = [0, 1, 2, 2, 1, 3];
+         
+        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionTexture), vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+         
+        _vertexBuffer.SetData(vertices);
+        _indexBuffer.SetData(indices);
+    }
+    
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
+    {
+        if (_vertexBuffer == null || _indexBuffer == null) 
+            throw new NullReferenceException("Buffers not generated for this mesh");
+
+        Effect effect = Effects.CircleEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        graphicsDevice.Indices = _indexBuffer;
+
+        effect.Parameters["world"].SetValue(transform);
+        foreach (var pair in shaderParameters)
+            effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
+
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            graphicsDevice.DrawInstancedPrimitives(
+                PrimitiveType.TriangleList, 0, 0, _indexBuffer.IndexCount / 3, _vertexBuffer.VertexCount
+            );
+        }
+    }
+}
