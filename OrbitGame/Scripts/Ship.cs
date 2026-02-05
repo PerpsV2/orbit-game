@@ -10,6 +10,7 @@ namespace OrbitGame;
 public class Ship : Body, IGameDrawable
 {
     private ScientificDecimal _maximumRadius;
+    private OrbitMesh _orbitMesh;
 
     private Ship(
         ShipTemplate template,
@@ -50,6 +51,7 @@ public class Ship : Body, IGameDrawable
             graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
             graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
         }
+        DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
     }
 
     public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
@@ -85,6 +87,8 @@ public class Ship : Body, IGameDrawable
     public class ShipTemplate(SD_Vector2[] shipVertices, Material material)
         : KinematicObjectTemplate(new PolyMesh(shipVertices), new ConvexCollider(shipVertices), material)
     {
+        private readonly OrbitMesh _orbitMesh = new();
+        
         public Ship CreateInstance(
             string identifier, 
             ScientificDecimal mass, 
@@ -101,7 +105,8 @@ public class Ship : Body, IGameDrawable
             {
                 Angle = angle,
                 AngularVelocity = angularVelocity,
-                _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max()
+                _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max(),
+                _orbitMesh = _orbitMesh
             };
             AddInstance(identifier, ship);
             return ship;

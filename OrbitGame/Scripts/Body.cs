@@ -147,7 +147,10 @@ public abstract class Body : KinematicObject, IGameDrawable
             }
         }
 
-        //if (orbitPoints.Count > 0) Utils.GS_DrawPath(graphicsDevice, camera, orbitPoints, Colour);
+        for (int i = 0; i < orbitPoints.Count - 1; ++i)
+        {
+            graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], Colour);
+        }
     }
     
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)

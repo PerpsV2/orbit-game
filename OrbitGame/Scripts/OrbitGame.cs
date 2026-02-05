@@ -168,24 +168,17 @@ namespace OrbitGame
                 new(-50, 0),
                 new(-3, 5)
             ]);
-            Material shipMaterial = new Material(0.5f);
+            Material shipMaterial = new Material(0.1f);
             Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
 
+            Ship smokestack = smokestackTemplate.CreateInstance("Smokestack", 1000,
+                new SD_Vector2(new ScientificDecimal(6.378, 6) + 100, 0), SD_Vector2.Zero,
+            0, 0, new Color(0, 255, 0, 255), earth);
+            
             #endregion
 
             _bodies = new List<Body>();
-            _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
-            for (int i = 0; i < 500; ++i)
-            {
-                int randomRed = _rnd.Next(0, 256);
-                SD_Vector2 randomPosition = new SD_Vector2(_rnd.Next(-40000000, 40000000), _rnd.Next(-40000000, 40000000));
-                SD_Vector2 randomVelocity = new SD_Vector2(0, _rnd.Next(1000, 1000));
-                Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 1000,
-                    new SD_Vector2(new ScientificDecimal(6.378, 6) + 354000000, 0) + randomPosition,
-                    randomVelocity,
-                    0, 0, new Color(0, randomRed, 0, 255), earth);
-                _bodies.Add(smokestack);
-            }
+            _bodies = [sun, mercury, venus, earth, smokestack, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
 
             /*Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
             Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
@@ -283,18 +276,9 @@ namespace OrbitGame
             if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(camRotateSpeed);
             if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(-camRotateSpeed);
 
-            if (keyboardState.IsKeyDown(Keys.I)) _tracking.Position += new SD_Vector2(0, 0.1);
-            if (keyboardState.IsKeyDown(Keys.K)) _tracking.Position += new SD_Vector2(0, -0.1);
-            if (keyboardState.IsKeyDown(Keys.J)) _tracking.Position += new SD_Vector2(-0.1, 0);
-            if (keyboardState.IsKeyDown(Keys.L)) _tracking.Position += new SD_Vector2(0.1, 0);
-
-            if (keyboardState.IsKeyDown(Keys.D1)) _tracking.Velocity += new SD_Vector2(0, 0.1);
-            if (keyboardState.IsKeyDown(Keys.D2)) _tracking.Velocity += new SD_Vector2(0, -0.1);
-            if (keyboardState.IsKeyDown(Keys.D3)) _tracking.Velocity += new SD_Vector2(-0.1, 0);
-            if (keyboardState.IsKeyDown(Keys.D4)) _tracking.Velocity += new SD_Vector2(0.1, 0);
-
-            if (keyboardState.IsKeyDown(Keys.U)) _tracking.Angle += 0.01;
-            if (keyboardState.IsKeyDown(Keys.O)) _tracking.Angle -= 0.01;
+            if (keyboardState.IsKeyDown(Keys.I)) _tracking.Velocity -= _tracking.ForwardVector * 10;
+            if (keyboardState.IsKeyDown(Keys.J)) _tracking.AngularVelocity += 0.01;
+            if (keyboardState.IsKeyDown(Keys.L)) _tracking.AngularVelocity += -0.01;
 
             _lastKeyboardState = keyboardState;
         }
@@ -318,10 +302,11 @@ namespace OrbitGame
                         ship.SetNetGravitationalAcceleration(_planets);
                         ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod,
                             x => x.SetNetGravitationalAcceleration(_planets));
+                        ship.CalculateShipOrbit(_planets);
                     });
                     tasks.Add(task);
                 }
-
+                
                 foreach (var planet in _planets)
                     planet.Kepler_UpdatePosition(_time);
 
