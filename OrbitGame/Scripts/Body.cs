@@ -35,13 +35,13 @@ public abstract class Body : KinematicObject, IGameDrawable
         Orbit = CalculateOrbit(true);
     }
     
-    public abstract void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect);
-    public abstract void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect);
+    public abstract void Draw(GraphicsDevice graphicsDevice, Camera camera);
+    public abstract void DrawCollider(GraphicsDevice graphicsDevice, Camera camera);
 
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, Effect effect, OrbitMesh orbitMesh)
+    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh)
     {
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
@@ -108,7 +108,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
                                    Matrix.CreateRotationZ((float)orbit.Periapsis) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-                orbitMesh.Draw(graphicsDevice, effect, transform, new() {
+                orbitMesh.Draw(graphicsDevice, transform, new() {
                     {"colour", Colour.ToVector4()}
                 });
             }

@@ -44,16 +44,22 @@ public class PolyMesh : IMesh
         _indexBuffer.SetData(_indices);
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
     {
         if (_vertexBuffer == null || _indexBuffer == null || _vertices == null || _indices == null) 
             throw new NullReferenceException("Buffers not generated for this mesh");
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
         
+        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        
+        graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        graphicsDevice.Indices = _indexBuffer;
+
         effect.Parameters["world"].SetValue(transform);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
+        
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();

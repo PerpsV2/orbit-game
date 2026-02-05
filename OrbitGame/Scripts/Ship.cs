@@ -23,7 +23,7 @@ public class Ship : Body, IGameDrawable
         Collider.CalculateInertia(mass);
     }
 
-    public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         if (Position.X < camera.Left - _maximumRadius) return;
         if (Position.X > camera.Right + _maximumRadius) return;
@@ -38,7 +38,7 @@ public class Ship : Body, IGameDrawable
             Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
                                Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-            Mesh.Draw(graphicsDevice, effect, transform, new()
+            Mesh.Draw(graphicsDevice, transform, new()
             {
                 { "colour", Colour.ToVector4() }
             });
@@ -52,7 +52,7 @@ public class Ship : Body, IGameDrawable
         }
     }
 
-    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
     {
         throw new NotImplementedException();
     }

@@ -8,5 +8,5 @@ public interface IMesh
 {
     public void GenerateBuffers();
 
-    public void Draw(GraphicsDevice graphics, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters);
+    public void Draw(GraphicsDevice graphics, Matrix transform, Dictionary<string, object> shaderParameters);
 }

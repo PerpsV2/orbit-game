@@ -7,52 +7,47 @@ namespace OrbitGame;
 
 public class CircularMesh : IMesh
 {
-    public static readonly int CircleVertices = 400;
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
 
     public void GenerateBuffers()
     {
-        var vertices = new VertexPositionColor[CircleVertices + 1];
-        for (int i = 0; i < CircleVertices; i++)
-        {
-            double angle = i * Math.Tau / CircleVertices;
-            vertices[i] = new VertexPositionColor(new Vector3((float)Math.Cos(angle), (float)Math.Sin(angle), 0), Color.White);
-        }
-        vertices[^1] = new VertexPositionColor(Vector3.Zero, Color.White);
+        VertexPositionTexture[] vertices = [
+            new (new Vector3(1, 1, 0), new Vector2(1, 1)),
+            new (new Vector3(1, -1, 0), new Vector2(1, -1)),
+            new (new Vector3(-1, 1, 0), new Vector2(-1, 1)),
+            new (new Vector3(-1, -1, 0), new Vector2(-1, -1)),
+        ];
 
-        var indices = new int[CircleVertices * 3];
-        for (int i = 0; i < CircleVertices; i++)
-        {
-            indices[i * 3] = CircleVertices;
-            indices[i * 3 + 1] = i;
-            indices[i * 3 + 2] = (i + 1) % CircleVertices;
-        }
+        int[] indices = [0, 1, 2, 2, 1, 3];
          
-        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionTexture), vertices.Length, BufferUsage.None);
         _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
          
         _vertexBuffer.SetData(vertices);
         _indexBuffer.SetData(indices);
     }
     
-    public void Draw(GraphicsDevice graphicsDevice, Effect effect, Matrix transform, Dictionary<string, object> shaderParameters)
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
     {
         if (_vertexBuffer == null || _indexBuffer == null) 
             throw new NullReferenceException("Buffers not generated for this mesh");
+
+        Effect effect = Effects.CircleEffect ?? throw new NullReferenceException("Effect not initialized yet");
         
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
-        
+
         effect.Parameters["world"].SetValue(transform);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
+
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
             graphicsDevice.DrawInstancedPrimitives(
-                PrimitiveType.TriangleList, 0, 0, CircleVertices, _vertexBuffer.VertexCount
-                );
+                PrimitiveType.TriangleList, 0, 0, _indexBuffer.IndexCount / 3, _vertexBuffer.VertexCount
+            );
         }
     }
 }

@@ -26,10 +26,10 @@ public class Planet : Body, IGameDrawable
         collider.CalculateInertia(mass);
     }
 
-    public override void Draw(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
-        DrawSphereOfInfluence(graphicsDevice, camera, effect);
-        DrawOrbitalPathLRL(graphicsDevice, camera, effect, _orbitMesh);
+        DrawSphereOfInfluence(graphicsDevice, camera);
+        DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
         
         if (Position.X < camera.Left - Radius) return;
         if (Position.X > camera.Right + Radius) return;
@@ -100,7 +100,7 @@ public class Planet : Body, IGameDrawable
             intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
             var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
 
-            Utils.DrawPoly(graphicsDevice, effect, polyPoints, Colour);
+            Utils.DrawPoly(graphicsDevice, polyPoints, Colour);
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
@@ -120,18 +120,19 @@ public class Planet : Body, IGameDrawable
             float screenRadius = camera.ConvertToScreenDistance(Radius);
             Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-            Mesh.Draw(graphicsDevice, effect, transform, new()
-            {  
+            Mesh.Draw(graphicsDevice, transform, new()
+            {
+                {"colour", Colour.ToVector4()}
             });
         }
     }
 
-    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
     {
-        Draw(graphicsDevice, camera, effect);
+        Draw(graphicsDevice, camera);
     }
 
-    private void DrawSphereOfInfluence(GraphicsDevice graphicsDevice, Camera camera, Effect effect)
+    private void DrawSphereOfInfluence(GraphicsDevice graphicsDevice, Camera camera)
     {
         if (Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
@@ -146,7 +147,7 @@ public class Planet : Body, IGameDrawable
         float screenRadius = camera.ConvertToScreenDistance(sphereOfInfluenceRadius);
         Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                            Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-        Mesh.Draw(graphicsDevice, effect, transform, new()
+        Mesh.Draw(graphicsDevice, transform, new()
         {
             {"colour", soiColour.ToVector4()}
         });

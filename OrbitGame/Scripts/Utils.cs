@@ -91,8 +91,7 @@ public static class Utils
         return totalInertia;
     }
     
-    public static void DrawPoly(GraphicsDevice graphicsDevice, Effect effect, List<Vector2> points, 
-        Color colour)
+    public static void DrawPoly(GraphicsDevice graphicsDevice, List<Vector2> points, Color colour)
     {
         if (points.Count == 0) return;
         
@@ -108,6 +107,7 @@ public static class Utils
             indices[i * 3 + 2] = (i + 2) % vertices.Length;
         }
 
+        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
@@ -128,7 +128,7 @@ public static class Utils
         VertexPositionColor[] vertices = [new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)];
         int[] indices = [0, 1];
         
-        Effect effect = OrbitGame.CurrentEffect;
+        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
@@ -167,7 +167,7 @@ public static class Utils
             new(new Vector3(-5, 0, 0), colour)];
         int[] indices = [0, 1, 3, 3, 1, 2];
         
-        Effect effect = OrbitGame.CurrentEffect;
+        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");;
         effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
             0, 100));
