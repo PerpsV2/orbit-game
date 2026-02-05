@@ -19,8 +19,8 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
     float4 Position : SV_POSITION;
+    float4 FragmentPosition : TEXCOORD0;
     float4 Color : COLOR0;
-    float4 PixelPos : TEXCOORD0;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
@@ -28,7 +28,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     VertexShaderOutput output = (VertexShaderOutput)0;
 
     output.Position = mul(input.Position, mul(world, projection));
-    output.PixelPos = mul(input.Position, mul(world, projection));
+    output.FragmentPosition = input.Position;
     output.Color = input.Color;
 
     return output;
@@ -36,7 +36,10 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    return float4(0, 255, 0, 255);
+    if (length(input.FragmentPosition - float4(0, 0, 0, 1)) < 1) {
+        return float4(1, 1, 1, 1);
+    }
+    return float4(0, 0, 0, 0);
 }
 
 technique BasicColorDrawing

@@ -205,7 +205,13 @@ public class OrbitGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _defaultEffect = Content.Load<Effect>("effects/defaultEffect");
+        _defaultEffect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
         _circleEffect = Content.Load<Effect>("effects/circleEffect");
+        _circleEffect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
+            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
+            0, 100));
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 

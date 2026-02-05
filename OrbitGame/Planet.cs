@@ -121,8 +121,7 @@ public class Planet : Body, IGameDrawable
             Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
             Mesh.Draw(graphicsDevice, effect, transform, new()
-            {
-                
+            {  
             });
         }
     }
