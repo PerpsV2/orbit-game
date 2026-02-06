@@ -52,6 +52,7 @@ namespace OrbitGame
             Options.ScreenSize.width * Options.DefaultZoomScale,
             Options.ScreenSize.height * Options.DefaultZoomScale
         );
+        CollisionHandler _collisionHandler;
 
         public static GraphicsDevice Graphics = null!;
         private SpriteFont _font;
@@ -200,6 +201,7 @@ namespace OrbitGame
             OriginBody.Body = manatee;
             _tracking = OriginBody.Body;
             _trackingIndex = _bodies.IndexOf(OriginBody.Body);
+            _collisionHandler = new CollisionHandler(_bodies);
 
             base.Initialize();
         }
@@ -301,19 +303,7 @@ namespace OrbitGame
                     tasks.Add(task);
                 }
 
-                foreach (var ship in _ships)
-                {
-                    if (ship.Attachment != null) continue;
-                    foreach (var planet in _planets)
-                    {
-                        Task task = Task.Run(() =>
-                        {
-                            if (ship.Collider.NearsWith(planet.Collider, ship.SpatialInfo, planet.SpatialInfo))
-                                ship.Collider.CollidesWith(planet.Collider, ship, planet);
-                        });
-                        tasks.Add(task);
-                    }
-                }
+                _collisionHandler.ResolveCollisions();
 
                 Task.WaitAll(tasks.ToArray());
 

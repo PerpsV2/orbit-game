@@ -16,22 +16,12 @@ public readonly struct PointCollision(bool intersects = true)
 /// Values are relative to the reference collider's parent without respect for angle
 /// </summary>
 public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incident, HashSet<SD_Vector2> manifold, SD_Vector2 penetrationVector)
+    : IIntersection
 {
     public readonly SpatialInfo Reference = reference;
     public readonly SpatialInfo Incident = incident;
     public readonly HashSet<SD_Vector2> CollisionManifold = manifold;
     public readonly SD_Vector2 PenetrationVector = penetrationVector;
-
-    public PhysicsCollision GetInverse()
-    {
-        HashSet<SD_Vector2> newManifold = new();
-        foreach (SD_Vector2 point in CollisionManifold)
-            newManifold.Add(point + PenetrationVector + Reference.Position - Incident.Position);
-        
-        return new PhysicsCollision(
-            Incident, Reference, newManifold, -PenetrationVector
-        );
-    }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {

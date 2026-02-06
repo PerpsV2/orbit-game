@@ -24,7 +24,7 @@ public abstract class Body : KinematicObject, IGameDrawable
         IMesh mesh,
         CompactCollider collider,
         Material material
-        ) 
+        )
         : base(identifier, mass, spatialInfo, mesh, collider, material)
     {
         Colour = colour;

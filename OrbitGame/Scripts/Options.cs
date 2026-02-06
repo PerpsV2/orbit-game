@@ -10,7 +10,7 @@ public static class Options
     public static readonly double TimeWarpStepMultiplier = 5;
     public static readonly bool EnablePhysics = true;
     
-    public static readonly bool EnableCollisionDebug = true;
+    public static readonly bool EnablePhysicsCollisionDebug = true;
 
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
 
