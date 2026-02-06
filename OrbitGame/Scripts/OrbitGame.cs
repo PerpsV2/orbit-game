@@ -168,6 +168,7 @@ namespace OrbitGame
                 new(-50, 0),
                 new(-3, 5)
             ]);
+            
             Material shipMaterial = new Material(0.1f);
             Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
 
@@ -175,26 +176,27 @@ namespace OrbitGame
                 new SD_Vector2(new ScientificDecimal(6.378, 6) + 100, 0), SD_Vector2.Zero,
             0, 0, new Color(0, 255, 0, 255), earth);
             
-            #endregion
-
-            _bodies = new List<Body>();
-            _bodies = [sun, mercury, venus, earth, smokestack, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
-
-            /*Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
-            Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
-                SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);
-
             Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
                 new(4, 4),
                 new(4, -3),
                 new(-2, -5),
                 new(-4, 0),
                 new(-3, 5)
-            ]), new Material(0.2f));
-            Ship testShip1 = shipTemplate1.CreateInstance("Strawhat", 250, new SD_Vector2(505, 10),
-                SD_Vector2.Zero, 0, 0, new Color(235, 100, 100, 255), testPlanet);
+            ]), shipMaterial);
+            Ship strawhat = shipTemplate1.CreateInstance("Strawhat", 1000,
+                new SD_Vector2(new ScientificDecimal(6.378, 6) + 105, 10), SD_Vector2.Zero,
+                0, 0, new Color(0, 255, 0, 255), earth);
+            
+            #endregion
 
-            Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+            _bodies = new List<Body>();
+            _bodies = [sun, mercury, venus, earth, smokestack, strawhat, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
+
+            /*Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
+            Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
+                SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);*/
+            
+            /*Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
                 new(4, 3),
                 new(3, -5),
                 new(-2, -5),
@@ -214,7 +216,7 @@ namespace OrbitGame
             _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
             _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
             OriginBody.Body = smokestack;
-            smokestack.AttachTo(earth);
+            strawhat.AttachTo(smokestack);
             _tracking = OriginBody.Body;
             _trackingIndex = _bodies.IndexOf(OriginBody.Body);
 
@@ -302,10 +304,7 @@ namespace OrbitGame
                 foreach (var ship in _ships)
                 {
                     if (ship.Attachment != null)
-                    {
-                        ship.UpdatePosition_Attached();
                         continue;
-                    }
 
                     Task task = Task.Run(() =>
                     {
@@ -332,6 +331,12 @@ namespace OrbitGame
                 }
 
                 Task.WaitAll(tasks.ToArray());
+
+                foreach (var ship in _ships)
+                {
+                    if (ship.Attachment != null) 
+                        ship.UpdatePosition_Attached();
+                }
             }
 
             HandleInput(_deltaTime);

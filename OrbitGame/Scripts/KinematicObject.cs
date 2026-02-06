@@ -86,7 +86,7 @@ public abstract class KinematicObject
 
     public void AttachTo(KinematicObject parent)
     {
-        Attachment = new Attachment(parent, Position - parent.Position);
+        Attachment = new Attachment(parent, Position - parent.Position, Angle - parent.Angle);
     }
 
     public void Detach()

@@ -204,7 +204,8 @@ public abstract class Body : KinematicObject, IGameDrawable
         if (Attachment == null)
             throw new NullReferenceException("Body is not attached to anything");
         Attachment attachment = Attachment.Value;
-        Position = attachment.Parent.Position + SD_Vector2.RotatePoint(attachment.RelativePosition, -attachment.Parent.Angle);
+        Position = attachment.Parent.Position + SD_Vector2.RotatePoint(attachment.RelativePosition, attachment.Parent.Angle);
+        Angle = attachment.Parent.Angle + attachment.RelativeAngle;
     }
 
     public void UpdatePosition_Integrator(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
