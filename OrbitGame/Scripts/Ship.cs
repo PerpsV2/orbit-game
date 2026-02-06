@@ -60,7 +60,7 @@ public class Ship : Body, IGameDrawable
             graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
             graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
         }
-        DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
+        //DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
     }
 
     public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)

@@ -63,6 +63,8 @@ public abstract class CompactCollider
         SD_Vector2 cNormal = -c1.PenetrationVector.Normalize();
         
         float restitution = (reference.Material.RestitutionCoefficient + reference.Material.RestitutionCoefficient) / 2;
+        float staticFriction = (reference.Material.StaticFrictionCoefficient + reference.Material.StaticFrictionCoefficient) / 2;
+        float dynamicFriction = (reference.Material.DynamicFrictionCoefficient + reference.Material.DynamicFrictionCoefficient) / 2;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
         SD_Vector2 cPr = SD_Vector2.Zero;
@@ -79,6 +81,9 @@ public abstract class CompactCollider
         SD_Vector2 pVi = incidence.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, 
             new(0, 0, incidence.AngularVelocity));
         SD_Vector2 relV = pVi - pVr;
+
+        SD_Vector2 cPerpendicularNormal = new SD_Vector2(-cNormal.Y, cNormal.X);
+        SD_Vector2 cTangent = cPerpendicularNormal * (SD_Vector2.Dot(-relV, cPerpendicularNormal).Positive ? 1 : -1);
         
         // calculate the magnitude of impulse
         ScientificDecimal jV = -(1 + restitution) * SD_Vector2.Dot(relV, cNormal);
@@ -86,9 +91,23 @@ public abstract class CompactCollider
         SD_Vector3 m2 = SD_Vector3.Cross(SD_Vector2.Cross(cPi, cNormal) / collider.Inertia, cPi);
         ScientificDecimal j = jV / (SD_Vector2.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incidence.Mass)) 
                                     + SD_Vector3.Dot(m1 + m2, cNormal));
-        
-        if (!Fixed) reference.Velocity -= cNormal * (j / reference.Mass);
-        if (!collider.Fixed) incidence.Velocity += cNormal * (j / incidence.Mass);
+        ScientificDecimal jS = staticFriction * j;
+        ScientificDecimal jD = dynamicFriction * j;
+        SD_Vector2 jF = SD_Vector2.Dot(relV, cTangent) == 0 || SD_Vector2.Dot(relV * reference.Mass, cTangent) <= jS
+                ? cTangent * -SD_Vector2.Dot(relV * reference.Mass, cTangent)
+                : cTangent * jD;
+
+        if (!Fixed)
+        {
+            reference.Velocity -= cNormal * (j / reference.Mass);
+            reference.Velocity -= jF / reference.Mass;
+        }
+
+        if (!collider.Fixed)
+        {
+            incidence.Velocity += cNormal * (j / incidence.Mass);
+            incidence.Velocity += jF / incidence.Mass;
+        }
         
         if (!Fixed)reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / Inertia);
         if (!collider.Fixed) incidence.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / collider.Inertia);
@@ -105,6 +124,7 @@ public abstract class CompactCollider
             DrawDebug.Add((g, cam) => {
                 g.GS_DrawPoint(cam, reference.Position + cPr, DrawDebug.Blue);
                 g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, DrawDebug.Blue);
+                g.GS_DrawLineR(cam, reference.Position + cPr, cTangent, DrawDebug.Purple);
                 foreach (var point in c1.CollisionManifold)
                     g.GS_DrawPoint(cam, reference.Position + point, DrawDebug.Red);
                 g.GS_DrawLineR(cam, reference.Position + cPr, relV, DrawDebug.Yellow);

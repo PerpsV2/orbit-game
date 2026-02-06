@@ -159,7 +159,7 @@ namespace OrbitGame
             Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
 
             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack", new(
-                new(new ScientificDecimal(6.378, 6) + 1000, 0)), 1000, new Color(0, 255, 0, 255), earth);
+                new(3f/2 * new ScientificDecimal(6.378, 6) + 100000, 0)), 1000, new Color(0, 255, 0, 255), earth);
             
             Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
                 new(4, 4),
@@ -168,39 +168,36 @@ namespace OrbitGame
                 new(-4, 0),
                 new(-3, 5)
             ]), shipMaterial);
-            Ship strawhat = shipTemplate1.CreateInstance("Strawhat", new(
-                new(new ScientificDecimal(6.378, 6) + 1005, 10)), 1000, new Color(0, 255, 0, 255), earth);
+            /*Ship strawhat = shipTemplate1.CreateInstance("Strawhat", new(
+                new(3f/2 * new ScientificDecimal(6.378, 6) - 10000, 10)), 1000, new Color(0, 255, 0, 255), earth);*/
             
             #endregion
 
             _bodies = new List<Body>();
-            _bodies = [sun, mercury, venus, earth, smokestack, strawhat, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
+            _bodies = [];
 
-            /*Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(new Material(0.2f));
-            Planet testPlanet = planetTemplate.CreateInstance("Manatee", 500000000, SD_Vector2.Zero,
-                SD_Vector2.Zero, 0, 0, new Color(125, 150, 130, 255), null, 500);*/
+            Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(SD_Vector2.Zero), 50000000, 500, 
+                new Color(125, 150, 130, 255), null);
             
-            /*Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+            Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
                 new(4, 3),
                 new(3, -5),
                 new(-2, -5),
                 new(-4, 2)
-            ]), new Material(0.2f));
-            _bodies = [testPlanet, testShip1];
-            for (int i = 0; i < 9000; ++i)
+            ]), shipMaterial);
+            _bodies = [manatee];
+            for (int i = 0; i < 1000; ++i)
             {
                 SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
                 int randomColour = _rnd.Next(200, 255);
-                Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i, 250,
-                    randomPosition,
-                    SD_Vector2.Zero, 0, 0, new Color(120, 200, randomColour, 255), testPlanet);
+                Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i,
+                    new SpatialInfo(randomPosition), 250, new Color(120, 200, randomColour, 255), manatee);
                 _bodies.Add(chimneyPipe);
-            }*/
+            }
 
             _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
             _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-            OriginBody.Body = smokestack;
-            strawhat.AttachTo(smokestack);
+            OriginBody.Body = manatee;
             _tracking = OriginBody.Body;
             _trackingIndex = _bodies.IndexOf(OriginBody.Body);
 
@@ -211,7 +208,7 @@ namespace OrbitGame
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             Matrix projection = Matrix.CreateOrthographicOffCenter(
-                0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 0, 100
+                0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 0, 1
             );
             Effects.DefaultEffect = Content.Load<Effect>("effects/defaultEffect");
             Effects.DefaultEffect.Parameters["projection"].SetValue(projection);
@@ -266,6 +263,10 @@ namespace OrbitGame
             if (keyboardState.IsKeyDown(Keys.I)) _tracking.Velocity -= _tracking.ForwardVector * 10;
             if (keyboardState.IsKeyDown(Keys.J)) _tracking.AngularVelocity += 0.01;
             if (keyboardState.IsKeyDown(Keys.L)) _tracking.AngularVelocity += -0.01;
+            
+            if (keyboardState.IsKeyDown(Keys.O)) _tracking.Position -= _tracking.ForwardVector * 1;
+            if (keyboardState.IsKeyDown(Keys.K)) _tracking.Angle += 0.01;
+            if (keyboardState.IsKeyDown(Keys.OemSemicolon)) _tracking.Angle += -0.01;
 
             _lastKeyboardState = keyboardState;
         }
