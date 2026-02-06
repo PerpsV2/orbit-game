@@ -213,7 +213,8 @@ namespace OrbitGame
 
             _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
             _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-            OriginBody.Body = earth;
+            OriginBody.Body = smokestack;
+            smokestack.AttachTo(earth);
             _tracking = OriginBody.Body;
             _trackingIndex = _bodies.IndexOf(OriginBody.Body);
 
@@ -294,24 +295,31 @@ namespace OrbitGame
             if (Options.EnablePhysics)
             {
                 List<Task> tasks = new List<Task>();
+                
+                foreach (var planet in _planets)
+                    planet.UpdatePosition_Kepler(_time);
 
                 foreach (var ship in _ships)
                 {
+                    if (ship.Attachment != null)
+                    {
+                        ship.UpdatePosition_Attached();
+                        continue;
+                    }
+
                     Task task = Task.Run(() =>
                     {
                         ship.SetNetGravitationalAcceleration(_planets);
-                        ship.NI_UpdatePosition(_deltaTimeStep, Options.IntegratorMethod,
+                        ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
                             x => x.SetNetGravitationalAcceleration(_planets));
                         ship.CalculateShipOrbit(_planets);
                     });
                     tasks.Add(task);
                 }
-                
-                foreach (var planet in _planets)
-                    planet.Kepler_UpdatePosition(_time);
 
                 foreach (var ship in _ships)
                 {
+                    if (ship.Attachment != null) continue;
                     foreach (var planet in _planets)
                     {
                         Task task = Task.Run(() =>

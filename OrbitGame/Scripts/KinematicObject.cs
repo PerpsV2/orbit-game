@@ -7,11 +7,13 @@ namespace OrbitGame;
 
 public abstract class KinematicObject
 {
-    public string Identifier;
+    public readonly string Identifier;
 
     public IMesh Mesh { get; }
     public CompactCollider Collider { get; }
     public Material Material { get; }
+
+    public Attachment? Attachment { get; protected set; }
     
     public ScientificDecimal Mass { get; protected set; }
 
@@ -81,6 +83,16 @@ public abstract class KinematicObject
     }
     
     #endregion
+
+    public void AttachTo(KinematicObject parent)
+    {
+        Attachment = new Attachment(parent, Position - parent.Position);
+    }
+
+    public void Detach()
+    {
+        Attachment = null;
+    }
     
     public abstract class KinematicObjectTemplate
     {

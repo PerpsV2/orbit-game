@@ -199,7 +199,15 @@ public abstract class Body : KinematicObject, IGameDrawable
     protected KeplerOrbit? CalculateOrbit(bool initials)
         => CalculateOrbit(Parent, initials);
 
-    public void NI_UpdatePosition(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
+    public void UpdatePosition_Attached()
+    {
+        if (Attachment == null)
+            throw new NullReferenceException("Body is not attached to anything");
+        Attachment attachment = Attachment.Value;
+        Position = attachment.Parent.Position + SD_Vector2.RotatePoint(attachment.RelativePosition, -attachment.Parent.Angle);
+    }
+
+    public void UpdatePosition_Integrator(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
     {
         switch (integrator)
         {
@@ -275,7 +283,7 @@ public abstract class Body : KinematicObject, IGameDrawable
             Math.Sqrt(1 - orbit.Eccentricity) * Math.Cos(eccentricAnomaly / 2));
     }
 
-    public void Kepler_UpdatePosition(ScientificDecimal totalTime)
+    public void UpdatePosition_Kepler(ScientificDecimal totalTime)
     {
         if (Orbit == null) return;
         if (Parent == null) return;
