@@ -16,4 +16,10 @@ public struct SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, SD_Vector2 a
     }
 
     public double AngularVelocity { get; set; } = angularVelocity;
+
+    public SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, double angle = 0, double angularVelocity = 0)
+        : this(position, velocity, SD_Vector2.Zero, angle, angularVelocity) { }
+    
+    public SpatialInfo(SD_Vector2 position)
+        : this(position, SD_Vector2.Zero, SD_Vector2.Zero, 0, 0) {}
 }

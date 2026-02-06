@@ -7,22 +7,27 @@ namespace OrbitGame;
 
 public class Planet : Body, IGameDrawable
 {
-    public readonly ScientificDecimal Radius;
+    private readonly ScientificDecimal _radius;
     private OrbitMesh _orbitMesh;
 
     private Planet(
-        PlanetTemplate template,
         string identifier,
-        ScientificDecimal mass,
         SpatialInfo spatialInfo,
+        ScientificDecimal mass,
+        ScientificDecimal radius,
         Color colour,
         Body? parent,
-        ScientificDecimal radius,
-        CompactCollider collider
+        
+        IMesh mesh,
+        CompactCollider collider,
+        Material material,
+        OrbitMesh orbitMesh
     )
-        : base(template, identifier, mass, spatialInfo, colour, parent, null, collider)
+        : base(identifier, spatialInfo, mass, colour, parent, mesh, collider, material)
     {
-        Radius = radius;
+        _radius = radius;
+        _orbitMesh = orbitMesh;
+        
         collider.CalculateInertia(mass);
     }
 
@@ -31,13 +36,13 @@ public class Planet : Body, IGameDrawable
         DrawSphereOfInfluence(graphicsDevice, camera);
         DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
         
-        if (Position.X < camera.Left - Radius) return;
-        if (Position.X > camera.Right + Radius) return;
-        if (Position.Y > camera.Top + Radius) return;
-        if (Position.Y < camera.Bottom - Radius) return;
+        if (Position.X < camera.Left - _radius) return;
+        if (Position.X > camera.Right + _radius) return;
+        if (Position.Y > camera.Top + _radius) return;
+        if (Position.Y < camera.Bottom - _radius) return;
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
+        if (camera.Height <= _radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             SD_Vector2 screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
 
@@ -45,7 +50,7 @@ public class Planet : Body, IGameDrawable
             float w = Options.ScreenSize.width;
             ScientificDecimal p1 = screenPosition.Y;
             ScientificDecimal p2 = screenPosition.X;
-            ScientificDecimal r = camera.SD_ConvertToScreenDistance(Radius);
+            ScientificDecimal r = camera.SD_ConvertToScreenDistance(_radius);
 
             ScientificDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
             ScientificDecimal bottomDiscriminant = r * r - p1 * p1;
@@ -104,7 +109,7 @@ public class Planet : Body, IGameDrawable
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
-        else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
+        else if (camera.Height >= _radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
             graphicsDevice.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
@@ -117,7 +122,7 @@ public class Planet : Body, IGameDrawable
         else
         {
             Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
-            float screenRadius = camera.ConvertToScreenDistance(Radius);
+            float screenRadius = camera.ConvertToScreenDistance(_radius);
             Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
@@ -153,30 +158,30 @@ public class Planet : Body, IGameDrawable
         });
     }
 
-    public class PlanetTemplate(Material material) 
-        : KinematicObjectTemplate(new CircularMesh(), null, material)
+    public class PlanetTemplate : KinematicObjectTemplate
     {
+        private readonly CircularMesh _mesh = new();
         private readonly OrbitMesh _orbitMesh = new();
-        
+        private readonly Material _material;
+
+        public PlanetTemplate(Material material)
+        {
+            _material = material;
+            _mesh.GenerateBuffers();
+            _orbitMesh.GenerateBuffers();
+        }
+
         public Planet CreateInstance(
             string identifier,
+            SpatialInfo spatialInfo,
             ScientificDecimal mass,
-            SD_Vector2 position, 
-            SD_Vector2 velocity, 
-            double angle,
-            double angularVelocity,
+            ScientificDecimal radius,
             Color colour,
-            Body? parent,
-            ScientificDecimal radius
-            )
+            Body? parent)
         {
-            SpatialInfo spatialInfo = new SpatialInfo(position, velocity, SD_Vector2.Zero, angle, angularVelocity);
             CircularCollider collider = new CircularCollider(radius);
-            Planet planet = new Planet(this, identifier, mass, spatialInfo, colour, parent, radius, collider) {
-                    Angle = angle,
-                    AngularVelocity = angularVelocity,
-                    _orbitMesh = _orbitMesh
-                };
+            Planet planet = new Planet(identifier, spatialInfo, mass, radius, colour, parent,
+                _mesh, collider, _material, _orbitMesh);
             AddInstance(identifier, planet);
             return planet;
         }

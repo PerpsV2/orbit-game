@@ -16,17 +16,16 @@ public abstract class Body : KinematicObject, IGameDrawable
     public KeplerOrbit? Orbit;
     
     protected Body(
-        KinematicObjectTemplate template,
         string identifier, 
-        ScientificDecimal mass, 
         SpatialInfo spatialInfo,
+        ScientificDecimal mass, 
         Color colour,
         Body? parent,
-        IMesh? mesh = null,
-        CompactCollider? collider = null,
-        Material? material = null
+        IMesh mesh,
+        CompactCollider collider,
+        Material material
         ) 
-        : base(template, identifier, mass, spatialInfo, mesh, collider, material)
+        : base(identifier, mass, spatialInfo, mesh, collider, material)
     {
         Colour = colour;
         Parent = parent;

@@ -5,19 +5,25 @@ using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
-public abstract class KinematicObject
+public abstract class KinematicObject(
+    string identifier,
+    ScientificDecimal mass,
+    SpatialInfo spatialInfo,
+    IMesh mesh,
+    CompactCollider collider,
+    Material material)
 {
-    public readonly string Identifier;
+    public readonly string Identifier = identifier;
 
-    public IMesh Mesh { get; }
-    public CompactCollider Collider { get; }
-    public Material Material { get; }
+    public IMesh Mesh { get; } = mesh;
+    public CompactCollider Collider { get; } = collider;
+    public Material Material { get; } = material;
 
     public Attachment? Attachment { get; protected set; }
     
-    public ScientificDecimal Mass { get; protected set; }
+    public ScientificDecimal Mass { get; protected set; } = mass;
 
-    public SpatialInfo SpatialInfo;
+    public SpatialInfo SpatialInfo = spatialInfo;
     public SD_Vector2 Position
     {
         get => SpatialInfo.Position;
@@ -46,25 +52,7 @@ public abstract class KinematicObject
 
     public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(SpatialInfo.Angle);
     public SD_Vector2 RightVector => SD_Vector2.FromPolar(SpatialInfo.Angle - Math.PI / 2);
-    
-    protected KinematicObject(
-        KinematicObjectTemplate template, 
-        string identifier, 
-        ScientificDecimal mass, 
-        SpatialInfo spatialInfo,
-        IMesh? mesh = null,
-        CompactCollider? collider = null,
-        Material? material = null
-        )
-    {
-        Mesh = template.Mesh ?? mesh ?? throw new NullReferenceException();
-        Collider = template.Collider ?? collider ?? throw new NullReferenceException();
-        Material = template.Material ?? material ?? throw new NullReferenceException();
-        Identifier = identifier;
-        Mass = mass;
-        SpatialInfo = spatialInfo;
-    }
-    
+
     #region Coordinate Transforms
     
     public SD_Vector2 ObjectToWorldSpace(SD_Vector2 point)
@@ -96,19 +84,7 @@ public abstract class KinematicObject
     
     public abstract class KinematicObjectTemplate
     {
-        public IMesh? Mesh { get; set; }
-        public CompactCollider? Collider { get; set; }
-        public Material? Material { get; set; }
-        
-        protected Dictionary<string, KinematicObject> Instances { get; } = new();
-        
-        protected KinematicObjectTemplate(IMesh? mesh, CompactCollider? collider, Material? material)
-        {
-            Mesh = mesh;
-            if (mesh != null) mesh.GenerateBuffers();
-            Collider = collider;
-            Material = material;
-        }
+        private Dictionary<string, KinematicObject> Instances { get; } = new();
         
         public void AddInstance(string identifier, KinematicObject instance)
             => Instances.Add(identifier, instance);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame;
@@ -13,14 +14,22 @@ public class Ship : Body, IGameDrawable
     private OrbitMesh _orbitMesh;
 
     private Ship(
-        ShipTemplate template,
         string identifier,
-        ScientificDecimal mass,
         SpatialInfo spatialInfo,
+        ScientificDecimal mass,
         Color colour,
-        Planet parent)
-        : base(template, identifier, mass, spatialInfo, colour, parent)
+        Planet parent,
+        
+        IMesh mesh,
+        CompactCollider collider,
+        Material material,
+        OrbitMesh orbitMesh,
+        ScientificDecimal maximumRadius
+        )
+        : base(identifier, spatialInfo, mass, colour, parent, mesh, collider, material)
     {
+        _maximumRadius = maximumRadius;
+        _orbitMesh = orbitMesh;
         Collider.CalculateInertia(mass);
     }
 
@@ -81,33 +90,34 @@ public class Ship : Body, IGameDrawable
         Orbit = CalculateOrbit(false);
     }
     
-    /// <summary>
-    /// Optimize the creation of multiple similar ships by using the same object for multiple instance's properties
-    /// </summary>
-    public class ShipTemplate(SD_Vector2[] shipVertices, Material material)
-        : KinematicObjectTemplate(new PolyMesh(shipVertices), new ConvexCollider(shipVertices), material)
+    public class ShipTemplate : KinematicObjectTemplate
     {
+        private readonly IMesh _mesh;
+        private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();
+        private readonly ScientificDecimal _maximumRadius;
+        private readonly Material _material;
         
+        public ShipTemplate(SD_Vector2[] shipVertices, Material material)
+        {
+            _material = material;
+            _mesh = new PolyMesh(shipVertices);
+            _collider = new ConvexCollider(shipVertices);
+            _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max();
+            _mesh.GenerateBuffers();
+            _orbitMesh.GenerateBuffers();
+        }
+
         public Ship CreateInstance(
             string identifier, 
-            ScientificDecimal mass, 
-            SD_Vector2 position, 
-            SD_Vector2 velocity, 
-            double angle, 
-            double angularVelocity,
+            SpatialInfo spatialInfo,
+            ScientificDecimal mass,
             Color colour,
             Planet parent
             )
         {
-            SpatialInfo spatialInfo = new SpatialInfo(position, velocity, SD_Vector2.Zero, angle, angularVelocity);
-            Ship ship = new Ship(this, identifier, mass, spatialInfo, colour, parent)
-            {
-                Angle = angle,
-                AngularVelocity = angularVelocity,
-                _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max(),
-                _orbitMesh = _orbitMesh
-            };
+            Ship ship = new Ship(identifier, spatialInfo, mass, colour, parent, _mesh, _collider, _material, _orbitMesh,
+                _maximumRadius);
             AddInstance(identifier, ship);
             return ship;
         }
