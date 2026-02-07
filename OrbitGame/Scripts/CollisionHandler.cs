@@ -7,13 +7,16 @@ public delegate void ResolveCollisionMethod(KinematicObject reference, Kinematic
 
 public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, CollisionBehaviours collisionBehaviours)
 {
-    public void ResolveCollisions() => TraverseCollisions();
-    
-    private void TraverseCollisions()
+    public void ResolveCollisions()
+    {
+        TraverseCollisions(ResolveCollision);
+    }
+
+    private void TraverseCollisions(Action<KinematicObject, KinematicObject> resolver)
     {
         foreach (var reference in kinematicObjects)
             foreach (var incident in kinematicObjects)
-                ResolveCollision(reference, incident);
+                resolver(reference, incident);
     }
     
     private void ResolveCollision(KinematicObject reference, KinematicObject incident)
@@ -21,7 +24,10 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
         foreach (var behaviour in collisionBehaviours)
         {
             if (reference.GetType() == behaviour.referenceType && incident.GetType() == behaviour.incidentType)
+            {
+                Console.WriteLine(behaviour.referenceType + " : " + behaviour.incidentType);
                 behaviour.resolver(reference, incident);
+            }
         }
     }
     

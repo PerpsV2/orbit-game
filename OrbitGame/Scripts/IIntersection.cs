@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OrbitGame;
 
@@ -22,6 +23,18 @@ public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incid
     public readonly SpatialInfo Incident = incident;
     public readonly HashSet<SD_Vector2> CollisionManifold = manifold;
     public readonly SD_Vector2 PenetrationVector = penetrationVector;
+
+    public PhysicsCollision GetInverse()
+    {
+        SD_Vector2 incidentPosition = Incident.Position;
+        SD_Vector2 referencePosition = Reference.Position;
+        return new(
+            Incident,
+            Reference,
+            CollisionManifold.Select(v => v - incidentPosition + referencePosition).ToHashSet(),
+            -PenetrationVector
+        );
+    }
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {

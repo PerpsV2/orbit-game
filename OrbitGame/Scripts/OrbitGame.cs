@@ -203,11 +203,9 @@ public class OrbitGame : Game
         OriginBody.Body = manatee;
         _tracking = OriginBody.Body;
         _trackingIndex = _bodies.IndexOf(OriginBody.Body);
-        _collisionHandler = new CollisionHandler(_bodies, new CollisionBehaviours()
-        {
-            (typeof(Planet), typeof(Ship), CollisionHandler.ResolvePhysicsCollision),
-            (typeof(Ship), typeof(Planet), CollisionHandler.ResolvePhysicsCollision),
-        });
+        _collisionHandler = new CollisionHandler(_bodies, [
+            (typeof(Ship), typeof(Planet), CollisionHandler.ResolveShipPlanetPhysicsCollision)
+        ]);
 
         base.Initialize();
     }
