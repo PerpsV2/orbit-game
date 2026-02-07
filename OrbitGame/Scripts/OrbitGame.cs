@@ -204,7 +204,8 @@ public class OrbitGame : Game
         _tracking = OriginBody.Body;
         _trackingIndex = _bodies.IndexOf(OriginBody.Body);
         _collisionHandler = new CollisionHandler(_bodies, [
-            (typeof(Ship), typeof(Planet), CollisionHandler.ResolveShipPlanetPhysicsCollision)
+            (typeof(Ship), typeof(Planet), (r, i) => CollisionHandler.ResolvePhysicsCollision(r, i)),
+            (typeof(Ship), typeof(Planet), (r, i) => CollisionHandler.RestShipPlanetCollision(r, i, _deltaTimeStep))
         ]);
 
         base.Initialize();

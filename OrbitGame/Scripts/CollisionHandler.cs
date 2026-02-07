@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace OrbitGame;
 using CollisionBehaviours = List<(Type referenceType, Type incidentType, ResolveCollisionMethod resolver)>;
 
@@ -14,21 +16,18 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
 
     private void TraverseCollisions(Action<KinematicObject, KinematicObject> resolver)
     {
+        List<Task> tasks = new List<Task>();
         foreach (var reference in kinematicObjects)
             foreach (var incident in kinematicObjects)
-                resolver(reference, incident);
+                tasks.Add(Task.Run(() => resolver(reference, incident)));
+        Task.WaitAll(tasks.ToArray());
     }
     
     private void ResolveCollision(KinematicObject reference, KinematicObject incident)
     {
         foreach (var behaviour in collisionBehaviours)
-        {
             if (reference.GetType() == behaviour.referenceType && incident.GetType() == behaviour.incidentType)
-            {
-                Console.WriteLine(behaviour.referenceType + " : " + behaviour.incidentType);
                 behaviour.resolver(reference, incident);
-            }
-        }
     }
     
     public static void ResolvePhysicsCollision(KinematicObject reference, KinematicObject incident)
@@ -117,8 +116,15 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
             });
     }
 
-    public static void ResolveShipPlanetPhysicsCollision(KinematicObject reference, KinematicObject incident)
+    public static void RestShipPlanetCollision(KinematicObject reference, KinematicObject incident, ScientificDecimal deltaTimeStep)
     {
-        ResolvePhysicsCollision(reference, incident);
+        if (reference.Collider.IntersectsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo) != null)
+        {
+            SD_Vector2 relativeVelocity = (incident.Velocity - reference.Velocity) * deltaTimeStep;
+            ScientificDecimal relativeAngularVelocity =
+                (incident.AngularVelocity - reference.AngularVelocity) * deltaTimeStep;
+            if (relativeVelocity.Magnitude() < 0.01 && relativeAngularVelocity < 0.001)
+                reference.AttachTo(incident);
+        }
     }
 }
