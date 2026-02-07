@@ -13,22 +13,18 @@ public class Planet : Body, IGameDrawable
     private Planet(
         string identifier,
         SpatialInfo spatialInfo,
+        ObjectInfo objectInfo,
+        OrbitMesh orbitMesh,
         ScientificDecimal mass,
         ScientificDecimal radius,
         Color colour,
-        Body? parent,
-        
-        IMesh mesh,
-        CompactCollider collider,
-        Material material,
-        OrbitMesh orbitMesh
-    )
-        : base(identifier, spatialInfo, mass, colour, parent, mesh, collider, material)
+        Body? parent)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         _radius = radius;
         _orbitMesh = orbitMesh;
         
-        collider.CalculateInertia(mass);
+        objectInfo.Collider.CalculateInertia(mass);
     }
 
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
@@ -180,8 +176,8 @@ public class Planet : Body, IGameDrawable
             Body? parent)
         {
             CircularCollider collider = new CircularCollider(radius);
-            Planet planet = new Planet(identifier, spatialInfo, mass, radius, colour, parent,
-                _mesh, collider, _material, _orbitMesh);
+            ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material);
+            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent);
             AddInstance(identifier, planet);
             return planet;
         }

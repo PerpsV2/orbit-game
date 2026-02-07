@@ -4,11 +4,11 @@ namespace OrbitGame;
 
 public class Material
 {
-    public float RestitutionCoefficient;
-    public float StaticFrictionCoefficient;
-    public float DynamicFrictionCoefficient;
+    public readonly float RestitutionCoefficient;
+    public readonly float StaticFrictionCoefficient;
+    public readonly float DynamicFrictionCoefficient;
     
-    public Material(float restitution, float staticFriction = 0f, float dynamicFriction = 0f)
+    public Material(float restitution, float staticFriction, float dynamicFriction)
     {
         if (restitution < 0)
             throw new ArgumentOutOfRangeException(nameof(restitution), "Coefficient of restitution cannot be less than zero");

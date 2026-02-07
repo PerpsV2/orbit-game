@@ -1,42 +1,41 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace OrbitGame;
+using CollisionBehaviours = List<(Type referenceType, Type incidentType, ResolveCollisionMethod resolver)>;
 
-public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects)
+public delegate void ResolveCollisionMethod(KinematicObject reference, KinematicObject incident);
+
+public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, CollisionBehaviours collisionBehaviours)
 {
-    public void ResolveCollisions()
+    public void ResolveCollisions() => TraverseCollisions();
+    
+    private void TraverseCollisions()
     {
-        List<Task> tasks = new List<Task>();
         foreach (var reference in kinematicObjects)
-        {
             foreach (var incident in kinematicObjects)
-            {
-                Task task = Task.Run(() =>
-                {
-                    if (reference.Collider.NearsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo))
-                    {
-                        ResolvePhysicsCollision(reference, incident);
-                    }
-                });
-                tasks.Add(task);
-            }
-        }
-        Task.WaitAll(tasks.ToArray());
+                ResolveCollision(reference, incident);
     }
     
-    private bool ResolvePhysicsCollision(KinematicObject reference, KinematicObject incident)
+    private void ResolveCollision(KinematicObject reference, KinematicObject incident)
+    {
+        foreach (var behaviour in collisionBehaviours)
+        {
+            if (reference.GetType() == behaviour.referenceType && incident.GetType() == behaviour.incidentType)
+                behaviour.resolver(reference, incident);
+        }
+    }
+    
+    public static void ResolvePhysicsCollision(KinematicObject reference, KinematicObject incident)
     {
         CompactCollider referenceCollider = reference.Collider;
         CompactCollider incidentCollider = incident.Collider;
         PhysicsCollision? collision1 = referenceCollider.IntersectsWith(incidentCollider, reference.SpatialInfo, incident.SpatialInfo);
         PhysicsCollision? collision2 = incidentCollider.IntersectsWith(referenceCollider, incident.SpatialInfo, reference.SpatialInfo);
-        if (collision1 == null || collision2 == null) return false;
+        if (collision1 == null || collision2 == null) return;
         PhysicsCollision c1 = (PhysicsCollision)collision1;
         PhysicsCollision c2 = (PhysicsCollision)collision2;
 
-        if (c1.PenetrationVector.Magnitude() == 0) return false;
+        if (c1.PenetrationVector.Magnitude() == 0) return;
         SD_Vector2 cNormal = -c1.PenetrationVector.Normalize();
         
         float restitution = (reference.Material.RestitutionCoefficient + reference.Material.RestitutionCoefficient) / 2;
@@ -53,16 +52,17 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects)
             cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
-        SD_Vector2 pVr = reference.Velocity - (SD_Vector2)SD_Vector3.Cross(cPr, 
-            new(0, 0, reference.AngularVelocity));
-        SD_Vector2 pVi = incident.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, 
-            new(0, 0, incident.AngularVelocity));
+        SD_Vector2 pVr = reference.Velocity - 
+                         (SD_Vector2)SD_Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
+        SD_Vector2 pVi = incident.Velocity - 
+                         (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incident.AngularVelocity));
         SD_Vector2 relV = pVi - pVr;
 
+        // calculate collision tangent pointing in the direction of movement
         SD_Vector2 cPerpendicularNormal = new SD_Vector2(-cNormal.Y, cNormal.X);
         SD_Vector2 cTangent = cPerpendicularNormal * (SD_Vector2.Dot(-relV, cPerpendicularNormal).Positive ? 1 : -1);
         
-        // calculate the magnitude of impulse
+        // calculate the magnitude of impulse along the collision normal (j) and tangentially (jF)
         ScientificDecimal jV = -(1 + restitution) * SD_Vector2.Dot(relV, cNormal);
         SD_Vector3 m1 = SD_Vector3.Cross(SD_Vector2.Cross(cPr, cNormal) / referenceCollider.Inertia, cPr);
         SD_Vector3 m2 = SD_Vector3.Cross(SD_Vector2.Cross(cPi, cNormal) / incidentCollider.Inertia, cPi);
@@ -73,6 +73,7 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects)
         SD_Vector2 jF = SD_Vector2.Dot(relV, cTangent) == 0 || SD_Vector2.Dot(relV * reference.Mass, cTangent) <= jS
                 ? cTangent * -SD_Vector2.Dot(relV * reference.Mass, cTangent) : cTangent * jD;
 
+        // apply linear impulse
         if (!referenceCollider.Fixed)
         {
             reference.Velocity -= cNormal * (j / reference.Mass);
@@ -85,9 +86,11 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects)
             incident.Velocity += jF / incident.Mass;
         }
         
-        if (!referenceCollider.Fixed)reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
+        // apply angular impulse
+        if (!referenceCollider.Fixed) reference.AngularVelocity -= (double)(SD_Vector2.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
         if (!incidentCollider.Fixed) incident.AngularVelocity += (double)(SD_Vector2.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
         
+        // apply projection method to resolve intersection
         if (!referenceCollider.Fixed && !incidentCollider.Fixed)
         {
             reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
@@ -106,6 +109,10 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects)
                 g.GS_DrawLineR(cam, reference.Position + cPr, relV, DrawDebug.Yellow);
                 g.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), DrawDebug.Orange);
             });
-        return true;
+    }
+
+    public static void ResolveShipPlanetPhysicsCollision(KinematicObject reference, KinematicObject incident)
+    {
+        ResolvePhysicsCollision(reference, incident);
     }
 }

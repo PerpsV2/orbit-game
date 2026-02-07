@@ -18,14 +18,11 @@ public abstract class Body : KinematicObject, IGameDrawable
     protected Body(
         string identifier, 
         SpatialInfo spatialInfo,
+        ObjectInfo objectInfo,
         ScientificDecimal mass, 
         Color colour,
-        Body? parent,
-        IMesh mesh,
-        CompactCollider collider,
-        Material material
-        )
-        : base(identifier, mass, spatialInfo, mesh, collider, material)
+        Body? parent)
+        : base(identifier, mass, spatialInfo, objectInfo)
     {
         Colour = colour;
         Parent = parent;

@@ -16,17 +16,13 @@ public class Ship : Body, IGameDrawable
     private Ship(
         string identifier,
         SpatialInfo spatialInfo,
+        ObjectInfo objectInfo,
+        OrbitMesh orbitMesh,
+        ScientificDecimal maximumRadius,
         ScientificDecimal mass,
         Color colour,
-        Planet parent,
-        
-        IMesh mesh,
-        CompactCollider collider,
-        Material material,
-        OrbitMesh orbitMesh,
-        ScientificDecimal maximumRadius
-        )
-        : base(identifier, spatialInfo, mass, colour, parent, mesh, collider, material)
+        Planet parent)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         _maximumRadius = maximumRadius;
         _orbitMesh = orbitMesh;
@@ -116,8 +112,8 @@ public class Ship : Body, IGameDrawable
             Planet parent
             )
         {
-            Ship ship = new Ship(identifier, spatialInfo, mass, colour, parent, _mesh, _collider, _material, _orbitMesh,
-                _maximumRadius);
+            ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material);
+            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _orbitMesh, _maximumRadius, mass, colour, parent);
             AddInstance(identifier, ship);
             return ship;
         }
