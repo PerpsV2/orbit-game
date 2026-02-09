@@ -51,10 +51,18 @@ public class Ship : Body, IGameDrawable
         }
         else
         {
-            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(10, 0), Colour);
-            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, 10), Colour);
-            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(-10, 0), Colour);
-            graphicsDevice.DrawLine(screenPosition, screenPosition + new Vector2(0, -10), Colour);
+            graphicsDevice.DrawLine(
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -10), -Angle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 10), -Angle), Colour);
+            graphicsDevice.DrawLine(
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 0), -Angle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 00), -Angle), Colour);
+            graphicsDevice.DrawLine(
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, -10), -Angle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), Colour);
+            graphicsDevice.DrawLine(
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, 10), -Angle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), Colour);
         }
         //DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
     }
