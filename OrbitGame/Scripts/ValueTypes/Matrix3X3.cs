@@ -4,7 +4,7 @@ using System.Linq;
 namespace OrbitGame;
 using MatrixData = ScientificDecimal[];
 
-public record struct Matrix3X3 : IEquatable<Matrix3X3>, IFormattable
+public readonly record struct Matrix3X3 : IFormattable
 {
     // Matrix information is organized from left to right then top to bottom
     public readonly MatrixData Data = new ScientificDecimal[9];
