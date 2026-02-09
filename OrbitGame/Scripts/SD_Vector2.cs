@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
@@ -63,6 +64,10 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     #region Casts
     public static implicit operator SD_Vector3(SD_Vector2 value)
         => new (value.X, value.Y, 0);
+    
+    public static explicit operator Vector2(SD_Vector2 value)
+        => new Vector2((float)value.X, (float)value.Y);
+    
     #endregion
     
     #region Non-Matrix Transformations
