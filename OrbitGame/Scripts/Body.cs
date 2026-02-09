@@ -37,7 +37,7 @@ public abstract class Body : KinematicObject, IGameDrawable
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh)
+    protected void DrawOrbitalPathLRL(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh)
     {
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;

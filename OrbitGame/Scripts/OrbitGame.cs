@@ -291,7 +291,8 @@ public class OrbitGame : Game
 
         foreach (var body in _bodies)
             body.Acceleration = SD_Vector2.Zero;
-        //OriginBody.ResetOrigin(_bodies);
+        
+        OriginBody.ResetOrigin(_bodies);
         
         HandleInput(_deltaTime);
         
@@ -324,6 +325,7 @@ public class OrbitGame : Game
         }
         
         _ships.RemoveAll(ship => ship.MarkedForRemoval);
+        _bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
         
         _camera.SetOrigin(_tracking.Position);
 

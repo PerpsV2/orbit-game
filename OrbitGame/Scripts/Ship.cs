@@ -42,8 +42,9 @@ public class Ship : Body, IGameDrawable
         if (Position.Y < camera.Bottom - _maximumRadius) return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
+        float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
         if (LandingState == null && DrawOrbitalPath) DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
-        if (camera.ConvertToScreenDistance(_maximumRadius) > 1)
+        if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
                 (float)(Options.ScreenSize.width / camera.Width));
@@ -55,20 +56,22 @@ public class Ship : Body, IGameDrawable
                 { "colour", Colour.ToVector4() }
             });
         }
-        else
+        if (screenDistance < 10)
         {
+            float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 255);
+            Color colour = new Color(Colour, alpha);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -10), -Angle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 10), -Angle), Colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 10), -Angle), colour);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 0), -Angle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 00), -Angle), Colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 00), -Angle), colour);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, -10), -Angle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), Colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), colour);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, 10), -Angle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), Colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), colour);
         }
     }
 

@@ -1,6 +1,6 @@
 namespace OrbitGame;
 
-public record struct BoundingBox(
+public readonly record struct BoundingBox(
     ScientificDecimal Left,
     ScientificDecimal Right,
     ScientificDecimal Top,
