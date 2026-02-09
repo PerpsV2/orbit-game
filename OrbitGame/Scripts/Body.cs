@@ -195,16 +195,10 @@ public abstract class Body : KinematicObject, IGameDrawable
     protected KeplerOrbit? CalculateOrbit(bool initials)
         => CalculateOrbit(Parent, initials);
 
-    public void UpdatePosition_Attached()
-    {
-        if (Attachment == null)
-            throw new NullReferenceException("Body is not attached to anything");
-        Attachment attachment = Attachment.Value;
-        Position = attachment.Parent.Position + SD_Vector2.RotatePoint(attachment.RelativePosition, attachment.Parent.Angle);
-        Angle = attachment.Parent.Angle + attachment.RelativeAngle;
-    }
-
-    public void UpdatePosition_Integrator(ScientificDecimal timeStep, NumericalIntegrator integrator, Action<Body> updateAcceleration)
+    public void UpdatePosition_Integrator(
+        ScientificDecimal timeStep, 
+        NumericalIntegrator integrator, 
+        Action<Body> updateAcceleration)
     {
         switch (integrator)
         {
@@ -280,23 +274,20 @@ public abstract class Body : KinematicObject, IGameDrawable
             Math.Sqrt(1 - orbit.Eccentricity) * Math.Cos(eccentricAnomaly / 2));
     }
 
-    public void UpdatePosition_Kepler(ScientificDecimal totalTime)
+    public void UpdatePosition_Kepler(ScientificDecimal totalTime, ScientificDecimal timeDiff)
     {
-        if (Orbit == null) return;
-        if (Parent == null) return;
-        KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        if (orbit.Center == null) return;
-        SD_Vector2 center = (SD_Vector2)orbit.Center;
+        if (Orbit == null || Parent == null) return;
+        KeplerOrbit orbit = Orbit.Value;
         
-        double meanAnomaly = (double)(Math.Tau / orbit.Period * (totalTime + orbit.InitialTime!)) + orbit.Periapsis;
+        if (orbit.InitialTime == null) return;
+        ScientificDecimal initialTime = orbit.InitialTime.Value;
+        
+        SD_Vector2 lastPosition = Position;
+        
+        double meanAnomaly = (double)(Math.Tau / orbit.Period * (totalTime + initialTime)) + orbit.Periapsis;
         double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly - orbit.Periapsis) + orbit.Periapsis;
         double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly - orbit.Periapsis) + orbit.Periapsis;
         Position = Parent.Position + SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
-        
-        ScientificDecimal relDist = (Position - Parent.Position).Magnitude();
-        ScientificDecimal relSpeed = (Constants.G * Parent.Mass * (2 / relDist - 1 / orbit.SemiMajorAxis)).Sqrt();
-        SD_Vector2 relVelocity = SD_Vector2.FromPolar(SD_Vector2.DirectionVectorBetween(center, Position).GetPrincipalAngle() + 
-                                                Math.PI / 2, relSpeed);
-        Velocity = Parent.Velocity + relVelocity;
+        Velocity = (Position - lastPosition) / timeDiff;
     }
 }
