@@ -125,8 +125,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     public static implicit operator ScientificDecimal(double value)
         => new(value, 0);
     
-    public static implicit operator ScientificDecimal(decimal value) 
-        => new((double)value, 0);
+    public static implicit operator ScientificDecimal(float value) 
+        => new(value, 0);
 
     // from scientific decimal
     public static explicit operator double(ScientificDecimal value)

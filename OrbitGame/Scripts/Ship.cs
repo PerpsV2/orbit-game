@@ -10,8 +10,13 @@ namespace OrbitGame;
 
 public class Ship : Body, IGameDrawable
 {
-    private ScientificDecimal _maximumRadius;
-    private OrbitMesh _orbitMesh;
+    private readonly ScientificDecimal _maximumRadius;
+    private readonly OrbitMesh _orbitMesh;
+    
+    public bool DrawOrbitalPath { get; set; }
+    public bool MarkedForRemoval { get; set; }
+    
+    public Landing? LandingState { get; private set; }
 
     private Ship(
         string identifier,
@@ -37,6 +42,7 @@ public class Ship : Body, IGameDrawable
         if (Position.Y < camera.Bottom - _maximumRadius) return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
+        if (LandingState == null && DrawOrbitalPath) DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
         if (camera.ConvertToScreenDistance(_maximumRadius) > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
@@ -64,7 +70,6 @@ public class Ship : Body, IGameDrawable
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, 10), -Angle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), -Angle), Colour);
         }
-        //DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
     }
 
     public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
@@ -92,6 +97,47 @@ public class Ship : Body, IGameDrawable
         }
         
         Orbit = CalculateOrbit(false);
+    }
+
+    public override void ResetOrigin(SD_Vector2 origin)
+    {
+        base.ResetOrigin(origin);
+        LandingState?.ResetOrigin(origin);
+    }
+
+    public void UpdatePosition_Landed()
+    {
+        if (LandingState == null)
+            throw new NullReferenceException("Ship is not landed");
+        Landing landing = LandingState.Value;
+        Position = landing.Parent.Position + SD_Vector2.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
+        Velocity = landing.Parent.Velocity;
+        Angle = landing.Parent.Angle + landing.RelativeAngle;
+    }
+    
+    public void SetLandingState(KinematicObject parent)
+    {
+        LandingState = new Landing(parent, Position - parent.Position, Angle - parent.Angle);
+    }
+
+    private void DisturbLandingState()
+    {
+        LandingState = null;
+    }
+
+    public void ApplyThrust(SD_Vector2 thrust, SD_Vector2 position)
+    {
+        thrust = SD_Vector2.RotatePoint(thrust, Angle);
+        position = SD_Vector2.RotatePoint(position, Angle);
+        ScientificDecimal torque = SD_Vector2.Cross(thrust, position).Z;
+        AngularVelocity += (double)(torque / Mass);
+        Acceleration += thrust / Mass;
+        DisturbLandingState();
+    }
+
+    public void Destroy()
+    {
+        MarkedForRemoval = true;
     }
     
     public class ShipTemplate : KinematicObjectTemplate

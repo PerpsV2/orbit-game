@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
@@ -12,8 +13,6 @@ public abstract class KinematicObject(
     ObjectInfo objectInfo)
 {
     public readonly string Identifier = identifier;
-    
-    public Attachment? Attachment { get; private set; }
     
     public ScientificDecimal Mass { get; protected set; } = mass;
 
@@ -70,14 +69,9 @@ public abstract class KinematicObject(
     
     #endregion
 
-    public void AttachTo(KinematicObject parent)
+    public virtual void ResetOrigin(SD_Vector2 origin)
     {
-        Attachment = new Attachment(parent, Position - parent.Position, Angle - parent.Angle);
-    }
-
-    public void Detach()
-    {
-        Attachment = null;
+        Position -= origin;
     }
     
     public abstract class KinematicObjectTemplate

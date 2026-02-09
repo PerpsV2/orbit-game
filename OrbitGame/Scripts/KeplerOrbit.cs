@@ -70,16 +70,8 @@ public readonly record struct KeplerOrbit
             if (initials)
             {
                 SD_Vector2 initialPosition = Body.Position - Parent.Position;
-                SD_Vector2 initialVelocity = Body.Velocity - Parent.Velocity;
-                double initialTrueAnomaly = Math.Acos((double)(
-                    SD_Vector2.Dot(SD_Vector2.FromPolar(Periapsis, Eccentricity), initialPosition) /
-                    (Eccentricity * initialPosition.Magnitude()))
-                    );
-                
-                if (SD_Vector2.Dot(initialPosition, initialVelocity) < 0)
-                    initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
-
-                if (double.IsNaN(initialTrueAnomaly)) return;
+                double initialTrueAnomaly = SD_Vector2.GetPrincipalAngle(Parent.Position, initialPosition) - Periapsis;
+                if (SD_Vector2.Dot(Body.Velocity, Body.Position) > 0) initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
 
                 double initialEccentricAnomaly = Math.Atan2(
                     Math.Sqrt(1 - Eccentricity * Eccentricity) * Math.Sin(initialTrueAnomaly),

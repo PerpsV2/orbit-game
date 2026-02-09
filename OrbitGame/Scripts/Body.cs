@@ -157,10 +157,10 @@ public abstract class Body : KinematicObject, IGameDrawable
         return direction * magnitude;
     }
 
-    public SD_Vector2 SetNetGravitationalAcceleration(IEnumerable<Body> attractors)
+    public SD_Vector2 CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
     {
         SD_Vector2 result = SD_Vector2.Zero;
-        return Acceleration = attractors
+        return attractors
             .Where(x => x != this)
             .Aggregate(result, (sum, next) => 
                 sum + CalculateGravitationalAcceleration(next));

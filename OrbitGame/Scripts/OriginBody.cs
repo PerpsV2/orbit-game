@@ -14,11 +14,10 @@ public static class OriginBody
         if (Body == null) return;
         foreach (var body in bodies)
         {
-            if (body != Body) body.Position -= Body.Position;
-            if (body != Body) body.Velocity -= Body.Velocity;
+            if (body == Body) continue;
+            body.ResetOrigin(Body.Position);
         }
 
         Body.Position = SD_Vector2.Zero;
-        Body.Velocity = SD_Vector2.Zero;
     }
 }

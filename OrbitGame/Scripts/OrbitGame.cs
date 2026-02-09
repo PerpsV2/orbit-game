@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
 
-using CollisionBehaviours = List<(Type referenceType, Type incidentType, ResolveCollisionMethod resolver)>;
-
 public static class Effects
 {
     public static Effect? DefaultEffect;
@@ -49,6 +47,7 @@ public class OrbitGame : Game
 
     private Body _tracking;
     private int _trackingIndex;
+    private Ship _controlShip;
 
     Camera _camera = new Camera(new SD_Vector2(0, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
@@ -72,9 +71,11 @@ public class OrbitGame : Game
 
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
 
+        _bodies = new List<Body>();
+        
         #region Bodies
             
-        Material planetMaterial = new Material(0.2f, 0.7f, 0.5f);
+        Material planetMaterial = new Material(0.1f, 0.7f, 0.5f);
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMaterial);
         Planet sun = planetTemplate.CreateInstance(
             "Sun", new(SD_Vector2.Zero), new ScientificDecimal(1.989, 30), 
@@ -152,18 +153,25 @@ public class OrbitGame : Game
         );
             
         SD_Vector2[] points = SD_Vector2.CenterConvex([
-            new(4, 4),
-            new(4, -3),
-            new(-2, -5),
-            new(-50, 0),
-            new(-3, 5)
+            new(0.4, 0.4),
+            new(0.4, -0.3),
+            new(-0.2, -0.5),
+            new(-5, 0),
+            new(-0.3, 0.5)
         ]);
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
         Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
+        
+        _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
+        
+        for (int i = 0; i < 50; i++)
+        {
+            Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
+                new(2 * new ScientificDecimal(6.378, 6), _rnd.Next(-10, 10)), 
+                new SD_Vector2(0, 0)), 1000, new Color(0, 255, 0, 255), earth);
+            _bodies.Add(smokestack);
+        }
 
-        Ship smokestack = smokestackTemplate.CreateInstance("Smokestack", new(
-            new(3f/2 * new ScientificDecimal(6.378, 6) + 100000, 0)), 1000, new Color(0, 255, 0, 255), earth);
-            
         Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
             new(4, 4),
             new(4, -3),
@@ -176,9 +184,6 @@ public class OrbitGame : Game
             
         #endregion
 
-        _bodies = new List<Body>();
-        _bodies = [];
-
         Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(SD_Vector2.Zero), 50000000, 500, 
             new Color(125, 150, 130, 255), null);
             
@@ -188,25 +193,26 @@ public class OrbitGame : Game
             new(-2, -5),
             new(-4, 2)
         ]), shipMaterial);
-        _bodies = [manatee];
+        //_bodies = [manatee];
         for (int i = 0; i < 20; ++i)
         {
             SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
             int randomColour = _rnd.Next(200, 255);
             Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i,
                 new SpatialInfo(randomPosition), 250, new Color(120, 200, randomColour, 255), manatee);
-            _bodies.Add(chimneyPipe);
+            //_bodies.Add(chimneyPipe);
         }
 
         _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-        OriginBody.Body = manatee;
+        OriginBody.Body = _bodies[^1];
         _tracking = OriginBody.Body;
+        _controlShip = _ships[^1];
+        _controlShip.DrawOrbitalPath = true;
         _trackingIndex = _bodies.IndexOf(OriginBody.Body);
-        _collisionHandler = new CollisionHandler(_bodies, [
-            (typeof(Ship), typeof(Planet), (r, i) => CollisionHandler.ResolvePhysicsCollision(r, i)),
-            (typeof(Ship), typeof(Planet), (r, i) => CollisionHandler.RestShipPlanetCollision(r, i, _deltaTimeStep))
-        ]);
+        _collisionHandler = new CollisionHandler(_bodies, new() {
+            {(typeof(Ship), typeof(Planet)), (r, i) => CollisionHandler.RestShipPlanetCollision(r, i, _timeStep, _deltaTimeStep)}
+        });
 
         base.Initialize();
     }
@@ -267,13 +273,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(-camRotateSpeed);
 
-        if (keyboardState.IsKeyDown(Keys.I)) _tracking.Velocity -= _tracking.ForwardVector * 10;
-        if (keyboardState.IsKeyDown(Keys.J)) _tracking.AngularVelocity += 0.01;
-        if (keyboardState.IsKeyDown(Keys.L)) _tracking.AngularVelocity += -0.01;
-            
-        if (keyboardState.IsKeyDown(Keys.O)) _tracking.Position -= _tracking.ForwardVector * 1;
-        if (keyboardState.IsKeyDown(Keys.K)) _tracking.Angle += 0.01;
-        if (keyboardState.IsKeyDown(Keys.OemSemicolon)) _tracking.Angle += -0.01;
+        if (keyboardState.IsKeyDown(Keys.I)) _controlShip.ApplyThrust(new SD_Vector2(-400000, 0), new SD_Vector2(-0.4, 0));
+        if (keyboardState.IsKeyDown(Keys.D8)) _controlShip.ApplyThrust(new SD_Vector2(-4000000, 0), new SD_Vector2(-0.4, 0));
+        if (keyboardState.IsKeyDown(Keys.J)) _controlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, 0.1));
+        if (keyboardState.IsKeyDown(Keys.L)) _controlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, -0.1));
 
         _lastKeyboardState = keyboardState;
     }
@@ -286,41 +289,42 @@ public class OrbitGame : Game
         _time += _deltaTimeStep;
         _frameCountPerSecond++;
 
+        foreach (var body in _bodies)
+            body.Acceleration = SD_Vector2.Zero;
+        //OriginBody.ResetOrigin(_bodies);
+        
+        HandleInput(_deltaTime);
+        
         if (Options.EnablePhysics)
         {
             List<Task> tasks = new List<Task>();
-                
+
             foreach (var planet in _planets)
-                planet.UpdatePosition_Kepler(_time);
+            {
+                planet.UpdatePosition_Kepler(_time, _deltaTimeStep);
+            }
 
             foreach (var ship in _ships)
             {
-                if (ship.Attachment != null)
-                    continue;
-
-                Task task = Task.Run(() =>
+                tasks.Add(Task.Run(() =>
                 {
-                    ship.SetNetGravitationalAcceleration(_planets);
                     ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
-                        x => x.SetNetGravitationalAcceleration(_planets));
+                        x => x.Acceleration = x.CalculateNetGravitationalAcceleration(_planets));
                     ship.CalculateShipOrbit(_planets);
-                });
-                tasks.Add(task);
+                }));
             }
-
+            
+            Task.WaitAll(tasks.ToArray());
+            
             _collisionHandler.ResolveCollisions();
 
-            Task.WaitAll(tasks.ToArray());
-
             foreach (var ship in _ships)
-            {
-                if (ship.Attachment != null) 
-                    ship.UpdatePosition_Attached();
-            }
+                if (ship.LandingState != null)
+                    ship.UpdatePosition_Landed();
         }
-
-        HandleInput(_deltaTime);
-
+        
+        _ships.RemoveAll(ship => ship.MarkedForRemoval);
+        
         _camera.SetOrigin(_tracking.Position);
 
         base.Update(gameTime);
@@ -348,19 +352,17 @@ public class OrbitGame : Game
         {
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
-
-        // foreach (var planet in _planets)
-        //     planet.DrawSphereOfInfluence(GraphicsDevice, _camera, _defaultEffect);
-        foreach (var planet in _planets)
-        {
-            planet.Draw(GraphicsDevice, _camera);
-        }
-
+        
         foreach (var ship in _ships)
         {
             ship.Draw(GraphicsDevice, _camera);
         }
-
+        
+        foreach (var planet in _planets)
+        {
+            planet.Draw(GraphicsDevice, _camera);
+        }
+        
         DrawDebug.Draw(GraphicsDevice, _camera);
         DrawDebug.ClearBuffer();
 

@@ -1,18 +1,23 @@
+using System;
 using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
 
 public static class Options
 {
+    // initial states
     public static readonly (int width, int height) ScreenSize = (800, 600);
     public static readonly ScientificDecimal DefaultZoomScale = new(1);
     public static readonly ScientificDecimal DefaultTimeStep = 1;
-    public static readonly double TimeWarpStepMultiplier = 5;
-    public static readonly bool EnablePhysics = true;
     
-    public static readonly bool EnablePhysicsCollisionDebug = true;
+    // debug options
+    public static readonly bool EnablePhysics = true;
+    public static readonly bool EnablePhysicsCollisionDebug = false;
+    public const bool DisplayFPS = true;
+    public const int ScientificPrintPrecision = 15;
 
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
+    public static readonly double TimeWarpStepMultiplier = 10;
 
     public static readonly double CamMoveSpeed = 1;
     public static readonly double CamRotateSpeed = 1;
@@ -36,9 +41,13 @@ public static class Options
     public static readonly Keys TrackPrevBodyKey = Keys.N;
     public static readonly Keys FocusKey = Keys.F;
 
-    public const bool DisplayFPS = true;
-    public const int ScientificPrintPrecision = 5;
-    
+    public const float MinimumShipCrashSpeed = 100f;
+    public const float MinimumShipCrashAngularSpeed = 12f;
+    /// <summary>
+    /// Maximum time warp adjusted speed until an object is no longer resting
+    /// </summary>
+    public const float MaximumShipRestingSpeed = 0.001f;
+    public const float MaximumShipRestingAngularSpeed = 0.001f;
     /// <summary>
     /// Number of points that should be drawn to represent an orbit.
     /// </summary>

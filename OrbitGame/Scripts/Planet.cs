@@ -7,8 +7,8 @@ namespace OrbitGame;
 
 public class Planet : Body, IGameDrawable
 {
-    private readonly ScientificDecimal _radius;
-    private OrbitMesh _orbitMesh;
+    public readonly ScientificDecimal Radius;
+    private readonly OrbitMesh _orbitMesh;
 
     private Planet(
         string identifier,
@@ -21,7 +21,7 @@ public class Planet : Body, IGameDrawable
         Body? parent)
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
-        _radius = radius;
+        Radius = radius;
         _orbitMesh = orbitMesh;
         
         objectInfo.Collider.CalculateInertia(mass);
@@ -32,13 +32,13 @@ public class Planet : Body, IGameDrawable
         DrawSphereOfInfluence(graphicsDevice, camera);
         DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
         
-        if (Position.X < camera.Left - _radius) return;
-        if (Position.X > camera.Right + _radius) return;
-        if (Position.Y > camera.Top + _radius) return;
-        if (Position.Y < camera.Bottom - _radius) return;
+        if (Position.X < camera.Left - Radius) return;
+        if (Position.X > camera.Right + Radius) return;
+        if (Position.Y > camera.Top + Radius) return;
+        if (Position.Y < camera.Bottom - Radius) return;
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        if (camera.Height <= _radius / Options.SurfaceApproximationRadiusZoomFraction)
+        if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             SD_Vector2 screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
 
@@ -46,7 +46,7 @@ public class Planet : Body, IGameDrawable
             float w = Options.ScreenSize.width;
             ScientificDecimal p1 = screenPosition.Y;
             ScientificDecimal p2 = screenPosition.X;
-            ScientificDecimal r = camera.SD_ConvertToScreenDistance(_radius);
+            ScientificDecimal r = camera.SD_ConvertToScreenDistance(Radius);
 
             ScientificDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
             ScientificDecimal bottomDiscriminant = r * r - p1 * p1;
@@ -103,27 +103,31 @@ public class Planet : Body, IGameDrawable
 
             Utils.DrawPoly(graphicsDevice, polyPoints, Colour);
         }
-
+        
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
-        else if (camera.Height >= _radius / Options.LocationApproximationRadiusZoomFraction)
+        else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
-            graphicsDevice.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10), Colour);
-            graphicsDevice.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0), Colour);
-            graphicsDevice.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10), Colour);
-            graphicsDevice.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0), Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10),
+                Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(0, 10), screenPosition + new Vector2(-10, 0),
+                Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(-10, 0), screenPosition + new Vector2(0, -10),
+                Colour);
+            graphicsDevice.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0),
+                Colour);
         }
 
         // otherwise draw the planet as a circle
         else
         {
             Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
-            float screenRadius = camera.ConvertToScreenDistance(_radius);
+            float screenRadius = camera.ConvertToScreenDistance(Radius);
             Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
             {
-                {"colour", Colour.ToVector4()}
+                { "colour", Colour.ToVector4() }
             });
         }
     }

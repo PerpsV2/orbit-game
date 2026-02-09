@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace OrbitGame;
-using CollisionBehaviours = List<(Type referenceType, Type incidentType, ResolveCollisionMethod resolver)>;
+using CollisionBehaviours = Dictionary<(Type referenceType, Type incidentType), ResolveCollisionMethod>;
 
 public delegate void ResolveCollisionMethod(KinematicObject reference, KinematicObject incident);
 
@@ -25,9 +25,7 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
     
     private void ResolveCollision(KinematicObject reference, KinematicObject incident)
     {
-        foreach (var behaviour in collisionBehaviours)
-            if (reference.GetType() == behaviour.referenceType && incident.GetType() == behaviour.incidentType)
-                behaviour.resolver(reference, incident);
+        collisionBehaviours.GetValueOrDefault((reference.GetType(), incident.GetType()))?.Invoke(reference, incident);
     }
     
     public static void ResolvePhysicsCollision(KinematicObject reference, KinematicObject incident)
@@ -57,10 +55,8 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
             cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
-        SD_Vector2 pVr = reference.Velocity - 
-                         (SD_Vector2)SD_Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
-        SD_Vector2 pVi = incident.Velocity - 
-                         (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incident.AngularVelocity));
+        SD_Vector2 pVr = reference.Velocity - (SD_Vector2)SD_Vector3.Cross(cPr, new(0, 0, reference.AngularVelocity));
+        SD_Vector2 pVi = incident.Velocity - (SD_Vector2)SD_Vector3.Cross(cPi, new(0, 0, incident.AngularVelocity));
         SD_Vector2 relV = pVi - pVr;
 
         // calculate collision tangent pointing in the direction of movement
@@ -116,15 +112,29 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
             });
     }
 
-    public static void RestShipPlanetCollision(KinematicObject reference, KinematicObject incident, ScientificDecimal deltaTimeStep)
+    public static void RestShipPlanetCollision(KinematicObject reference, KinematicObject incident, 
+        ScientificDecimal timeStep, ScientificDecimal deltaTime)
     {
-        if (reference.Collider.IntersectsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo) != null)
+        Ship ship = reference as Ship ?? throw new NullReferenceException();
+        ResolvePhysicsCollision(reference, incident);
+        if (reference.Collider.IntersectsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo) !=
+            null)
         {
-            SD_Vector2 relativeVelocity = (incident.Velocity - reference.Velocity) * deltaTimeStep;
-            ScientificDecimal relativeAngularVelocity =
-                (incident.AngularVelocity - reference.AngularVelocity) * deltaTimeStep;
-            if (relativeVelocity.Magnitude() < 0.01 && relativeAngularVelocity < 0.001)
-                reference.AttachTo(incident);
+            ScientificDecimal deltaTimeStep = timeStep * deltaTime;
+            ScientificDecimal relSpeed = (incident.Velocity - reference.Velocity).Magnitude();
+            ScientificDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
+            Console.WriteLine(relSpeed);
+            if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
+            {
+                ship.Destroy();
+                return;
+            }
+
+            ResolvePhysicsCollision(reference, incident);
+            
+            if (relSpeed * deltaTimeStep < Options.MaximumShipRestingSpeed &&
+                relAngularSpeed * deltaTimeStep < Options.MaximumShipRestingAngularSpeed)
+                ship.SetLandingState(incident);
         }
     }
 }
