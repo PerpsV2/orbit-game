@@ -13,6 +13,8 @@ public class Ship : Body, IGameDrawable
     private readonly ScientificDecimal _maximumRadius;
     private readonly OrbitMesh _orbitMesh;
     
+    private SD_Vector2 _artificialAcceleration { get; set; }
+    
     public bool DrawOrbitalPath { get; set; }
     public bool MarkedForRemoval { get; set; }
     
@@ -134,8 +136,18 @@ public class Ship : Body, IGameDrawable
         position = SD_Vector2.RotatePoint(position, Angle);
         ScientificDecimal torque = SD_Vector2.Cross(thrust, position).Z;
         AngularVelocity += (double)(torque / Mass);
-        Acceleration += thrust / Mass;
+        _artificialAcceleration += thrust / Mass;
         DisturbLandingState();
+    }
+
+    public void ResetThrust()
+    {
+        _artificialAcceleration = SD_Vector2.Zero;
+    }
+
+    public override SD_Vector2 CalculateNetAcceleration()
+    {
+        return base.CalculateNetAcceleration() + _artificialAcceleration;
     }
 
     public void Destroy()

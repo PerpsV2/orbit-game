@@ -41,9 +41,9 @@ public class OrbitGame : Game
     private int _frameCountPerSecond;
     private int _framesPerSecond;
 
-    private List<Body> _bodies = [];
-    private List<Planet> _planets = [];
-    private List<Ship> _ships = [];
+    public static List<Body> Bodies = [];
+    public List<Planet> _planets = [];
+    public List<Ship> _ships = [];
 
     private Body _tracking;
     private int _trackingIndex;
@@ -70,8 +70,6 @@ public class OrbitGame : Game
         Graphics = _graphics.GraphicsDevice;
 
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
-
-        _bodies = new List<Body>();
         
         #region Bodies
             
@@ -162,14 +160,14 @@ public class OrbitGame : Game
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
         Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
         
-        _bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
+        Bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
         
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 1; i++)
         {
             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
                 new(2 * new ScientificDecimal(6.378, 6), _rnd.Next(-10, 10)), 
                 new SD_Vector2(0, 0)), 1000, new Color(0, 255, 0, 255), earth);
-            _bodies.Add(smokestack);
+            Bodies.Add(smokestack);
         }
 
         Ship.ShipTemplate shipTemplate1 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
@@ -179,8 +177,8 @@ public class OrbitGame : Game
             new(-4, 0),
             new(-3, 5)
         ]), shipMaterial);
-        /*Ship strawhat = shipTemplate1.CreateInstance("Strawhat", new(
-            new(3f/2 * new ScientificDecimal(6.378, 6) - 10000, 10)), 1000, new Color(0, 255, 0, 255), earth);*/
+        Ship strawhat = shipTemplate1.CreateInstance("Strawhat", new(
+            new(3f/2 * new ScientificDecimal(6.378, 6) - 10000, 10)), 1000, new Color(0, 255, 0, 255), earth);
             
         #endregion
 
@@ -193,24 +191,22 @@ public class OrbitGame : Game
             new(-2, -5),
             new(-4, 2)
         ]), shipMaterial);
-        //_bodies = [manatee];
         for (int i = 0; i < 20; ++i)
         {
             SD_Vector2 randomPosition = SD_Vector2.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
             int randomColour = _rnd.Next(200, 255);
             Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i,
                 new SpatialInfo(randomPosition), 250, new Color(120, 200, randomColour, 255), manatee);
-            //_bodies.Add(chimneyPipe);
         }
 
-        _planets = _bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
-        _ships = _bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-        OriginBody.Body = _bodies[^1];
+        _planets = Bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
+        _ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
+        OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
         _controlShip = _ships[^1];
         _controlShip.DrawOrbitalPath = true;
-        _trackingIndex = _bodies.IndexOf(OriginBody.Body);
-        _collisionHandler = new CollisionHandler(_bodies, new() {
+        _trackingIndex = Bodies.IndexOf(OriginBody.Body);
+        _collisionHandler = new CollisionHandler(Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => CollisionHandler.RestShipPlanetCollision(r, i, _timeStep, _deltaTimeStep)}
         });
 
@@ -234,8 +230,8 @@ public class OrbitGame : Game
 
     private void TrackBody(int index)
     {
-        _trackingIndex = (int)Utils.UnsignedMod(index, _bodies.Count);
-        _tracking = _bodies[_trackingIndex];
+        _trackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
+        _tracking = Bodies[_trackingIndex];
         _camera.MoveTo(_camera.AbsolutePosition - _tracking.Position);
     }
 
@@ -273,6 +269,7 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(-camRotateSpeed);
 
+        _controlShip.ResetThrust();
         if (keyboardState.IsKeyDown(Keys.I)) _controlShip.ApplyThrust(new SD_Vector2(-400000, 0), new SD_Vector2(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.D8)) _controlShip.ApplyThrust(new SD_Vector2(-4000000, 0), new SD_Vector2(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.J)) _controlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, 0.1));
@@ -289,11 +286,11 @@ public class OrbitGame : Game
         _time += _deltaTimeStep;
         _frameCountPerSecond++;
 
-        foreach (var body in _bodies)
+        foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
-        OriginBody.ResetOrigin(_bodies);
-        
+        OriginBody.ResetOrigin(Bodies);
+
         HandleInput(_deltaTime);
         
         if (Options.EnablePhysics)
@@ -309,8 +306,7 @@ public class OrbitGame : Game
             {
                 tasks.Add(Task.Run(() =>
                 {
-                    ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
-                        x => x.Acceleration = x.CalculateNetGravitationalAcceleration(_planets));
+                    ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod, ship.CalculateNetAcceleration);
                     ship.CalculateShipOrbit(_planets);
                 }));
             }
@@ -325,7 +321,7 @@ public class OrbitGame : Game
         }
         
         _ships.RemoveAll(ship => ship.MarkedForRemoval);
-        _bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
+        Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
         
         _camera.SetOrigin(_tracking.Position);
 

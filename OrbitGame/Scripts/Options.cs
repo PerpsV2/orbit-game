@@ -14,7 +14,7 @@ public static class Options
     public static readonly bool EnablePhysics = true;
     public static readonly bool EnablePhysicsCollisionDebug = false;
     public const bool DisplayFPS = true;
-    public const int ScientificPrintPrecision = 15;
+    public const int ScientificPrintPrecision = 5;
 
     public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
     public static readonly double TimeWarpStepMultiplier = 10;
@@ -41,8 +41,7 @@ public static class Options
     public static readonly Keys TrackPrevBodyKey = Keys.N;
     public static readonly Keys FocusKey = Keys.F;
 
-    public const float MinimumShipCrashSpeed = 100f;
-    public const float MinimumShipCrashAngularSpeed = 12f;
+    public const float MinimumShipCrashSpeed = 50f;
     /// <summary>
     /// Maximum time warp adjusted speed until an object is no longer resting
     /// </summary>

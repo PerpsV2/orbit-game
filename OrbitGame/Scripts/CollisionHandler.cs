@@ -5,30 +5,30 @@ using System.Threading.Tasks;
 namespace OrbitGame;
 using CollisionBehaviours = Dictionary<(Type referenceType, Type incidentType), ResolveCollisionMethod>;
 
-public delegate void ResolveCollisionMethod(KinematicObject reference, KinematicObject incident);
+public delegate void ResolveCollisionMethod(Body reference, Body incident);
 
-public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, CollisionBehaviours collisionBehaviours)
+public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours collisionBehaviours)
 {
     public void ResolveCollisions()
     {
         TraverseCollisions(ResolveCollision);
     }
 
-    private void TraverseCollisions(Action<KinematicObject, KinematicObject> resolver)
+    private void TraverseCollisions(Action<Body, Body> resolver)
     {
         List<Task> tasks = new List<Task>();
-        foreach (var reference in kinematicObjects)
-            foreach (var incident in kinematicObjects)
+        foreach (var reference in bodies)
+            foreach (var incident in bodies)
                 tasks.Add(Task.Run(() => resolver(reference, incident)));
         Task.WaitAll(tasks.ToArray());
     }
     
-    private void ResolveCollision(KinematicObject reference, KinematicObject incident)
+    private void ResolveCollision(Body reference, Body incident)
     {
         collisionBehaviours.GetValueOrDefault((reference.GetType(), incident.GetType()))?.Invoke(reference, incident);
     }
     
-    public static void ResolvePhysicsCollision(KinematicObject reference, KinematicObject incident)
+    public static void ResolvePhysicsCollision(Body reference, Body incident)
     {
         CompactCollider referenceCollider = reference.Collider;
         CompactCollider incidentCollider = incident.Collider;
@@ -112,7 +112,7 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
             });
     }
 
-    public static void RestShipPlanetCollision(KinematicObject reference, KinematicObject incident, 
+    public static void RestShipPlanetCollision(Body reference, Body incident, 
         ScientificDecimal timeStep, ScientificDecimal deltaTime)
     {
         Ship ship = reference as Ship ?? throw new NullReferenceException();
@@ -123,7 +123,6 @@ public class CollisionHandler(IReadOnlyList<KinematicObject> kinematicObjects, C
             ScientificDecimal deltaTimeStep = timeStep * deltaTime;
             ScientificDecimal relSpeed = (incident.Velocity - reference.Velocity).Magnitude();
             ScientificDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
-            Console.WriteLine(relSpeed);
             if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
             {
                 ship.Destroy();

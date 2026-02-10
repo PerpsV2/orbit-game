@@ -8,13 +8,10 @@ namespace OrbitGame;
 
 public abstract class KinematicObject(
     string identifier,
-    ScientificDecimal mass,
     SpatialInfo spatialInfo,
     ObjectInfo objectInfo)
 {
     public readonly string Identifier = identifier;
-    
-    public ScientificDecimal Mass { get; protected set; } = mass;
 
     public SpatialInfo SpatialInfo = spatialInfo;
     public SD_Vector2 Position

@@ -6,24 +6,30 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+public delegate SD_Vector2 CalculateAccelerationMethod();
+
 /// <summary>
 /// A KinematicObject with information about shape, trajectory, material and methods for physics.
 /// </summary>
 public abstract class Body : KinematicObject, IGameDrawable
 {
+    public ScientificDecimal Mass;
     public Color Colour;
     public Body? Parent;
     public KeplerOrbit? Orbit;
+
+    private readonly IEnumerable<Body> _attractors = OrbitGame.Bodies;
     
     protected Body(
         string identifier, 
         SpatialInfo spatialInfo,
         ObjectInfo objectInfo,
-        ScientificDecimal mass, 
+        ScientificDecimal mass,
         Color colour,
         Body? parent)
-        : base(identifier, mass, spatialInfo, objectInfo)
+        : base(identifier, spatialInfo, objectInfo)
     {
+        Mass = mass;
         Colour = colour;
         Parent = parent;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
@@ -102,7 +108,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                 float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                                   Matrix.CreateRotationZ((float)orbit.Periapsis) *
+                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
                                    Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, transform, new() {
@@ -157,13 +163,18 @@ public abstract class Body : KinematicObject, IGameDrawable
         return direction * magnitude;
     }
 
-    public SD_Vector2 CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
+    private SD_Vector2 CalculateNetGravitationalAcceleration()
     {
         SD_Vector2 result = SD_Vector2.Zero;
-        return attractors
+        return _attractors
             .Where(x => x != this)
             .Aggregate(result, (sum, next) => 
                 sum + CalculateGravitationalAcceleration(next));
+    }
+
+    public virtual SD_Vector2 CalculateNetAcceleration()
+    {
+        return CalculateNetGravitationalAcceleration();
     }
     
     private KeplerOrbit? CalculateOrbit(Body? centralForce, bool initials)
@@ -183,9 +194,8 @@ public abstract class Body : KinematicObject, IGameDrawable
         if (lrlVector == SD_Vector2.Zero) return null;
 
         double periapsis = Utils.UnsignedMod(Math.PI - lrlVector.GetPrincipalAngle(), Math.Tau);
-        ScientificDecimal c = Mass * forceStrength / angularMomentum.Magnitude().Square();
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
-        ScientificDecimal semiLatusRectum = 1 / c;
+        ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Mass / forceStrength;
 
         if (semiLatusRectum == 0) return null;
 
@@ -198,16 +208,18 @@ public abstract class Body : KinematicObject, IGameDrawable
     public void UpdatePosition_Integrator(
         ScientificDecimal timeStep, 
         NumericalIntegrator integrator, 
-        Action<Body> updateAcceleration)
+        CalculateAccelerationMethod calculateAcceleration)
     {
         switch (integrator)
         {
             case NumericalIntegrator.ExplicitEuler:
+                Acceleration = calculateAcceleration();
                 Velocity += Acceleration * timeStep;
                 Position += Velocity * timeStep;
                 Angle += AngularVelocity * (double)timeStep;
                 break;
             case NumericalIntegrator.ImplicitEuler:
+                Acceleration = calculateAcceleration();
                 Position += Velocity * timeStep;
                 Velocity += Acceleration * timeStep;
                 Angle += AngularVelocity * (double)timeStep;
@@ -215,7 +227,8 @@ public abstract class Body : KinematicObject, IGameDrawable
             case NumericalIntegrator.RungeKutta4:
                 SD_Vector2 originalPosition = Position;
                 SD_Vector2 originalVelocity = Velocity;
-                
+
+                Acceleration = calculateAcceleration();
                 SD_Vector2 originalAcceleration = Acceleration;
                 SD_Vector2 velocityK1 = originalAcceleration * timeStep;
                 SD_Vector2 positionK1 = Velocity * timeStep;
@@ -223,21 +236,21 @@ public abstract class Body : KinematicObject, IGameDrawable
                 Position = originalPosition + positionK1 * 0.5f;
                 Velocity = originalVelocity + velocityK1 * 0.5f;
                 
-                updateAcceleration(this);
+                Acceleration = calculateAcceleration();
                 SD_Vector2 velocityK2 = Acceleration * timeStep;
                 SD_Vector2 positionK2 = Velocity * timeStep;
 
                 Position = originalPosition + positionK2 * 0.5f;
                 Velocity = originalVelocity + velocityK2 * 0.5f;
                 
-                updateAcceleration(this);
+                Acceleration = calculateAcceleration();
                 SD_Vector2 velocityK3 = Acceleration * timeStep;
                 SD_Vector2 positionK3 = Velocity * timeStep;
 
                 Position = originalPosition + positionK3;
                 Velocity = originalVelocity + velocityK3;
                 
-                updateAcceleration(this);
+                Acceleration = calculateAcceleration();
                 SD_Vector2 velocityK4 = Acceleration * timeStep;
                 SD_Vector2 positionK4 = Velocity * timeStep;
 
