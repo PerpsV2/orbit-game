@@ -16,7 +16,7 @@ public static class Options
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
 
-    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.RungeKutta4;
+    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ImplicitEuler;
     public static readonly double TimeWarpStepMultiplier = 10;
 
     public static readonly double CamMoveSpeed = 1;
@@ -41,6 +41,7 @@ public static class Options
     public static readonly Keys TrackPrevBodyKey = Keys.N;
     public static readonly Keys FocusKey = Keys.F;
 
+    public const uint IntegratorIterationAmount = 10;
     public const float MinimumShipCrashSpeed = 50f;
     /// <summary>
     /// Maximum time warp adjusted speed until an object is no longer resting

@@ -49,7 +49,7 @@ public class OrbitGame : Game
     private int _trackingIndex;
     private Ship _controlShip;
 
-    Camera _camera = new Camera(new SD_Vector2(0, 0),
+    Camera _camera = new (new SD_Vector2(0, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -203,6 +203,10 @@ public class OrbitGame : Game
         _ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
+        _camera.Mode = CameraMode.Surface;
+        _camera.SetTracking(_tracking);
+        _camera.SetSurface(earth);
+        _camera.FocusTracking();
         _controlShip = _ships[^1];
         _controlShip.DrawOrbitalPath = true;
         _trackingIndex = Bodies.IndexOf(OriginBody.Body);
@@ -232,7 +236,7 @@ public class OrbitGame : Game
     {
         _trackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
         _tracking = Bodies[_trackingIndex];
-        _camera.MoveTo(_camera.AbsolutePosition - _tracking.Position);
+        _camera.SetTracking(_tracking);
     }
 
     private void HandleInput(ScientificDecimal dt)
@@ -255,12 +259,12 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
-                _camera.MoveTo(SD_Vector2.Zero);
+                _camera.FocusTracking();
 
-        if (keyboardState.IsKeyDown(Options.MoveUpKey)) _camera.MoveBy(camSpeed, Math.PI / 2 - _camera.Angle);
-        if (keyboardState.IsKeyDown(Options.MoveDownKey)) _camera.MoveBy(camSpeed, 3 * Math.PI / 2 - _camera.Angle);
-        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) _camera.MoveBy(camSpeed, Math.PI - _camera.Angle);
-        if (keyboardState.IsKeyDown(Options.MoveRightKey)) _camera.MoveBy(camSpeed, Math.Tau - _camera.Angle);
+        if (keyboardState.IsKeyDown(Options.MoveUpKey)) _camera.MoveParallel(camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveDownKey)) _camera.MoveParallel(-camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) _camera.MovePerpendicular(camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveRightKey)) _camera.MovePerpendicular(-camSpeed);
 
         if (keyboardState.IsKeyDown(Options.ZoomOutKey)) _camera.ScaleZoom(1 + Options.CamZoomSpeed);
         if (keyboardState.IsKeyDown(Options.ZoomInKey)) _camera.ScaleZoom(1 - Options.CamZoomSpeed);
@@ -320,10 +324,10 @@ public class OrbitGame : Game
                     ship.UpdatePosition_Landed();
         }
         
+        _camera.TryUpdateViewMatrix();
+        
         _ships.RemoveAll(ship => ship.MarkedForRemoval);
         Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
-        
-        _camera.SetOrigin(_tracking.Position);
 
         base.Update(gameTime);
     }

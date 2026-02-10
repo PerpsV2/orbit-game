@@ -51,7 +51,7 @@ public abstract class Body : KinematicObject, IGameDrawable
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
         // find approximate angle of the orbit covered by the camera
-        SD_Vector2 relCamPosition = camera.AbsolutePosition - centralForce.Position;
+        SD_Vector2 relCamPosition = camera.GetAbsolutePosition() - centralForce.Position;
         double minAngle = 0;
         double maxAngle = Math.Tau;
         if (relCamPosition != SD_Vector2.Zero)
@@ -108,7 +108,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                 float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
+                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.GetAbsoluteAngle())) *
                                    Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, transform, new() {
@@ -210,55 +210,61 @@ public abstract class Body : KinematicObject, IGameDrawable
         NumericalIntegrator integrator, 
         CalculateAccelerationMethod calculateAcceleration)
     {
-        switch (integrator)
+        timeStep /= Options.IntegratorIterationAmount;
+        for (int i = 0; i < Options.IntegratorIterationAmount; ++i)
         {
-            case NumericalIntegrator.ExplicitEuler:
-                Acceleration = calculateAcceleration();
-                Velocity += Acceleration * timeStep;
-                Position += Velocity * timeStep;
-                Angle += AngularVelocity * (double)timeStep;
-                break;
-            case NumericalIntegrator.ImplicitEuler:
-                Acceleration = calculateAcceleration();
-                Position += Velocity * timeStep;
-                Velocity += Acceleration * timeStep;
-                Angle += AngularVelocity * (double)timeStep;
-                break;
-            case NumericalIntegrator.RungeKutta4:
-                SD_Vector2 originalPosition = Position;
-                SD_Vector2 originalVelocity = Velocity;
+            switch (integrator)
+            {
+                case NumericalIntegrator.ExplicitEuler:
+                    Acceleration = calculateAcceleration();
+                    Velocity += Acceleration * timeStep;
+                    Position += Velocity * timeStep;
+                    Angle += AngularVelocity * (double)timeStep;
+                    break;
+                case NumericalIntegrator.ImplicitEuler:
+                    Acceleration = calculateAcceleration();
+                    Position += Velocity * timeStep;
+                    Velocity += Acceleration * timeStep;
+                    Angle += AngularVelocity * (double)timeStep;
+                    break;
+                case NumericalIntegrator.RungeKutta4:
+                    SD_Vector2 originalPosition = Position;
+                    SD_Vector2 originalVelocity = Velocity;
 
-                Acceleration = calculateAcceleration();
-                SD_Vector2 originalAcceleration = Acceleration;
-                SD_Vector2 velocityK1 = originalAcceleration * timeStep;
-                SD_Vector2 positionK1 = Velocity * timeStep;
+                    Acceleration = calculateAcceleration();
+                    SD_Vector2 originalAcceleration = Acceleration;
+                    SD_Vector2 velocityK1 = originalAcceleration * timeStep;
+                    SD_Vector2 positionK1 = Velocity * timeStep;
 
-                Position = originalPosition + positionK1 * 0.5f;
-                Velocity = originalVelocity + velocityK1 * 0.5f;
-                
-                Acceleration = calculateAcceleration();
-                SD_Vector2 velocityK2 = Acceleration * timeStep;
-                SD_Vector2 positionK2 = Velocity * timeStep;
+                    Position = originalPosition + positionK1 * 0.5f;
+                    Velocity = originalVelocity + velocityK1 * 0.5f;
 
-                Position = originalPosition + positionK2 * 0.5f;
-                Velocity = originalVelocity + velocityK2 * 0.5f;
-                
-                Acceleration = calculateAcceleration();
-                SD_Vector2 velocityK3 = Acceleration * timeStep;
-                SD_Vector2 positionK3 = Velocity * timeStep;
+                    Acceleration = calculateAcceleration();
+                    SD_Vector2 velocityK2 = Acceleration * timeStep;
+                    SD_Vector2 positionK2 = Velocity * timeStep;
 
-                Position = originalPosition + positionK3;
-                Velocity = originalVelocity + velocityK3;
-                
-                Acceleration = calculateAcceleration();
-                SD_Vector2 velocityK4 = Acceleration * timeStep;
-                SD_Vector2 positionK4 = Velocity * timeStep;
+                    Position = originalPosition + positionK2 * 0.5f;
+                    Velocity = originalVelocity + velocityK2 * 0.5f;
 
-                Velocity = originalVelocity + (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
-                Position = originalPosition + (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
-                
-                Angle += AngularVelocity * (double)timeStep;
-                break;
+                    Acceleration = calculateAcceleration();
+                    SD_Vector2 velocityK3 = Acceleration * timeStep;
+                    SD_Vector2 positionK3 = Velocity * timeStep;
+
+                    Position = originalPosition + positionK3;
+                    Velocity = originalVelocity + velocityK3;
+
+                    Acceleration = calculateAcceleration();
+                    SD_Vector2 velocityK4 = Acceleration * timeStep;
+                    SD_Vector2 positionK4 = Velocity * timeStep;
+
+                    Velocity = originalVelocity +
+                               (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
+                    Position = originalPosition +
+                               (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
+
+                    Angle += AngularVelocity * (double)timeStep;
+                    break;
+            }
         }
     }
 

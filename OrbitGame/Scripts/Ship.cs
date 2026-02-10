@@ -51,7 +51,7 @@ public class Ship : Body, IGameDrawable
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
                 (float)(Options.ScreenSize.width / camera.Width));
             Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
-                               Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
+                               Matrix.CreateRotationZ(-(float)(Angle + camera.GetAbsoluteAngle())) *
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
             {
