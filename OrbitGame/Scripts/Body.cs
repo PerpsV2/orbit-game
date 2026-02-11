@@ -227,6 +227,13 @@ public abstract class Body : KinematicObject, IGameDrawable
                     Velocity += Acceleration * timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
+                case NumericalIntegrator.VelocityVerlet:
+                    SD_Vector2 acceleration1 = calculateAcceleration();
+                    Position += Velocity * timeStep + acceleration1 * 0.5f * timeStep * timeStep;
+                    SD_Vector2 acceleration2 = calculateAcceleration();
+                    Velocity += (acceleration1 + acceleration2) * 0.5f * timeStep;
+                    Angle += AngularVelocity * (double)timeStep;
+                    break;
                 case NumericalIntegrator.RungeKutta4:
                     SD_Vector2 originalPosition = Position;
                     SD_Vector2 originalVelocity = Velocity;

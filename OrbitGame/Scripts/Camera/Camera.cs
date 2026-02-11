@@ -15,30 +15,9 @@ public class Camera
 {
     public CameraMode Mode { get; set; }
     
-    private SD_Vector2 _localPosition;
-    private SD_Vector2 LocalPosition
-    {
-        get => _localPosition;
-        set
-        {
-            _localPosition = value;
-            UpdateViewMatrix();
-        }
-    }
-    
-    private double _localAngle;
-    private double LocalAngle
-    {
-        get => Utils.UnsignedMod(_localAngle, Math.Tau);
-        set
-        {
-            _localAngle = value;
-            UpdateViewMatrix();
-        }
-    }
+    public SpatialInfo SpatialInfo;
 
-    private KinematicObject? _tracking;
-    private KinematicObject? _surface;
+    public ICameraMovementScheme MovementScheme;
 
     private ScientificDecimal _width;
     public ScientificDecimal Width
@@ -65,13 +44,17 @@ public class Camera
     
     private readonly int _screenWidth;
     private readonly int _screenHeight;
-    
-    public ScientificDecimal Left => GetAbsolutePosition().X - Width * 0.5f;
-    public ScientificDecimal Top => GetAbsolutePosition().Y + Height * 0.5f;
-    public ScientificDecimal Right => GetAbsolutePosition().X + Width * 0.5f;
-    public ScientificDecimal Bottom => GetAbsolutePosition().Y - Height * 0.5f;
 
-    public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(GetAbsolutePosition().GetPrincipalAngle());
+    public SD_Vector2 AbsolutePosition => MovementScheme.GetAbsolutePosition();
+    public double AbsoluteAngle => MovementScheme.GetAbsoluteAngle();
+    
+    public ScientificDecimal Left => AbsolutePosition.X - Width * 0.5f;
+    public ScientificDecimal Top => AbsolutePosition.Y + Height * 0.5f;
+    public ScientificDecimal Right => AbsolutePosition.X + Width * 0.5f;
+    public ScientificDecimal Bottom => AbsolutePosition.Y - Height * 0.5f;
+
+    private SD_Vector2 ForwardVector => SD_Vector2.FromPolar(-AbsoluteAngle + Math.PI / 2);
+    private SD_Vector2 RightVector => SD_Vector2.FromPolar(-AbsoluteAngle);
 
     public Matrix3X3 ViewMatrix;
     
@@ -92,55 +75,6 @@ public class Camera
     
     public Camera(SD_Vector2 position, ScientificDecimal width, ScientificDecimal height) :
         this(position, 0, width, height) { }
-    
-    public SD_Vector2 GetAbsolutePosition()
-    {
-        switch (Mode)
-        {
-            case CameraMode.None:
-            case CameraMode.Tracking:
-            case CameraMode.TrackingFixed:
-            case CameraMode.Surface: return LocalPosition + (_tracking?.Position ?? SD_Vector2.Zero);
-            default: throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    public double GetAbsoluteAngle()
-    {
-        switch (Mode)
-        {
-            case CameraMode.None:
-            case CameraMode.Tracking: return LocalAngle;
-            case CameraMode.TrackingFixed: return LocalAngle - (_tracking?.Angle ?? 0);
-            case CameraMode.Surface: return 
-                LocalAngle - (GetAbsolutePosition() - (_surface?.Position ?? SD_Vector2.Zero)).GetPrincipalAngle();
-            default: throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    public void MoveParallel(ScientificDecimal distance)
-    {
-        switch (Mode)
-        {
-            case CameraMode.None: LocalPosition += new SD_Vector2(0, distance); break;
-            case CameraMode.Tracking: LocalPosition += new SD_Vector2(0, distance); break;
-            case CameraMode.TrackingFixed: LocalPosition += new SD_Vector2(0, distance); break;
-            case CameraMode.Surface: LocalPosition += SD_Vector2.FromPolar(
-                    (GetAbsolutePosition() - (_surface?.Position ?? SD_Vector2.Zero)).GetPrincipalAngle(), distance);
-                break;
-        }
-    }
-
-    public void MovePerpendicular(ScientificDecimal distance)
-    {
-        switch (Mode)
-        {
-            case CameraMode.None: LocalPosition += new SD_Vector2(distance, 0); break;
-            case CameraMode.Tracking: LocalPosition += new SD_Vector2(distance, 0); break;
-            case CameraMode.TrackingFixed: LocalPosition += new SD_Vector2(distance, 0); break;
-            case CameraMode.Surface: break;
-        }
-    }
 
     public void RotateBy(double angle)
     {
@@ -174,7 +108,7 @@ public class Camera
     {
         ViewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
                      Matrix3X3.Translation(Width / 2, Height / 2) *
-                     Matrix3X3.Rotation(-GetAbsoluteAngle()) *
+                     Matrix3X3.Rotation(-AbsoluteAngle) *
                      Matrix3X3.Scale(1, -1);
     }
 
@@ -190,7 +124,7 @@ public class Camera
     }
     
     public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
-        => ViewMatrix * (point - GetAbsolutePosition());
+        => ViewMatrix * (point - AbsolutePosition);
     
     public Vector2 ConvertToScreenCoordinates(SD_Vector2 point)
     {

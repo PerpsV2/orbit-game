@@ -23,6 +23,7 @@ public enum NumericalIntegrator
 {
     ExplicitEuler,
     ImplicitEuler,
+    VelocityVerlet,
     RungeKutta4
 }
 

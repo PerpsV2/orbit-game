@@ -203,7 +203,7 @@ public class OrbitGame : Game
         _ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
-        _camera.Mode = CameraMode.Surface;
+        _camera.Mode = CameraMode.None;
         _camera.SetTracking(_tracking);
         _camera.SetSurface(earth);
         _camera.FocusTracking();
@@ -263,15 +263,15 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) _camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) _camera.MoveParallel(-camSpeed);
-        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) _camera.MovePerpendicular(camSpeed);
-        if (keyboardState.IsKeyDown(Options.MoveRightKey)) _camera.MovePerpendicular(-camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) _camera.MovePerpendicular(-camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveRightKey)) _camera.MovePerpendicular(camSpeed);
 
         if (keyboardState.IsKeyDown(Options.ZoomOutKey)) _camera.ScaleZoom(1 + Options.CamZoomSpeed);
         if (keyboardState.IsKeyDown(Options.ZoomInKey)) _camera.ScaleZoom(1 - Options.CamZoomSpeed);
 
         float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
-        if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(camRotateSpeed);
-        if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(-camRotateSpeed);
+        if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(-camRotateSpeed);
+        if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(camRotateSpeed);
 
         _controlShip.ResetThrust();
         if (keyboardState.IsKeyDown(Keys.I)) _controlShip.ApplyThrust(new SD_Vector2(-400000, 0), new SD_Vector2(-0.4, 0));

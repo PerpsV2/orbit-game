@@ -16,7 +16,7 @@ public static class Options
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
 
-    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.ImplicitEuler;
+    public static readonly NumericalIntegrator IntegratorMethod = NumericalIntegrator.VelocityVerlet;
     public static readonly double TimeWarpStepMultiplier = 10;
 
     public static readonly double CamMoveSpeed = 1;
