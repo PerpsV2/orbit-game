@@ -18,6 +18,12 @@ public abstract class Body : KinematicObject, IGameDrawable
     public Body? Parent;
     public KeplerOrbit? Orbit;
 
+    protected ObjectInfo ObjectInfo;
+    
+    public IMesh Mesh => ObjectInfo.Mesh;
+    public CompactCollider Collider => ObjectInfo.Collider;
+    public Material Material => ObjectInfo.Material;
+
     private readonly IEnumerable<Body> _attractors = OrbitGame.Bodies;
     
     protected Body(
@@ -27,11 +33,12 @@ public abstract class Body : KinematicObject, IGameDrawable
         ScientificDecimal mass,
         Color colour,
         Body? parent)
-        : base(identifier, spatialInfo, objectInfo)
+        : base(identifier, spatialInfo)
     {
         Mass = mass;
         Colour = colour;
         Parent = parent;
+        ObjectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
         Orbit = CalculateOrbit(true);

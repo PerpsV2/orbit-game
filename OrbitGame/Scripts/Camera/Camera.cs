@@ -41,7 +41,7 @@ public class Camera : KinematicObject
     
     public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height,
         int screenWidth, int screenHeight, ICameraMovementScheme movementScheme) 
-        : base(identifier, spatialInfo, new ObjectInfo())
+        : base(identifier, spatialInfo)
     {
         _width = width;
         _height = height;
