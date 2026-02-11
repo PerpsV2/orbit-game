@@ -51,7 +51,7 @@ public class Ship : Body, IGameDrawable
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
                 (float)(Options.ScreenSize.width / camera.Width));
             Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
-                               Matrix.CreateRotationZ(-(float)(Angle + camera.GetAbsoluteAngle())) *
+                               Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
             {
@@ -60,7 +60,7 @@ public class Ship : Body, IGameDrawable
         }
         if (screenDistance < 10)
         {
-            double iconAngle = -Angle - camera.GetAbsoluteAngle();
+            double iconAngle = -Angle - camera.Angle;
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 255);
             Color colour = new Color(Colour, alpha);
             graphicsDevice.DrawLine(

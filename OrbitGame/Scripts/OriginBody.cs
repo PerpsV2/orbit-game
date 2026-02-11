@@ -9,13 +9,13 @@ public static class OriginBody
 {
     public static Body? Body = null;
 
-    public static void ResetOrigin(IEnumerable<Body> bodies)
+    public static void ResetOrigin(List<KinematicObject> kinObjects)
     {
         if (Body == null) return;
-        foreach (var body in bodies)
+        foreach (var obj in kinObjects)
         {
-            if (body == Body) continue;
-            body.ResetOrigin(Body.Position);
+            if (obj == Body) continue;
+            obj.ResetOrigin(Body.Position);
         }
 
         Body.Position = SD_Vector2.Zero;

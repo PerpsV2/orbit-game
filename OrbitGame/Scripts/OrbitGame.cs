@@ -49,7 +49,7 @@ public class OrbitGame : Game
     private int _trackingIndex;
     private Ship _controlShip;
 
-    Camera _camera = new (new SD_Vector2(0, 0),
+    Camera _camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -203,10 +203,8 @@ public class OrbitGame : Game
         _ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
-        _camera.Mode = CameraMode.None;
-        _camera.SetTracking(_tracking);
-        _camera.SetSurface(earth);
-        _camera.FocusTracking();
+        _camera.MovementScheme = new TrackingFixedCameraScheme(_camera.SpatialInfo, _tracking);
+        _camera.Focus();
         _controlShip = _ships[^1];
         _controlShip.DrawOrbitalPath = true;
         _trackingIndex = Bodies.IndexOf(OriginBody.Body);
@@ -236,7 +234,7 @@ public class OrbitGame : Game
     {
         _trackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
         _tracking = Bodies[_trackingIndex];
-        _camera.SetTracking(_tracking);
+        _camera.MovementScheme = new TrackingCameraScheme(_camera.SpatialInfo, _tracking);
     }
 
     private void HandleInput(ScientificDecimal dt)
@@ -259,7 +257,7 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
-                _camera.FocusTracking();
+                _camera.Focus();
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) _camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) _camera.MoveParallel(-camSpeed);
@@ -293,8 +291,8 @@ public class OrbitGame : Game
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
-        OriginBody.ResetOrigin(Bodies);
-
+        OriginBody.ResetOrigin(Bodies.Concat<KinematicObject>([_camera]).ToList());
+        
         HandleInput(_deltaTime);
         
         if (Options.EnablePhysics)
@@ -324,7 +322,7 @@ public class OrbitGame : Game
                     ship.UpdatePosition_Landed();
         }
         
-        _camera.TryUpdateViewMatrix();
+        _camera.Update();
         
         _ships.RemoveAll(ship => ship.MarkedForRemoval);
         Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);

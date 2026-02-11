@@ -3,21 +3,11 @@ using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
-public enum CameraMode
+public class Camera : KinematicObject
 {
-    None,
-    Tracking,
-    TrackingFixed,
-    Surface
-}
-
-public class Camera
-{
-    public CameraMode Mode { get; set; }
-    
-    public SpatialInfo SpatialInfo;
-
-    public ICameraMovementScheme MovementScheme;
+    public ICameraMovementScheme MovementScheme { get; set; }
+    private readonly int _screenWidth;
+    private readonly int _screenHeight;
 
     private ScientificDecimal _width;
     public ScientificDecimal Width
@@ -42,62 +32,46 @@ public class Camera
         }
     }
     
-    private readonly int _screenWidth;
-    private readonly int _screenHeight;
-
-    public SD_Vector2 AbsolutePosition => MovementScheme.GetAbsolutePosition();
-    public double AbsoluteAngle => MovementScheme.GetAbsoluteAngle();
-    
-    public ScientificDecimal Left => AbsolutePosition.X - Width * 0.5f;
-    public ScientificDecimal Top => AbsolutePosition.Y + Height * 0.5f;
-    public ScientificDecimal Right => AbsolutePosition.X + Width * 0.5f;
-    public ScientificDecimal Bottom => AbsolutePosition.Y - Height * 0.5f;
-
-    private SD_Vector2 ForwardVector => SD_Vector2.FromPolar(-AbsoluteAngle + Math.PI / 2);
-    private SD_Vector2 RightVector => SD_Vector2.FromPolar(-AbsoluteAngle);
+    public ScientificDecimal Left => Position.X - Width * 0.5f;
+    public ScientificDecimal Top => Position.Y + Height * 0.5f;
+    public ScientificDecimal Right => Position.X + Width * 0.5f;
+    public ScientificDecimal Bottom => Position.Y - Height * 0.5f;
 
     public Matrix3X3 ViewMatrix;
     
-    public Camera(SD_Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height,
-        int screenWidth, int screenHeight)
+    public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height,
+        int screenWidth, int screenHeight, ICameraMovementScheme movementScheme) 
+        : base(identifier, spatialInfo, new ObjectInfo())
     {
-        _localPosition = position;
         _width = width;
         _height = height;
-        _localAngle = angle;
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
+        MovementScheme = movementScheme;
         UpdateViewMatrix();
     }
 
-    public Camera(SD_Vector2 position, double angle, ScientificDecimal width, ScientificDecimal height) :
-        this(position, angle, width, height, Options.ScreenSize.width, Options.ScreenSize.height) { }
-    
-    public Camera(SD_Vector2 position, ScientificDecimal width, ScientificDecimal height) :
-        this(position, 0, width, height) { }
+    public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height)
+        : this(identifier, spatialInfo, width, height, Options.ScreenSize.width, Options.ScreenSize.height, 
+            new TrackingCameraScheme(spatialInfo, null))
+    { }
 
+    public void Focus() 
+        => MovementScheme.Focus(ref SpatialInfo);
+    public void MovePerpendicular(ScientificDecimal distance) 
+        => MovementScheme.MovePerpendicular(distance, ref SpatialInfo);
+    public void MoveParallel(ScientificDecimal distance)
+        => MovementScheme.MoveParallel(distance, ref SpatialInfo);
     public void RotateBy(double angle)
+        => MovementScheme.RotateBy(angle, ref SpatialInfo);
+
+    public void Update()
     {
-        LocalAngle += angle;
+        SpatialInfo prevSpatialInfo = SpatialInfo;
+        MovementScheme.Update(ref SpatialInfo);
+        if (prevSpatialInfo != SpatialInfo) UpdateViewMatrix();
     }
 
-    public void SetTracking(KinematicObject? tracking, bool preserveAbsolutePosition = true)
-    {
-        if (preserveAbsolutePosition)
-            LocalPosition += (tracking?.Position ?? SD_Vector2.Zero) - (_tracking?.Position ?? SD_Vector2.Zero);
-        _tracking = tracking;
-    }
-
-    public void SetSurface(KinematicObject? surface)
-    {
-        _surface = surface;
-    }
-
-    public void FocusTracking()
-    {
-        LocalPosition = SD_Vector2.Zero;
-    }
-    
     public void ScaleZoom(ScientificDecimal scale)
     {
         Width *= scale;
@@ -108,23 +82,12 @@ public class Camera
     {
         ViewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
                      Matrix3X3.Translation(Width / 2, Height / 2) *
-                     Matrix3X3.Rotation(-AbsoluteAngle) *
+                     Matrix3X3.Rotation(-Angle) *
                      Matrix3X3.Scale(1, -1);
-    }
-
-    public void TryUpdateViewMatrix()
-    {
-        switch (Mode)
-        {
-            case CameraMode.None: return;
-            case CameraMode.Tracking: return;
-            case CameraMode.TrackingFixed: UpdateViewMatrix(); break;
-            case CameraMode.Surface: UpdateViewMatrix(); break;
-        }
     }
     
     public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
-        => ViewMatrix * (point - AbsolutePosition);
+        => ViewMatrix * (point - Position);
     
     public Vector2 ConvertToScreenCoordinates(SD_Vector2 point)
     {

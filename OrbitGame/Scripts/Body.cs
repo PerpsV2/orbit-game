@@ -51,7 +51,7 @@ public abstract class Body : KinematicObject, IGameDrawable
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
         // find approximate angle of the orbit covered by the camera
-        SD_Vector2 relCamPosition = camera.GetAbsolutePosition() - centralForce.Position;
+        SD_Vector2 relCamPosition = camera.Position - centralForce.Position;
         double minAngle = 0;
         double maxAngle = Math.Tau;
         if (relCamPosition != SD_Vector2.Zero)
@@ -108,7 +108,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                 float screenMinorRadius = camera.ConvertToScreenDistance(semiMinorAxis);
         
                 Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.GetAbsoluteAngle())) *
+                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
                                    Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, transform, new() {
