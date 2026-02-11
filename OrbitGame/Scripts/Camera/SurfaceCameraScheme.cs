@@ -1,3 +1,6 @@
+using System;
+using Microsoft.Xna.Framework;
+
 namespace OrbitGame;
 
 public class SurfaceCameraScheme : ICameraMovementScheme
@@ -23,22 +26,30 @@ public class SurfaceCameraScheme : ICameraMovementScheme
 
     public void MovePerpendicular(ScientificDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition = SD_Vector2.FromPolar()
+        SD_Vector2 camSurfaceVector = _localPosition + _tracking.Position - _surface.Position;
+        double deltaAngle = (double)(distance / camSurfaceVector.Magnitude());
+        SD_Vector2 newCamSurfacePosition = SD_Vector2.FromPolar(
+            camSurfaceVector.GetPrincipalAngle() - deltaAngle, camSurfaceVector.Magnitude()
+        );
+        _localPosition = newCamSurfacePosition + _surface.Position - _tracking.Position;
     }
 
     public void MoveParallel(ScientificDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += SD_Vector2.FromPolar((_tracking.Position - _surface.Position).GetPrincipalAngle(), distance);
+        _localPosition += SD_Vector2.FromPolar(
+            (_surface.Position - _tracking.Position - _localPosition).GetPrincipalAngle(), -distance
+        );
     }
 
     public void RotateBy(double angle, ref SpatialInfo spatialInfo)
     {
-        throw new System.NotImplementedException();
+        _localAngle += angle;
     }
 
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = _tracking.Position + _localPosition;
-        spatialInfo.Angle = -_tracking.Angle- _localAngle;
+        spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).GetPrincipalAngle() 
+                            - Math.PI / 2 - _localAngle;
     }
 }

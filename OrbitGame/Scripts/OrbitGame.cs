@@ -203,7 +203,7 @@ public class OrbitGame : Game
         _ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
-        _camera.MovementScheme = new TrackingFixedCameraScheme(_camera.SpatialInfo, _tracking);
+        _camera.MovementScheme = new SurfaceCameraScheme(_camera.SpatialInfo, earth, _tracking);
         _camera.Focus();
         _controlShip = _ships[^1];
         _controlShip.DrawOrbitalPath = true;
