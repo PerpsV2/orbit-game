@@ -6,10 +6,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Delegate for calculating instant acceleration given other spatial info.
+/// </summary>
 public delegate SD_Vector2 CalculateAccelerationMethod();
 
 /// <summary>
-/// A KinematicObject with information about shape, trajectory, material and methods for physics.
+/// A KinematicObject with drawing and physics information.
 /// </summary>
 public abstract class Body : KinematicObject, IGameDrawable
 {
@@ -18,13 +21,13 @@ public abstract class Body : KinematicObject, IGameDrawable
     public Body? Parent;
     public KeplerOrbit? Orbit;
 
-    protected ObjectInfo ObjectInfo;
+    private ObjectInfo _objectInfo;
     
-    public IMesh Mesh => ObjectInfo.Mesh;
-    public CompactCollider Collider => ObjectInfo.Collider;
-    public Material Material => ObjectInfo.Material;
+    public IMesh Mesh => _objectInfo.Mesh;
+    public CompactCollider Collider => _objectInfo.Collider;
+    public Material Material => _objectInfo.Material;
 
-    private readonly IEnumerable<Body> _attractors = OrbitGame.Bodies;
+    private IEnumerable<Body> _attractors = OrbitGame.Bodies;
     
     protected Body(
         string identifier, 
@@ -38,10 +41,10 @@ public abstract class Body : KinematicObject, IGameDrawable
         Mass = mass;
         Colour = colour;
         Parent = parent;
-        ObjectInfo = objectInfo;
+        _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
-        Orbit = CalculateOrbit(true);
+        Orbit = CalculateOrbit(Parent, true);
     }
     
     public abstract void Draw(GraphicsDevice graphicsDevice, Camera camera);
@@ -65,15 +68,15 @@ public abstract class Body : KinematicObject, IGameDrawable
         {
             SD_Vector2 maxCamExtentVector = (SD_Vector2)SD_Vector3.Cross(relCamPosition.Normalize(),
                 new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
-            minAngle = Utils.UnsignedMod((relCamPosition + maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
-            maxAngle = Utils.UnsignedMod((relCamPosition - maxCamExtentVector).GetPrincipalAngle(), Math.Tau);
+            minAngle = Utils.WrapAngle((relCamPosition + maxCamExtentVector).GetPrincipalAngle());
+            maxAngle = Utils.WrapAngle((relCamPosition - maxCamExtentVector).GetPrincipalAngle());
         }
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
         // redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
         {
-            angle = Utils.UnsignedMod(angle, Math.Tau);
+            angle = Utils.WrapAngle(angle);
             double result = Math.PI - Math.PI * Math.Pow(1 - angle / Math.PI, exponent);
             if (angle > Math.PI) result = Math.PI + Math.PI * Math.Pow(angle / Math.PI - 1, exponent);
             return result;
@@ -127,11 +130,11 @@ public abstract class Body : KinematicObject, IGameDrawable
         else
         {
             ScientificDecimal? parentSOIRadius = centralForce.Orbit?.SphereOfInfluenceRadius ?? null;
-            double asymptoteAngle = Utils.UnsignedMod(Math.Acos(-(1 / orbit.Eccentricity)), Math.Tau);
-            double objectAngle = Utils.UnsignedMod((Position - centralForce.Position).GetPrincipalAngle(), Math.Tau);
+            double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
+            double objectAngle = Utils.WrapAngle((Position - centralForce.Position).GetPrincipalAngle());
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
-                double trueAngle = Utils.UnsignedMod(a + orbit.Periapsis, Math.Tau);
+                double trueAngle = Utils.WrapAngle(a + orbit.Periapsis);
                 ScientificDecimal dist = orbit.Equation(trueAngle);
                 SD_Vector2 orbitPoint = centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist);
                 if (parentSOIRadius != null)
@@ -162,6 +165,9 @@ public abstract class Body : KinematicObject, IGameDrawable
         }
     }
     
+    /// <summary>
+    /// Calculate the gravitational acceleration caused by the attraction of one other body.
+    /// </summary>
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
         double angle = SD_Vector2.GetPrincipalAngle(Position, attractor.Position);
@@ -170,21 +176,30 @@ public abstract class Body : KinematicObject, IGameDrawable
         return direction * magnitude;
     }
 
-    private SD_Vector2 CalculateNetGravitationalAcceleration()
+    /// <summary>
+    /// Calculate the net gravitational acceleration with all bodies in the scene.
+    /// </summary>
+    private SD_Vector2 CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
     {
         SD_Vector2 result = SD_Vector2.Zero;
-        return _attractors
+        return attractors
             .Where(x => x != this)
             .Aggregate(result, (sum, next) => 
                 sum + CalculateGravitationalAcceleration(next));
     }
-
+    
+    /// <summary>
+    /// Calculate the net acceleration from gravity and other sources.
+    /// </summary>
     public virtual SD_Vector2 CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration();
+        return CalculateNetGravitationalAcceleration(_attractors);
     }
     
-    private KeplerOrbit? CalculateOrbit(Body? centralForce, bool initials)
+    /// <summary>
+    /// Calculate the Keplerian orbit around a central force with the option to calculate certain orbital initials
+    /// </summary>
+    protected KeplerOrbit? CalculateOrbit(Body? centralForce, bool initials)
     {
         if (centralForce == null) return null;
         
@@ -200,7 +215,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                             directionVector * Mass * forceStrength);
         if (lrlVector == SD_Vector2.Zero) return null;
 
-        double periapsis = Utils.UnsignedMod(Math.PI - lrlVector.GetPrincipalAngle(), Math.Tau);
+        double periapsis = Utils.WrapAngle(Math.PI - lrlVector.GetPrincipalAngle());
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Mass / forceStrength;
 
@@ -209,8 +224,17 @@ public abstract class Body : KinematicObject, IGameDrawable
         return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
     }
 
-    protected KeplerOrbit? CalculateOrbit(bool initials)
-        => CalculateOrbit(Parent, initials);
+    public void UpdatePosition_PreservingIntegrator(
+        ScientificDecimal initialTimeStep,
+        ScientificDecimal endTime)
+    {
+        ScientificDecimal h = initialTimeStep;
+        SD_Vector2 q = Position;
+        SD_Vector2 p = Velocity * Mass;
+        ScientificDecimal m = Mass;
+
+        ScientificDecimal s = SD_Vector2.Dot(q * h, p) / (q.Magnitude() * m);
+    }
 
     public void UpdatePosition_Integrator(
         ScientificDecimal timeStep, 

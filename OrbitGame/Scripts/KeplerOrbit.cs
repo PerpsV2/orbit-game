@@ -36,7 +36,7 @@ public readonly record struct KeplerOrbit
         this.Eccentricity = Eccentricity;
         this.SemiLatusRectum = SemiLatusRectum;
         Equation = angle => SemiLatusRectum / (1 + Eccentricity * Math.Cos(angle - Periapsis));
-        this.Periapsis = Utils.UnsignedMod(Periapsis, Math.Tau);
+        this.Periapsis = Utils.WrapAngle(Periapsis);
         
         if (Eccentricity == 0)
         {

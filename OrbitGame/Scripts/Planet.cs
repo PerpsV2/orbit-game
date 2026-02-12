@@ -167,8 +167,6 @@ public class Planet : Body, IGameDrawable
         public PlanetTemplate(Material material)
         {
             _material = material;
-            _mesh.GenerateBuffers();
-            _orbitMesh.GenerateBuffers();
         }
 
         public Planet CreateInstance(

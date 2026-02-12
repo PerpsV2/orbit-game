@@ -174,7 +174,7 @@ public struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
         if (X == 0 && Y < 0) return 3 * Math.PI / 2;
         
         double angle = Math.Atan2((double)Y, (double)X);
-        return Utils.UnsignedMod(angle, Math.Tau);
+        return Utils.WrapAngle(angle);
     }
 
     public static double GetPrincipalAngle(SD_Vector2 start, SD_Vector2 end)

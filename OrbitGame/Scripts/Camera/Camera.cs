@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -8,6 +9,7 @@ public class Camera : KinematicObject
     public ICameraMovementScheme MovementScheme { get; set; }
     private readonly int _screenWidth;
     private readonly int _screenHeight;
+    public CameraMesh Mesh = new();
 
     private ScientificDecimal _width;
     public ScientificDecimal Width
@@ -105,5 +107,14 @@ public class Camera : KinematicObject
     {
         if (xAxis) return (float)SD_ConvertToScreenDistance(distance);
         return (float)SD_ConvertToScreenDistance(distance, false);
+    }
+
+    public void GenerateMesh()
+        => Mesh.GenerateBuffers();
+
+    public void DrawMesh(GraphicsDevice graphicsDevice)
+    {
+        Mesh.Draw(graphicsDevice, Effects.DefaultEffect ?? throw new NotImplementedException(), 
+            new());
     }
 }

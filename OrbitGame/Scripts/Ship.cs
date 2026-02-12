@@ -64,11 +64,11 @@ public class Ship : Body, IGameDrawable
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 255);
             Color colour = new Color(Colour, alpha);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -10), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 10), iconAngle), colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -5), iconAngle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 5), iconAngle), colour);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 0), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 00), iconAngle), colour);
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, -10), iconAngle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
@@ -102,7 +102,7 @@ public class Ship : Body, IGameDrawable
                     Parent = planet;
         }
         
-        Orbit = CalculateOrbit(false);
+        Orbit = CalculateOrbit(Parent, false);
     }
 
     public override void ResetOrigin(SD_Vector2 origin)
@@ -170,8 +170,6 @@ public class Ship : Body, IGameDrawable
             _mesh = new PolyMesh(shipVertices);
             _collider = new ConvexCollider(shipVertices);
             _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max();
-            _mesh.GenerateBuffers();
-            _orbitMesh.GenerateBuffers();
         }
 
         public Ship CreateInstance(

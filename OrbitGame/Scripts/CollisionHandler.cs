@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 using CollisionBehaviours = Dictionary<(Type referenceType, Type incidentType), ResolveCollisionMethod>;
@@ -102,13 +103,13 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
 
         if (Options.EnablePhysicsCollisionDebug)
             DrawDebug.Add((g, cam) => {
-                g.GS_DrawPoint(cam, reference.Position + cPr, DrawDebug.Blue);
-                g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, DrawDebug.Blue);
-                g.GS_DrawLineR(cam, reference.Position + cPr, cTangent, DrawDebug.Purple);
+                g.GS_DrawPoint(cam, reference.Position + cPr, Color.Blue);
+                g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Blue);
+                g.GS_DrawLineR(cam, reference.Position + cPr, cTangent, Color.Purple);
                 foreach (var point in c1.CollisionManifold)
-                    g.GS_DrawPoint(cam, reference.Position + point, DrawDebug.Red);
-                g.GS_DrawLineR(cam, reference.Position + cPr, relV, DrawDebug.Yellow);
-                g.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), DrawDebug.Orange);
+                    g.GS_DrawPoint(cam, reference.Position + point, Color.Red);
+                g.GS_DrawLineR(cam, reference.Position + cPr, relV, Color.Yellow);
+                g.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), Color.Orange);
             });
     }
 

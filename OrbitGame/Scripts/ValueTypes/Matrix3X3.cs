@@ -145,7 +145,7 @@ public readonly record struct Matrix3X3 : IFormattable
     public string ToString(string? format, IFormatProvider? formatProvider)
         => ToString();
     
-    public readonly override int GetHashCode()
+    public override int GetHashCode()
     {
         return Data.GetHashCode();
     }

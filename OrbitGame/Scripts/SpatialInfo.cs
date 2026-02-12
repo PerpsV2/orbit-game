@@ -8,11 +8,11 @@ public struct SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, SD_Vector2 a
     public SD_Vector2 Position { get; set; } = position;
     public SD_Vector2 Velocity { get; set; } = velocity;
     public SD_Vector2 Acceleration { get; set; } = acceleration;
-    private double _angle = Utils.UnsignedMod(angle, Math.Tau);
+    private double _angle = Utils.WrapAngle(angle);
 
     public double Angle
     {
-        get => Utils.UnsignedMod(_angle, Math.Tau);
+        get => Utils.WrapAngle(_angle);
         set => _angle = value;
     }
 
