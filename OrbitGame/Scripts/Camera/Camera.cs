@@ -114,7 +114,12 @@ public class Camera : KinematicObject
 
     public void DrawMesh(GraphicsDevice graphicsDevice)
     {
-        Mesh.Draw(graphicsDevice, Effects.DefaultEffect ?? throw new NotImplementedException(), 
-            new());
+        Mesh.Draw(graphicsDevice, Effects.OrbitEffect ?? throw new NotImplementedException(), new()
+            {
+                {"colour", Color.White.ToVector4()},
+                {"center", new Vector2(0.5f, 0.5f)},
+                {"eccentricity", 1f},
+                {"semiLatusRectum", 0.1f}
+            });
     }
 }

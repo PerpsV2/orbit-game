@@ -13,6 +13,7 @@ public static class Effects
 {
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
+    public static Effect? OrbitEffect;
 }
     
 public class OrbitGame : Game
@@ -232,6 +233,8 @@ public class OrbitGame : Game
         Effects.DefaultEffect.Parameters["projection"].SetValue(projection);
         Effects.CircleEffect = Content.Load<Effect>("effects/circleEffect");
         Effects.CircleEffect.Parameters["projection"].SetValue(projection);
+        Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
+        Effects.OrbitEffect.Parameters["projection"].SetValue(projection);
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 

@@ -47,13 +47,16 @@ public class CameraMesh : IMesh
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
         
+        RenderTarget2D renderTarget2D = new(graphics, Options.ScreenSize.width, Options.ScreenSize.height);
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
+            graphics.SetRenderTarget(renderTarget2D);
             graphics.DrawInstancedPrimitives(
                 PrimitiveType.TriangleList, 0, 0, _vertexBuffer.VertexCount - 2, _vertexBuffer.VertexCount
             );
         }
+        graphics.SetRenderTarget(null);
     }
 
     public void Draw(GraphicsDevice graphics, Effect effect,
