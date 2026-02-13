@@ -43,20 +43,29 @@ public class CameraMesh : IMesh
         graphics.SetVertexBuffer(_vertexBuffer);
         graphics.Indices = _indexBuffer;
         
-        effect.Parameters["world"].SetValue(transform);
+        effect.Parameters["World"].SetValue(transform);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
         
-        RenderTarget2D renderTarget2D = new(graphics, Options.ScreenSize.width, Options.ScreenSize.height);
+        effect.Parameters["TexelSize"].SetValue(new Vector2(1f / Options.ScreenSize.width / 5, 1f / Options.ScreenSize.height / 5));
+        
+        RenderTarget2D renderTarget2D = new(graphics, Options.ScreenSize.width * 5, Options.ScreenSize.height * 5);
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
+            effect.Parameters["SpriteTexture"].SetValue(renderTarget2D);
             graphics.SetRenderTarget(renderTarget2D);
             graphics.DrawInstancedPrimitives(
                 PrimitiveType.TriangleList, 0, 0, _vertexBuffer.VertexCount - 2, _vertexBuffer.VertexCount
             );
         }
+
+        Effect renderTargetEffect = Effects.RenderTargetEffect ?? throw new NullReferenceException();
+        renderTargetEffect.Parameters["SpriteTexture"].SetValue(renderTarget2D);
         graphics.SetRenderTarget(null);
+        graphics.DrawInstancedPrimitives(
+            PrimitiveType.TriangleList, 0, 0, _vertexBuffer.VertexCount - 2, _vertexBuffer.VertexCount
+        );
     }
 
     public void Draw(GraphicsDevice graphics, Effect effect,

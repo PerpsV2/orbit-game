@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
@@ -41,6 +42,8 @@ public static class Options
     public static readonly Keys TrackPrevBodyKey = Keys.N;
     public static readonly Keys FocusKey = Keys.F;
 
+    public static readonly Color BackgroundColour = Color.Black;
+    
     public const uint IntegratorIterationAmount = 10;
     public const float MinimumShipCrashSpeed = 50f;
     /// <summary>

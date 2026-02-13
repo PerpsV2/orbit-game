@@ -14,6 +14,7 @@ public static class Effects
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
+    public static Effect? RenderTargetEffect;
 }
     
 public class OrbitGame : Game
@@ -234,7 +235,8 @@ public class OrbitGame : Game
         Effects.CircleEffect = Content.Load<Effect>("effects/circleEffect");
         Effects.CircleEffect.Parameters["projection"].SetValue(projection);
         Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
-        Effects.OrbitEffect.Parameters["projection"].SetValue(projection);
+        Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
+        Effects.RenderTargetEffect = Content.Load<Effect>("effects/renderTargetEffect");
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 
@@ -346,7 +348,7 @@ public class OrbitGame : Game
         rasterizerState.CullMode = CullMode.None;
         GraphicsDevice.RasterizerState = rasterizerState;
 
-        GraphicsDevice.Clear(Color.Black);
+        GraphicsDevice.Clear(Options.BackgroundColour);
 
         _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied);
 
@@ -363,13 +365,13 @@ public class OrbitGame : Game
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
         
+        _camera.DrawMesh(GraphicsDevice);
+        
         foreach (var ship in Ships)
             ship.Draw(GraphicsDevice, _camera);
         
         foreach (var planet in Planets)
             planet.Draw(GraphicsDevice, _camera);
-        
-        _camera.DrawMesh(GraphicsDevice);
         
         DrawDebug.Draw(GraphicsDevice, _camera);
         DrawDebug.ClearBuffer();

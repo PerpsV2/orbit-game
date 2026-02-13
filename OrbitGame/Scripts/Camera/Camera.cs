@@ -116,10 +116,10 @@ public class Camera : KinematicObject
     {
         Mesh.Draw(graphicsDevice, Effects.OrbitEffect ?? throw new NotImplementedException(), new()
             {
-                {"colour", Color.White.ToVector4()},
-                {"center", new Vector2(0.5f, 0.5f)},
-                {"eccentricity", 1f},
-                {"semiLatusRectum", 0.1f}
+                {"Colour", Color.GreenYellow.ToVector4()},
+                {"Center", new Vector2(0.5f, 0.5f)},
+                {"Eccentricity", 0.2f},
+                {"SemiLatusRectum", 0.3f}
             });
     }
 }
