@@ -7,9 +7,9 @@
     #define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-matrix projection;
-matrix world;
-float4 colour;
+matrix Projection;
+matrix World;
+float4 Colour;
 
 struct VertexShaderInput
 {
@@ -27,7 +27,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 {
     VertexShaderOutput output = (VertexShaderOutput)0;
 
-    output.Position = mul(input.Position, mul(world, projection));
+    output.Position = mul(input.Position, mul(World, Projection));
     output.TexCoords = input.TexCoords;
 
     return output;
@@ -36,12 +36,12 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     if (length(input.TexCoords) < 1) {
-        return colour;
+        return Colour;
     }
     return float4(0, 0, 0, 0);
 }
 
-technique BasicColorDrawing
+technique BasicCircleDrawing
 {
     pass P0
     {

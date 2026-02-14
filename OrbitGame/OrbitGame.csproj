@@ -32,7 +32,5 @@
     <ItemGroup>
       <ClCompile Include="Content\effects\circleEffect.fx" />
       <ClCompile Include="Content\effects\defaultEffect.fx" />
-      <ClCompile Include="Content\effects\orbitEffect.fx" />
-      <ClCompile Include="Content\effects\renderTargetEffect.fx" />
     </ItemGroup>
 </Project>

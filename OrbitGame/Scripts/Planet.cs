@@ -127,7 +127,7 @@ public class Planet : Body, IGameDrawable
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
             {
-                { "colour", Colour.ToVector4() }
+                { "Colour", Colour.ToVector4() }
             });
         }
     }
@@ -154,7 +154,7 @@ public class Planet : Body, IGameDrawable
                            Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
         Mesh.Draw(graphicsDevice, transform, new()
         {
-            {"colour", soiColour.ToVector4()}
+            {"Colour", soiColour.ToVector4()}
         });
     }
 

@@ -47,7 +47,7 @@ public class OrbitMesh : IMesh
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
 
-        effect.Parameters["world"].SetValue(transform);
+        effect.Parameters["World"].SetValue(transform);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
         

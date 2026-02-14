@@ -55,7 +55,7 @@ public class Ship : Body, IGameDrawable
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
             Mesh.Draw(graphicsDevice, transform, new()
             {
-                { "colour", Colour.ToVector4() }
+                { "Colour", Colour.ToVector4() }
             });
         }
         if (screenDistance < 10)

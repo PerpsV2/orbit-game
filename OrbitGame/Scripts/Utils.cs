@@ -112,12 +112,8 @@ public static class Utils
         }
 
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
-            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
-            0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
-                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
-        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        effect.Parameters["World"].SetValue(Matrix.Identity);
+        effect.Parameters["Colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
@@ -133,12 +129,8 @@ public static class Utils
         int[] indices = [0, 1];
         
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
-            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
-            0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
-                                            Matrix.CreateTranslation(new Vector3(0, 0, 0)));
-        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        effect.Parameters["World"].SetValue(Matrix.Identity);
+        effect.Parameters["Colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
@@ -172,12 +164,9 @@ public static class Utils
         int[] indices = [0, 1, 3, 3, 1, 2];
         
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");;
-        effect.Parameters["projection"].SetValue(Matrix.CreateOrthographicOffCenter(
-            0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 
-            0, 100));
-        effect.Parameters["world"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
+        effect.Parameters["World"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
                                             Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
-        effect.Parameters["colour"].SetValue(colour.ToVector4());
+        effect.Parameters["Colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();

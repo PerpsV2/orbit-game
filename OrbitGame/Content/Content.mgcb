@@ -15,5 +15,3 @@
 /build:fonts/defaultFont.spritefont
 /build:effects/defaultEffect.fx
 /build:effects/circleEffect.fx
-/build:effects/orbitEffect.fx
-/build:effects/renderTargetEffect.fx

@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,8 +9,7 @@ public class Camera : KinematicObject
     public ICameraMovementScheme MovementScheme { get; set; }
     private readonly int _screenWidth;
     private readonly int _screenHeight;
-    public CameraMesh Mesh = new();
-
+    
     private ScientificDecimal _width;
     public ScientificDecimal Width
     {
@@ -108,7 +107,4 @@ public class Camera : KinematicObject
         if (xAxis) return (float)SD_ConvertToScreenDistance(distance);
         return (float)SD_ConvertToScreenDistance(distance, false);
     }
-
-    public void GenerateMesh()
-        => Mesh.GenerateBuffers();
 }

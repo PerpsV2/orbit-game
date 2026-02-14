@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,7 +15,6 @@ public static class Effects
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
-    public static Effect? RenderTargetEffect;
 }
     
 public class OrbitGame : Game
@@ -213,7 +213,6 @@ public class OrbitGame : Game
         _tracking = OriginBody.Body;
         _camera.MovementScheme = new SurfaceCameraScheme(_camera.SpatialInfo, earth, _tracking);
         _camera.Focus();
-        _camera.GenerateMesh();
         _controlShip = Ships[^1];
         _controlShip.DrawOrbitalPath = true;
         _trackingIndex = Bodies.IndexOf(OriginBody.Body);
@@ -231,12 +230,18 @@ public class OrbitGame : Game
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 0, 1
         );
         Effects.DefaultEffect = Content.Load<Effect>("effects/defaultEffect");
-        Effects.DefaultEffect.Parameters["projection"].SetValue(projection);
+        Effects.DefaultEffect.Parameters["Projection"].SetValue(projection);
         Effects.CircleEffect = Content.Load<Effect>("effects/circleEffect");
-        Effects.CircleEffect.Parameters["projection"].SetValue(projection);
-        Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
-        Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
-        Effects.RenderTargetEffect = Content.Load<Effect>("effects/renderTargetEffect");
+        Effects.CircleEffect.Parameters["Projection"].SetValue(projection);
+        
+        /*PropertyInfo[] effects = typeof(Effects).GetProperties();
+        foreach (var property in effects)
+        {
+            Effect effect = property.GetValue(null) as Effect ?? 
+                            throw new Exception("Property in static Effects class is not an Effect");
+            effect.Parameters["Projection"].SetValue(projection);
+        }*/
+        
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 
@@ -365,36 +370,6 @@ public class OrbitGame : Game
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
 
-        RenderTarget2D[] renderTargets = new RenderTarget2D[5];
-        for (int i = 0; i < renderTargets.Length; i++)
-        {
-            renderTargets[i] = _camera.Mesh.GenerateOrbitRenderTarget(GraphicsDevice, new()
-            {
-                {"Colour", new Vector4(1, 1, 1, 1) * 1f},
-                {"Center", new Vector2(0.5f, 0.5f)},
-                {"Eccentricity", i / 2},
-                {"SemiLatusRectum", 0.2f},
-                {"Periapsis", 0.2f}
-            });
-        }
-
-        GraphicsDevice.SetRenderTarget(null);
-
-        _camera.Mesh.SetBuffers(GraphicsDevice, out VertexBuffer vB, out IndexBuffer iB);
-
-        foreach (var pass in Effects.DefaultEffect!.Techniques[1].Passes)
-        {
-            for (int i = 0; i < renderTargets.Length; i++)
-            {
-                Effects.DefaultEffect.Parameters["world"].SetValue(Matrix.Identity);
-                Effects.DefaultEffect.Parameters["SpriteTexture"].SetValue(renderTargets[i]);
-                pass.Apply();
-                GraphicsDevice.DrawInstancedPrimitives(
-                    PrimitiveType.TriangleList, 0, 0, vB.VertexCount - 2, vB.VertexCount
-                );
-            }
-        }
-
         foreach (var ship in Ships)
             ship.Draw(GraphicsDevice, _camera);
         
@@ -405,8 +380,6 @@ public class OrbitGame : Game
         
         DrawDebug.Draw(GraphicsDevice, _camera);
         DrawDebug.ClearBuffer();
-        
-        foreach (var t in renderTargets) t.Dispose();
 
         base.Draw(gameTime);
     }

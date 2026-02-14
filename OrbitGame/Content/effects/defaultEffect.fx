@@ -7,9 +7,9 @@
     #define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-matrix projection;
-matrix world;
-float4 colour;
+matrix Projection;
+matrix World;
+float4 Colour;
 
 texture2D SpriteTexture;
 sampler2D SpriteTextureSampler = sampler_state
@@ -33,7 +33,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 {
     VertexShaderOutput output = (VertexShaderOutput)0;
 
-    output.Position = mul(input.Position, mul(world, projection));
+    output.Position = mul(input.Position, mul(World, Projection));
     output.TexCoords = input.TexCoords;
 
     return output;
@@ -41,7 +41,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 BasicColourPS(VertexShaderOutput input) : COLOR
 {
-    return colour;
+    return Colour;
 }
 
 float4 RenderTargetPS(VertexShaderOutput input) : COLOR 

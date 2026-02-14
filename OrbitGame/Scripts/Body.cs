@@ -122,7 +122,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                                    Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                    Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
                 orbitMesh.Draw(graphicsDevice, transform, new() {
-                    {"colour", Colour.ToVector4()}
+                    {"Colour", Colour.ToVector4()}
                 });
             }
         }
