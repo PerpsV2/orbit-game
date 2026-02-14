@@ -63,7 +63,7 @@ public static class Options
     /// <summary>
     /// Transparency of planet sphere of influence zones
     /// </summary>
-    public const int SOIAlpha = 8;
+    public const float SOIAlpha = 0.05f;
     /// <summary>
     /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
     /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).

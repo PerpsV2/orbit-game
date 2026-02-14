@@ -350,7 +350,7 @@ public class OrbitGame : Game
 
         GraphicsDevice.Clear(Options.BackgroundColour);
 
-        _spriteBatch.Begin(SpriteSortMode.FrontToBack, BlendState.NonPremultiplied);
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
         if (Options.DisplayFPS)
             _spriteBatch.DrawString(_font, _framesPerSecond.ToString(), Vector2.Zero, Color.White);
@@ -364,19 +364,49 @@ public class OrbitGame : Game
         {
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
-        
-        _camera.DrawMesh(GraphicsDevice);
-        
+
+        RenderTarget2D[] renderTargets = new RenderTarget2D[5];
+        for (int i = 0; i < renderTargets.Length; i++)
+        {
+            renderTargets[i] = _camera.Mesh.GenerateOrbitRenderTarget(GraphicsDevice, new()
+            {
+                {"Colour", new Vector4(1, 1, 1, 1) * 1f},
+                {"Center", new Vector2(0.5f, 0.5f)},
+                {"Eccentricity", i / 2},
+                {"SemiLatusRectum", 0.2f},
+                {"Periapsis", 0.2f}
+            });
+        }
+
+        GraphicsDevice.SetRenderTarget(null);
+
+        _camera.Mesh.SetBuffers(GraphicsDevice, out VertexBuffer vB, out IndexBuffer iB);
+
+        foreach (var pass in Effects.DefaultEffect!.Techniques[1].Passes)
+        {
+            for (int i = 0; i < renderTargets.Length; i++)
+            {
+                Effects.DefaultEffect.Parameters["world"].SetValue(Matrix.Identity);
+                Effects.DefaultEffect.Parameters["SpriteTexture"].SetValue(renderTargets[i]);
+                pass.Apply();
+                GraphicsDevice.DrawInstancedPrimitives(
+                    PrimitiveType.TriangleList, 0, 0, vB.VertexCount - 2, vB.VertexCount
+                );
+            }
+        }
+
         foreach (var ship in Ships)
             ship.Draw(GraphicsDevice, _camera);
         
         foreach (var planet in Planets)
             planet.Draw(GraphicsDevice, _camera);
         
+        _spriteBatch.End();
+        
         DrawDebug.Draw(GraphicsDevice, _camera);
         DrawDebug.ClearBuffer();
-
-        _spriteBatch.End();
+        
+        foreach (var t in renderTargets) t.Dispose();
 
         base.Draw(gameTime);
     }

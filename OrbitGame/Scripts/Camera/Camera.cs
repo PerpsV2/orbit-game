@@ -111,15 +111,4 @@ public class Camera : KinematicObject
 
     public void GenerateMesh()
         => Mesh.GenerateBuffers();
-
-    public void DrawMesh(GraphicsDevice graphicsDevice)
-    {
-        Mesh.Draw(graphicsDevice, Effects.OrbitEffect ?? throw new NotImplementedException(), new()
-            {
-                {"Colour", Color.GreenYellow.ToVector4()},
-                {"Center", new Vector2(0.5f, 0.5f)},
-                {"Eccentricity", 0.2f},
-                {"SemiLatusRectum", 0.3f}
-            });
-    }
 }
