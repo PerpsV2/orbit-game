@@ -28,6 +28,7 @@
         <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*"/>
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
+        <PackageReference Include="xunit.extensibility.execution" Version="2.9.3" />
     </ItemGroup>
     <ItemGroup>
       <ClCompile Include="Content\effects\circleEffect.fx" />
