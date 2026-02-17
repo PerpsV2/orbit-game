@@ -152,7 +152,7 @@ public class OrbitGame : Game
             new ScientificDecimal(2.2, 14), new ScientificDecimal(5.5, 3), new Color(200, 100, 200, 255), sun
         );
             
-        SD_Vector2[] points = SD_Vector2.CenterConvex([
+        SD_Vector2[] points = Utils.CenterConvex([
             new(0.4, 0.4),
             new(0.4, -0.3),
             new(-0.2, -0.5),
@@ -176,7 +176,7 @@ public class OrbitGame : Game
             smokestack.DrawOrbitalPath = true;
         }
 
-        Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+        Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
             new(4, 4),
             new(4, -3),
             new(-2, -5),
@@ -193,7 +193,7 @@ public class OrbitGame : Game
         Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(SD_Vector2.Zero), 50000000, 500, 
             new Color(125, 150, 130, 255), null);
             
-        Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(SD_Vector2.CenterConvex([
+        Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(Utils.CenterConvex([
             new(4, 3),
             new(3, -5),
             new(-2, -5),

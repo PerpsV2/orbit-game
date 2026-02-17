@@ -2,42 +2,42 @@ namespace OrbitGame.Tests;
 
 public class Vector3_Tests
 {
+    private readonly SD_Vector3 _testXVector = new(5, 0, 0);
+    private readonly SD_Vector3 _testYVector = new(0, 5, 0);
+    private readonly SD_Vector3 _testZVector = new(0, 0, 5);
+    private readonly SD_Vector3 _testZeroVector = new(0, 0, 0);
+    private readonly ScientificDecimal _testScalar = 5;
+    
     [Fact]
     public void Vector3_DotMethod()
     {
-        SD_Vector3 argument1 = new SD_Vector3(0, 1, 2);
-        SD_Vector3 argument2 = new SD_Vector3(3, -4, 5);
-        
-        Assert.Equal(6, SD_Vector3.Dot(argument1, argument2));
+        Assert.Equal(0, SD_Vector3.Dot(_testXVector, _testZVector));
+        Assert.Equal(0, SD_Vector3.Dot(_testXVector, _testYVector));
+        Assert.Equal(0, SD_Vector3.Dot(_testYVector, _testZVector));
+        Assert.Equal(25, SD_Vector3.Dot(_testXVector, _testXVector));
     }
 
     [Fact]
     public void Vector3_CrossMethod()
     {
-        SD_Vector3 argument1 = new SD_Vector3(1, 2, 3);
-        SD_Vector3 argument2 = new SD_Vector3(3, 4, 5);
-        
-        Assert.Equal(new SD_Vector3(-2, 4, -2), SD_Vector3.Cross(argument1, argument2));
+        Assert.Equal(new SD_Vector3(0, 0, 25), SD_Vector3.Cross(_testXVector, _testYVector));
+        Assert.Equal(new SD_Vector3(0, -25, 0), SD_Vector3.Cross(_testXVector, _testZVector));
+        Assert.Equal(new SD_Vector3(0, 25, 0), SD_Vector3.Cross(_testZVector, _testXVector));
     }
 
     [Fact]
     public void Vector3_MagnitudeMethod()
     {
-        SD_Vector3 argument1 = new SD_Vector3(0, 0, -3);
-        SD_Vector3 argument2 = new SD_Vector3(3, 4, 12);
-        
-        Assert.Equal(3, argument1.Magnitude());
-        Assert.Equal(13, argument2.Magnitude());
+        Assert.Equal(5, _testXVector.Magnitude());
+        Assert.Equal(5, _testYVector.Magnitude());
+        Assert.Equal(5, _testZVector.Magnitude());
     }
 
     [Fact]
     public void Vector3_NormalizeMethod()
     {
-        SD_Vector3 argument1 = new SD_Vector3(4, 0, 4);
-        SD_Vector3 zeroVector = SD_Vector3.Zero;
-        
-        Assert.Equal(new SD_Vector3(Math.Cos(Math.PI / 4), 0, Math.Sin(Math.PI / 4)), argument1.Normalize());
-        Assert.Throws<ArithmeticException>(() => zeroVector.Normalize());
+        Assert.Equal(new SD_Vector3(1, 0, 0), _testXVector.Normalize());
+        Assert.Throws<ArithmeticException>(() => _testZeroVector.Normalize());
     }
     
     #region Operators
@@ -45,52 +45,38 @@ public class Vector3_Tests
     [Fact]
     public void Vector3_NegativeOperator()
     {
-        SD_Vector3 argument1 = new SD_Vector3(2, -2, 0);
-        Assert.Equal(-new SD_Vector3(-2, 2, 0), argument1);
+        Assert.Equal(new SD_Vector3(-5, 0, 0), -_testXVector);
     }
 
     [Fact]
     public void Vector3_AdditionOperator()
     {
-        SD_Vector3 argument1 = new SD_Vector3(1, 1, 1);
-        SD_Vector3 argument2 = new SD_Vector3(-2, 2, -1);
-        
-        Assert.Equal(new SD_Vector3(-1, 3, 0), argument1 + argument2);
+        Assert.Equal(new SD_Vector3(5, 0, 5), _testXVector + _testZVector);
     }
 
     [Fact]
     public void Vector3_SubtractionOperator()
     {
-        SD_Vector3 argument1 = new SD_Vector3(1, 1, 1);
-        SD_Vector3 argument2 = new SD_Vector3(-2, 2, -1);
-        
-        Assert.Equal(new SD_Vector3(3, -1, 2), argument1 - argument2);
+        Assert.Equal(new SD_Vector3(5, 0, -5), _testXVector - _testZVector);
     }
 
     [Fact]
     public void Vector3_ScalarMultiplicationOperator()
     {
-        SD_Vector3 vector = new SD_Vector3(1, 1, 1);
-        ScientificDecimal scalar = -3;
-        Assert.Equal(new SD_Vector3(-3, -3, -3), vector * scalar);
+        Assert.Equal(new SD_Vector3(25, 0, 0), _testXVector * _testScalar);
     }
 
     [Fact]
     public void Vector3_ScalarDivisionOperator()
     {
-        SD_Vector3 vector = new SD_Vector3(-3, -3, -3);
-        ScientificDecimal scalar = 3;
-        Assert.Equal(new SD_Vector3(-1, -1, -1), vector / scalar);
+        Assert.Equal(new SD_Vector3(1, 0, 0), _testXVector / _testScalar);
     }
 
     [Fact]
     public void Vector3_DirectionVectorBetweenMethod()
     {
-        SD_Vector3 argument1 = new SD_Vector3(0, 0, 1);
-        SD_Vector3 argument2 = new SD_Vector3(1, 0, 0);
-        
         Assert.Equal(new SD_Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
-            SD_Vector3.DirectionVectorBetween(argument1, argument2));
+            SD_Vector3.DirectionVectorBetween(_testZVector, _testXVector));
     }
     
     #endregion

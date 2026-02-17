@@ -2,6 +2,20 @@ namespace OrbitGame.Tests;
 
 public class Utils_Tests
 {
+    private readonly SD_Vector2[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
+    private readonly SD_Vector2[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
+    private readonly SD_Vector2[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
+    private readonly SD_Vector2[] _testNoRotationConvexHull = [new(-1, -1), new(-1, -1), new(1, 1)];
+    private readonly SD_Vector2[] _testNonConvexHull =
+    [
+        new(2, 2),
+        new(-4, -2),
+        new(-3, 0),
+        new(-2, 2),
+        new(0, 0),
+        new(2, -2)
+    ];
+    
     [Fact]
     public void Utils_ClampMethod()
     {
@@ -44,5 +58,48 @@ public class Utils_Tests
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(2, 5), new(0, 3)));
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(2, 5)));
         Assert.Equal(0, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(0, 3)));
+    }
+    
+    [Fact]
+    public void Vector2_TriangulateConvexMethod()
+    {
+        Assert.Equal(new[] {
+            (new SD_Vector2(4, 4), new SD_Vector2(4, 0), new SD_Vector2(0, 0)), 
+            (new SD_Vector2(4, 4), new SD_Vector2(0, 0), new SD_Vector2(0, 4))
+        }, Utils.TriangulateConvex(_testConvexHull));
+    }
+
+    [Fact]
+    public void Vector2_CenterOfMassConvexMethod()
+    {
+        Assert.Equal(new SD_Vector2(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
+    }
+
+    [Fact]
+    public void Vector2_CenterConvexMethod()
+    {
+        Assert.Equal([
+                new SD_Vector2(2, 2),
+                new SD_Vector2(2, -2),
+                new SD_Vector2(-2, -2),
+                new SD_Vector2(-2, 2)
+            ],
+            Utils.CenterConvex(_testConvexHull)
+        );
+    }
+
+    [Fact]
+    public void Vector2_TripletRotationDirectionMethod()
+    {
+        Assert.Equal(RotationDirection.Clockwise, Utils.TripletRotationDirection(_testCWConvexHull));
+        Assert.Equal(RotationDirection.Counterclockwise, Utils.TripletRotationDirection(_testCCWConvexHull));
+        Assert.Equal(RotationDirection.None, Utils.TripletRotationDirection(_testNoRotationConvexHull));
+        Assert.ThrowsAny<ArgumentException>(() => Utils.TripletRotationDirection([]));
+    }
+
+    [Fact]
+    public void Vector2_GetConvexHullIndicesMethod()
+    {
+        Assert.Equal([1, 5, 0, 3, 1], Utils.GetConvexHullIndices(_testNonConvexHull).ToArray());
     }
 }

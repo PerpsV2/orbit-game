@@ -68,7 +68,7 @@ public static class Utils
     
     public static ScientificDecimal CalculateConvexInertia(SD_Vector2[] points, ScientificDecimal mass)
     {
-        var triangles = SD_Vector2.TriangulateConvex(points);
+        var triangles = TriangulateConvex(points);
         ScientificDecimal totalArea = triangles.Aggregate(new ScientificDecimal(0),
             (a, t) => a + CalculateTriangleArea(t.a, t.b, t.c));
         
@@ -93,6 +93,84 @@ public static class Utils
             totalInertia += inertias[i] + masses[i] * (centroids[i].X.Square() + centroids[i].Y.Square());
         
         return totalInertia;
+    }
+    
+    /// <summary>
+    /// Decomposes the vertices of a convex polygon into triangles
+    /// </summary>
+    public static (SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)[] TriangulateConvex(SD_Vector2[] points)
+    {
+        if (points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
+        var triangulation = new (SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)[points.Length - 2];
+        for (int i = 1; i < points.Length - 1; ++i)
+            triangulation[i - 1] = (points[0], points[i], points[i + 1]);
+
+        return triangulation;
+    }
+    
+    /// <summary>
+    /// Returns the center of mass from the vertices of a convex polygon
+    /// </summary>
+    public static SD_Vector2 CenterOfMassConvex(SD_Vector2[] points)
+    {
+        var triangles = TriangulateConvex(points);
+        SD_Vector2 centerOfMass = SD_Vector2.Zero;
+        foreach (var triangle in triangles)
+        {
+            SD_Vector2 centroid = (triangle.a + triangle.b + triangle.c) / 3;
+            centerOfMass += centroid;
+        }
+
+        centerOfMass /= triangles.Length;
+
+        return centerOfMass;
+    }
+
+    /// <summary>
+    /// Re-centers a convex polygon at its center of mass
+    /// </summary>
+    public static SD_Vector2[] CenterConvex(SD_Vector2[] points)
+        => points.Select(v => v - CenterOfMassConvex(points)).ToArray();
+
+    /// <summary>
+    /// Returns whether a set of three points is ordered clockwise or counter-clockwise
+    /// </summary>
+    public static RotationDirection TripletRotationDirection(SD_Vector2[] triplet)
+    {
+        if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
+        double edgeSlope1 = (double)((triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X));
+        double edgeSlope2 = (double)((triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X));
+        return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
+            edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
+    }
+    
+    /// <summary>
+    /// Returns the vertex order of the convex hull for the set of points given as a linked list
+    /// </summary>
+    public static LinkedList<int> GetConvexHullIndices(SD_Vector2[] points)
+    {
+        // get leftmost point to start
+        int leftmostIndex = 0;
+        for (int i = 0; i < points.Length; ++i)
+            if (points[i].X < points[leftmostIndex].X) leftmostIndex = i;
+        LinkedList<int> convexHull = new();
+        convexHull.AddFirst(leftmostIndex);
+
+        int currentIndex = leftmostIndex;
+        do {
+            int nextIndex = (currentIndex + 1) % points.Length;
+            for (int i = 0; i < points.Length; ++i)
+            {
+                if (i == currentIndex || i == nextIndex) continue;
+                if (TripletRotationDirection([points[currentIndex], points[i], points[nextIndex]]) ==
+                    RotationDirection.Counterclockwise)
+                    nextIndex = i;
+            }
+            convexHull.AddLast(nextIndex);
+            currentIndex = nextIndex;
+        } while (currentIndex != leftmostIndex);
+
+        return convexHull;
     }
     
     public static void DrawPoly(GraphicsDevice graphicsDevice, List<Vector2> points, Color colour)

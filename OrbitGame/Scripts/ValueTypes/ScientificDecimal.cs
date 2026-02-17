@@ -8,6 +8,7 @@ namespace OrbitGame;
 public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>, IFormattable
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
+    private const double ComparisonTolerance = 0.0000000001;
     
     /// <summary>
     /// Represents a number that approaches positive infinity.
@@ -28,7 +29,7 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
             if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no mantissa");
             return _mantissa;
         }
-        set
+        private set
         {
             if (_infinite) throw new ArithmeticException("Cannot set mantissa of infinite ScientificDecimal");
             _mantissa = value;
@@ -43,16 +44,16 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
             if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no exponent");
             return _exponent;
         }
-        set
+        private set
         {
             if (_infinite) throw new ArithmeticException("Cannot set exponent of infinite ScientificDecimal");
             _exponent = value;
         }
     }
     
-    public bool Positive => double.IsPositive(_mantissa);
-    public bool Negative => double.IsNegative(_mantissa);
-    public bool IsInfinite => _infinite;
+    public readonly bool Positive => double.IsPositive(_mantissa);
+    public readonly bool Negative => double.IsNegative(_mantissa);
+    public readonly bool IsInfinite => _infinite;
     
 
     public ScientificDecimal(double mantissa, int exponent)
@@ -293,7 +294,7 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     {
         if (_infinite && other._infinite) return Positive == other.Positive;
         if (_infinite || other._infinite) return false;
-        return Mantissa == other.Mantissa && Exponent == other.Exponent;
+        return Math.Abs(Mantissa - other.Mantissa) < ComparisonTolerance && Exponent == other.Exponent;
     }
 
     public override bool Equals(object? obj)

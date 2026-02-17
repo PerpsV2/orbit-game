@@ -22,11 +22,11 @@ public struct SD_Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDec
             left.X * right.Y - left.Y * right.X
             );
 
-    public ScientificDecimal Magnitude()
+    public readonly ScientificDecimal Magnitude()
         => (X * X + Y * Y + Z * Z).Sqrt();
 
-    public SD_Vector3 Normalize()
-        => this /= Magnitude();
+    public readonly SD_Vector3 Normalize()
+        => new SD_Vector3(X, Y, Z) / Magnitude();
     
     public static SD_Vector3 operator +(SD_Vector3 value) 
         => value;
