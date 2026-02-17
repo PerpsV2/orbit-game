@@ -5,10 +5,10 @@ namespace OrbitGame;
 
 /// <summary>
 /// Represents a unique object with only spatial information.
-/// Contains methods relating to different coordinate spaces.
+/// Contains methods relating to converting between different coordinate spaces.
 /// </summary>
 /// <param name="identifier">Unique ID for the KinematicObject</param>
-/// <param name="spatialInfo">Position, Velocity, Acceleration, Angle, and AngularVelocity of KinematicObject</param>
+/// <param name="spatialInfo">Position, Velocity, Acceleration, Angle, and AngularVelocity of the KinematicObject</param>
 public abstract class KinematicObject(
     string identifier,
     SpatialInfo spatialInfo)
@@ -80,7 +80,6 @@ public abstract class KinematicObject(
     /// <summary>
     /// Update the position after resetting the world origin.
     /// </summary>
-    /// <param name="origin"></param>
     public virtual void ResetOrigin(SD_Vector2 origin)
     {
         Position -= origin;

@@ -29,7 +29,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
         SD_Vector2 camSurfaceVector = _localPosition + _tracking.Position - _surface.Position;
         double deltaAngle = (double)(distance / camSurfaceVector.Magnitude());
         SD_Vector2 newCamSurfacePosition = SD_Vector2.FromPolar(
-            camSurfaceVector.GetPrincipalAngle() - deltaAngle, camSurfaceVector.Magnitude()
+            camSurfaceVector.Direction() - deltaAngle, camSurfaceVector.Magnitude()
         );
         _localPosition = newCamSurfacePosition + _surface.Position - _tracking.Position;
     }
@@ -37,7 +37,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void MoveParallel(ScientificDecimal distance, ref SpatialInfo spatialInfo)
     {
         _localPosition += SD_Vector2.FromPolar(
-            (_surface.Position - _tracking.Position - _localPosition).GetPrincipalAngle(), -distance
+            (_surface.Position - _tracking.Position - _localPosition).Direction(), -distance
         );
     }
 
@@ -49,7 +49,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = _tracking.Position + _localPosition;
-        spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).GetPrincipalAngle() 
+        spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).Direction() 
                             - Math.PI / 2 - _localAngle;
     }
 }

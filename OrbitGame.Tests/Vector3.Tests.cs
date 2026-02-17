@@ -76,7 +76,7 @@ public class Vector3_Tests
     public void Vector3_DirectionVectorBetweenMethod()
     {
         Assert.Equal(new SD_Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
-            SD_Vector3.DirectionVectorBetween(_testZVector, _testXVector));
+            SD_Vector3.DirectionVector(_testZVector, _testXVector));
     }
     
     #endregion

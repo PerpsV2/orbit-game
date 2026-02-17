@@ -2,31 +2,62 @@ using System;
 
 namespace OrbitGame;
 
-public struct SD_Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecimal z) 
+/// <summary>
+/// 3-dimensional vector struct composed of ScientificDecimal components.
+/// </summary>
+/// <param name="x">X-component</param>
+/// <param name="y">Y-component</param>
+/// <param name="z">Z-component</param>
+public readonly struct SD_Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDecimal z) 
     : IEquatable<SD_Vector3>, IFormattable
 {
-    public static SD_Vector3 Zero => new(0, 0, 0);
-    public ScientificDecimal X { get; set; } = x;
-    public ScientificDecimal Y { get; set; } = y;
-    public ScientificDecimal Z { get; set; } = z;
-
-    #region Operators
-
+    /// <summary>
+    /// 3D null vector.
+    /// </summary>
+    public static SD_Vector3 Zero = new(0, 0, 0);
+    
+    public ScientificDecimal X { get; } = x;
+    public ScientificDecimal Y { get; } = y;
+    public ScientificDecimal Z { get; } = z;
+    
+    /// <summary>
+    /// Calculates the dot product of two vectors.
+    /// </summary>
     public static ScientificDecimal Dot(SD_Vector3 left, SD_Vector3 right)
         => left.X * right.X + left.Y * right.Y + left.Z * right.Z;
 
+    /// <summary>
+    /// Calculates the cross product of two vectors.
+    /// </summary>
     public static SD_Vector3 Cross(SD_Vector3 left, SD_Vector3 right)
         => new(
             left.Y * right.Z - left.Z * right.Y, 
             left.Z * right.X - left.X * right.Z, 
             left.X * right.Y - left.Y * right.X
-            );
+        );
 
-    public readonly ScientificDecimal Magnitude()
+    /// <summary>
+    /// Calculates the Euclidean distance magnitude of the vector
+    /// </summary>
+    public ScientificDecimal Magnitude()
         => (X * X + Y * Y + Z * Z).Sqrt();
-
-    public readonly SD_Vector3 Normalize()
+    
+    /// <summary>
+    /// Sets the magnitude of the vector to one without changing direction.
+    /// </summary>
+    public SD_Vector3 Normalize()
         => new SD_Vector3(X, Y, Z) / Magnitude();
+    
+    /// <summary>
+    /// Returns the normalized direction vector between a start and end vector.
+    /// </summary>
+    public static SD_Vector3 DirectionVector(SD_Vector3 start, SD_Vector3 end)
+    {
+        SD_Vector3 difference = end - start;
+        return difference / difference.Magnitude();
+    }
+
+    #region Operators
     
     public static SD_Vector3 operator +(SD_Vector3 value) 
         => value;
@@ -47,14 +78,12 @@ public struct SD_Vector3(ScientificDecimal x, ScientificDecimal y, ScientificDec
     
     #endregion
     
+    #region Casts
+    
     public static explicit operator SD_Vector2(SD_Vector3 value)
         => new (value.X, value.Y);
     
-    public static SD_Vector3 DirectionVectorBetween(SD_Vector3 start, SD_Vector3 end)
-    {
-        SD_Vector3 difference = end - start;
-        return difference / difference.Magnitude();
-    }
+    #endregion
     
     public override string ToString()
         => "<" + X + ", " + Y + ", " + Z + ">";

@@ -88,9 +88,9 @@ public class Vector2_Tests
     [Fact]
     public void Vector2_GetPrincipalAngleMethod()
     {
-        Assert.Equal(_testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(_testReferenceAngle)).GetPrincipalAngle());
-        Assert.Equal(Math.PI - _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(_testReferenceAngle)).GetPrincipalAngle());
-        Assert.Equal(Math.PI + _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(-_testReferenceAngle)).GetPrincipalAngle());
-        Assert.Equal(Math.Tau - _testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(-_testReferenceAngle)).GetPrincipalAngle());
+        Assert.Equal(_testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
+        Assert.Equal(Math.PI - _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
+        Assert.Equal(Math.PI + _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
+        Assert.Equal(Math.Tau - _testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
     }
 }

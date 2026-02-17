@@ -68,8 +68,8 @@ public abstract class Body : KinematicObject, IGameDrawable
         {
             SD_Vector2 maxCamExtentVector = (SD_Vector2)SD_Vector3.Cross(relCamPosition.Normalize(),
                 new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
-            minAngle = Utils.WrapAngle((relCamPosition + maxCamExtentVector).GetPrincipalAngle());
-            maxAngle = Utils.WrapAngle((relCamPosition - maxCamExtentVector).GetPrincipalAngle());
+            minAngle = Utils.WrapAngle((relCamPosition + maxCamExtentVector).Direction());
+            maxAngle = Utils.WrapAngle((relCamPosition - maxCamExtentVector).Direction());
         }
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
@@ -131,7 +131,7 @@ public abstract class Body : KinematicObject, IGameDrawable
         {
             ScientificDecimal? parentSOIRadius = centralForce.Orbit?.SphereOfInfluenceRadius ?? null;
             double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
-            double objectAngle = Utils.WrapAngle((Position - centralForce.Position).GetPrincipalAngle());
+            double objectAngle = Utils.WrapAngle((Position - centralForce.Position).Direction());
             for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
             {
                 double trueAngle = Utils.WrapAngle(a + orbit.Periapsis);
@@ -170,7 +170,7 @@ public abstract class Body : KinematicObject, IGameDrawable
     /// </summary>
     private SD_Vector2 CalculateGravitationalAcceleration(Body attractor)
     {
-        double angle = SD_Vector2.GetPrincipalAngle(Position, attractor.Position);
+        double angle = SD_Vector2.Direction(Position, attractor.Position);
         SD_Vector2 direction = SD_Vector2.FromPolar(angle);
         ScientificDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
         return direction * magnitude;
@@ -215,7 +215,7 @@ public abstract class Body : KinematicObject, IGameDrawable
                             directionVector * Mass * forceStrength);
         if (lrlVector == SD_Vector2.Zero) return null;
 
-        double periapsis = Utils.WrapAngle(Math.PI - lrlVector.GetPrincipalAngle());
+        double periapsis = Utils.WrapAngle(Math.PI - lrlVector.Direction());
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Mass / forceStrength;
 

@@ -45,7 +45,7 @@ public class ConvexCollider : CompactCollider
         {
             SD_Vector2 currentVertex = _points[i];
             SD_Vector2 nextVertex = _points[(i + 1) % _points.Length];
-            double edgeAngle = SD_Vector2.GetPrincipalAngle(currentVertex, nextVertex);
+            double edgeAngle = SD_Vector2.Direction(currentVertex, nextVertex);
             
             ScientificDecimal edgeUpperBound = SD_Vector2.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
             SD_Vector2 transformedCenter = SD_Vector2.RotatePoint(relativeCenter - currentVertex, -edgeAngle);
