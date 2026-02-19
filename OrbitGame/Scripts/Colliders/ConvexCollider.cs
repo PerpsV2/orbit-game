@@ -13,7 +13,7 @@ public class ConvexCollider : CompactCollider
     {
         _points = points;
         ScientificDecimal maxRadius = _points.Select(x => x.Magnitude()).Max();
-        _defaultBoundingBox = new BoundingBox(SD_Vector2.Zero, maxRadius, maxRadius);
+        _defaultBoundingBox = new BoundingBox(SD_Vector2.Zero, maxRadius * 2, maxRadius * 2);
     }
 
     public override ScientificDecimal CalculateInertia(ScientificDecimal mass)

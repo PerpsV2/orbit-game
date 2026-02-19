@@ -35,14 +35,14 @@ public class Vector2_Tests
     }
 
     [Fact]
-    public void Vector2_Magnitude()
+    public void Vector2_MagnitudeMethod()
     {
         Assert.Equal(5, _testPythagoreanVector.Magnitude());
         Assert.Equal(5, _testHorizontalVector.Magnitude());
     }
 
     [Fact]
-    public void Vector2_Normalize()
+    public void Vector2_NormalizeMethod()
     {
         Assert.Equal(new SD_Vector2(1, 0), _testHorizontalVector.Normalize());
         Assert.Equal(new SD_Vector2(0, 1), _testVerticalVector.Normalize());

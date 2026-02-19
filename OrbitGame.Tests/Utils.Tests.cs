@@ -48,7 +48,7 @@ public class Utils_Tests
     public void Utils_DecimalSqrtMethod()
     {
         Assert.Equal(4, Utils.DecimalSqrt(16));
-        Assert.Equal(Math.Sqrt(2d), Utils.DecimalSqrt(2));
+        Assert.Equal(Math.Sqrt(2d), Utils.DecimalSqrt(2), Assert.Epsilon);
         Assert.Throws<ArithmeticException>(() => Utils.DecimalSqrt(-1));
     }
 

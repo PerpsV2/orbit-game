@@ -109,23 +109,29 @@ namespace OrbitGame.Tests
 
             Assert.Null(_testEmptyCollider.IntersectsWith(_testConvexCollider, originSpatialInfo, originSpatialInfo));
 
-            if (!overlappingIntersection.HasValue)
-            {
-                Assert.Fail("Null collision");
-                return;
-            }
-            Assert.Equal(new PhysicsCollision(originSpatialInfo, overlappingSpatialInfo, [new(1, 0)], new(-1, 0)),
-                overlappingIntersection.Value);
+            if (!overlappingIntersection.HasValue) { Assert.Fail("Null collision"); return; }
+            Assert.Equal(new PhysicsCollision(originSpatialInfo, overlappingSpatialInfo, 
+                    [new(1, 0)], new(-1, 0)), overlappingIntersection.Value);
 
-            if (!touchingIntersection.HasValue)
-            {
-                Assert.Fail("Null collision");
-                return;
-            }
-            Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, [new(1, 0)], new(0, 0)),
-                touchingIntersection.Value);
+            if (!touchingIntersection.HasValue) { Assert.Fail("Null collision"); return; }
+            Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, 
+                    [new(1, 0)], new(0, 0)), touchingIntersection.Value);
 
             Assert.Null(notTouchingIntersection);
+        }
+
+        [Fact]
+        public void CircularCollider_NearsWithMethod()
+        {
+            SpatialInfo originSpatialInfo = new(SD_Vector2.Zero, 0);
+            SpatialInfo nearsCircularSpatialInfo = new(new SD_Vector2(1.5, 1.5), 0);
+            SpatialInfo nearsConvexSpatialInfo = new(new SD_Vector2(3 - 0.1, 2 - 0.1), Math.PI / 2);
+            SpatialInfo notNearsSpatialInfo = new(new SD_Vector2(5, 0), 0);
+            
+            Assert.False(_testEmptyCollider.NearsWith(_testUnitCollider, originSpatialInfo, originSpatialInfo));
+            Assert.True(_testUnitCollider.NearsWith(_testUnitCollider, originSpatialInfo, nearsCircularSpatialInfo));
+            Assert.False(_testUnitCollider.NearsWith(_testUnitCollider, originSpatialInfo, notNearsSpatialInfo));
+            Assert.True(_testUnitCollider.NearsWith(_testConvexCollider, originSpatialInfo, nearsConvexSpatialInfo));
         }
     }
 }

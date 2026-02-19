@@ -12,9 +12,15 @@ public readonly record struct BoundingBox(
 
     public bool IntersectsWith(BoundingBox other, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
     {
+        if (IsEmpty() || other.IsEmpty()) return false;
         return referenceSpatial.Position.X + Left <= incidentSpatial.Position.X + other.Right &&
                referenceSpatial.Position.X + Right >= incidentSpatial.Position.X + other.Left &&
                referenceSpatial.Position.Y + Bottom <= incidentSpatial.Position.Y + other.Top &&
                referenceSpatial.Position.Y + Top >= incidentSpatial.Position.Y + other.Bottom;
+    }
+
+    public bool IsEmpty()
+    {
+        return Left == Right || Top == Bottom;
     }
 }
