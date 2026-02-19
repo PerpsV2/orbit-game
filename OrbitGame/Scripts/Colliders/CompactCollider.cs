@@ -19,7 +19,7 @@ public abstract class CompactCollider
         
     public bool Fixed;
 
-    public abstract void CalculateInertia(ScientificDecimal mass);
+    public abstract ScientificDecimal CalculateInertia(ScientificDecimal mass);
     
     /// <summary>
     /// Method to return the axis-aligned rectangular collider which best fits the set of points in the collider

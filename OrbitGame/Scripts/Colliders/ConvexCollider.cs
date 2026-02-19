@@ -16,9 +16,9 @@ public class ConvexCollider : CompactCollider
         _defaultBoundingBox = new BoundingBox(SD_Vector2.Zero, maxRadius, maxRadius);
     }
 
-    public override void CalculateInertia(ScientificDecimal mass)
+    public override ScientificDecimal CalculateInertia(ScientificDecimal mass)
     {
-        Inertia = Utils.CalculateConvexInertia(_points, mass);
+        return Inertia = Utils.CalculateConvexInertia(_points, mass);
     }
 
     protected override BoundingBox GetBoundingBox(double angle)

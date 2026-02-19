@@ -24,6 +24,11 @@ public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incid
     public readonly HashSet<SD_Vector2> CollisionManifold = manifold;
     public readonly SD_Vector2 PenetrationVector = penetrationVector;
 
+    public static PhysicsCollision CreateUnresolvable(SpatialInfo reference, SpatialInfo incident)
+    {
+        return new(reference, incident, [], SD_Vector2.Zero);
+    }
+    
     public PhysicsCollision GetInverse()
     {
         SD_Vector2 incidentPosition = Incident.Position;

@@ -14,16 +14,16 @@ public class CircularCollider : CompactCollider
         _defaultBoundingBox = new(SD_Vector2.Zero, Radius * 2.1, Radius * 2.1);
     }
     
-    public override void CalculateInertia(ScientificDecimal mass)
+    public override ScientificDecimal CalculateInertia(ScientificDecimal mass)
     {
-        Inertia = mass * Radius * Radius / 2;
+        return Inertia = mass * Radius * Radius / 2;
     }
 
     protected override BoundingBox GetBoundingBox(double angle) =>
         _defaultBoundingBox;
 
     public override PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo spatial) =>
-        new((point - spatial.Position).Magnitude() <= Radius || IsEmpty());
+        new((point - spatial.Position).Magnitude() <= Radius && !IsEmpty());
 
     protected override PhysicsCollision? IntersectsWith(
         CircularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial
@@ -33,6 +33,7 @@ public class CircularCollider : CompactCollider
 
         SD_Vector2 diffVector = incidentSpatial.Position - referenceSpatial.Position;
         ScientificDecimal distance = diffVector.Magnitude();
+        if (distance == 0) return PhysicsCollision.CreateUnresolvable(referenceSpatial, incidentSpatial);
         if (distance <= Radius + collider.Radius)
         {
             SD_Vector2 dirVector = diffVector.Normalize();

@@ -158,16 +158,11 @@ public class Planet : Body, IGameDrawable
         });
     }
 
-    public class PlanetTemplate : KinematicObjectTemplate
+    public class PlanetTemplate(Material material) : KinematicObjectTemplate
     {
         private readonly CircularMesh _mesh = new();
         private readonly OrbitMesh _orbitMesh = new();
-        private readonly Material _material;
-
-        public PlanetTemplate(Material material)
-        {
-            _material = material;
-        }
+        private readonly Material _material = material;
 
         public Planet CreateInstance(
             string identifier,

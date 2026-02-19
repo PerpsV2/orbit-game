@@ -164,17 +164,17 @@ public class OrbitGame : Game
         
         Bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
         
-        for (int i = 0; i < 5; i++)
-        {
-            SD_Vector2 randomPosition = new(_rnd.Next(-10, 10), _rnd.Next(-10, 10));
-            Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
-                new(
-                    new SD_Vector2(2 * new ScientificDecimal(6.378, 6), 0) + randomPosition,
-                    SD_Vector2.Zero
-                ), 1000, new Color(0, 255, 0, 255), earth);
-            Bodies.Add(smokestack);
-            smokestack.DrawOrbitalPath = true;
-        }
+        // for (int i = 0; i < 5; i++)
+        // {
+        //     SD_Vector2 randomPosition = new(_rnd.Next(-10, 10), _rnd.Next(-10, 10));
+        //     Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
+        //         new(
+        //             new SD_Vector2(2 * new ScientificDecimal(6.378, 6), 0) + randomPosition,
+        //             SD_Vector2.Zero
+        //         ), 1000, new Color(0, 255, 0, 255), earth);
+        //     Bodies.Add(smokestack);
+        //     smokestack.DrawOrbitalPath = true;
+        // }
 
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
             new(4, 4),
@@ -211,7 +211,7 @@ public class OrbitGame : Game
         Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
-        _camera.MovementScheme = new SurfaceCameraScheme(_camera.SpatialInfo, earth, _tracking);
+        _camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
         _camera.Focus();
         _controlShip = Ships[^1];
         _controlShip.DrawOrbitalPath = true;
@@ -332,7 +332,7 @@ public class OrbitGame : Game
             
             Task.WaitAll(tasks.ToArray());
             
-            //_collisionHandler.ResolveCollisions();
+            _collisionHandler.ResolveCollisions();
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)
