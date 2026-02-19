@@ -37,6 +37,11 @@ public struct SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, SD_Vector2 a
         return left.Equals(right);
     }
 
+    public override string ToString()
+    {
+        return $"{{Pos: {Position}, Vel: {Velocity}, Acc: {Acceleration}, Ang: {Angle}, AngVel: {AngularVelocity}}}";
+    }
+
     public bool Equals(SpatialInfo other)
     {
         return _angle.Equals(other._angle) && 

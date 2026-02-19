@@ -47,7 +47,7 @@ public class CircularCollider : CompactCollider
 
     protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SpatialInfo referenceSpatial,
         SpatialInfo incidentSpatial)
-        => collider.IntersectsWith(this, incidentSpatial, referenceSpatial);
+        => collider.IntersectsWith(this, incidentSpatial, referenceSpatial)?.GetInverse();
 
     public override bool IsEmpty() =>
         Radius == 0;

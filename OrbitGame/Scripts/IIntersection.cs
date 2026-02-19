@@ -31,13 +31,17 @@ public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incid
     
     public PhysicsCollision GetInverse()
     {
-        SD_Vector2 incidentPosition = Incident.Position;
-        SD_Vector2 referencePosition = Reference.Position;
+        SpatialInfo reference = Reference;
+        SpatialInfo incident = Incident;
+        SD_Vector2 penetrationVector = PenetrationVector;
+        HashSet<SD_Vector2> newManifold = CollisionManifold
+            .Select(v => v + reference.Position - incident.Position + penetrationVector)
+            .ToHashSet();
         return new(
             Incident,
             Reference,
-            CollisionManifold.Select(v => v - incidentPosition + referencePosition).ToHashSet(),
-            -PenetrationVector
+            newManifold,
+            -penetrationVector
         );
     }
 

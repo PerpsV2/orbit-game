@@ -3,40 +3,35 @@ namespace Xunit;
 
 public abstract partial class Assert
 {
-    private static readonly double Epsilon = 1e-8;
-    
-    public static void Equal(double a, double b)
-    {
-        True(Math.Abs(a - b) < Epsilon);
-    }
+    private static readonly int Precision = 5;
 
-    public static void Equal(OrbitGame.ScientificDecimal a, OrbitGame.ScientificDecimal b)
+    public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right)
     {
-        if (a.IsInfinite && b.IsInfinite)
+        if (left.IsInfinite && right.IsInfinite)
         {
-            Equal(a.IsInfinite, b.IsInfinite);
-            Equal(a.Positive, b.Positive);
+            Equal(left.IsInfinite, right.IsInfinite);
+            Equal(left.Positive, right.Positive);
         }
         else
         {
-            Equal(a.Mantissa, b.Mantissa);
-            Equal(a.Exponent, b.Exponent);
+            Equal(left.Mantissa, right.Mantissa);
+            Equal(left.Exponent, right.Exponent);
         }
     }
     
-    public static void Equal(OrbitGame.SD_Vector2 a, OrbitGame.SD_Vector2 b)
+    public static void Equal(OrbitGame.SD_Vector2 left, OrbitGame.SD_Vector2 right)
     {
-        True((double)(a - b).Magnitude() < Epsilon);
+        Equal(0, (left - right).Magnitude());
     }
 
-    public static void Equal(OrbitGame.SD_Vector3 a, OrbitGame.SD_Vector3 b)
+    public static void Equal(OrbitGame.SD_Vector3 left, OrbitGame.SD_Vector3 right)
     {
-        True((double)(a - b).Magnitude() < Epsilon);
+        Equal(0, (left - right).Magnitude());
     }
 
-    public static void Equal(OrbitGame.Matrix3X3 a, OrbitGame.Matrix3X3 b)
+    public static void Equal(OrbitGame.Matrix3X3 left, OrbitGame.Matrix3X3 right)
     {
         for (int i = 0; i < 9; ++i)
-            Assert.True(Math.Abs((double)(a.Data[i] - b.Data[i])) < Epsilon);
+            True(Math.Abs((double)(left.Data[i] - right.Data[i])) < Precision);
     }
 }
