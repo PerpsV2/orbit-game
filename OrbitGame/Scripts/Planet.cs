@@ -30,7 +30,7 @@ public class Planet : Body, IGameDrawable
     public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         DrawSphereOfInfluence(graphicsDevice, camera);
-        DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
+        DrawKeplerianOrbitalPath(graphicsDevice, camera, _orbitMesh);
         
         if (Position.X < camera.Left - Radius) return;
         if (Position.X > camera.Right + Radius) return;

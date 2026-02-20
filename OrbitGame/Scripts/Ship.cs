@@ -45,7 +45,7 @@ public class Ship : Body, IGameDrawable
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
-        if (LandingState == null && DrawOrbitalPath) DrawOrbitalPathLRL(graphicsDevice, camera, _orbitMesh);
+        if (LandingState == null && DrawOrbitalPath) DrawKeplerianOrbitalPath(graphicsDevice, camera, _orbitMesh);
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
