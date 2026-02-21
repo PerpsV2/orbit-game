@@ -27,7 +27,7 @@ public class Planet : Body, IGameDrawable
         objectInfo.Collider.CalculateInertia(mass);
     }
 
-    public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
+    public void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         DrawSphereOfInfluence(graphicsDevice, camera);
         DrawKeplerianOrbitalPath(graphicsDevice, camera, _orbitMesh);
@@ -132,7 +132,7 @@ public class Planet : Body, IGameDrawable
         }
     }
 
-    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
+    public void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
     {
         Draw(graphicsDevice, camera);
     }

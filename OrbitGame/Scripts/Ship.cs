@@ -36,7 +36,7 @@ public class Ship : Body, IGameDrawable
         Collider.CalculateInertia(mass);
     }
 
-    public override void Draw(GraphicsDevice graphicsDevice, Camera camera)
+    public void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         if (Position.X < camera.Left - _maximumRadius) return;
         if (Position.X > camera.Right + _maximumRadius) return;
@@ -78,7 +78,7 @@ public class Ship : Body, IGameDrawable
         }
     }
 
-    public override void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
+    public void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
     {
         throw new NotImplementedException();
     }

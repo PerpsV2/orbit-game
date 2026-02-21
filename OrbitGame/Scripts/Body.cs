@@ -14,7 +14,7 @@ public delegate SD_Vector2 CalculateAccelerationMethod();
 /// <summary>
 /// A KinematicObject with drawing and physics information.
 /// </summary>
-public abstract class Body : KinematicObject, IGameDrawable
+public abstract class Body : KinematicObject
 {
     public ScientificDecimal Mass;
     public Color Colour;
@@ -46,9 +46,6 @@ public abstract class Body : KinematicObject, IGameDrawable
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
         Orbit = CalculateOrbit(Parent, true);
     }
-    
-    public abstract void Draw(GraphicsDevice graphicsDevice, Camera camera);
-    public abstract void DrawCollider(GraphicsDevice graphicsDevice, Camera camera);
 
     private void DrawPartialEllipseOrbit(GraphicsDevice graphicsDevice, Camera camera, double minAngle, double maxAngle)
     {
