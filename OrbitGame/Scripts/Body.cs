@@ -87,31 +87,24 @@ public abstract class Body : KinematicObject
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], Colour);
     }
-    
-    private void DrawEllipseOrbit(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh)
-    {
-        if (Orbit == null || Parent == null) return;
-        KeplerOrbit orbit = Orbit.Value;
-        Body centralForce = Parent;
-        
-        SD_Vector2 relCamPosition = camera.Position - centralForce.Position;
-        double minAngle = 0;
-        double maxAngle = Math.Tau;
-        if (relCamPosition != SD_Vector2.Zero)
-        {
-            SD_Vector2 maxCamExtentVector = (SD_Vector2)SD_Vector3.Cross(relCamPosition.Normalize(),
-                new(0, 0, ScientificDecimal.Max(camera.Width, camera.Height)));
-            minAngle = Utils.WrapAngle((relCamPosition + maxCamExtentVector).Direction());
-            maxAngle = Utils.WrapAngle((relCamPosition - maxCamExtentVector).Direction());
-        }
-        if (minAngle > maxAngle) maxAngle += Math.Tau;
 
-        if (maxAngle - minAngle > Math.PI * 0.8f)
+    private void DrawEllipseOrbit(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh, KeplerOrbit orbit,
+        Body centralForce)
+    {
+        Utils.GetMinAngleRange(out double minAngle, out double maxAngle,
+            (camera.TopRight - centralForce.Position).Direction(),
+            (camera.TopLeft - centralForce.Position).Direction(),
+            (camera.BottomLeft - centralForce.Position).Direction(),
+            (camera.BottomRight - centralForce.Position).Direction()
+        );
+        if (maxAngle < minAngle) maxAngle += Math.Tau;
+
+        if (maxAngle - minAngle > Math.PI / 16)
         {
             // draw the entire orbit as an ellipse
             if (orbit.Center == null)
                 throw new NullReferenceException("Elliptic orbit must have a center.");
-            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value + Parent.Position);
+            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value + centralForce.Position);
             float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
             float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
 
@@ -127,11 +120,8 @@ public abstract class Body : KinematicObject
         else DrawPartialEllipseOrbit(graphicsDevice, camera, minAngle, maxAngle);
     }
 
-    private void DrawHyperbolaOrbit(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh)
+    private void DrawHyperbolaOrbit(GraphicsDevice graphicsDevice, Camera camera, KeplerOrbit orbit, Body centralForce)
     {
-        if (Orbit == null || Parent == null) return;
-        KeplerOrbit orbit = Orbit.Value;
-        Body centralForce = Parent;
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
         ScientificDecimal? parentSOIRadius = centralForce.Orbit?.SphereOfInfluenceRadius ?? null;
@@ -175,12 +165,11 @@ public abstract class Body : KinematicObject
         if (Orbit == null || Parent == null) return;
         KeplerOrbit orbit = (KeplerOrbit)Orbit;
         Body centralForce = Parent;
-        List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
         // draw circular and elliptical orbits
-        if (orbit.Eccentricity < 1) DrawEllipseOrbit(graphicsDevice, camera, orbitMesh);
+        if (orbit.Eccentricity < 1) DrawEllipseOrbit(graphicsDevice, camera, orbitMesh, orbit, centralForce);
         // draw parabolic and hyperbolic orbits
-        else DrawHyperbolaOrbit(graphicsDevice, camera, orbitMesh);
+        else DrawHyperbolaOrbit(graphicsDevice, camera, orbit, centralForce);
     }
     
     /// <summary>

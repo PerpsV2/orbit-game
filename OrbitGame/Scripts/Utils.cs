@@ -45,6 +45,34 @@ public static class Utils
 
     public static double WrapAngle(double angle)
         => UnsignedMod(angle, Math.Tau);
+
+    public static void GetMinAngleRange(out double min, out double max, double angle, params double[] angles)
+    {
+        double[] sortedAngles = angles.Append(angle).OrderBy(WrapAngle).ToArray();
+        double minRange = Math.Tau;
+        min = angle;
+        max = angle;
+        for (int i = 0; i < sortedAngles.Length; i++)
+        {
+            double arcStartAngle = sortedAngles[i];
+            double arcEndAngle = sortedAngles[(int)UnsignedMod(i - 1, sortedAngles.Length)];
+            if (arcEndAngle < arcStartAngle) arcEndAngle += Math.Tau;
+            double arcRange = arcEndAngle - arcStartAngle;
+            if (arcRange < minRange)
+            {
+                minRange = arcRange;
+                min = WrapAngle(arcStartAngle);
+                max = WrapAngle(arcEndAngle);
+            }
+        }
+    }
+
+    public static void IterateAngleRange(double start, double end, double step, Action<double> action)
+    {
+        if (start > end) end += Math.Tau;
+        for (double angle = start; angle <= end; angle += step)
+            action(WrapAngle(angle));
+    }
     
     public static double DecimalSqrt(double x, double epsilon = 0.0)
     {

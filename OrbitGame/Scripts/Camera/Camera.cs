@@ -32,11 +32,13 @@ public class Camera : KinematicObject
             UpdateViewMatrix();
         }
     }
-    
-    public ScientificDecimal Left => Position.X - Width * 0.5f;
-    public ScientificDecimal Top => Position.Y + Height * 0.5f;
-    public ScientificDecimal Right => Position.X + Width * 0.5f;
-    public ScientificDecimal Bottom => Position.Y - Height * 0.5f;
+
+    public ScientificDecimal MaximumRadiusSquared => Width * Width + Height * Height;
+    public ScientificDecimal MaximumRadius => MaximumRadiusSquared.Sqrt();
+    public SD_Vector2 TopLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
+    public SD_Vector2 TopRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
+    public SD_Vector2 BottomLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
+    public SD_Vector2 BottomRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
 
     public Matrix3X3 ViewMatrix;
     
@@ -98,8 +100,8 @@ public class Camera : KinematicObject
 
     public ScientificDecimal SD_ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
     {
-        if (xAxis) return distance / (Right - Left) * _screenWidth;
-        return distance / (Bottom - Top) * _screenHeight;
+        if (xAxis) return distance / Width * _screenWidth;
+        return distance / Height * _screenHeight;
     }
     
     public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)

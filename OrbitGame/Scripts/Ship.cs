@@ -38,10 +38,7 @@ public class Ship : Body, IGameDrawable
 
     public void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
-        if (Position.X < camera.Left - _maximumRadius) return;
-        if (Position.X > camera.Right + _maximumRadius) return;
-        if (Position.Y > camera.Top + _maximumRadius) return;
-        if (Position.Y < camera.Bottom - _maximumRadius) return;
+        if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius.Square() > camera.MaximumRadiusSquared) return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);

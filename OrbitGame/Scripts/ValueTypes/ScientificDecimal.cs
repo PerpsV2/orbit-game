@@ -117,35 +117,6 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         return this;
     }
     
-    #region Conversions
-
-    // to scientific decimal
-    public static implicit operator ScientificDecimal(int value) 
-        => new(value, 0);
-
-    public static implicit operator ScientificDecimal(double value)
-        => new(value, 0);
-    
-    public static implicit operator ScientificDecimal(float value) 
-        => new(value, 0);
-
-    // from scientific decimal
-    public static explicit operator double(ScientificDecimal value)
-        => value.Mantissa * Math.Pow(10, value.Exponent);
-    
-    public static explicit operator float(ScientificDecimal value)
-        => Convert.ToSingle((double)value);
-    
-    public static explicit operator int (ScientificDecimal value)
-        => (int)(value.Mantissa * Math.Pow(10, value.Exponent));
-    
-    public static explicit operator uint (ScientificDecimal value)
-        => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
-    
-    #endregion
-    
-    #region Operators
-
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
         if (left._infinite && right._infinite)
@@ -221,6 +192,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
         return this < min ? min : this > max ? max : this;
     }
+    
+    #region Operators
 
     public static ScientificDecimal operator +(ScientificDecimal value) 
         => value;
@@ -269,6 +242,33 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     
     #endregion
     
+    #region Casts
+
+    // to scientific decimal
+    public static implicit operator ScientificDecimal(int value) 
+        => new(value, 0);
+
+    public static implicit operator ScientificDecimal(double value)
+        => new(value, 0);
+    
+    public static implicit operator ScientificDecimal(float value) 
+        => new(value, 0);
+
+    // from scientific decimal
+    public static explicit operator double(ScientificDecimal value)
+        => value.Mantissa * Math.Pow(10, value.Exponent);
+    
+    public static explicit operator float(ScientificDecimal value)
+        => Convert.ToSingle((double)value);
+    
+    public static explicit operator int (ScientificDecimal value)
+        => (int)(value.Mantissa * Math.Pow(10, value.Exponent));
+    
+    public static explicit operator uint (ScientificDecimal value)
+        => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
+    
+    #endregion
+    
     public override string ToString()
     {
         if (_infinite) return (Positive ? "" : "-") + "Infinity";
@@ -282,13 +282,6 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
 
     public int CompareTo(ScientificDecimal other)
         => this < other ? -1 : this > other ? 1 : 0;
-    
-    public int CompareTo(object? obj)
-    {
-        if (obj is not ScientificDecimal @decimal) 
-            throw new ArgumentException($"Object must be of type {nameof(ScientificDecimal)}");
-        return CompareTo(@decimal);
-    }
 
     public bool Equals(ScientificDecimal other)
     {
