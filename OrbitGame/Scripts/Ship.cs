@@ -59,7 +59,7 @@ public class Ship : Body, IGameDrawable
         {
             double iconAngle = -Angle - camera.Angle;
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 255);
-            Color colour = new Color(Colour, alpha);
+            Color colour = Colour * alpha;
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -5), iconAngle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 5), iconAngle), colour);
