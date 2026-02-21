@@ -17,6 +17,7 @@ public class Camera : KinematicObject
         private set
         {
             _width = value;
+            MaximumRadiusSquared = _height * _height + _width * _width;
             UpdateViewMatrix(); 
         }
     }
@@ -29,11 +30,12 @@ public class Camera : KinematicObject
         private set
         {
             _height = value;
+            MaximumRadiusSquared = _height * _height + _width * _width;
             UpdateViewMatrix();
         }
     }
 
-    public ScientificDecimal MaximumRadiusSquared => Width * Width + Height * Height;
+    public ScientificDecimal MaximumRadiusSquared;
     public ScientificDecimal MaximumRadius => MaximumRadiusSquared.Sqrt();
     public SD_Vector2 TopLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
     public SD_Vector2 TopRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
