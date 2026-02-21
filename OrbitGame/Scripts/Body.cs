@@ -313,45 +313,11 @@ public abstract class Body : KinematicObject
         }
     }
 
-    private double CalculateEccentricAnomaly(double meanAnomaly)
-    {
-        if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
-        KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        ScientificDecimal epsilon = new ScientificDecimal(1, -35);
-        double eccentricAnomaly = meanAnomaly;
-        int iterations = 0;
-        while (double.Abs(eccentricAnomaly - orbit.Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) > epsilon)
-        {
-            if (iterations > 100) return eccentricAnomaly;
-            eccentricAnomaly -= (eccentricAnomaly - orbit.Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) /
-                                (1 - orbit.Eccentricity * Math.Cos(eccentricAnomaly));
-            iterations++;
-        }
-        return eccentricAnomaly;
-    }
-
-    private double CalculateTrueAnomaly(double eccentricAnomaly)
-    {
-        if (Orbit == null) throw new NullReferenceException("Orbit cannot be null.");
-        KeplerOrbit orbit = (KeplerOrbit)Orbit;
-        return 2 * Math.Atan2(Math.Sqrt(1 + orbit.Eccentricity) * Math.Sin(eccentricAnomaly / 2), 
-            Math.Sqrt(1 - orbit.Eccentricity) * Math.Cos(eccentricAnomaly / 2));
-    }
-
     public void UpdatePosition_Kepler(ScientificDecimal totalTime, ScientificDecimal timeDiff)
     {
-        if (Orbit == null || Parent == null) return;
-        KeplerOrbit orbit = Orbit.Value;
-        
-        if (orbit.InitialTime == null) return;
-        ScientificDecimal initialTime = orbit.InitialTime.Value;
-        
-        SD_Vector2 lastPosition = Position;
-        
-        double meanAnomaly = (double)(Math.Tau / orbit.Period * (totalTime + initialTime)) + orbit.Periapsis;
-        double eccentricAnomaly = CalculateEccentricAnomaly(meanAnomaly - orbit.Periapsis) + orbit.Periapsis;
-        double trueAnomaly = CalculateTrueAnomaly(eccentricAnomaly - orbit.Periapsis) + orbit.Periapsis;
-        Position = Parent.Position + SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
-        Velocity = (Position - lastPosition) / timeDiff;
+        if (Orbit == null) return;
+        SpatialInfo newState = Orbit.Value.GetStateAtTime(SpatialInfo, totalTime);
+        newState.Velocity = (newState.Position - Position) / timeDiff;
+        SpatialInfo = newState;
     }
 }
