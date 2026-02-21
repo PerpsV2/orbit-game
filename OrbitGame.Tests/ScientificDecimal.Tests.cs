@@ -53,6 +53,19 @@ public class ScientificDecimalTests
         Assert.Equal(_testPosInfinity, _testPosInfinity.Clamp(_testNegScientificDecimal, _testPosInfinity));
         Assert.Throws<ArithmeticException>(() => argument.Clamp(_testPosScientificDecimal, _testNegScientificDecimal));
     }
+
+    [Fact]
+    public void Test_RoundMethod()
+    {
+        ScientificDecimal argument = new(0.00001, 0);
+        Assert.Equal(0, argument.Round());
+        argument = new(0.9, 0);
+        Assert.Equal(1, argument.Round());
+        argument = new(1.1, 0);
+        Assert.Equal(1, argument.Round());
+        argument = new(10000.9, 0);
+        Assert.Equal(10001, argument.Round(), Assert.Epsilon);
+    }
     
     #region Operators
     
@@ -99,6 +112,17 @@ public class ScientificDecimalTests
         Assert.Equal(_testNegInfinity, _testNegScientificDecimal / _testZeroScientificDecimal);
         Assert.Throws<ArithmeticException>(() => _testZeroScientificDecimal / _testZeroScientificDecimal);
         Assert.Throws<ArithmeticException>(() => _testPosInfinity / _testNegInfinity);
+    }
+
+    [Fact]
+    public void Test_ModuloOperator()
+    {
+        Assert.Equal(2, new ScientificDecimal(2, 0) % new ScientificDecimal(4, 0));
+        Assert.Equal(0, new ScientificDecimal(4, 0) % new ScientificDecimal(2, 0));
+        Assert.Throws<ArithmeticException>(() => _testPosInfinity % _testPosScientificDecimal);
+        Assert.Throws<ArithmeticException>(() => _testPosScientificDecimal % _testPosInfinity);
+        Assert.Throws<ArithmeticException>(() => _testPosScientificDecimal % _testZeroScientificDecimal);
+        Assert.Equal(1, new ScientificDecimal(10) % 3, 0.00001);
     }
     
     [Fact]

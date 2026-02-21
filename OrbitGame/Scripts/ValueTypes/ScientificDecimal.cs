@@ -152,9 +152,16 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         if (divisor._infinite) return 0;
         return new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, 
             dividend.Exponent - divisor.Exponent).Normalize();
-    } 
+    }
 
-    public ScientificDecimal Square()
+    private static ScientificDecimal Modulo(ScientificDecimal value, ScientificDecimal mod)
+    {
+        if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
+        if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
+        return value - mod * (value / mod).Round();
+    }
+
+    public readonly ScientificDecimal Square()
         => this * this;
     
     public ScientificDecimal Sqrt()
@@ -192,6 +199,18 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
         return this < min ? min : this > max ? max : this;
     }
+
+    /// <summary>
+    /// Rounds to the nearest integer value.
+    /// </summary>
+    public ScientificDecimal Round()
+    {
+        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (Mantissa == 0) return this;
+        if (Exponent < -1) return 0;
+        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
+        return new(double.Round(Mantissa, Exponent), Exponent);
+    }
     
     #region Operators
 
@@ -215,6 +234,8 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         => Multiply(left, right);
     public static ScientificDecimal operator/(ScientificDecimal dividend, ScientificDecimal divisor)
         => Divide(dividend, divisor);
+    public static ScientificDecimal operator %(ScientificDecimal value, ScientificDecimal mod)
+        => Modulo(value, mod);
     public static bool operator ==(ScientificDecimal left, ScientificDecimal right)
         => left.Equals(right);
     public static bool operator !=(ScientificDecimal left, ScientificDecimal right) 

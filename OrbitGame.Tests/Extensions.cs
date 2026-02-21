@@ -29,7 +29,7 @@ public abstract partial class Assert
         }
         else
         {
-            True(left - right < tolerance);
+            True((left - right).Abs() < tolerance);
         }
     }
     
