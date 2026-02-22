@@ -326,7 +326,7 @@ public class OrbitGame : Game
                 tasks.Add(Task.Run(() =>
                 {
                     ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod, ship.CalculateNetAcceleration);
-                    ship.CalculateShipOrbit(Planets);
+                    ship.CalculateShipKeplerianOrbit(Planets);
                 }));
             }
             

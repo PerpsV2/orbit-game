@@ -30,8 +30,8 @@ public class Planet : Body, IGameDrawable
     public void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         DrawSphereOfInfluence(graphicsDevice, camera);
-        DrawKeplerianOrbitalPath(graphicsDevice, camera, _orbitMesh);
-        
+        Orbit?.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
+
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius.Square() > camera.MaximumRadiusSquared) return;
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line

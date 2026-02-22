@@ -42,7 +42,7 @@ public class Ship : Body, IGameDrawable
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
-        if (LandingState == null && DrawOrbitalPath) DrawKeplerianOrbitalPath(graphicsDevice, camera, _orbitMesh);
+        if (LandingState == null && DrawOrbitalPath) Orbit?.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
@@ -80,7 +80,7 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public void CalculateShipOrbit(List<Planet> planets)
+    public void CalculateShipKeplerianOrbit(List<Planet> planets)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
@@ -99,7 +99,7 @@ public class Ship : Body, IGameDrawable
                     Parent = planet;
         }
         
-        Orbit = CalculateOrbit(Parent, false);
+        Orbit = CalculateKeplerianOrbit(Parent, false);
     }
 
     public override void ResetOrigin(SD_Vector2 origin)
