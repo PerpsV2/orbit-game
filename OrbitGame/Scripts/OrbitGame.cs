@@ -317,7 +317,7 @@ public class OrbitGame : Game
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
-        OriginBody.ResetOrigin(Bodies.Concat<KinematicObject>([Camera]).ToList());
+        OriginBody.ResetOrigin();
         
         HandleInput(_deltaTime);
         

@@ -51,11 +51,4 @@ public class KinematicObject_Tests
     {
         Assert.Equal(new SD_Vector2(-10, 0), _testKinematicObject1.ObjectToObjectSpace(_testVector, _testKinematicObject2));
     }
-
-    [Fact]
-    public void KinematicObject_ResetOriginMethod()
-    {
-        _testKinematicObject1.ResetOrigin(_testVector);
-        Assert.Equal(new SD_Vector2(0, -5), _testKinematicObject1.Position);
-    }
 }

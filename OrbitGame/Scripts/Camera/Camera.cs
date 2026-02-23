@@ -60,6 +60,12 @@ public class Camera : KinematicObject
         _screenHeight = screenHeight;
         MovementScheme = movementScheme;
         UpdateViewMatrix();
+        OriginBody.OnResetOrigin += Camera_OnResetOrigin;
+    }
+
+    private void Camera_OnResetOrigin(object? sender, OriginBodyEventArgs e)
+    {
+        Position += e.PositionOffset;
     }
 
     public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height)

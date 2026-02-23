@@ -7,16 +7,12 @@ namespace OrbitGame;
 /// Represents a unique object with only spatial information.
 /// Contains methods for conversions between world and object spaces.
 /// </summary>
-/// <param name="identifier">Unique ID for the KinematicObject</param>
-/// <param name="spatialInfo">Position, Velocity, Acceleration, Angle, and AngularVelocity of the KinematicObject</param>
-public abstract class KinematicObject(
-    string identifier,
-    SpatialInfo spatialInfo)
+public abstract class KinematicObject
 {
-    public readonly string Identifier = identifier;
+    public readonly string Identifier;
 
-    public SpatialInfo SpatialInfo = spatialInfo;
-    
+    public SpatialInfo SpatialInfo;
+
     // Access properties of SpatialInfo
     public SD_Vector2 Position
     {
@@ -46,8 +42,22 @@ public abstract class KinematicObject(
 
     public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(SpatialInfo.Angle);
     public SD_Vector2 RightVector => SD_Vector2.FromPolar(SpatialInfo.Angle - Math.PI / 2);
-
-    #region Coordinate Transforms
+    
+    protected KinematicObject(string identifier,
+        SpatialInfo spatialInfo)
+    {
+        Identifier = identifier;
+        SpatialInfo = spatialInfo;
+        OriginBody.OnResetOrigin += KinematicObject_OnResetOrigin;
+    }
+    
+    /// <summary>
+    /// Update the position after resetting the world origin.
+    /// </summary>
+    private void KinematicObject_OnResetOrigin(object? obj, OriginBodyEventArgs e)
+    {
+        Position += e.PositionOffset;
+    }
     
     /// <summary>
     /// Convert a SD_Vector2 from object space to world space.
@@ -73,16 +83,6 @@ public abstract class KinematicObject(
     public SD_Vector2 ObjectToObjectSpace(SD_Vector2 point, KinematicObject newOriginObject)
     {
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
-    }
-    
-    #endregion
-
-    /// <summary>
-    /// Update the position after resetting the world origin.
-    /// </summary>
-    public virtual void ResetOrigin(SD_Vector2 origin)
-    {
-        Position -= origin;
     }
     
     /// <summary>

@@ -108,12 +108,6 @@ public class Ship : Body, IGameDrawable
         KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, false);
     }
 
-    public override void ResetOrigin(SD_Vector2 origin)
-    {
-        base.ResetOrigin(origin);
-        LandingState?.ResetOrigin(origin);
-    }
-
     public void UpdatePosition_Landed()
     {
         if (LandingState == null)
