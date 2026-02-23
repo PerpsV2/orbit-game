@@ -277,6 +277,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.TrackPrevBodyKey))
             if (_lastKeyboardState.IsKeyUp(Options.TrackPrevBodyKey))
                 TrackBody(_trackingIndex - 1);
+        
+        if (keyboardState.IsKeyDown(Keys.T))
+            if (_lastKeyboardState.IsKeyUp(Keys.T))
+                _time += KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0;
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
@@ -306,7 +310,7 @@ public class OrbitGame : Game
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        UpdateFrame.Invoke(this, EventArgs.Empty);
+        UpdateFrame?.Invoke(this, EventArgs.Empty);
         
         _deltaTime = (DateTime.Now - _previousTime).TotalSeconds;
         _previousTime = DateTime.Now;

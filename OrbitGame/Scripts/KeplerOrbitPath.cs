@@ -5,10 +5,19 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public readonly record struct KeplerOrbitPathPoint(
-    KeplerOrbitPath Path,
-    double TrueAnomaly
-);
+public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double TrueAnomaly)
+{
+    public ScientificDecimal GetTimeUntilPoint(ScientificDecimal currentTime)
+    {
+        if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
+        KeplerOrbit orbit = Path.Orbit.Value;
+        ScientificDecimal timeFromPeriapsis = orbit.CalculateTimeFromPeriapsisFromTrueAnomaly(TrueAnomaly - orbit.Periapsis) 
+                                              + orbit.Periapsis;
+        currentTime %= orbit.Period;
+        ScientificDecimal timeUntilPoint = timeFromPeriapsis - currentTime;
+        return timeUntilPoint;
+    }
+}
 
 /// <summary>
 /// Wrapper for a Keplerian orbit which contains interactive functionality and drawing operations.
@@ -17,13 +26,13 @@ public class KeplerOrbitPath
 {
     public KeplerOrbit? Orbit { get; set; }
 
-    private static KeplerOrbitPathPoint? _hoverPoint;
-    private static KeplerOrbitPathPoint? _selectedPoint;
+    public static KeplerOrbitPathPoint? HoverPoint;
+    public static KeplerOrbitPathPoint? SelectedPoint;
     private static float _minMouseDistanceToOrbit = float.MaxValue;
 
     public KeplerOrbitPath()
     {
-        MouseHandler.MouseMove += OrbitPath_MouseMove;
+        MouseHandler.MouseHover += OrbitPath_MouseHover;
         MouseHandler.MouseDown += OrbitPathMouseDown;
         OrbitGame.UpdateFrame += OrbitPath_UpdateFrame;
     }
@@ -33,7 +42,7 @@ public class KeplerOrbitPath
         _minMouseDistanceToOrbit = float.MaxValue;
     }
     
-    private void OrbitPath_MouseMove(object? sender, MouseEventArgs e)
+    private void OrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
         if (Orbit == null) return;
         KeplerOrbit orbit = Orbit.Value;
@@ -47,16 +56,16 @@ public class KeplerOrbitPath
         {
             _minMouseDistanceToOrbit = thisMouseDistanceToOrbit;
             if (thisMouseDistanceToOrbit < 10)
-                _hoverPoint = new(this, mouseClickTrueAnomaly);
-            else _hoverPoint = null;
+                HoverPoint = new(this, mouseClickTrueAnomaly);
+            else HoverPoint = null;
         }
     }
 
     private void OrbitPathMouseDown(object? sender, MouseEventArgs e)
     {
-        if (_hoverPoint == null)
-            _selectedPoint = null;
-        _selectedPoint = _hoverPoint;
+        if (HoverPoint == null)
+            SelectedPoint = null;
+        SelectedPoint = HoverPoint;
     }
 
     private void DrawSelectedOrbitPoint(KeplerOrbit orbit, Color colour)
@@ -64,21 +73,21 @@ public class KeplerOrbitPath
         Camera camera = OrbitGame.Camera;
         GraphicsDevice graphicsDevice = OrbitGame.Graphics;
         
-        if (_hoverPoint != null)
+        if (HoverPoint != null)
         {
-            if (_hoverPoint.Value.Path == this)
+            if (HoverPoint.Value.Path == this)
             {
-                double trueAnomaly = _hoverPoint.Value.TrueAnomaly;
+                double trueAnomaly = HoverPoint.Value.TrueAnomaly;
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position +
                                                 SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
-        if (_selectedPoint != null)
+        if (SelectedPoint != null)
         {
-            if (_selectedPoint.Value.Path == this)
+            if (SelectedPoint.Value.Path == this)
             {
-                double trueAnomaly = _selectedPoint.Value.TrueAnomaly;
+                double trueAnomaly = SelectedPoint.Value.TrueAnomaly;
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position +
                                                 SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
@@ -211,9 +220,6 @@ public class KeplerOrbitPath
     /// </summary>
     public void DrawOrbitalPath(OrbitMesh orbitMesh, Color colour)
     {
-        Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
-        
         if (Orbit == null) return;
         KeplerOrbit orbit = Orbit.Value;
         Body centralForce = orbit.Parent;
