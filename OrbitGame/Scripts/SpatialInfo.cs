@@ -2,6 +2,9 @@ using System;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Struct containing positional information about an object and some of its derivatives.
+/// </summary>
 public struct SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, SD_Vector2 acceleration, double angle, double angularVelocity) 
     : IEquatable<SpatialInfo>
 {

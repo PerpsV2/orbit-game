@@ -11,6 +11,9 @@ public class MouseEventArgs(Vector2 position) : EventArgs
     public Vector2 Position = position;
 }
 
+/// <summary>
+/// Handler class which detects and raises events for various mouse actions.
+/// </summary>
 public static class MouseHandler
 {
     public static event MouseEventHandler? MouseClickDown;

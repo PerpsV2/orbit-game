@@ -3,6 +3,13 @@ using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Camera movement scheme where:
+/// - The default rotation of the camera is always pointed away from a surface object.
+/// - Perpendicular movement maintains the same altitude from a surface object.
+/// - Parallel movement alters only the altitude from a surface object.
+/// - Focus moves the camera to a tracking object.
+/// </summary>
 public class SurfaceCameraScheme : ICameraMovementScheme
 {
     private SD_Vector2 _localPosition;
@@ -10,7 +17,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     private readonly KinematicObject _surface;
     private readonly KinematicObject _tracking;
     
-    public SurfaceCameraScheme(SpatialInfo spatialInfo, KinematicObject surface, KinematicObject tracking)
+    public SurfaceCameraScheme(KinematicObject surface, KinematicObject tracking)
     {
         _surface = surface;
         _tracking = tracking;
@@ -18,7 +25,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
         _localAngle = 0;
     }
 
-    public void Focus(ref SpatialInfo spatialInfo)
+    public void Focus()
     {
         _localAngle = 0;
         _localPosition = SD_Vector2.Zero;

@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Large celestial body which is simulated on rails using Keplerian physics rather than Newtonian.
+/// </summary>
 public class Planet : Body, IGameDrawable
 {
     public readonly ScientificDecimal Radius;
@@ -27,10 +30,13 @@ public class Planet : Body, IGameDrawable
         objectInfo.Collider.CalculateInertia(mass);
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+    public void Draw()
     {
-        DrawSphereOfInfluence(graphicsDevice, camera);
-        OrbitPath.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
+        DrawSphereOfInfluence();
+        KeplerOrbitPath.DrawOrbitalPath(_orbitMesh, Colour);
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius.Square() > camera.MaximumRadiusSquared) return;
         
@@ -129,15 +135,18 @@ public class Planet : Body, IGameDrawable
         }
     }
 
-    public void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
+    public void DrawCollider()
     {
-        Draw(graphicsDevice, camera);
+        Draw();
     }
 
-    private void DrawSphereOfInfluence(GraphicsDevice graphicsDevice, Camera camera)
+    private void DrawSphereOfInfluence()
     {
-        if (OrbitPath.Orbit == null) return;
-        KeplerOrbit orbit = (KeplerOrbit)OrbitPath.Orbit;
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
+        if (KeplerOrbitPath.Orbit == null) return;
+        KeplerOrbit orbit = (KeplerOrbit)KeplerOrbitPath.Orbit;
 
         if (orbit.SphereOfInfluenceRadius == null) return;
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;

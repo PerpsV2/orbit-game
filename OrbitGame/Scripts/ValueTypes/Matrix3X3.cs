@@ -4,6 +4,9 @@ using System.Linq;
 namespace OrbitGame;
 using MatrixData = ScientificDecimal[];
 
+/// <summary>
+/// Value type for a 3x3 matrix.
+/// </summary>
 public readonly record struct Matrix3X3 : IFormattable
 {
     // Matrix information is organized from left to right then top to bottom

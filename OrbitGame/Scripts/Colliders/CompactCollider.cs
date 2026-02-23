@@ -11,7 +11,7 @@ namespace OrbitGame;
 /// To prevent unnecessary code, there should only be one implementation for collisions between two types of colliders
 /// located in the more 'complex' collider.
 /// Complexity of colliders follows this order
-/// Convex > Rectangular > Circular
+/// Convex > Circular
 /// </remarks>
 public abstract class CompactCollider
 {

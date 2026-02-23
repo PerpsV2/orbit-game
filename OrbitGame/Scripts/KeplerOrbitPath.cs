@@ -5,20 +5,23 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public readonly record struct OrbitPathPoint(
-    OrbitPath Path,
+public readonly record struct KeplerOrbitPathPoint(
+    KeplerOrbitPath Path,
     double TrueAnomaly
 );
 
-public class OrbitPath
+/// <summary>
+/// Wrapper for a Keplerian orbit which contains interactive functionality and drawing operations.
+/// </summary>
+public class KeplerOrbitPath
 {
     public KeplerOrbit? Orbit { get; set; }
 
-    private static OrbitPathPoint? _hoverPoint;
-    private static OrbitPathPoint? _selectedPoint;
+    private static KeplerOrbitPathPoint? _hoverPoint;
+    private static KeplerOrbitPathPoint? _selectedPoint;
     private static float _minMouseDistanceToOrbit = float.MaxValue;
 
-    public OrbitPath()
+    public KeplerOrbitPath()
     {
         MouseHandler.MouseMove += OrbitPath_MouseMove;
         MouseHandler.MouseDown += OrbitPathMouseDown;
@@ -56,20 +59,11 @@ public class OrbitPath
         _selectedPoint = _hoverPoint;
     }
 
-    private void DrawSelectedOrbitPoint(GraphicsDevice graphicsDevice, Camera camera, KeplerOrbit orbit, Color colour)
+    private void DrawSelectedOrbitPoint(KeplerOrbit orbit, Color colour)
     {
-        if (_selectedPoint != null)
-        {
-            if (_selectedPoint.Value.Path == this)
-            {
-                double trueAnomaly = _selectedPoint.Value.TrueAnomaly;
-                SD_Vector2 orbitPointPosition = orbit.Parent.Position +
-                                                SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
-                graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
-                
-                if (_hoverPoint?.Path == this) return;
-            }
-        }
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         if (_hoverPoint != null)
         {
             if (_hoverPoint.Value.Path == this)
@@ -80,11 +74,25 @@ public class OrbitPath
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
+        if (_selectedPoint != null)
+        {
+            if (_selectedPoint.Value.Path == this)
+            {
+                double trueAnomaly = _selectedPoint.Value.TrueAnomaly;
+                SD_Vector2 orbitPointPosition = orbit.Parent.Position +
+                                                SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
+                graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
+                
+            }
+        }
     }
     
-    private void DrawPartialEllipseOrbit(GraphicsDevice graphicsDevice, Camera camera, KeplerOrbit orbit, 
+    private void DrawPartialEllipseOrbit(KeplerOrbit orbit, 
         double minAngle, double maxAngle, Color colour)
     {
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         Body centralForce = orbit.Parent;
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
@@ -122,9 +130,12 @@ public class OrbitPath
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
 
-    private void DrawEllipseOrbit(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh, KeplerOrbit orbit, 
+    private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, 
         Body centralForce, Color colour)
     {
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         Utils.GetMinAngleRange(out double minAngle, out double maxAngle,
             (camera.TopRight - centralForce.Position).Direction(),
             (camera.TopLeft - centralForce.Position).Direction(),
@@ -151,15 +162,18 @@ public class OrbitPath
                 { "Colour", colour.ToVector4() }
             });
         }
-        else DrawPartialEllipseOrbit(graphicsDevice, camera, orbit, minAngle, maxAngle, colour);
+        else DrawPartialEllipseOrbit(orbit, minAngle, maxAngle, colour);
     }
 
-    private void DrawHyperbolaOrbit(GraphicsDevice graphicsDevice, Camera camera, KeplerOrbit orbit, 
+    private void DrawHyperbolaOrbit(KeplerOrbit orbit, 
         Body centralForce, Color colour)
     {
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         
-        ScientificDecimal? parentSOIRadius = centralForce.OrbitPath.Orbit?.SphereOfInfluenceRadius ?? null;
+        ScientificDecimal? parentSOIRadius = centralForce.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius ?? null;
         double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
         double objectAngle = Utils.WrapAngle((orbit.Body.Position - centralForce.Position).Direction());
         for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
@@ -195,16 +209,19 @@ public class OrbitPath
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPath(GraphicsDevice graphicsDevice, Camera camera, OrbitMesh orbitMesh, Color colour)
+    public void DrawOrbitalPath(OrbitMesh orbitMesh, Color colour)
     {
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         if (Orbit == null) return;
         KeplerOrbit orbit = Orbit.Value;
         Body centralForce = orbit.Parent;
         
         // draw circular and elliptical orbits
-        if (orbit.Eccentricity < 1) DrawEllipseOrbit(graphicsDevice, camera, orbitMesh, orbit, centralForce, colour);
+        if (orbit.Eccentricity < 1) DrawEllipseOrbit(orbitMesh, orbit, centralForce, colour);
         // draw parabolic and hyperbolic orbits
-        else DrawHyperbolaOrbit(graphicsDevice, camera, orbit, centralForce, colour);
-        DrawSelectedOrbitPoint(graphicsDevice, camera, orbit, colour);
+        else DrawHyperbolaOrbit(orbit, centralForce, colour);
+        DrawSelectedOrbitPoint(orbit, colour);
     }
 }

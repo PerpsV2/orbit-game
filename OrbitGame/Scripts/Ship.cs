@@ -8,6 +8,9 @@ using MonoGame;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Player-controllable celestial object.
+/// </summary>
 public class Ship : Body, IGameDrawable
 {
     private readonly ScientificDecimal _maximumRadius;
@@ -36,13 +39,16 @@ public class Ship : Body, IGameDrawable
         Collider.CalculateInertia(mass);
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+    public void Draw()
     {
+        Camera camera = OrbitGame.Camera;
+        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        
         if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius.Square() > camera.MaximumRadiusSquared) return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
-        if (LandingState == null && DrawOrbitalPath) OrbitPath.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
+        if (LandingState == null && DrawOrbitalPath) KeplerOrbitPath.DrawOrbitalPath(_orbitMesh, Colour);
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
@@ -67,15 +73,15 @@ public class Ship : Body, IGameDrawable
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 0), iconAngle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, -10), iconAngle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(5, -8), iconAngle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(0, 10), iconAngle), 
+                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(5, 8), iconAngle), 
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
         }
     }
 
-    public void DrawCollider(GraphicsDevice graphicsDevice, Camera camera)
+    public void DrawCollider()
     {
         throw new NotImplementedException();
     }
@@ -85,7 +91,7 @@ public class Ship : Body, IGameDrawable
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
         
-        ScientificDecimal? parentSOIRadius = Parent.OrbitPath.Orbit?.SphereOfInfluenceRadius;
+        ScientificDecimal? parentSOIRadius = Parent.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
@@ -93,13 +99,13 @@ public class Ship : Body, IGameDrawable
         foreach (Planet planet in planets)
         {
             if (planet == Parent) continue;
-            ScientificDecimal? bodySOIRadius = planet.OrbitPath.Orbit?.SphereOfInfluenceRadius;
+            ScientificDecimal? bodySOIRadius = planet.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
             if (bodySOIRadius != null)
                 if ((Position - planet.Position).Magnitude() < bodySOIRadius)
                     Parent = planet;
         }
         
-        OrbitPath.Orbit = CalculateKeplerianOrbit(Parent, false);
+        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, false);
     }
 
     public override void ResetOrigin(SD_Vector2 origin)

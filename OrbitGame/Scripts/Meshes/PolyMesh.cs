@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Mesh for drawing a polygonal object.
+/// </summary>
 public class PolyMesh : IMesh
 {
     private VertexPositionColor[]? _vertices;

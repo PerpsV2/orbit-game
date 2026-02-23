@@ -5,7 +5,7 @@ namespace OrbitGame;
 
 /// <summary>
 /// Represents a unique object with only spatial information.
-/// Contains methods relating to converting between different coordinate spaces.
+/// Contains methods for conversions between world and object spaces.
 /// </summary>
 /// <param name="identifier">Unique ID for the KinematicObject</param>
 /// <param name="spatialInfo">Position, Velocity, Acceleration, Angle, and AngularVelocity of the KinematicObject</param>

@@ -1,5 +1,12 @@
 namespace OrbitGame;
 
+/// <summary>
+/// Represents an axis-aligned bounding box for a game object.
+/// </summary>
+/// <param name="Left">Positive distance from the center to the left edge of the BoundingBox</param>
+/// <param name="Right">Positive distance from the center to the right edge of the BoundingBox</param>
+/// <param name="Top">Positive distance from the center to the top edge of the BoundingBox</param>
+/// <param name="Bottom">Positive distance from the center to the bottom edge of the BoundingBox</param>
 public readonly record struct BoundingBox(
     ScientificDecimal Left,
     ScientificDecimal Right,

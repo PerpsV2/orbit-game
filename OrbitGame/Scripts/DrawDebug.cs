@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public delegate void DrawOperation(GraphicsDevice graphics, Camera camera);
-
+/// <summary>
+/// Class for drawing debugging objects in the game scene.
+/// </summary>
 public static class DrawDebug
 {
-    private static readonly List<DrawOperation> DrawOperationBuffer = new();
+    private static readonly List<Action> DrawOperationBuffer = new();
 
-    public static void Add(DrawOperation drawOperation)
+    public static void Add(Action drawOperation)
     {
         DrawOperationBuffer.Add(drawOperation);
     }
@@ -20,9 +20,9 @@ public static class DrawDebug
         DrawOperationBuffer.Clear();
     }
 
-    public static void Draw(GraphicsDevice graphics, Camera camera)
+    public static void Draw()
     {
         foreach (var operation in DrawOperationBuffer)
-            operation(graphics, camera);
+            operation();
     }
 }

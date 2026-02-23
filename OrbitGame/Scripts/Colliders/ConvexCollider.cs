@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace OrbitGame;
 
+/// <summary>
+/// In-game CompactCollider with a set of points that form a convex hull.
+/// </summary>
 public class ConvexCollider : CompactCollider
 {
     private readonly BoundingBox _defaultBoundingBox;

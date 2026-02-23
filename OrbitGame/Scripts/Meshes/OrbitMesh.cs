@@ -5,9 +5,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Mesh for drawing a complete elliptic orbit.
+/// </summary>
 public class OrbitMesh : IMesh
 {
-    public static readonly int OrbitVertices = 400;
+    private static readonly int OrbitVertices = Options.OrbitVertices;
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
 

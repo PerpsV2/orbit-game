@@ -2,6 +2,9 @@ using System;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Class containing physical (not visual) information about an objects material.
+/// </summary>
 public class Material
 {
     public readonly float RestitutionCoefficient;

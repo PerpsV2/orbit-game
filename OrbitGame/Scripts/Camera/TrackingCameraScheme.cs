@@ -2,6 +2,12 @@ using System;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Camera movement scheme where:
+/// - The rotation of the camera is independent to any game objects.
+/// - The position of the camera has its origin at a tracking object.
+/// - Focus moves the camera to a tracking object.
+/// </summary>
 public class TrackingCameraScheme : ICameraMovementScheme
 {
     private SD_Vector2 _localPosition;
@@ -13,7 +19,7 @@ public class TrackingCameraScheme : ICameraMovementScheme
         _localPosition = spatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
     }
 
-    public void Focus(ref SpatialInfo spatialInfo)
+    public void Focus()
     {
         _localPosition = SD_Vector2.Zero;
     }

@@ -12,14 +12,14 @@ namespace OrbitGame;
 public delegate SD_Vector2 CalculateAccelerationMethod();
 
 /// <summary>
-/// A KinematicObject with drawing and physics information.
+/// A KinematicObject with physics information.
 /// </summary>
 public abstract class Body : KinematicObject
 {
     public ScientificDecimal Mass;
     public Color Colour;
     public Body? Parent;
-    public readonly OrbitPath OrbitPath = new();
+    public readonly KeplerOrbitPath KeplerOrbitPath = new();
 
     private readonly ObjectInfo _objectInfo;
     
@@ -44,7 +44,7 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
-        OrbitPath.Orbit = CalculateKeplerianOrbit(Parent, true);
+        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, true);
     }
     
     /// <summary>
@@ -178,8 +178,8 @@ public abstract class Body : KinematicObject
 
     public void UpdatePosition_Kepler(ScientificDecimal totalTime, ScientificDecimal timeDiff)
     {
-        if (OrbitPath.Orbit == null) return;
-        SpatialInfo newState = OrbitPath.Orbit.Value.GetStateAtTime(SpatialInfo, totalTime);
+        if (KeplerOrbitPath.Orbit == null) return;
+        SpatialInfo newState = KeplerOrbitPath.Orbit.Value.GetStateAtTime(totalTime);
         newState.Velocity = (newState.Position - Position) / timeDiff;
         SpatialInfo = newState;
     }

@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Mesh for drawing a completely circular object.
+/// </summary>
 public class CircularMesh : IMesh
 {
     private static VertexBuffer? _vertexBuffer;

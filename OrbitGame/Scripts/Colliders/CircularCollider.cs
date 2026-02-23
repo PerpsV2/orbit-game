@@ -2,6 +2,9 @@ using System;
 
 namespace OrbitGame;
 
+/// <summary>
+/// In-game CompactCollider with only a radius.
+/// </summary>
 public class CircularCollider : CompactCollider
 {
     public readonly ScientificDecimal Radius;

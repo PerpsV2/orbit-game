@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace OrbitGame;
 
 /// <summary>
-/// To prevent floating point errors, set the origin body to where most physics calculations would take place.
+/// Class which sets the origin body to where most physics calculations would take place to prevent floating point errors.
 /// </summary>
 public static class OriginBody
 {

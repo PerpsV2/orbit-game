@@ -52,9 +52,13 @@ public static class Options
     public const float MaximumShipRestingSpeed = 0.001f;
     public const float MaximumShipRestingAngularSpeed = 0.001f;
     /// <summary>
-    /// Number of points that should be drawn to represent an orbit.
+    /// Number of points that should be drawn to represent a partial orbit.
     /// </summary>
     public const uint OrbitResolutionNumPoints = 100;
+    /// <summary>
+    /// Number of points that should be drawn to represent a full elliptic orbit.
+    /// </summary>
+    public const int OrbitVertices = 400;
     /// <summary>
     /// If the angle range of the orbit within the camera's region is less than the zoom fraction multiplied by PI,
     /// approximate the section of orbit visible with points instead of drawing an ellipse for the whole orbit.

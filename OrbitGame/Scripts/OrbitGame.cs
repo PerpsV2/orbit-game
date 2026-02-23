@@ -377,13 +377,10 @@ public class OrbitGame : Game
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
 
-        foreach (var ship in Ships)
-            ship.Draw(GraphicsDevice, Camera);
+        foreach (var ship in Ships) ship.Draw();
+        foreach (var planet in Planets) planet.Draw();
         
-        foreach (var planet in Planets)
-            planet.Draw(GraphicsDevice, Camera);
-        
-        DrawDebug.Draw(GraphicsDevice, Camera);
+        DrawDebug.Draw();
         DrawDebug.ClearBuffer();
         
         _spriteBatch.End();

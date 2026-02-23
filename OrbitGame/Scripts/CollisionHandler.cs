@@ -6,8 +6,16 @@ using Microsoft.Xna.Framework;
 namespace OrbitGame;
 using CollisionBehaviours = Dictionary<(Type referenceType, Type incidentType), ResolveCollisionMethod>;
 
+/// <summary>
+/// Collision resolution method between two colliding bodies.
+/// </summary>
 public delegate void ResolveCollisionMethod(Body reference, Body incident);
 
+/// <summary>
+/// Handler class to detect and resolve collisions between objects in the game scene.
+/// </summary>
+/// <param name="bodies">List of bodies in the scene that have collisions enabled</param>
+/// <param name="collisionBehaviours">List of collision resolution methods that should be used between types of objects</param>
 public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours collisionBehaviours)
 {
     public void ResolveCollisions()
@@ -102,7 +110,9 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
         else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;
 
         if (Options.EnablePhysicsCollisionDebug)
-            DrawDebug.Add((g, cam) => {
+            DrawDebug.Add(() => {
+                var g = OrbitGame.Graphics;
+                var cam = OrbitGame.Camera;
                 g.GS_DrawPoint(cam, reference.Position + cPr, Color.Blue);
                 g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Blue);
                 g.GS_DrawLineR(cam, reference.Position + cPr, cTangent, Color.Purple);

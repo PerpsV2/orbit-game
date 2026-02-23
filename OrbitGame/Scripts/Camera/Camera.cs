@@ -6,6 +6,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// In-game camera class containing transformations between world and screen space.
+/// </summary>
 public class Camera : KinematicObject
 {
     public ICameraMovementScheme MovementScheme { get; set; }
@@ -65,7 +68,7 @@ public class Camera : KinematicObject
     { }
 
     public void Focus() 
-        => MovementScheme.Focus(ref SpatialInfo);
+        => MovementScheme.Focus();
     public void MovePerpendicular(ScientificDecimal distance) 
         => MovementScheme.MovePerpendicular(distance, ref SpatialInfo);
     public void MoveParallel(ScientificDecimal distance)

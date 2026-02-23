@@ -6,6 +6,10 @@ namespace OrbitGame;
 
 public interface IIntersection;
 
+/// <summary>
+/// Contains information about a collision between a collider and a point.
+/// </summary>
+/// <param name="intersects">Whether the point and the collider intersect</param>
 public readonly struct PointCollision(bool intersects = true)
     : IIntersection
 {
@@ -13,10 +17,14 @@ public readonly struct PointCollision(bool intersects = true)
 }
 
 /// <summary>
-/// Contains information about a collision between two compact colliders.
-/// Values are relative to the reference collider's parent without respect for angle
+/// Contains information about a physics collision between two colliders.
 /// </summary>
-public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incident, HashSet<SD_Vector2> manifold, SD_Vector2 penetrationVector)
+/// <param name="reference">SpatialInfo of the reference collider</param>
+/// <param name="incident">SpatialInfo of the incident collider</param>
+/// <param name="manifold">Collision manifold with respect to the reference</param>
+/// <param name="penetrationVector">Minimum penetration vector with respect to the reference</param>
+public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incident, 
+    HashSet<SD_Vector2> manifold, SD_Vector2 penetrationVector)
     : IIntersection
 {
     public readonly SpatialInfo Reference = reference;

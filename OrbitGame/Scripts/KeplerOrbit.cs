@@ -5,8 +5,15 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Equation which returns the distance of an object to its parent given a true anomaly.
+/// </summary>
 public delegate ScientificDecimal OrbitEquation(double angle);
 
+/// <summary>
+/// Record struct containing information about a Keplerian orbit as well as methods for converting between certain
+/// orbital parameters.
+/// </summary>
 public readonly record struct KeplerOrbit
 {
     public readonly Body Body;
@@ -112,7 +119,7 @@ public readonly record struct KeplerOrbit
             Math.Sqrt(1 - Eccentricity) * Math.Cos(eccentricAnomaly / 2));
     }
 
-    public SpatialInfo GetStateAtTime(SpatialInfo currentState, ScientificDecimal time)
+    public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
         if (InitialTime == null) return new();
         time %= Period; 
