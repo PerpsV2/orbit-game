@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -43,6 +45,7 @@ public class Camera : KinematicObject
     public SD_Vector2 BottomRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
 
     public Matrix3X3 ViewMatrix;
+    public Matrix3X3 InverseViewMatrix;
     
     public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height,
         int screenWidth, int screenHeight, ICameraMovementScheme movementScheme) 
@@ -89,7 +92,17 @@ public class Camera : KinematicObject
                      Matrix3X3.Translation(Width / 2, Height / 2) *
                      Matrix3X3.Rotation(-Angle) *
                      Matrix3X3.Scale(1, -1);
+        InverseViewMatrix = Matrix3X3.Scale(1, -1) * 
+                            Matrix3X3.Rotation(Angle) *
+                            Matrix3X3.Translation(-Width / 2, -Height / 2) *
+                            Matrix3X3.Scale(Width / _screenWidth, Height / _screenHeight);
     }
+
+    public SD_Vector2 SD_ConvertToWorldCoordinates(SD_Vector2 point)
+        => InverseViewMatrix * point + Position;
+
+    public SD_Vector2 ConvertToWorldCoordinates(Vector2 point)
+        => SD_ConvertToWorldCoordinates(new(point.X, point.Y));
     
     public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
         => ViewMatrix * (point - Position);

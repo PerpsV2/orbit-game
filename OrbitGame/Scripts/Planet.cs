@@ -30,7 +30,7 @@ public class Planet : Body, IGameDrawable
     public void Draw(GraphicsDevice graphicsDevice, Camera camera)
     {
         DrawSphereOfInfluence(graphicsDevice, camera);
-        Orbit?.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
+        OrbitPath.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius.Square() > camera.MaximumRadiusSquared) return;
         
@@ -136,8 +136,8 @@ public class Planet : Body, IGameDrawable
 
     private void DrawSphereOfInfluence(GraphicsDevice graphicsDevice, Camera camera)
     {
-        if (Orbit == null) return;
-        KeplerOrbit orbit = (KeplerOrbit)Orbit;
+        if (OrbitPath.Orbit == null) return;
+        KeplerOrbit orbit = (KeplerOrbit)OrbitPath.Orbit;
 
         if (orbit.SphereOfInfluenceRadius == null) return;
         ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;

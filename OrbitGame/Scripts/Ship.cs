@@ -42,7 +42,7 @@ public class Ship : Body, IGameDrawable
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
-        if (LandingState == null && DrawOrbitalPath) Orbit?.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
+        if (LandingState == null && DrawOrbitalPath) OrbitPath.DrawOrbitalPath(graphicsDevice, camera, _orbitMesh, Colour);
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
@@ -85,7 +85,7 @@ public class Ship : Body, IGameDrawable
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
         
-        ScientificDecimal? parentSOIRadius = Parent.Orbit?.SphereOfInfluenceRadius;
+        ScientificDecimal? parentSOIRadius = Parent.OrbitPath.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
@@ -93,13 +93,13 @@ public class Ship : Body, IGameDrawable
         foreach (Planet planet in planets)
         {
             if (planet == Parent) continue;
-            ScientificDecimal? bodySOIRadius = planet.Orbit?.SphereOfInfluenceRadius;
+            ScientificDecimal? bodySOIRadius = planet.OrbitPath.Orbit?.SphereOfInfluenceRadius;
             if (bodySOIRadius != null)
                 if ((Position - planet.Position).Magnitude() < bodySOIRadius)
                     Parent = planet;
         }
         
-        Orbit = CalculateKeplerianOrbit(Parent, false);
+        OrbitPath.Orbit = CalculateKeplerianOrbit(Parent, false);
     }
 
     public override void ResetOrigin(SD_Vector2 origin)

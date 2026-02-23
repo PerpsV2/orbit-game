@@ -17,8 +17,6 @@ public readonly record struct Matrix3X3 : IFormattable
         Data = data;
     }
     
-    #region Operators
-
     private static Matrix3X3 Add(Matrix3X3 a, Matrix3X3 b)
     {
         MatrixData resultData = new ScientificDecimal[9];
@@ -26,6 +24,8 @@ public readonly record struct Matrix3X3 : IFormattable
             resultData[i] = a.Data[i] + b.Data[i];
         return new Matrix3X3(resultData);
     }
+    
+    #region Operators
 
     public static Matrix3X3 operator +(Matrix3X3 value) 
         => value;

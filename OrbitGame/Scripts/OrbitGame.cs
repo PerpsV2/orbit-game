@@ -10,6 +10,8 @@ using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
 
+public delegate void UpdateEventHandler(object? sender, EventArgs e);
+
 public static class Effects
 {
     public static Effect? DefaultEffect;
@@ -51,7 +53,7 @@ public class OrbitGame : Game
     private int _trackingIndex;
     private Ship _controlShip;
 
-    Camera _camera = new("Camera", new(SD_Vector2.Zero, 0),
+    public static Camera Camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -60,6 +62,8 @@ public class OrbitGame : Game
     public static GraphicsDevice Graphics = null!;
     private SpriteFont _font;
     private readonly Random _rnd = new();
+
+    public static event UpdateEventHandler? UpdateFrame;
 
     void UpdateFPS(object? state)
     {
@@ -211,8 +215,8 @@ public class OrbitGame : Game
         Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
-        _camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
-        _camera.Focus();
+        Camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
+        Camera.Focus();
         _controlShip = Ships[^1];
         _controlShip.DrawOrbitalPath = true;
         _trackingIndex = Bodies.IndexOf(OriginBody.Body);
@@ -245,18 +249,20 @@ public class OrbitGame : Game
         _font = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 
-    KeyboardState _lastKeyboardState;
-
     private void TrackBody(int index)
     {
         _trackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
         _tracking = Bodies[_trackingIndex];
-        _camera.MovementScheme = new TrackingCameraScheme(_camera.SpatialInfo, _tracking);
+        Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
     }
+    
+    KeyboardState _lastKeyboardState;
 
     private void HandleInput(ScientificDecimal dt)
     {
-        ScientificDecimal camSpeed = _camera.Height * Options.CamMoveSpeed * dt;
+        MouseHandler.HandleMouseEvents();
+        
+        ScientificDecimal camSpeed = Camera.Height * Options.CamMoveSpeed * dt;
         KeyboardState keyboardState = Keyboard.GetState();
         if (keyboardState.IsKeyDown(Options.TimeWarpUpKey))
             if (_lastKeyboardState.IsKeyUp(Options.TimeWarpUpKey))
@@ -274,19 +280,19 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
-                _camera.Focus();
+                Camera.Focus();
 
-        if (keyboardState.IsKeyDown(Options.MoveUpKey)) _camera.MoveParallel(camSpeed);
-        if (keyboardState.IsKeyDown(Options.MoveDownKey)) _camera.MoveParallel(-camSpeed);
-        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) _camera.MovePerpendicular(-camSpeed);
-        if (keyboardState.IsKeyDown(Options.MoveRightKey)) _camera.MovePerpendicular(camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveLeftKey)) Camera.MovePerpendicular(-camSpeed);
+        if (keyboardState.IsKeyDown(Options.MoveRightKey)) Camera.MovePerpendicular(camSpeed);
 
-        if (keyboardState.IsKeyDown(Options.ZoomOutKey)) _camera.ScaleZoom(1 + Options.CamZoomSpeed);
-        if (keyboardState.IsKeyDown(Options.ZoomInKey)) _camera.ScaleZoom(1 - Options.CamZoomSpeed);
+        if (keyboardState.IsKeyDown(Options.ZoomOutKey)) Camera.ScaleZoom(1 + Options.CamZoomSpeed);
+        if (keyboardState.IsKeyDown(Options.ZoomInKey)) Camera.ScaleZoom(1 - Options.CamZoomSpeed);
 
         float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
-        if (keyboardState.IsKeyDown(Options.RotateLeftKey)) _camera.RotateBy(-camRotateSpeed);
-        if (keyboardState.IsKeyDown(Options.RotateRightKey)) _camera.RotateBy(camRotateSpeed);
+        if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
+        if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
         _controlShip.ResetThrust();
         if (keyboardState.IsKeyDown(Keys.I)) _controlShip.ApplyThrust(new SD_Vector2(-100000, 0), new SD_Vector2(-0.4, 0));
@@ -299,6 +305,9 @@ public class OrbitGame : Game
 
     protected override void Update(GameTime gameTime)
     {
+        base.Update(gameTime);
+        UpdateFrame.Invoke(this, EventArgs.Empty);
+        
         _deltaTime = (DateTime.Now - _previousTime).TotalSeconds;
         _previousTime = DateTime.Now;
         _deltaTimeStep = _deltaTime * _timeStep;
@@ -308,7 +317,7 @@ public class OrbitGame : Game
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
-        OriginBody.ResetOrigin(Bodies.Concat<KinematicObject>([_camera]).ToList());
+        OriginBody.ResetOrigin(Bodies.Concat<KinematicObject>([Camera]).ToList());
         
         HandleInput(_deltaTime);
         
@@ -339,12 +348,10 @@ public class OrbitGame : Game
                     ship.UpdatePosition_Landed();
         }
         
-        _camera.Update();
+        Camera.Update();
         
         Ships.RemoveAll(ship => ship.MarkedForRemoval);
         Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
-
-        base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -371,15 +378,15 @@ public class OrbitGame : Game
         }
 
         foreach (var ship in Ships)
-            ship.Draw(GraphicsDevice, _camera);
+            ship.Draw(GraphicsDevice, Camera);
         
         foreach (var planet in Planets)
-            planet.Draw(GraphicsDevice, _camera);
+            planet.Draw(GraphicsDevice, Camera);
+        
+        DrawDebug.Draw(GraphicsDevice, Camera);
+        DrawDebug.ClearBuffer();
         
         _spriteBatch.End();
-        
-        DrawDebug.Draw(GraphicsDevice, _camera);
-        DrawDebug.ClearBuffer();
 
         base.Draw(gameTime);
     }

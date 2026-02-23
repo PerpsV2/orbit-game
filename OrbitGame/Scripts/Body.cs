@@ -19,7 +19,7 @@ public abstract class Body : KinematicObject
     public ScientificDecimal Mass;
     public Color Colour;
     public Body? Parent;
-    public KeplerOrbit? Orbit;
+    public readonly OrbitPath OrbitPath = new();
 
     private readonly ObjectInfo _objectInfo;
     
@@ -44,7 +44,7 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
-        Orbit = CalculateKeplerianOrbit(Parent, true);
+        OrbitPath.Orbit = CalculateKeplerianOrbit(Parent, true);
     }
     
     /// <summary>
@@ -104,18 +104,6 @@ public abstract class Body : KinematicObject
         if (semiLatusRectum == 0) return null;
 
         return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
-    }
-
-    public void UpdatePosition_PreservingIntegrator(
-        ScientificDecimal initialTimeStep,
-        ScientificDecimal endTime)
-    {
-        ScientificDecimal h = initialTimeStep;
-        SD_Vector2 q = Position;
-        SD_Vector2 p = Velocity * Mass;
-        ScientificDecimal m = Mass;
-
-        ScientificDecimal s = SD_Vector2.Dot(q * h, p) / (q.Magnitude() * m);
     }
 
     public void UpdatePosition_Integrator(
@@ -190,8 +178,8 @@ public abstract class Body : KinematicObject
 
     public void UpdatePosition_Kepler(ScientificDecimal totalTime, ScientificDecimal timeDiff)
     {
-        if (Orbit == null) return;
-        SpatialInfo newState = Orbit.Value.GetStateAtTime(SpatialInfo, totalTime);
+        if (OrbitPath.Orbit == null) return;
+        SpatialInfo newState = OrbitPath.Orbit.Value.GetStateAtTime(SpatialInfo, totalTime);
         newState.Velocity = (newState.Position - Position) / timeDiff;
         SpatialInfo = newState;
     }

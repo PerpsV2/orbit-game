@@ -270,8 +270,7 @@ public static class Utils
         int[] indices = [0, 1, 3, 3, 1, 2];
         
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");;
-        effect.Parameters["World"].SetValue(Matrix.CreateScale(new Vector3(1, 1, 1)) * 
-                                            Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
+        effect.Parameters["World"].SetValue(Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
         effect.Parameters["Colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
