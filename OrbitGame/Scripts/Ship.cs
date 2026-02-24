@@ -36,6 +36,7 @@ public class Ship : Body, IGameDrawable
     {
         _maximumRadius = maximumRadius;
         _orbitMesh = orbitMesh;
+        orbitMesh.GenerateBuffers();
         Collider.CalculateInertia(mass);
     }
 

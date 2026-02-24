@@ -47,6 +47,6 @@ public class KeplerOrbit_Tests
         KeplerOrbit orbit = _body.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
 
         Assert.Equal(7335.60147939, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.PI), new ScientificDecimal(1,-8));
-        Assert.Equal(Math.PI, orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(7335.60147939));
+        Assert.Equal(Math.PI, orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(7335.60147939), new ScientificDecimal(1,-8));
     }
 }

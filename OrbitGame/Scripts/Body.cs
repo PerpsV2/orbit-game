@@ -45,6 +45,7 @@ public abstract class Body : KinematicObject
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
         KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, true);
+        Mesh.GenerateBuffers();
     }
     
     /// <summary>
