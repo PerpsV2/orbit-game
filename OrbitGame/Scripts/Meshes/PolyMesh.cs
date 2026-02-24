@@ -22,7 +22,6 @@ public class PolyMesh : IMesh
     public PolyMesh(SD_Vector2[] points)
     {
         _points = points.Select(v => new Vector2((float)v.X, -(float)v.Y)).ToArray();
-        GenerateBuffers();
     }
 
     public void GenerateBuffers()

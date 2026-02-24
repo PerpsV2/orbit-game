@@ -93,11 +93,11 @@ public abstract class Body : KinematicObject
         SD_Vector2 directionVector = relPosition.Normalize();
         ScientificDecimal forceStrength = Mass * centralForce.Mass * Constants.G;
 
-        SD_Vector2 lrlVector = Matrix3X3.Scale(-1, 1) * ((SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) -
-                            directionVector * Mass * forceStrength);
+        SD_Vector2 lrlVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) -
+                            directionVector * Mass * forceStrength;
         if (lrlVector == SD_Vector2.Zero) return null;
 
-        double periapsis = Utils.WrapAngle(Math.PI - lrlVector.Direction());
+        double periapsis = Utils.WrapAngle(lrlVector.Direction());
         ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
         ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Mass / forceStrength;
 

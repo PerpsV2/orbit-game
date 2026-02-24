@@ -13,11 +13,6 @@ public class CircularMesh : IMesh
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
 
-    public CircularMesh()
-    {
-        GenerateBuffers();
-    }
-
     public void GenerateBuffers()
     {
         VertexPositionTexture[] vertices = [

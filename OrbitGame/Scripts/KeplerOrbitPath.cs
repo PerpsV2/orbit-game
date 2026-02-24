@@ -11,11 +11,10 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
     {
         if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
         KeplerOrbit orbit = Path.Orbit.Value;
-        ScientificDecimal timeFromPeriapsis = orbit.CalculateTimeFromPeriapsisFromTrueAnomaly(TrueAnomaly - orbit.Periapsis) 
-                                              + orbit.Periapsis;
+        ScientificDecimal timeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly - orbit.Periapsis);
         currentTime %= orbit.Period;
-        ScientificDecimal timeUntilPoint = timeFromPeriapsis - currentTime;
-        return timeUntilPoint;
+        ScientificDecimal timeUntilPoint = orbit.InitialTime ?? 0;
+        return orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
     }
 }
 
@@ -25,6 +24,7 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
 public class KeplerOrbitPath
 {
     public KeplerOrbit? Orbit { get; set; }
+    private bool _onScreen;
 
     public static KeplerOrbitPathPoint? HoverPoint;
     public static KeplerOrbitPathPoint? SelectedPoint;
@@ -44,6 +44,7 @@ public class KeplerOrbitPath
     
     private void OrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
+        if (!_onScreen) return;
         if (Orbit == null) return;
         KeplerOrbit orbit = Orbit.Value;
         SD_Vector2 mouseWorldPosition = OrbitGame.Camera.ConvertToWorldCoordinates(e.Position);
@@ -56,7 +57,7 @@ public class KeplerOrbitPath
         {
             _minMouseDistanceToOrbit = thisMouseDistanceToOrbit;
             if (thisMouseDistanceToOrbit < 10)
-                HoverPoint = new(this, mouseClickTrueAnomaly);
+                HoverPoint = new(this, Orbit.Value.CalculateTrueAnomalyFromTimeSincePeriapsis(0));
             else HoverPoint = null;
         }
     }
@@ -117,8 +118,6 @@ public class KeplerOrbitPath
         double exponent = Options.EllipsePointDistributionBiasStrength * 
             Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
             
-        // orbit is too small to draw
-        if (camera.ConvertToScreenDistance(orbit.SemiMajorAxis) < 1) return;
         // draw partial orbit if camera is zoomed in.
         if (maxAngle - minAngle < Options.OrbitApproximationZoomFraction * Math.PI)
         {
@@ -134,7 +133,8 @@ public class KeplerOrbitPath
                 orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist));
             }
         }
-        
+
+        _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
@@ -161,6 +161,13 @@ public class KeplerOrbitPath
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value + centralForce.Position);
             float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
             float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
+
+            if (screenMajorRadius < 1)
+            {
+                _onScreen = false;
+                return;
+            }
+            _onScreen = true;
 
             Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
                                Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
@@ -210,7 +217,8 @@ public class KeplerOrbitPath
             orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
             orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
         }
-        
+
+        _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
@@ -220,7 +228,11 @@ public class KeplerOrbitPath
     /// </summary>
     public void DrawOrbitalPath(OrbitMesh orbitMesh, Color colour)
     {
-        if (Orbit == null) return;
+        if (Orbit == null)
+        {
+            _onScreen = false;
+            return;
+        }
         KeplerOrbit orbit = Orbit.Value;
         Body centralForce = orbit.Parent;
         

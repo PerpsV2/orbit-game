@@ -29,7 +29,7 @@ public readonly record struct KeplerOrbit
     public readonly SD_Vector2? Center;
     
     public readonly ScientificDecimal? SphereOfInfluenceRadius;
-    
+
     public readonly ScientificDecimal? InitialTime;
     
     public KeplerOrbit(
@@ -45,8 +45,8 @@ public readonly record struct KeplerOrbit
         this.Parent = Parent;
         this.Eccentricity = Eccentricity;
         this.SemiLatusRectum = SemiLatusRectum;
-        Equation = angle => SemiLatusRectum / (1 + Eccentricity * Math.Cos(angle - Periapsis));
         this.Periapsis = Utils.WrapAngle(Periapsis);
+        Equation = angle => SemiLatusRectum / (1 + Eccentricity * Math.Cos(angle - Periapsis));
         
         if (Eccentricity == 0)
         {
@@ -79,58 +79,64 @@ public readonly record struct KeplerOrbit
         {
             if (initials)
             {
-                SD_Vector2 initialPosition = Body.Position - Parent.Position;
-                double initialTrueAnomaly = SD_Vector2.Direction(Parent.Position, initialPosition) - Periapsis;
-                if (SD_Vector2.Dot(Body.Velocity, Body.Position) > 0) initialTrueAnomaly = Math.Tau - initialTrueAnomaly;
-                InitialTime = CalculateTimeFromPeriapsisFromTrueAnomaly(initialTrueAnomaly);
+                SD_Vector2 initialRelativePosition = Body.Position - Parent.Position;
+                double initialTrueAnomaly = SD_Vector2.Direction(Parent.Position, initialRelativePosition) - Periapsis;
+                initialTrueAnomaly = Utils.WrapAngle(initialTrueAnomaly);
+                InitialTime = CalculateTimeSincePeriapsisFromTrueAnomaly(initialTrueAnomaly);
             }
         }
     }
     
-    private double CalculateEccentricFromMeanAnomaly(double meanAnomaly)
+    private static double CalculateEccentricFromMeanAnomaly(double eccentricity, double meanAnomaly)
     {
         ScientificDecimal epsilon = new ScientificDecimal(1, -35);
         double eccentricAnomaly = meanAnomaly;
         int iterations = 0;
-        while (double.Abs(eccentricAnomaly - Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) > epsilon)
+        while (double.Abs(eccentricAnomaly - eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) > epsilon)
         {
             if (iterations > 100) return eccentricAnomaly;
-            eccentricAnomaly -= (eccentricAnomaly - Eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) /
-                                (1 - Eccentricity * Math.Cos(eccentricAnomaly));
+            eccentricAnomaly -= (eccentricAnomaly - eccentricity * Math.Sin(eccentricAnomaly) - meanAnomaly) /
+                                (1 - eccentricity * Math.Cos(eccentricAnomaly));
             iterations++;
         }
         return eccentricAnomaly;
     }
 
-    private double CalculateMeanFromEccentricAndTrueAnomaly(double eccentricAnomaly, double trueAnomaly)
+    private static double CalculateMeanFromEccentricAnomaly(double eccentricity, double eccentricAnomaly)
     {
-        double meanAnomaly = (eccentricAnomaly - Eccentricity * (
-            Math.Sqrt(1 - Eccentricity * Eccentricity) * Math.Sin(trueAnomaly) /
-            1 + Eccentricity * Math.Cos(trueAnomaly)
-        )) % Math.Tau;
-        return meanAnomaly;
+        return eccentricAnomaly - eccentricity * Math.Sin(eccentricAnomaly);
     }
 
-    private double CalculateTrueFromEccentricAnomaly(double eccentricAnomaly)
+    private static double CalculateTrueFromEccentricAnomaly(double eccentricity, double eccentricAnomaly)
     {
-        return 2 * Math.Atan2(Math.Sqrt(1 + Eccentricity) * Math.Sin(eccentricAnomaly / 2), 
-            Math.Sqrt(1 - Eccentricity) * Math.Cos(eccentricAnomaly / 2));
+        return 2 * Math.Atan2(Math.Sqrt(1 + eccentricity) * Math.Sin(eccentricAnomaly / 2), 
+            Math.Sqrt(1 - eccentricity) * Math.Cos(eccentricAnomaly / 2));
     }
 
-    private double CalculateEccentricFromTrueAnomaly(double trueAnomaly)
+    private static double CalculateEccentricFromTrueAnomaly(double eccentricity, double trueAnomaly)
     {
-        double eccentricAnomaly = Math.Atan2(
-            Math.Sqrt(1 - Eccentricity * Eccentricity) * Math.Sin(trueAnomaly),
-            Eccentricity + Math.Cos(trueAnomaly)
-        ) % Math.Tau;
+        double eccentricAnomaly = Utils.WrapAngle(Math.Atan2(
+            Math.Sqrt(1 - eccentricity * eccentricity) * Math.Sin(trueAnomaly),
+            eccentricity + Math.Cos(trueAnomaly)
+        ));
         return eccentricAnomaly;
     }
 
-    public ScientificDecimal CalculateTimeFromPeriapsisFromTrueAnomaly(double trueAnomaly)
+    public ScientificDecimal CalculateTimeSincePeriapsisFromTrueAnomaly(double trueAnomaly)
     {
-        double initialEccentricAnomaly = CalculateEccentricFromTrueAnomaly(trueAnomaly);
-        double initialMeanAnomaly = CalculateMeanFromEccentricAndTrueAnomaly(initialEccentricAnomaly, trueAnomaly);
-        return initialMeanAnomaly / (Math.Tau / Period);
+        double eccentricAnomaly = CalculateEccentricFromTrueAnomaly(Eccentricity, trueAnomaly);
+        double meanAnomaly = CalculateMeanFromEccentricAnomaly(Eccentricity, eccentricAnomaly);
+        return meanAnomaly * Period / Math.Tau;
+    }
+
+    public double CalculateTrueAnomalyFromTimeSincePeriapsis(ScientificDecimal timeFromPeriapsis)
+    {
+        if (InitialTime == null) return 0;
+        
+        double meanAnomaly = (double)(Math.Tau / Period * (timeFromPeriapsis + InitialTime)) + Periapsis;
+        double eccentricAnomaly = CalculateEccentricFromMeanAnomaly(Eccentricity, meanAnomaly - Periapsis) + Periapsis;
+        double trueAnomaly = CalculateTrueFromEccentricAnomaly(Eccentricity, eccentricAnomaly - Periapsis) + Periapsis;
+        return trueAnomaly;
     }
 
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
@@ -139,9 +145,7 @@ public readonly record struct KeplerOrbit
         time %= Period; 
         
         SpatialInfo newState = new SpatialInfo();
-        double meanAnomaly = (double)(Math.Tau / Period * (time + InitialTime)) + Periapsis;
-        double eccentricAnomaly = CalculateEccentricFromMeanAnomaly(meanAnomaly - Periapsis) + Periapsis;
-        double trueAnomaly = CalculateTrueFromEccentricAnomaly(eccentricAnomaly - Periapsis) + Periapsis;
+        double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
         newState.Position = Parent.Position + SD_Vector2.FromPolar(trueAnomaly, Equation(trueAnomaly));
         return newState;
     }

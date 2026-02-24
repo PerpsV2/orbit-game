@@ -280,7 +280,7 @@ public class OrbitGame : Game
         
         if (keyboardState.IsKeyDown(Keys.T))
             if (_lastKeyboardState.IsKeyUp(Keys.T))
-                _time += KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0;
+                Console.WriteLine(KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0);
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))

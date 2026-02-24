@@ -16,7 +16,6 @@ public class OrbitMesh : IMesh
 
     public OrbitMesh()
     {
-        GenerateBuffers();
     }
 
     public void GenerateBuffers()
