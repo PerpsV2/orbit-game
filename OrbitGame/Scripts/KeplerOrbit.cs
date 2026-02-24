@@ -91,9 +91,10 @@ public readonly record struct KeplerOrbit
     {
         ScientificDecimal epsilon = new ScientificDecimal(1, -10);
         double estimate = eccentricity > 0.8 ? Math.PI : meanAnomaly;
-        double finalEccentricAnomaly;
+        double finalEccentricAnomaly = estimate;
         int iterations = 0;
         do {
+            estimate = finalEccentricAnomaly;
             finalEccentricAnomaly = estimate - (estimate - eccentricity * Math.Sin(estimate) - meanAnomaly) /
                 (1 - eccentricity * Math.Cos(estimate));
             iterations++;
@@ -132,7 +133,7 @@ public readonly record struct KeplerOrbit
     {
         if (InitialTime == null) return 0;
         
-        double meanAnomaly = (double)(Math.Tau / Period * timeFromPeriapsis);
+        double meanAnomaly = (double)(timeFromPeriapsis * Math.Tau / Period);
         double eccentricAnomaly = CalculateEccentricFromMeanAnomaly(Eccentricity, meanAnomaly);
         return CalculateTrueFromEccentricAnomaly(Eccentricity, eccentricAnomaly);
     }
@@ -140,11 +141,10 @@ public readonly record struct KeplerOrbit
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
         if (InitialTime == null) return new();
-        time = (time - InitialTime.Value) % Period; 
-        
-        SpatialInfo newState = new SpatialInfo();
+        time = (time + InitialTime.Value) % Period;
+        SpatialInfo newState = new();
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
-        SD_Vector2 orbitalPosition = SD_Vector2.FromPolar(trueAnomaly, Equation(trueAnomaly));
+        SD_Vector2 orbitalPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, Equation(trueAnomaly + Periapsis));
         newState.Position = Parent.Position + orbitalPosition;
         return newState;
     }

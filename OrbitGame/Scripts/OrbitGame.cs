@@ -187,8 +187,8 @@ public class OrbitGame : Game
             new(-4, 0),
             new(-3, 5)
         ]), shipMaterial);
-        Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new(
-            new(2 * new ScientificDecimal(6.378, 6), 30)), 1000, new Color(255, 0, 0, 255), earth);
+        Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
+            new SD_Vector2(2 * new ScientificDecimal(6.378, 6), 0)), 1000, new Color(255, 0, 0, 255), earth);
         Bodies.Add(strawhat);
         strawhat.DrawOrbitalPath = true;
         
@@ -255,6 +255,12 @@ public class OrbitGame : Game
         _tracking = Bodies[_trackingIndex];
         Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
     }
+
+    private void WarpUntilTime(ScientificDecimal endTime)
+    {
+        if (endTime < _time) throw new ArgumentException("EndTime must be greater than or equal to time.");
+        _time = endTime;
+    }
     
     KeyboardState _lastKeyboardState;
 
@@ -280,7 +286,7 @@ public class OrbitGame : Game
         
         if (keyboardState.IsKeyDown(Keys.T))
             if (_lastKeyboardState.IsKeyUp(Keys.T))
-                Console.WriteLine(KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0);
+                WarpUntilTime(_time + KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0);
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))

@@ -11,10 +11,14 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
     {
         if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
         KeplerOrbit orbit = Path.Orbit.Value;
-        ScientificDecimal timeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly - orbit.Periapsis);
-        currentTime %= orbit.Period;
-        ScientificDecimal timeUntilPoint = orbit.InitialTime ?? 0;
-        return orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
+        ScientificDecimal initialTime = orbit.InitialTime ?? 0;
+        ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
+        ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - currentTime - initialTime;
+        while (timeUntilPoint < 0)
+        {
+            timeUntilPoint += orbit.Period;
+        }
+        return timeUntilPoint;
     }
 }
 
@@ -49,15 +53,16 @@ public class KeplerOrbitPath
         KeplerOrbit orbit = Orbit.Value;
         SD_Vector2 mouseWorldPosition = OrbitGame.Camera.ConvertToWorldCoordinates(e.Position);
         SD_Vector2 mouseParentDifferenceVector = mouseWorldPosition - orbit.Parent.Position;
-        double mouseClickTrueAnomaly = mouseParentDifferenceVector.Direction();
+        double mouseClickTrueAnomaly = mouseParentDifferenceVector.Direction() - orbit.Periapsis;
         ScientificDecimal mouseClickPathDistance = mouseParentDifferenceVector.Magnitude();
-        float thisMouseDistanceToOrbit = OrbitGame.Camera.ConvertToScreenDistance((orbit.Equation(mouseClickTrueAnomaly) -
-                                                                          mouseClickPathDistance).Abs());
+        float thisMouseDistanceToOrbit = OrbitGame.Camera.ConvertToScreenDistance(
+            (orbit.Equation(mouseClickTrueAnomaly + orbit.Periapsis) - mouseClickPathDistance).Abs()
+        );
         if (thisMouseDistanceToOrbit < _minMouseDistanceToOrbit)
         {
             _minMouseDistanceToOrbit = thisMouseDistanceToOrbit;
             if (thisMouseDistanceToOrbit < 10)
-                HoverPoint = new(this, Orbit.Value.CalculateTrueAnomalyFromTimeSincePeriapsis(0));
+                HoverPoint = new(this, mouseClickTrueAnomaly);
             else HoverPoint = null;
         }
     }
@@ -78,9 +83,9 @@ public class KeplerOrbitPath
         {
             if (HoverPoint.Value.Path == this)
             {
-                double trueAnomaly = HoverPoint.Value.TrueAnomaly;
+                double absoluteAngle = HoverPoint.Value.TrueAnomaly + orbit.Periapsis;
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position +
-                                                SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
+                                                SD_Vector2.FromPolar(absoluteAngle, orbit.Equation(absoluteAngle));
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
@@ -88,9 +93,9 @@ public class KeplerOrbitPath
         {
             if (SelectedPoint.Value.Path == this)
             {
-                double trueAnomaly = SelectedPoint.Value.TrueAnomaly;
+                double absoluteAngle = SelectedPoint.Value.TrueAnomaly + orbit.Periapsis;
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position +
-                                                SD_Vector2.FromPolar(trueAnomaly, orbit.Equation(trueAnomaly));
+                                                SD_Vector2.FromPolar(absoluteAngle, orbit.Equation(absoluteAngle));
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
                 
             }
@@ -218,6 +223,7 @@ public class KeplerOrbitPath
             orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
         }
 
+        orbitPoints.RemoveAll(x => x.MagnitudeSquared().IsInfinite);
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
