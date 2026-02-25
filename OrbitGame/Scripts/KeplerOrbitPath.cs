@@ -7,15 +7,20 @@ namespace OrbitGame;
 
 public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double TrueAnomaly)
 {
-    public ScientificDecimal GetTimeUntilPoint(ScientificDecimal currentTime)
+    public ScientificDecimal GetTimeAtPoint(ScientificDecimal currentTime)
     {
         if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
         KeplerOrbit orbit = Path.Orbit.Value;
         ScientificDecimal initialTime = orbit.InitialTime ?? 0;
         ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
-        ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - currentTime - initialTime;
-        while (timeUntilPoint <= 0)
+        ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - initialTime;
+        
+        while (timeUntilPoint <= currentTime)
+        {
             timeUntilPoint += orbit.Period;
+            Console.WriteLine("Iter");
+        }
+
         return timeUntilPoint;
     }
 }
@@ -39,7 +44,7 @@ public class KeplerOrbitPath
         OrbitGame.UpdateFrame += OrbitPath_UpdateFrame;
     }
 
-    private void OrbitPath_UpdateFrame(object? sender, EventArgs e)
+    private static void OrbitPath_UpdateFrame(object? sender, EventArgs e)
     {
         _minMouseDistanceToOrbit = float.MaxValue;
     }

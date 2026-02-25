@@ -36,7 +36,8 @@ public class OrbitGame : Game
         IsMouseVisible = true;
     }
 
-    private ScientificDecimal _time = 0;
+    private ScientificDecimal _physicsTime = 0;
+    private ScientificDecimal _realTime = 0;
     private ScientificDecimal _timeStep = Options.DefaultTimeStep;
     private ScientificDecimal _deltaTime;
     private ScientificDecimal _deltaTimeStep;
@@ -256,10 +257,13 @@ public class OrbitGame : Game
         Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
     }
 
-    private void WarpUntilTime(ScientificDecimal endTime)
+    private void FastForwardUntilTime(ScientificDecimal endTime)
     {
-        if (endTime <= _time) return;
-        _time = endTime;
+        if (endTime <= _physicsTime) return;
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation("Fast Forward Time", in _realTime, _realTime, 
+            _realTime + 10, _timeStep, (endTime - _physicsTime) / 50);
+        _timeStep = InterpolationHandler<ScientificDecimal>.Query("Fast Forward Time", in _realTime);
+        //_physicsTime = endTime;
     }
     
     KeyboardState _lastKeyboardState;
@@ -286,7 +290,7 @@ public class OrbitGame : Game
         
         if (keyboardState.IsKeyDown(Keys.T))
             if (_lastKeyboardState.IsKeyUp(Keys.T))
-                WarpUntilTime(_time + KeplerOrbitPath.SelectedPoint?.GetTimeUntilPoint(_time) ?? 0);
+                FastForwardUntilTime(KeplerOrbitPath.SelectedPoint?.GetTimeAtPoint(_physicsTime) ?? 0);
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
@@ -321,7 +325,8 @@ public class OrbitGame : Game
         _deltaTime = (DateTime.Now - _previousTime).TotalSeconds;
         _previousTime = DateTime.Now;
         _deltaTimeStep = _deltaTime * _timeStep;
-        _time += _deltaTimeStep;
+        _physicsTime += _deltaTimeStep;
+        _realTime = gameTime.TotalGameTime.TotalSeconds;
         _frameCountPerSecond++;
 
         foreach (var body in Bodies)
@@ -337,7 +342,7 @@ public class OrbitGame : Game
 
             foreach (var planet in Planets)
             {
-                planet.UpdatePosition_Kepler(_time, _deltaTimeStep);
+                planet.UpdatePosition_Kepler(_physicsTime, _deltaTimeStep);
             }
 
             foreach (var ship in Ships)
@@ -379,7 +384,7 @@ public class OrbitGame : Game
 
         try
         {
-            _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25).AddSeconds((double)_time),
+            _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25).AddSeconds((double)_physicsTime),
                 new Vector2(0, 30), Color.White);
         }
         catch (ArgumentOutOfRangeException)

@@ -11,7 +11,7 @@ namespace OrbitGame;
 public struct ScientificDecimal : INumber<ScientificDecimal>
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
-    private const double ComparisonTolerance = 0.0000000001;
+    private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
 
     public static ScientificDecimal Zero => 0;
     public static ScientificDecimal One => 1;
@@ -77,8 +77,8 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         _infinite = infinite;
     }
 
-    public bool Positive => double.IsPositive(Mantissa);
-    public bool Negative => double.IsNegative(Mantissa);
+    public bool Positive => double.IsPositive(_mantissa);
+    public bool Negative => double.IsNegative(_mantissa);
     public bool IsInfinite => _infinite;
 
     /// <summary>
