@@ -260,10 +260,11 @@ public class OrbitGame : Game
     private void FastForwardUntilTime(ScientificDecimal endTime)
     {
         if (endTime <= _physicsTime) return;
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation("Fast Forward Time", in _realTime, _realTime, 
-            _realTime + 10, _timeStep, (endTime - _physicsTime) / 50);
-        _timeStep = InterpolationHandler<ScientificDecimal>.Query("Fast Forward Time", in _realTime);
-        //_physicsTime = endTime;
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(InterpolationKey.FastForwardTime, _realTime, _realTime, 
+            _realTime + 5, _timeStep, (endTime - _physicsTime) / 10);
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(InterpolationKey.FastForwardTime, _realTime, 
+            _realTime + 10, _realTime + 15, (endTime - _physicsTime) / 10, _timeStep);
+        _timeStep = InterpolationHandler<ScientificDecimal>.Query(InterpolationKey.FastForwardTime, _realTime, _timeStep);
     }
     
     KeyboardState _lastKeyboardState;
