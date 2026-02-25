@@ -1,15 +1,22 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
+
 namespace OrbitGame;
 
 /// <summary>
 /// Number with decimal precision but arbitrary place value.
 /// </summary>
-public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<ScientificDecimal>, IFormattable
+public struct ScientificDecimal : INumber<ScientificDecimal>
 {
     private const int PrintPrecision = Options.ScientificPrintPrecision;
     private const double ComparisonTolerance = 0.0000000001;
-    
+
+    public static ScientificDecimal Zero => 0;
+    public static ScientificDecimal One => 1;
+    public static int Radix => 10;
+
     /// <summary>
     /// Represents a number that approaches positive infinity.
     /// </summary>
@@ -50,11 +57,6 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
             _exponent = value;
         }
     }
-    
-    public readonly bool Positive => double.IsPositive(_mantissa);
-    public readonly bool Negative => double.IsNegative(_mantissa);
-    public readonly bool IsInfinite => _infinite;
-    
 
     public ScientificDecimal(double mantissa, int exponent)
     {
@@ -74,6 +76,10 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     {
         _infinite = infinite;
     }
+
+    public bool Positive => double.IsPositive(Mantissa);
+    public bool Negative => double.IsNegative(Mantissa);
+    public bool IsInfinite => _infinite;
 
     /// <summary>
     /// Sets the largest non-zero digit of the mantissa to be in the ones place
@@ -299,7 +305,16 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
 
+    public int CompareTo(object? obj)
+    {
+        throw new NotImplementedException();
+    }
+
     public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
 
     public int CompareTo(ScientificDecimal other)
         => this < other ? -1 : this > other ? 1 : 0;
@@ -319,5 +334,158 @@ public struct ScientificDecimal : IComparable<ScientificDecimal>, IEquatable<Sci
     public override int GetHashCode()
     {
         return HashCode.Combine(Mantissa, Exponent);
+    }
+
+    public static ScientificDecimal Parse(string s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static ScientificDecimal AdditiveIdentity { get; }
+    public static ScientificDecimal MultiplicativeIdentity { get; }
+
+    public static ScientificDecimal Abs(ScientificDecimal value)
+        => value.Abs();
+
+    public static bool IsCanonical(ScientificDecimal value)
+        => throw new NotImplementedException();
+
+    public static bool IsComplexNumber(ScientificDecimal value)
+        => false;
+
+    public static bool IsEvenInteger(ScientificDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool IsFinite(ScientificDecimal value)
+        => !value.IsInfinite;
+
+    public static bool IsImaginaryNumber(ScientificDecimal value)
+        => false;
+
+    public static bool IsInfinity(ScientificDecimal value)
+        => value.IsInfinite;
+
+    public static bool IsInteger(ScientificDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool IsNaN(ScientificDecimal value)
+        => IsInfinity(value);
+
+    public static bool IsNegative(ScientificDecimal value)
+        => value.Negative;
+
+    public static bool IsNegativeInfinity(ScientificDecimal value)
+        => value is { Negative: true, IsInfinite: true };
+
+    public static bool IsNormal(ScientificDecimal value)
+        => double.IsNormal(value.Mantissa);
+
+    public static bool IsOddInteger(ScientificDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool IsPositive(ScientificDecimal value)
+        => value == 0 || value.Positive;
+
+    public static bool IsPositiveInfinity(ScientificDecimal value)
+        => value is { Positive: true, IsInfinite: true };
+
+    public static bool IsRealNumber(ScientificDecimal value)
+        => true;
+
+    public static bool IsSubnormal(ScientificDecimal value)
+        => double.IsSubnormal(value.Mantissa);
+
+    public static bool IsZero(ScientificDecimal value)
+        => value.Mantissa == 0;
+
+    public static ScientificDecimal MaxMagnitude(ScientificDecimal x, ScientificDecimal y)
+        => Max(x, y);
+
+    public static ScientificDecimal MaxMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : MaxMagnitude(x, y);
+
+    public static ScientificDecimal MinMagnitude(ScientificDecimal x, ScientificDecimal y)
+        => Min(x, y);
+
+    public static ScientificDecimal MinMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : MinMagnitude(x, y);
+
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static ScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromChecked<TOther>(TOther value, out ScientificDecimal result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromSaturating<TOther>(TOther value, out ScientificDecimal result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromTruncating<TOther>(TOther value, out ScientificDecimal result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToChecked<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToSaturating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToTruncating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+        where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
+        out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
+        out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
     }
 }

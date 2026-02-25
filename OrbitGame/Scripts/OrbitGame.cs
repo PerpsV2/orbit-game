@@ -258,7 +258,7 @@ public class OrbitGame : Game
 
     private void WarpUntilTime(ScientificDecimal endTime)
     {
-        if (endTime < _time) throw new ArgumentException("EndTime must be greater than or equal to time.");
+        if (endTime <= _time) return;
         _time = endTime;
     }
     
