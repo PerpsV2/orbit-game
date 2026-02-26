@@ -8,59 +8,79 @@ namespace OrbitGame;
 
 public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
 {
-    public delegate void Interpolator(VariableRef independentVariable, VariableRef dependentVariable,
+    public delegate void Interpolator(InterpolatorRef variableReferences,
         T startIndependent, T endIndependent, T startDependent, T endDependent);
     
-    public class VariableRef(Func<T> getter, Action<T> setter)
+    public class InterpolatorRef(Func<T> independentGetter, Action<T> dependentSetter)
     {
-        public T Value
-        {
-            get => getter();
-            set => setter(value);
+        public T Independent => independentGetter();
+
+        public T Dependent {
+            set => dependentSetter(value);
         }
     }
 
-    private class Interpolation(
-        VariableRef independentVariable,
-        VariableRef dependentVariable,
+    public class Interpolation(
+        InterpolatorRef variableReferences,
         Interpolator interpolator,
         T startIndependent,
         T endIndependent,
         T startDependent,
         T endDependent)
     {
+        public delegate void InterpolationEvent();
+
+        private bool _lastActiveState;
+
+        public event InterpolationEvent? InterpolationStart;
+        public event InterpolationEvent? InterpolationEnd;
+        
         public void UpdateValue()
         {
-            interpolator(independentVariable, dependentVariable, 
-                startIndependent, endIndependent, startDependent, endDependent);
+            bool currentActiveState = IsActive();
+            if (currentActiveState != _lastActiveState)
+            {
+                if (currentActiveState) InterpolationStart?.Invoke();
+                else InterpolationEnd?.Invoke();
+            }
+            interpolator(variableReferences, startIndependent, endIndependent, startDependent, endDependent);
+            _lastActiveState = currentActiveState;
         }
 
+        public bool IsActive()
+            => variableReferences.Independent >= startIndependent && variableReferences.Independent <= endIndependent;
+
         public bool IsEnded()
-            => independentVariable.Value > endIndependent;
+            => variableReferences.Independent > endIndependent;
+
+        ~Interpolation()
+        {
+            InterpolationEnd?.Invoke();
+        }
     }
 
     public static void LinearInterpolate(
-        VariableRef independentVariable, VariableRef dependentVariable,
+        InterpolatorRef variableReferences,
         T startIndependent, T endIndependent, T startDependent, T endDependent
     )
     {
-        if (independentVariable.Value < startIndependent) return;
-        if (independentVariable.Value > endIndependent) return;
-        T progress = (independentVariable.Value - startIndependent) / (endIndependent - startIndependent);
-        dependentVariable.Value = startDependent + (endDependent - startDependent) * progress;
+        if (variableReferences.Independent < startIndependent) return;
+        if (variableReferences.Independent > endIndependent) return;
+        T progress = (variableReferences.Independent - startIndependent) / (endIndependent - startIndependent);
+        variableReferences.Dependent = startDependent + (endDependent - startDependent) * progress;
     }
     
     private static readonly List<Interpolation> Interpolations = [];
     
-    public static void CreateInterpolation(
-        VariableRef independentVariable, VariableRef dependentVariable,
+    public static Interpolation CreateInterpolation(
+        InterpolatorRef variableReferences,
         T startIndependent, T endIndependent, T startDependent, T endDependent,
         Interpolator? interpolator = null
     )
     {
-        Interpolations.Add(new Interpolation(independentVariable, dependentVariable, 
-            interpolator ?? LinearInterpolate,
+        Interpolations.Add(new Interpolation(variableReferences, interpolator ?? LinearInterpolate,
             startIndependent, endIndependent, startDependent, endDependent));
+        return Interpolations.Last();
     }
 
     public static void UpdateInterpolationValues()

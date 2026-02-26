@@ -262,21 +262,27 @@ public class OrbitGame : Game
     {
         if (endTime <= _physicsTime) return;
         ScientificDecimal multiplier = new((endTime - _physicsTime).Exponent);
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _realTime, val => { _realTime = val; }), 
-            new(() => _timeStep, val => { _timeStep = val; }), 
+        var startTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(() => _realTime, val => { _timeStep = val; }),
             _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _physicsTime, val => { _physicsTime = val; }), 
-            new(() => _timeStep, val => { _timeStep = val; }), 
+        startTimeWarp.InterpolationStart += () => 
+        {
+            _isFastForward = true;
+            foreach (var ship in Ships) {ship.CalculateShipKeplerianOrbit(Planets, true);}
+        };
+        var endTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(() => _physicsTime, val => { _timeStep = val; }), 
             endTime - _goalTimeStep * multiplier / 5, endTime, _goalTimeStep * multiplier, _goalTimeStep);
+        endTimeWarp.InterpolationEnd += () =>
+        {
+            _isFastForward = false; 
+        };
     }
 
     private void IncreaseTimeStep(ScientificDecimal multiplier)
     {
         InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _realTime, val => { _realTime = val; }), 
-            new(() => _timeStep, val => { _timeStep = val; }), 
+            new(() => _realTime, val => { _timeStep = val; }),
             _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
         _goalTimeStep *= multiplier;
     }
@@ -365,15 +371,26 @@ public class OrbitGame : Game
                 planet.UpdatePosition_Kepler(_physicsTime, _deltaTimeStep);
             }
 
-            foreach (var ship in Ships)
+            if (!_isFastForward)
             {
-                tasks.Add(Task.Run(() =>
+                foreach (var ship in Ships)
                 {
-                    ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod, ship.CalculateNetAcceleration);
-                    ship.CalculateShipKeplerianOrbit(Planets);
-                }));
+                    tasks.Add(Task.Run(() =>
+                    {
+                        ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
+                            ship.CalculateNetAcceleration);
+                        ship.CalculateShipKeplerianOrbit(Planets);
+                    }));
+                }
             }
-            
+            else
+            {
+                foreach (var ship in Ships)
+                {
+                    ship.UpdatePosition_Kepler(_physicsTime, _deltaTimeStep);
+                }
+            }
+
             Task.WaitAll(tasks.ToArray());
             
             _collisionHandler.ResolveCollisions();
@@ -413,6 +430,7 @@ public class OrbitGame : Game
         }
         
         _spriteBatch.DrawString(_font, _timeStep.ToString(), new Vector2(0, 60), Color.White);
+        _spriteBatch.DrawString(_font, _isFastForward.ToString(), new Vector2(0, 90), Color.White);
 
         foreach (var ship in Ships) ship.Draw();
         foreach (var planet in Planets) planet.Draw();
