@@ -260,12 +260,19 @@ public class OrbitGame : Game
     private void FastForwardUntilTime(ScientificDecimal endTime)
     {
         if (endTime <= _physicsTime) return;
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation(InterpolationKey.FastForwardTime, _realTime, _realTime, 
-            _realTime + 5, _timeStep, (endTime - _physicsTime) / 10);
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation(InterpolationKey.FastForwardTime, _realTime, 
-            _realTime + 10, _realTime + 15, (endTime - _physicsTime) / 10, _timeStep);
-        _timeStep = InterpolationHandler<ScientificDecimal>.Query(InterpolationKey.FastForwardTime, _realTime, _timeStep);
+        InterpolationHandler<ScientificDecimal>.AdjustInterpolationValue(
+            ref _realTime, ref _timeStep,
+            _realTime, _realTime + 5, _timeStep, _timeStep * 10
+        );
     }
+
+    private void IncreaseTimeStep(ScientificDecimal multiplier)
+    {
+        
+    }
+
+    private void DecreaseTimeStep(ScientificDecimal multiplier)
+        => IncreaseTimeStep(1 / multiplier);
     
     KeyboardState _lastKeyboardState;
 
@@ -277,10 +284,10 @@ public class OrbitGame : Game
         KeyboardState keyboardState = Keyboard.GetState();
         if (keyboardState.IsKeyDown(Options.TimeWarpUpKey))
             if (_lastKeyboardState.IsKeyUp(Options.TimeWarpUpKey))
-                _timeStep *= Options.TimeWarpStepMultiplier;
+                IncreaseTimeStep(Options.TimeWarpStepMultiplier);
         if (keyboardState.IsKeyDown(Options.TimeWarpDownKey))
             if (_lastKeyboardState.IsKeyUp(Options.TimeWarpDownKey))
-                _timeStep /= Options.TimeWarpStepMultiplier;
+                DecreaseTimeStep(Options.TimeWarpStepMultiplier);
 
         if (keyboardState.IsKeyDown(Options.TrackNextBodyKey))
             if (_lastKeyboardState.IsKeyUp(Options.TrackNextBodyKey))
@@ -329,7 +336,7 @@ public class OrbitGame : Game
         _physicsTime += _deltaTimeStep;
         _realTime = gameTime.TotalGameTime.TotalSeconds;
         _frameCountPerSecond++;
-
+        
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
