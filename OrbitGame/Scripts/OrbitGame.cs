@@ -16,9 +16,8 @@ public static class Effects
 {
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
-    public static Effect? OrbitEffect;
 }
-    
+
 public class OrbitGame : Game
 {
     private GraphicsDeviceManager _graphics;
@@ -43,6 +42,7 @@ public class OrbitGame : Game
     private ScientificDecimal _deltaTime;
     private ScientificDecimal _deltaTimeStep;
     private DateTime _previousTime = DateTime.Now;
+    private bool _isFastForward;
 
     private int _frameCountPerSecond;
     private int _framesPerSecond;

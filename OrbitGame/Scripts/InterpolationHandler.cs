@@ -20,7 +20,7 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
         }
     }
 
-    public class Interpolation(
+    private class Interpolation(
         VariableRef independentVariable,
         VariableRef dependentVariable,
         Interpolator interpolator,
@@ -39,7 +39,7 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
             => independentVariable.Value > endIndependent;
     }
 
-    public static void CalculateInterpolationValue(
+    public static void LinearInterpolate(
         VariableRef independentVariable, VariableRef dependentVariable,
         T startIndependent, T endIndependent, T startDependent, T endDependent
     )
@@ -59,7 +59,7 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
     )
     {
         Interpolations.Add(new Interpolation(independentVariable, dependentVariable, 
-            interpolator ?? CalculateInterpolationValue,
+            interpolator ?? LinearInterpolate,
             startIndependent, endIndependent, startDependent, endDependent));
     }
 
