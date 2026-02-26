@@ -39,6 +39,7 @@ public class OrbitGame : Game
     private ScientificDecimal _physicsTime = 0;
     private ScientificDecimal _realTime = 0;
     private ScientificDecimal _timeStep = Options.DefaultTimeStep;
+    private ScientificDecimal _goalTimeStep = Options.DefaultTimeStep;
     private ScientificDecimal _deltaTime;
     private ScientificDecimal _deltaTimeStep;
     private DateTime _previousTime = DateTime.Now;
@@ -260,15 +261,24 @@ public class OrbitGame : Game
     private void FastForwardUntilTime(ScientificDecimal endTime)
     {
         if (endTime <= _physicsTime) return;
-        InterpolationHandler<ScientificDecimal>.AdjustInterpolationValue(
-            ref _realTime, ref _timeStep,
-            _realTime, _realTime + 5, _timeStep, _timeStep * 10
-        );
+        ScientificDecimal multiplier = new((endTime - _physicsTime).Exponent);
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(() => _realTime, val => { _realTime = val; }), 
+            new(() => _timeStep, val => { _timeStep = val; }), 
+            _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(() => _physicsTime, val => { _physicsTime = val; }), 
+            new(() => _timeStep, val => { _timeStep = val; }), 
+            endTime - _goalTimeStep * multiplier / 5, endTime, _goalTimeStep * multiplier, _goalTimeStep);
     }
 
     private void IncreaseTimeStep(ScientificDecimal multiplier)
     {
-        
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(() => _realTime, val => { _realTime = val; }), 
+            new(() => _timeStep, val => { _timeStep = val; }), 
+            _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
+        _goalTimeStep *= multiplier;
     }
 
     private void DecreaseTimeStep(ScientificDecimal multiplier)
@@ -329,6 +339,8 @@ public class OrbitGame : Game
     {
         base.Update(gameTime);
         UpdateFrame?.Invoke(this, EventArgs.Empty);
+
+        InterpolationHandler<ScientificDecimal>.UpdateInterpolationValues();
         
         _deltaTime = (DateTime.Now - _previousTime).TotalSeconds;
         _previousTime = DateTime.Now;
@@ -389,7 +401,7 @@ public class OrbitGame : Game
 
         if (Options.DisplayFPS)
             _spriteBatch.DrawString(_font, _framesPerSecond.ToString(), Vector2.Zero, Color.White);
-
+        
         try
         {
             _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25).AddSeconds((double)_physicsTime),
@@ -399,6 +411,8 @@ public class OrbitGame : Game
         {
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
+        
+        _spriteBatch.DrawString(_font, _timeStep.ToString(), new Vector2(0, 60), Color.White);
 
         foreach (var ship in Ships) ship.Draw();
         foreach (var planet in Planets) planet.Draw();

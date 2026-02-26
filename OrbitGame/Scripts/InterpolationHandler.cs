@@ -6,18 +6,69 @@ using System.Threading.Tasks;
 
 namespace OrbitGame;
 
-public delegate void Interpolator<T>(in T independentVariable, out T dependentVariable,
-    T startIndependent, T endIndependent, T startDependent, T endDependent);
-
 public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
 {
-    public static void AdjustInterpolationValue(ref T independentVariable, ref T dependentVariable,
-        T startIndependent, T endIndependent, T startDependent, T endDependent)
+    public delegate void Interpolator(VariableRef independentVariable, VariableRef dependentVariable,
+        T startIndependent, T endIndependent, T startDependent, T endDependent);
+    
+    public class VariableRef(Func<T> getter, Action<T> setter)
     {
-        T progress;
-        if (independentVariable <= startIndependent) progress = T.Zero;
-        else if (independentVariable >= endIndependent) progress = T.One;
-        else progress = (independentVariable - startIndependent) / (endIndependent - startIndependent);
-        dependentVariable = startDependent + (endDependent - startDependent) * progress;
+        public T Value
+        {
+            get => getter();
+            set => setter(value);
+        }
+    }
+
+    public class Interpolation(
+        VariableRef independentVariable,
+        VariableRef dependentVariable,
+        Interpolator interpolator,
+        T startIndependent,
+        T endIndependent,
+        T startDependent,
+        T endDependent)
+    {
+        public void UpdateValue()
+        {
+            interpolator(independentVariable, dependentVariable, 
+                startIndependent, endIndependent, startDependent, endDependent);
+        }
+
+        public bool IsEnded()
+            => independentVariable.Value > endIndependent;
+    }
+
+    public static void CalculateInterpolationValue(
+        VariableRef independentVariable, VariableRef dependentVariable,
+        T startIndependent, T endIndependent, T startDependent, T endDependent
+    )
+    {
+        if (independentVariable.Value < startIndependent) return;
+        if (independentVariable.Value > endIndependent) return;
+        T progress = (independentVariable.Value - startIndependent) / (endIndependent - startIndependent);
+        dependentVariable.Value = startDependent + (endDependent - startDependent) * progress;
+    }
+    
+    private static readonly List<Interpolation> Interpolations = [];
+    
+    public static void CreateInterpolation(
+        VariableRef independentVariable, VariableRef dependentVariable,
+        T startIndependent, T endIndependent, T startDependent, T endDependent,
+        Interpolator? interpolator = null
+    )
+    {
+        Interpolations.Add(new Interpolation(independentVariable, dependentVariable, 
+            interpolator ?? CalculateInterpolationValue,
+            startIndependent, endIndependent, startDependent, endDependent));
+    }
+
+    public static void UpdateInterpolationValues()
+    {
+        Interpolations.RemoveAll(x => x.IsEnded());
+        foreach (var interpolation in Interpolations)
+        {
+            interpolation.UpdateValue();
+        }
     }
 }
