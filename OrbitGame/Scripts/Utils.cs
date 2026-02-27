@@ -42,6 +42,9 @@ public static class Utils
     
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
+    
+    public static ScientificDecimal UnsignedMod(ScientificDecimal a, ScientificDecimal b)
+        => a - b * (a / b).Floor();
 
     public static double WrapAngle(double angle)
         => UnsignedMod(angle, Math.Tau);

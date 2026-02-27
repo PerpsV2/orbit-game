@@ -218,6 +218,15 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         return new(double.Round(Mantissa, Exponent), Exponent);
     }
     
+    public ScientificDecimal Floor()
+    {
+        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (Mantissa == 0) return this;
+        if (Exponent < -1) return 0;
+        if (Exponent == -1) return new(double.Floor(Mantissa * 0.1), 0);
+        return new(double.Round(Mantissa, Exponent), Exponent);
+    }
+    
     #region Operators
 
     public static ScientificDecimal operator +(ScientificDecimal value) 

@@ -215,6 +215,7 @@ public class OrbitGame : Game
 
         Planets = Bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
+        foreach (var planet in Planets) planet.GenerateKeplerianOrbit(_physicsTime);
         OriginBody.Body = Bodies[^1];
         _tracking = OriginBody.Body;
         Camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
@@ -261,19 +262,18 @@ public class OrbitGame : Game
     private void FastForwardUntilTime(ScientificDecimal endTime)
     {
         if (endTime <= _physicsTime) return;
-        ScientificDecimal multiplier = new((endTime - _physicsTime).Exponent);
+        ScientificDecimal multiplier = new ScientificDecimal((endTime - _physicsTime).Exponent);
         var startTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _realTime, val => { _timeStep = val; }),
+            new(independentGetter: () => _realTime, dependentSetter: val => { _timeStep = val; }),
             _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
-        startTimeWarp.InterpolationStart += () => 
+        startTimeWarp.InterpolationStart += (_, _) => 
         {
             _isFastForward = true;
-            foreach (var ship in Ships) {ship.CalculateShipKeplerianOrbit(Planets, true);}
         };
         var endTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _physicsTime, val => { _timeStep = val; }), 
-            endTime - _goalTimeStep * multiplier / 5, endTime, _goalTimeStep * multiplier, _goalTimeStep);
-        endTimeWarp.InterpolationEnd += () =>
+            new(independentGetter: () => _physicsTime, dependentSetter: val => { _timeStep = val; }), 
+            endTime - _goalTimeStep * multiplier * 0.1, endTime, _goalTimeStep * multiplier, _goalTimeStep);
+        endTimeWarp.InterpolationEnd += (_, _) =>
         {
             _isFastForward = false; 
         };
@@ -319,6 +319,14 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
                 Camera.Focus();
+        
+        if (keyboardState.IsKeyDown(Keys.C))
+            if (_lastKeyboardState.IsKeyUp(Keys.C))
+            {
+                if (Camera.MovementScheme is SurfaceCameraScheme) Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
+                else if (Camera.MovementScheme is TrackingCameraScheme) Camera.MovementScheme = new TrackingFixedCameraScheme(Camera.SpatialInfo, _tracking);
+                else if (Camera.MovementScheme is TrackingFixedCameraScheme) Camera.MovementScheme = new SurfaceCameraScheme(_tracking.Parent, _tracking);
+            }
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);
@@ -379,7 +387,7 @@ public class OrbitGame : Game
                     {
                         ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
                             ship.CalculateNetAcceleration);
-                        ship.CalculateShipKeplerianOrbit(Planets);
+                        ship.UpdateShipKeplerianOrbit(Planets);
                     }));
                 }
             }

@@ -44,7 +44,6 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
-        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, true);
         Mesh.GenerateBuffers();
     }
     
@@ -82,7 +81,7 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the Keplerian orbit around a central force with the option to calculate certain orbital initials
     /// </summary>
-    protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, bool initials)
+    protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, ScientificDecimal? time)
     {
         if (centralForce == null) return null;
         
@@ -104,8 +103,11 @@ public abstract class Body : KinematicObject
 
         if (semiLatusRectum == 0) return null;
 
-        return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, initials);
+        return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, time);
     }
+
+    public void GenerateKeplerianOrbit(ScientificDecimal time)
+        => KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, time);
 
     public void UpdatePosition_Integrator(
         ScientificDecimal timeStep, 
