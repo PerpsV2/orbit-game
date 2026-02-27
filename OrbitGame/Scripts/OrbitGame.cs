@@ -20,6 +20,74 @@ public static class Effects
 
 public class OrbitGame : Game
 {
+    private static class GameState
+    {
+        /// <summary>
+        /// In-game time used for physics calculations.
+        /// </summary>
+        public static ScientificDecimal PhysicsTime = 0;
+    
+        /// <summary>
+        /// In-game time step.
+        /// </summary>
+        public static ScientificDecimal PhysicsTimeStep = Options.DefaultTimeStep;
+
+        /// <summary>
+        /// In-game time step final non-interpolated value.
+        /// </summary>
+        public static ScientificDecimal GoalPhysicsTimeStep = Options.DefaultTimeStep;
+
+        /// <summary>
+        /// Time since last update call.
+        /// </summary>
+        public static ScientificDecimal DeltaRealTime = 0;
+
+        /// <summary>
+        /// Physics time since last update call.
+        /// </summary>
+        public static ScientificDecimal DeltaPhysicsTimeStep = 0;
+
+        /// <summary>
+        /// DateTime time at last update call.
+        /// </summary>
+        public static DateTime PreviousDateTime = DateTime.Now;
+    
+        /// <summary>
+        /// Real time passed since game started.
+        /// </summary>
+        public static ScientificDecimal RealTime = 0;
+
+        /// <summary>
+        /// Whether the game is in fast forward mode or not.
+        /// </summary>
+        public static bool IsFastForward;
+
+        /// <summary>
+        /// Number of frames so far this second.
+        /// </summary>
+        public static int FrameCountThisSecond;
+        
+        /// <summary>
+        /// Update loop FPS.
+        /// </summary>
+        public static int FramesPerSecond;
+        
+        /// <summary>
+        /// The current body the camera is tracking.
+        /// </summary>
+        public static Body Tracking;
+        
+        /// <summary>
+        /// The index of the current tracking body.
+        /// </summary>
+        public static int TrackingIndex;
+        
+        /// <summary>
+        /// The current player-controlled ship.
+        /// </summary>
+        public static Ship ControlShip;
+    }
+    
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
@@ -30,38 +98,20 @@ public class OrbitGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
-        Graphics = _graphics.GraphicsDevice;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
 
-    private ScientificDecimal _physicsTime = 0;
-    private ScientificDecimal _realTime = 0;
-    private ScientificDecimal _timeStep = Options.DefaultTimeStep;
-    private ScientificDecimal _goalTimeStep = Options.DefaultTimeStep;
-    private ScientificDecimal _deltaTime;
-    private ScientificDecimal _deltaTimeStep;
-    private DateTime _previousTime = DateTime.Now;
-    private bool _isFastForward;
-
-    private int _frameCountPerSecond;
-    private int _framesPerSecond;
-
     public static List<Body> Bodies = [];
     public static List<Planet> Planets = [];
     public static List<Ship> Ships = [];
-
-    private Body _tracking;
-    private int _trackingIndex;
-    private Ship _controlShip;
-
+    public static GraphicsDevice? Graphics;
     public static Camera Camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
     CollisionHandler _collisionHandler;
 
-    public static GraphicsDevice Graphics = null!;
     private SpriteFont _font;
     private readonly Random _rnd = new();
 
@@ -69,14 +119,14 @@ public class OrbitGame : Game
 
     void UpdateFPS(object? state)
     {
-        _framesPerSecond = _frameCountPerSecond;
-        _frameCountPerSecond = 0;
+        GameState.FramesPerSecond = GameState.FrameCountThisSecond;
+        GameState.FrameCountThisSecond = 0;
     }
 
     protected override void Initialize()
     {
         Graphics = _graphics.GraphicsDevice;
-
+        
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         
         #region Bodies
@@ -215,16 +265,17 @@ public class OrbitGame : Game
 
         Planets = Bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
-        foreach (var planet in Planets) planet.GenerateKeplerianOrbit(_physicsTime);
+        foreach (var planet in Planets) planet.GenerateKeplerianOrbit(GameState.PhysicsTime);
         OriginBody.Body = Bodies[^1];
-        _tracking = OriginBody.Body;
+        GameState.Tracking = OriginBody.Body;
         Camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
         Camera.Focus();
-        _controlShip = Ships[^1];
-        _controlShip.DrawOrbitalPath = true;
-        _trackingIndex = Bodies.IndexOf(OriginBody.Body);
+        GameState.ControlShip = Ships[^1];
+        GameState.ControlShip.DrawOrbitalPath = true;
+        GameState.TrackingIndex = Bodies.IndexOf(OriginBody.Body);
         _collisionHandler = new CollisionHandler(Bodies, new() {
-            {(typeof(Ship), typeof(Planet)), (r, i) => CollisionHandler.RestShipPlanetCollision(r, i, _timeStep, _deltaTimeStep)}
+            {(typeof(Ship), typeof(Planet)), (r, i) => 
+                CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)}
         });
 
         base.Initialize();
@@ -254,41 +305,64 @@ public class OrbitGame : Game
 
     private void TrackBody(int index)
     {
-        _trackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
-        _tracking = Bodies[_trackingIndex];
-        Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
+        GameState.TrackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
+        GameState.Tracking = Bodies[GameState.TrackingIndex];
+        Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
     }
 
-    private void FastForwardUntilTime(ScientificDecimal endTime)
+    private void FastForwardToSelected()
     {
-        if (endTime <= _physicsTime) return;
-        ScientificDecimal multiplier = new ScientificDecimal((endTime - _physicsTime).Exponent);
-        var startTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(independentGetter: () => _realTime, dependentSetter: val => { _timeStep = val; }),
-            _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
-        startTimeWarp.InterpolationStart += (_, _) => 
-        {
-            _isFastForward = true;
-        };
+        foreach (var ship in Ships)
+            ship.GenerateKeplerianOrbit(GameState.PhysicsTime);
+        ScientificDecimal endTime = KeplerOrbitPath.SelectedPoint?.GetTimeAtPoint(GameState.PhysicsTime) ?? 0;
+        if (endTime <= GameState.PhysicsTime) return;
+        GameState.IsFastForward = true;
+        ScientificDecimal multiplier = new ScientificDecimal((endTime - GameState.PhysicsTime).Exponent);
+        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
+            new(independentGetter: () => GameState.RealTime, dependentSetter: val => { GameState.PhysicsTimeStep = val; }),
+            GameState.RealTime, GameState.RealTime + 0.5, 
+            GameState.GoalPhysicsTimeStep, GameState.GoalPhysicsTimeStep * multiplier);
         var endTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(independentGetter: () => _physicsTime, dependentSetter: val => { _timeStep = val; }), 
-            endTime - _goalTimeStep * multiplier * 0.1, endTime, _goalTimeStep * multiplier, _goalTimeStep);
+            new(independentGetter: () => GameState.PhysicsTime, dependentSetter: val => { GameState.PhysicsTimeStep = val; }), 
+            endTime - GameState.GoalPhysicsTimeStep * multiplier * 0.1, endTime, 
+            GameState.GoalPhysicsTimeStep * multiplier, GameState.GoalPhysicsTimeStep);
         endTimeWarp.InterpolationEnd += (_, _) =>
         {
-            _isFastForward = false; 
+            GameState.IsFastForward = false; 
         };
     }
 
     private void IncreaseTimeStep(ScientificDecimal multiplier)
     {
         InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _realTime, val => { _timeStep = val; }),
-            _realTime, _realTime + 0.5, _goalTimeStep, _goalTimeStep * multiplier);
-        _goalTimeStep *= multiplier;
+            new(() => GameState.RealTime, val => { GameState.PhysicsTimeStep = val; }),
+            GameState.RealTime, GameState.RealTime + 0.5, 
+            GameState.GoalPhysicsTimeStep, GameState.GoalPhysicsTimeStep * multiplier);
+        GameState.GoalPhysicsTimeStep *= multiplier;
     }
 
     private void DecreaseTimeStep(ScientificDecimal multiplier)
         => IncreaseTimeStep(1 / multiplier);
+
+    private void ToggleCameraMovementScheme()
+    {
+        switch (Camera.MovementScheme)
+        {
+            case TrackingCameraScheme:
+                Camera.MovementScheme = new TrackingFixedCameraScheme(Camera.SpatialInfo, GameState.Tracking);
+                break;
+            case TrackingFixedCameraScheme:
+                if (GameState.Tracking.Parent == null)
+                    Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
+                else Camera.MovementScheme = new SurfaceCameraScheme(GameState.Tracking.Parent, GameState.Tracking);
+                break;
+            case SurfaceCameraScheme:
+                Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
+                break;
+            default:
+                throw new Exception("Unrecognized camera movement scheme");
+        }
+    }
     
     KeyboardState _lastKeyboardState;
 
@@ -307,14 +381,14 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Options.TrackNextBodyKey))
             if (_lastKeyboardState.IsKeyUp(Options.TrackNextBodyKey))
-                TrackBody(_trackingIndex + 1);
+                TrackBody(GameState.TrackingIndex + 1);
         if (keyboardState.IsKeyDown(Options.TrackPrevBodyKey))
             if (_lastKeyboardState.IsKeyUp(Options.TrackPrevBodyKey))
-                TrackBody(_trackingIndex - 1);
+                TrackBody(GameState.TrackingIndex - 1);
         
         if (keyboardState.IsKeyDown(Keys.T))
             if (_lastKeyboardState.IsKeyUp(Keys.T))
-                FastForwardUntilTime(KeplerOrbitPath.SelectedPoint?.GetTimeAtPoint(_physicsTime) ?? 0);
+                FastForwardToSelected();
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
@@ -322,11 +396,7 @@ public class OrbitGame : Game
         
         if (keyboardState.IsKeyDown(Keys.C))
             if (_lastKeyboardState.IsKeyUp(Keys.C))
-            {
-                if (Camera.MovementScheme is SurfaceCameraScheme) Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, _tracking);
-                else if (Camera.MovementScheme is TrackingCameraScheme) Camera.MovementScheme = new TrackingFixedCameraScheme(Camera.SpatialInfo, _tracking);
-                else if (Camera.MovementScheme is TrackingFixedCameraScheme) Camera.MovementScheme = new SurfaceCameraScheme(_tracking.Parent, _tracking);
-            }
+                ToggleCameraMovementScheme();
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);
@@ -340,11 +410,11 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
-        _controlShip.ResetThrust();
-        if (keyboardState.IsKeyDown(Keys.I)) _controlShip.ApplyThrust(new SD_Vector2(-100000, 0), new SD_Vector2(-0.4, 0));
-        if (keyboardState.IsKeyDown(Keys.D8)) _controlShip.ApplyThrust(new SD_Vector2(-1000000, 0), new SD_Vector2(-0.4, 0));
-        if (keyboardState.IsKeyDown(Keys.J)) _controlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, 0.1));
-        if (keyboardState.IsKeyDown(Keys.L)) _controlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, -0.1));
+        GameState.ControlShip.ResetThrust();
+        if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.ApplyThrust(new SD_Vector2(-100000, 0), new SD_Vector2(-0.4, 0));
+        if (keyboardState.IsKeyDown(Keys.D8)) GameState.ControlShip.ApplyThrust(new SD_Vector2(-1000000, 0), new SD_Vector2(-0.4, 0));
+        if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, 0.1));
+        if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, -0.1));
 
         _lastKeyboardState = keyboardState;
     }
@@ -356,19 +426,19 @@ public class OrbitGame : Game
 
         InterpolationHandler<ScientificDecimal>.UpdateInterpolationValues();
         
-        _deltaTime = (DateTime.Now - _previousTime).TotalSeconds;
-        _previousTime = DateTime.Now;
-        _deltaTimeStep = _deltaTime * _timeStep;
-        _physicsTime += _deltaTimeStep;
-        _realTime = gameTime.TotalGameTime.TotalSeconds;
-        _frameCountPerSecond++;
+        GameState.DeltaRealTime = (DateTime.Now - GameState.PreviousDateTime).TotalSeconds;
+        GameState.PreviousDateTime = DateTime.Now;
+        GameState.DeltaPhysicsTimeStep = GameState.DeltaRealTime * GameState.PhysicsTimeStep;
+        GameState.PhysicsTime += GameState.DeltaPhysicsTimeStep;
+        GameState.RealTime = gameTime.TotalGameTime.TotalSeconds;
+        GameState.FrameCountThisSecond++;
         
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
         
         OriginBody.ResetOrigin();
         
-        HandleInput(_deltaTime);
+        HandleInput(GameState.DeltaRealTime);
         
         if (Options.EnablePhysics)
         {
@@ -376,16 +446,16 @@ public class OrbitGame : Game
 
             foreach (var planet in Planets)
             {
-                planet.UpdatePosition_Kepler(_physicsTime, _deltaTimeStep);
+                planet.UpdatePosition_Kepler(GameState.PhysicsTime, GameState.DeltaPhysicsTimeStep);
             }
 
-            if (!_isFastForward)
+            if (!GameState.IsFastForward)
             {
                 foreach (var ship in Ships)
                 {
                     tasks.Add(Task.Run(() =>
                     {
-                        ship.UpdatePosition_Integrator(_deltaTimeStep, Options.IntegratorMethod,
+                        ship.UpdatePosition_Integrator(GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
                             ship.CalculateNetAcceleration);
                         ship.UpdateShipKeplerianOrbit(Planets);
                     }));
@@ -395,7 +465,7 @@ public class OrbitGame : Game
             {
                 foreach (var ship in Ships)
                 {
-                    ship.UpdatePosition_Kepler(_physicsTime, _deltaTimeStep);
+                    ship.UpdatePosition_Kepler(GameState.PhysicsTime, GameState.DeltaPhysicsTimeStep);
                 }
             }
 
@@ -425,11 +495,12 @@ public class OrbitGame : Game
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
         if (Options.DisplayFPS)
-            _spriteBatch.DrawString(_font, _framesPerSecond.ToString(), Vector2.Zero, Color.White);
+            _spriteBatch.DrawString(_font, GameState.FramesPerSecond.ToString(), Vector2.Zero, Color.White);
         
         try
         {
-            _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25).AddSeconds((double)_physicsTime),
+            _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25)
+                    .AddSeconds((double)GameState.PhysicsTime),
                 new Vector2(0, 30), Color.White);
         }
         catch (ArgumentOutOfRangeException)
@@ -437,8 +508,8 @@ public class OrbitGame : Game
             _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
         
-        _spriteBatch.DrawString(_font, _timeStep.ToString(), new Vector2(0, 60), Color.White);
-        _spriteBatch.DrawString(_font, _isFastForward.ToString(), new Vector2(0, 90), Color.White);
+        _spriteBatch.DrawString(_font, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
+        _spriteBatch.DrawString(_font, GameState.IsFastForward.ToString(), new Vector2(0, 90), Color.White);
 
         foreach (var ship in Ships) ship.Draw();
         foreach (var planet in Planets) planet.Draw();

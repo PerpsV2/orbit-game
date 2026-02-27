@@ -38,7 +38,7 @@ public class KeplerOrbit_Tests
         Assert.Equal(0.713935776457, orbit.SemiMajorAxis, new ScientificDecimal(1,-8));
         Assert.Equal(0.654118913435, orbit.SemiMinorAxis, new ScientificDecimal(1,-8));
         Assert.Equal(14671.20295878, orbit.Period, new ScientificDecimal(1,-8));
-        Assert.Equal(7335.60147939, orbit.TimeSincePeriapsis);
+        Assert.Equal(7335.60147939, orbit.InitialTimeSincePeriapsis);
     }
 
     [Fact]

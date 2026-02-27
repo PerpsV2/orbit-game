@@ -11,7 +11,7 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
     {
         if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
         KeplerOrbit orbit = Path.Orbit.Value;
-        ScientificDecimal timeSincePeriapsis = orbit.TimeSincePeriapsis;
+        ScientificDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
         ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
         ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;
         while (timeUntilPoint < 0) timeUntilPoint += orbit.Period;

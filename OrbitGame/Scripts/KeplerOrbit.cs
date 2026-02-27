@@ -30,12 +30,7 @@ public readonly record struct KeplerOrbit
     /// <summary>
     /// Initial time since periapsis
     /// </summary>
-    public readonly ScientificDecimal TimeSincePeriapsis;
-    
-    /// <summary>
-    /// Time at which the initials were calculated
-    /// </summary>
-    public readonly ScientificDecimal InitialTime;
+    public readonly ScientificDecimal InitialTimeSincePeriapsis;
     
     public KeplerOrbit(
         Body Body,
@@ -84,16 +79,15 @@ public readonly record struct KeplerOrbit
         {
             if (currentTime != null)
             {
-                SD_Vector2 initialRelativePosition = Body.Position - Parent.Position;
-                double initialTrueAnomaly = SD_Vector2.Direction(Parent.Position, initialRelativePosition) - Periapsis;
-                initialTrueAnomaly = Utils.WrapAngle(initialTrueAnomaly);
-                TimeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(initialTrueAnomaly);
-                InitialTime = currentTime.Value;
+                SD_Vector2 relativePosition = Body.Position - Parent.Position;
+                double trueAnomaly = SD_Vector2.Direction(Parent.Position, relativePosition) - Periapsis;
+                trueAnomaly = Utils.WrapAngle(trueAnomaly);
+                InitialTimeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
+                InitialTimeSincePeriapsis = Utils.UnsignedMod(InitialTimeSincePeriapsis - currentTime.Value, Period);
             }
             else
             {
-                TimeSincePeriapsis = 0;
-                InitialTime = 0;
+                InitialTimeSincePeriapsis = 0;
             }
         }
     }
@@ -152,7 +146,7 @@ public readonly record struct KeplerOrbit
 
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
-        time = Utils.UnsignedMod(time + TimeSincePeriapsis, Period);
+        time = Utils.UnsignedMod(time + InitialTimeSincePeriapsis, Period);
         SpatialInfo newState = new();
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
         SD_Vector2 orbitalPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, Equation(trueAnomaly + Periapsis));
