@@ -17,10 +17,6 @@ public class InterpolationHandler_Tests
     [Fact]
     public void Test_InterpolationHandler()
     {
-        InterpolationHandler<ScientificDecimal>.CreateInterpolation(
-            new(() => _independent, val => { _independent = val; }), 
-            new(() => _dependent, val => { _dependent = val; }), 
-            0, 5, 0, 5);
         _independent = 2.5;
         InterpolationHandler<ScientificDecimal>.UpdateInterpolationValues();
         _output.WriteLine(_dependent.ToString());

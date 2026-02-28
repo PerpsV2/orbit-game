@@ -98,6 +98,7 @@ public class OrbitGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
+        Graphics = _graphics.GraphicsDevice;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }

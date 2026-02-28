@@ -397,7 +397,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     }
 
     public static bool IsNaN(ScientificDecimal value)
-        => IsInfinity(value);
+        => IsInfinity(value) || IsNaN(value.Mantissa);
 
     public static bool IsNegative(ScientificDecimal value)
         => value.Negative;

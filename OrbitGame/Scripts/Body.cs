@@ -44,7 +44,8 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
-        Mesh.GenerateBuffers();
+        if (OrbitGame.Graphics is not null)
+            Mesh.GenerateBuffers();
     }
     
     /// <summary>
@@ -84,26 +85,7 @@ public abstract class Body : KinematicObject
     protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, ScientificDecimal? time)
     {
         if (centralForce == null) return null;
-        
-        SD_Vector2 relVelocity = Velocity - centralForce.Velocity;
-        SD_Vector2 relPosition = Position - centralForce.Position;
-        
-        SD_Vector2 momentum = relVelocity * Mass;
-        SD_Vector3 angularMomentum = SD_Vector2.Cross(relPosition, momentum);
-        SD_Vector2 directionVector = relPosition.Normalize();
-        ScientificDecimal forceStrength = Mass * centralForce.Mass * Constants.G;
-
-        SD_Vector2 lrlVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) -
-                            directionVector * Mass * forceStrength;
-        if (lrlVector == SD_Vector2.Zero) return null;
-
-        double periapsis = Utils.WrapAngle(lrlVector.Direction());
-        ScientificDecimal eccentricity = lrlVector.Magnitude() / (Mass * forceStrength).Abs();
-        ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Mass / forceStrength;
-
-        if (semiLatusRectum == 0) return null;
-
-        return new KeplerOrbit(this, centralForce, (double)eccentricity, periapsis, semiLatusRectum, time);
+        return new KeplerOrbit(this, centralForce, time);
     }
 
     public void GenerateKeplerianOrbit(ScientificDecimal time)

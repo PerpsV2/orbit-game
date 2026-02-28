@@ -14,7 +14,7 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
         ScientificDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
         ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
         ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;
-        if (orbit.Eccentricity >= 1) return timeUntilPoint;
+        if (orbit.Eccentricity >= 1) return timeUntilPoint + currentTime + timeSincePeriapsis;
         while (timeUntilPoint < 0) timeUntilPoint += orbit.Period;
         return currentTime + timeUntilPoint;
     }
