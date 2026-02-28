@@ -41,8 +41,14 @@ public static class Options
     public static readonly Keys TrackNextBodyKey = Keys.M;
     public static readonly Keys TrackPrevBodyKey = Keys.N;
     public static readonly Keys FocusKey = Keys.F;
+    public static readonly Keys FastForwardKey = Keys.T;
+    public static readonly Keys ChangeCameraSchemeKey = Keys.C;
 
     public static readonly Color BackgroundColour = Color.Black;
+
+    public const double EaseFastForwardStartTime = 0.2;
+    public const double EaseFastForwardEndTime = 0.2;
+    public const double EaseTimeStepChangeTime = 0.5;
     
     public const uint IntegratorIterationAmount = 10;
     public const float MinimumShipCrashSpeed = 50f;

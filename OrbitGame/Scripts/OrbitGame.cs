@@ -320,11 +320,11 @@ public class OrbitGame : Game
         ScientificDecimal multiplier = new ScientificDecimal((endTime - GameState.PhysicsTime).Exponent);
         InterpolationHandler<ScientificDecimal>.CreateInterpolation(
             new(independentGetter: () => GameState.RealTime, dependentSetter: val => { GameState.PhysicsTimeStep = val; }),
-            GameState.RealTime, GameState.RealTime + 0.5, 
+            GameState.RealTime, GameState.RealTime + Options.EaseFastForwardStartTime, 
             GameState.GoalPhysicsTimeStep, GameState.GoalPhysicsTimeStep * multiplier);
         var endTimeWarp = InterpolationHandler<ScientificDecimal>.CreateInterpolation(
             new(independentGetter: () => GameState.PhysicsTime, dependentSetter: val => { GameState.PhysicsTimeStep = val; }), 
-            endTime - GameState.GoalPhysicsTimeStep * multiplier * 0.1, endTime, 
+            endTime - GameState.GoalPhysicsTimeStep * multiplier * Options.EaseFastForwardEndTime, endTime, 
             GameState.GoalPhysicsTimeStep * multiplier, GameState.GoalPhysicsTimeStep);
         endTimeWarp.InterpolationEnd += (_, _) =>
         {
@@ -336,7 +336,7 @@ public class OrbitGame : Game
     {
         InterpolationHandler<ScientificDecimal>.CreateInterpolation(
             new(() => GameState.RealTime, val => { GameState.PhysicsTimeStep = val; }),
-            GameState.RealTime, GameState.RealTime + 0.5, 
+            GameState.RealTime, GameState.RealTime + Options.EaseTimeStepChangeTime, 
             GameState.GoalPhysicsTimeStep, GameState.GoalPhysicsTimeStep * multiplier);
         GameState.GoalPhysicsTimeStep *= multiplier;
     }
@@ -386,16 +386,16 @@ public class OrbitGame : Game
             if (_lastKeyboardState.IsKeyUp(Options.TrackPrevBodyKey))
                 TrackBody(GameState.TrackingIndex - 1);
         
-        if (keyboardState.IsKeyDown(Keys.T))
-            if (_lastKeyboardState.IsKeyUp(Keys.T))
+        if (keyboardState.IsKeyDown(Options.FastForwardKey))
+            if (_lastKeyboardState.IsKeyUp(Options.FastForwardKey))
                 FastForwardToSelected();
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
                 Camera.Focus();
         
-        if (keyboardState.IsKeyDown(Keys.C))
-            if (_lastKeyboardState.IsKeyUp(Keys.C))
+        if (keyboardState.IsKeyDown(Options.ChangeCameraSchemeKey))
+            if (_lastKeyboardState.IsKeyUp(Options.ChangeCameraSchemeKey))
                 ToggleCameraMovementScheme();
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);

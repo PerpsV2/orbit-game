@@ -186,5 +186,6 @@ public abstract class Body : KinematicObject
         newState.Velocity = (newState.Position - Position) / timeDiff;
         SpatialInfo.Position = newState.Position;
         SpatialInfo.Velocity = newState.Velocity;
+        SpatialInfo.Angle += (double)(AngularVelocity * timeDiff);
     }
 }
