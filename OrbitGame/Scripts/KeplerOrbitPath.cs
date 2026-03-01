@@ -159,9 +159,7 @@ public class KeplerOrbitPath
         if (maxAngle - minAngle > Math.PI / 16)
         {
             // draw the entire orbit as an ellipse
-            if (orbit.Center == null)
-                throw new NullReferenceException("Elliptic orbit must have a center.");
-            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center.Value + centralForce.Position);
+            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
             float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
             float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
 

@@ -458,7 +458,7 @@ public class OrbitGame : Game
                     {
                         ship.UpdatePosition_Integrator(GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
                             ship.CalculateNetAcceleration);
-                        ship.UpdateShipKeplerianOrbit(Planets);
+                        ship.UpdateShipKeplerianOrbit(Planets, GameState.PhysicsTime);
                     }));
                 }
             }

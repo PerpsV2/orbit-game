@@ -82,7 +82,7 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the Keplerian orbit around a central force with the option to calculate certain orbital initials
     /// </summary>
-    protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, ScientificDecimal? time)
+    protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, ScientificDecimal time)
     {
         if (centralForce == null) return null;
         return new KeplerOrbit(this, centralForce, time);

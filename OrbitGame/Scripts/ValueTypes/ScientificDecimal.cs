@@ -169,6 +169,15 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public readonly ScientificDecimal Square()
         => this * this;
+
+    public readonly ScientificDecimal IntPow(uint amount)
+    {
+        ScientificDecimal result = 1;
+        for (uint i = 0; i < amount; ++i)
+            result *= this;
+
+        return result;
+    }
     
     public ScientificDecimal Sqrt()
     {

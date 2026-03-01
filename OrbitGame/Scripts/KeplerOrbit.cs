@@ -3,98 +3,162 @@ using System;
 namespace OrbitGame;
 
 /// <summary>
-/// Equation which returns the distance of an object to its parent given a true anomaly.
-/// </summary>
-public delegate ScientificDecimal OrbitEquation(double angle);
-
-/// <summary>
 /// Record struct containing information about a Keplerian orbit as well as methods for converting between certain
 /// orbital parameters.
 /// </summary>
 public readonly record struct KeplerOrbit
 {
+    /// <summary>
+    /// Equation which returns the distance of an object to its parent given a true anomaly.
+    /// </summary>
+    public delegate ScientificDecimal OrbitEquation(double angle);
+    
     public readonly Body Body;
     public readonly Body Parent;
-    public readonly double Periapsis;
-    public readonly double Eccentricity;
+    
+    // Initials
+    /// <summary>
+    /// Time at which the orbit was calculated.
+    /// </summary>
+    public readonly ScientificDecimal CalculationTime;
+
+    public readonly SpatialInfo InitialParentSpatialInfo;
+    public readonly SpatialInfo InitialOrbitalSpatialInfo;
+    
+    // Orbital Parameters
+    public readonly SD_Vector2 LRLVector;
     public readonly ScientificDecimal SemiLatusRectum;
-    
-    public readonly OrbitEquation Equation;
-    public readonly ScientificDecimal SemiMajorAxis;
-    public readonly ScientificDecimal SemiMinorAxis;
-    public readonly ScientificDecimal Period;
-    public readonly SD_Vector2? Center;
-    
-    public readonly ScientificDecimal? SphereOfInfluenceRadius;
+    private readonly Lazy<double> _lazyPeriapsis;
+    public double Periapsis => _lazyPeriapsis.Value;
+    private readonly Lazy<double> _lazyEccentricity;
+    public double Eccentricity => _lazyEccentricity.Value;
+    private readonly Lazy<OrbitEquation> _lazyEquation;
+    public OrbitEquation Equation => _lazyEquation.Value;
+    /// <summary>
+    /// Semi-major axis of the orbital conic section. Is always negative for hyperbolas.
+    /// </summary>
+    private readonly Lazy<ScientificDecimal> _lazySemiMajorAxis;
+    public ScientificDecimal SemiMajorAxis => _lazySemiMajorAxis.Value;
+    private readonly Lazy<ScientificDecimal> _lazySemiMinorAxis;
+    public ScientificDecimal SemiMinorAxis => _lazySemiMinorAxis.Value;
+    private readonly Lazy<ScientificDecimal> _lazyPeriod;
+    public ScientificDecimal Period => _lazyPeriod.Value;
+    private readonly Lazy<ScientificDecimal> _lazySphereOfInfluenceRadius;
+    public ScientificDecimal SphereOfInfluenceRadius => _lazySphereOfInfluenceRadius.Value;
+    private readonly Lazy<SD_Vector2> _lazyCenter;
+    public SD_Vector2 Center => _lazyCenter.Value;
+    private readonly Lazy<ScientificDecimal> _lazyInitialTimeSincePeriapsis;
+    public ScientificDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
 
     /// <summary>
-    /// Initial time since periapsis
+    /// Creates a Keplerian orbit given two bodies
     /// </summary>
-    public readonly ScientificDecimal InitialTimeSincePeriapsis;
-    
-    public KeplerOrbit(Body Body, Body Parent, ScientificDecimal? currentTime = null)
+    /// <param name="Body">Orbiting body</param>
+    /// <param name="Parent">Central force body</param>
+    /// <param name="CalculationTime">Time of orbit calculation</param>
+    public KeplerOrbit(Body Body, Body Parent, ScientificDecimal CalculationTime)
     {
         this.Body = Body;
         this.Parent = Parent;
+        this.CalculationTime = CalculationTime;
         
-        SD_Vector2 orbitalVelocity = Body.Velocity - Parent.Velocity;
-        SD_Vector2 orbitalPosition = Body.Position - Parent.Position;
+        InitialParentSpatialInfo = Parent.SpatialInfo;
+        InitialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
         
-        SD_Vector2 momentum = orbitalVelocity * Body.Mass;
-        SD_Vector3 angularMomentum = SD_Vector2.Cross(orbitalPosition, momentum);
-        SD_Vector2 orbitalDirectionVector = orbitalPosition.Normalize();
+        SD_Vector2 momentum = InitialOrbitalSpatialInfo.Velocity * Body.Mass;
+        SD_Vector3 angularMomentum = SD_Vector2.Cross(InitialOrbitalSpatialInfo.Position, momentum);
+        SD_Vector2 orbitalDirectionVector = InitialOrbitalSpatialInfo.Position.Normalize();
         ScientificDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
-        SD_Vector2 lrlVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) -
-                               orbitalDirectionVector * Body.Mass * forceStrength;
-        double eccentricity = (double)(lrlVector.Magnitude() / (Body.Mass * forceStrength).Abs());
-        ScientificDecimal semiLatusRectum = angularMomentum.Magnitude().Square() / Body.Mass / forceStrength;
-        double periapsis = lrlVector != SD_Vector2.Zero ? Utils.WrapAngle(lrlVector.Direction()) : 0;
+        LRLVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) - 
+                    orbitalDirectionVector * Body.Mass * forceStrength;
+        SemiLatusRectum = angularMomentum.Magnitude().Square() / Body.Mass / forceStrength;
         
-        Eccentricity = eccentricity;
-        SemiLatusRectum = semiLatusRectum;
-        Periapsis = periapsis;
-        
-        //if (Eccentricity.Equals(1)) throw new NotImplementedException("Parabolic orbital evaluation is not implemented.");
-        
-        Equation = angle => semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis));
-        
-        if (Eccentricity == 0)
+        _lazyEccentricity = new Lazy<double>(LazyInitializeEccentricity);
+        _lazyPeriapsis = new Lazy<double>(LazyInitializePeriapsis);
+        _lazyEquation = new Lazy<OrbitEquation>(LazyInitializeEquation);
+        _lazySemiMajorAxis = new Lazy<ScientificDecimal>(LazyInitializeSemiMajorAxis);
+        _lazySemiMinorAxis = new  Lazy<ScientificDecimal>(LazyInitializeSemiMinorAxis);
+        _lazyPeriod = new Lazy<ScientificDecimal>(LazyInitializePeriod);
+        _lazySphereOfInfluenceRadius = new Lazy<ScientificDecimal>(LazyInitializeSphereOfInfluenceRadius);
+        _lazyCenter = new Lazy<SD_Vector2>(LazyInitializeCenter);
+        _lazyInitialTimeSincePeriapsis = new Lazy<ScientificDecimal>(LazyInitializeInitialTimeSincePeriapsis);
+    }
+
+    public double LazyInitializePeriapsis()
+        => LRLVector != SD_Vector2.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
+
+    public double LazyInitializeEccentricity()
+        => (double)(LRLVector.Magnitude() / (Body.Mass * Body.Mass * Parent.Mass * Constants.G).Abs());
+    
+    public OrbitEquation LazyInitializeEquation()
+    {
+        double periapsis = Periapsis;
+        double eccentricity = Eccentricity;
+        ScientificDecimal semiLatusRectum = SemiLatusRectum;
+        return angle => semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis));
+    }
+
+    public ScientificDecimal LazyInitializeSemiMajorAxis()
+    {
+        switch (Eccentricity)
         {
-            SemiMajorAxis = SemiLatusRectum;
-            SemiMinorAxis = SemiLatusRectum;
-            SphereOfInfluenceRadius = SemiLatusRectum * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
-            Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = SD_Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
-                     SD_Vector2.FromPolar(Periapsis, -SemiMajorAxis);
+            case <= 0: return SemiLatusRectum;
+            case > 0 and < 1: return (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
+            case >= 1: return Equation(Periapsis) / (1 - Eccentricity);
+            default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
-        else if (Eccentricity is > 0 and < 1)
+    }
+
+    public ScientificDecimal LazyInitializeSemiMinorAxis()
+    {
+        switch (Eccentricity)
         {
-            SemiMajorAxis = (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
-            SemiMinorAxis = (Equation(Periapsis) * Equation(Periapsis + Math.PI)).Sqrt();
-            SphereOfInfluenceRadius = SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
-            Period = Math.Tau * (SemiMajorAxis * SemiMajorAxis * SemiMajorAxis / Constants.G / Parent.Mass).Sqrt();
-            Center = SD_Vector2.FromPolar(Periapsis, Equation(Periapsis)) + 
-                     SD_Vector2.FromPolar(Periapsis, -SemiMajorAxis);
+            case <= 0: return SemiLatusRectum;
+            case > 0 and < 1: return (Equation(Periapsis) * Equation(Periapsis + Math.PI)).Sqrt();
+            case >= 1: return SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
+            default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
-        else if (Eccentricity >= 1)
+    }
+
+    public ScientificDecimal LazyInitializePeriod()
+    {
+        switch (Eccentricity)
         {
-            SemiMajorAxis = Equation(Periapsis) / (1 - Eccentricity);
-            SemiMinorAxis = SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
-            SphereOfInfluenceRadius = null;
-            Period = ScientificDecimal.PosInfinity;
-            Center = null;
+            case <= 0: 
+            case > 0 and < 1: return Math.Tau * (SemiMajorAxis.IntPow(3) / Constants.G / Parent.Mass).Sqrt();
+            case >= 1: return ScientificDecimal.PosInfinity;
+            default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
-        
-        if (currentTime != null)
+    }
+
+    public ScientificDecimal LazyInitializeSphereOfInfluenceRadius()
+    {
+        switch (Eccentricity)
         {
-            SD_Vector2 relativePosition = Body.Position - Parent.Position;
-            double trueAnomaly = SD_Vector2.Direction(Parent.Position, relativePosition) - Periapsis;
-            trueAnomaly = Utils.WrapAngle(trueAnomaly);
-            InitialTimeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
-            InitialTimeSincePeriapsis = Utils.UnsignedMod(InitialTimeSincePeriapsis - currentTime.Value, Period);
+            case <= 0:
+            case > 0 and < 1: return SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
+            case >= 1: return ScientificDecimal.PosInfinity;
+            default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
-        // no given time frame, populate initial time since periapsis with null value
-        else InitialTimeSincePeriapsis = 0;
+    }
+
+    public SD_Vector2 LazyInitializeCenter()
+    {
+        OrbitEquation equation = Equation;
+        double periapsis = Periapsis;
+        return SD_Vector2.FromPolar(periapsis, equation(periapsis)) - 
+               SD_Vector2.FromPolar(periapsis, (equation(periapsis) + equation(periapsis + Math.PI)) / 2);
+    }
+
+    public ScientificDecimal LazyInitializeInitialTimeSincePeriapsis()
+    {
+        double trueAnomaly = SD_Vector2.Direction(
+            InitialParentSpatialInfo.Position,
+            InitialOrbitalSpatialInfo.Position
+        ) - Periapsis;
+        trueAnomaly = Utils.WrapAngle(trueAnomaly);
+        ScientificDecimal timeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
+        return Utils.UnsignedMod(timeSincePeriapsis - CalculationTime, Period);
     }
     
     private static double CalculateTrueFromEccentricAnomalyElliptic(double eccentricity, double eccentricAnomaly)

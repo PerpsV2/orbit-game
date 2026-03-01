@@ -87,7 +87,7 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public void UpdateShipKeplerianOrbit(List<Planet> planets)
+    public void UpdateShipKeplerianOrbit(List<Planet> planets, ScientificDecimal time)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
@@ -106,7 +106,7 @@ public class Ship : Body, IGameDrawable
                     Parent = planet;
         }
         
-        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, null);
+        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, time);
     }
 
     public void UpdatePosition_Landed()
