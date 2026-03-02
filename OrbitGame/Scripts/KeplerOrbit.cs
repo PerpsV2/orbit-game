@@ -16,37 +16,45 @@ public readonly record struct KeplerOrbit
     public readonly Body Body;
     public readonly Body Parent;
     
-    // Initials
+    // ----- Initials ----- 
     /// <summary>
     /// Time at which the orbit was calculated.
     /// </summary>
-    public readonly ScientificDecimal CalculationTime;
-
+    public readonly ScientificDecimal InitialCalculationTime;
     public readonly SpatialInfo InitialParentSpatialInfo;
     public readonly SpatialInfo InitialOrbitalSpatialInfo;
     
-    // Orbital Parameters
+    // ----- Orbital Parameters ----- 
     public readonly SD_Vector2 LRLVector;
     public readonly ScientificDecimal SemiLatusRectum;
+    
     private readonly Lazy<double> _lazyPeriapsis;
     public double Periapsis => _lazyPeriapsis.Value;
+    
     private readonly Lazy<double> _lazyEccentricity;
     public double Eccentricity => _lazyEccentricity.Value;
+    
     private readonly Lazy<OrbitEquation> _lazyEquation;
     public OrbitEquation Equation => _lazyEquation.Value;
+    
     /// <summary>
     /// Semi-major axis of the orbital conic section. Is always negative for hyperbolas.
     /// </summary>
     private readonly Lazy<ScientificDecimal> _lazySemiMajorAxis;
     public ScientificDecimal SemiMajorAxis => _lazySemiMajorAxis.Value;
+    
     private readonly Lazy<ScientificDecimal> _lazySemiMinorAxis;
     public ScientificDecimal SemiMinorAxis => _lazySemiMinorAxis.Value;
+    
     private readonly Lazy<ScientificDecimal> _lazyPeriod;
     public ScientificDecimal Period => _lazyPeriod.Value;
+    
     private readonly Lazy<ScientificDecimal> _lazySphereOfInfluenceRadius;
     public ScientificDecimal SphereOfInfluenceRadius => _lazySphereOfInfluenceRadius.Value;
+    
     private readonly Lazy<SD_Vector2> _lazyCenter;
     public SD_Vector2 Center => _lazyCenter.Value;
+    
     private readonly Lazy<ScientificDecimal> _lazyInitialTimeSincePeriapsis;
     public ScientificDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
 
@@ -55,12 +63,12 @@ public readonly record struct KeplerOrbit
     /// </summary>
     /// <param name="Body">Orbiting body</param>
     /// <param name="Parent">Central force body</param>
-    /// <param name="CalculationTime">Time of orbit calculation</param>
-    public KeplerOrbit(Body Body, Body Parent, ScientificDecimal CalculationTime)
+    /// <param name="InitialCalculationTime">Time of orbit calculation</param>
+    public KeplerOrbit(Body Body, Body Parent, ScientificDecimal InitialCalculationTime)
     {
         this.Body = Body;
         this.Parent = Parent;
-        this.CalculationTime = CalculationTime;
+        this.InitialCalculationTime = InitialCalculationTime;
         
         InitialParentSpatialInfo = Parent.SpatialInfo;
         InitialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
@@ -73,15 +81,16 @@ public readonly record struct KeplerOrbit
                     orbitalDirectionVector * Body.Mass * forceStrength;
         SemiLatusRectum = angularMomentum.Magnitude().Square() / Body.Mass / forceStrength;
         
-        _lazyEccentricity = new Lazy<double>(LazyInitializeEccentricity);
-        _lazyPeriapsis = new Lazy<double>(LazyInitializePeriapsis);
-        _lazyEquation = new Lazy<OrbitEquation>(LazyInitializeEquation);
-        _lazySemiMajorAxis = new Lazy<ScientificDecimal>(LazyInitializeSemiMajorAxis);
-        _lazySemiMinorAxis = new  Lazy<ScientificDecimal>(LazyInitializeSemiMinorAxis);
-        _lazyPeriod = new Lazy<ScientificDecimal>(LazyInitializePeriod);
-        _lazySphereOfInfluenceRadius = new Lazy<ScientificDecimal>(LazyInitializeSphereOfInfluenceRadius);
-        _lazyCenter = new Lazy<SD_Vector2>(LazyInitializeCenter);
-        _lazyInitialTimeSincePeriapsis = new Lazy<ScientificDecimal>(LazyInitializeInitialTimeSincePeriapsis);
+        // initialize lazy fields
+        _lazyEccentricity = new(LazyInitializeEccentricity);
+        _lazyPeriapsis = new(LazyInitializePeriapsis);
+        _lazyEquation = new(LazyInitializeEquation);
+        _lazySemiMajorAxis = new(LazyInitializeSemiMajorAxis);
+        _lazySemiMinorAxis = new(LazyInitializeSemiMinorAxis);
+        _lazyPeriod = new(LazyInitializePeriod);
+        _lazySphereOfInfluenceRadius = new(LazyInitializeSphereOfInfluenceRadius);
+        _lazyCenter = new(LazyInitializeCenter);
+        _lazyInitialTimeSincePeriapsis = new(LazyInitializeInitialTimeSincePeriapsis);
     }
 
     public double LazyInitializePeriapsis()
@@ -158,7 +167,7 @@ public readonly record struct KeplerOrbit
         ) - Periapsis;
         trueAnomaly = Utils.WrapAngle(trueAnomaly);
         ScientificDecimal timeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
-        return Utils.UnsignedMod(timeSincePeriapsis - CalculationTime, Period);
+        return Utils.UnsignedMod(timeSincePeriapsis - InitialCalculationTime, Period);
     }
     
     private static double CalculateTrueFromEccentricAnomalyElliptic(double eccentricity, double eccentricAnomaly)
