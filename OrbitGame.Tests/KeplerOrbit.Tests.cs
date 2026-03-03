@@ -9,7 +9,6 @@ public class KeplerOrbit_Tests
 {
     private readonly ITestOutputHelper _output;
     
-    private readonly OrbitGame _orbitGame = new();
     private readonly PlanetTemplate _testPlanetTemplate = new(new Material(0, 0, 0));
     private readonly Planet _parent;
     private readonly Planet _ellipticBody;

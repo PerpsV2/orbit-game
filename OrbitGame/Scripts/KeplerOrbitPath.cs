@@ -5,6 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Represents a point on a Keplerian Orbit
+/// </summary>
 public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double TrueAnomaly)
 {
     public ScientificDecimal GetTimeAtPoint(ScientificDecimal currentTime)

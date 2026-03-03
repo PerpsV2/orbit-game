@@ -106,7 +106,7 @@ public class OrbitGame : Game
     public static List<Body> Bodies = [];
     public static List<Planet> Planets = [];
     public static List<Ship> Ships = [];
-    public static GraphicsDevice? Graphics;
+    public static GraphicsDevice Graphics = null!;
     public static Camera Camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
