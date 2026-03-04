@@ -58,6 +58,11 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         }
     }
 
+    /// <summary>
+    /// Create a ScientificDecimal using a mantissa and an exponent of ten.
+    /// </summary>
+    /// <param name="mantissa">Mantissa (does not need to be normalized)</param>
+    /// <param name="exponent">Exponent of ten</param>
     public ScientificDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
@@ -65,6 +70,10 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         Normalize();
     }
 
+    /// <summary>
+    /// Create a ScientificDecimal using an exponent of ten.
+    /// </summary>
+    /// <param name="exponent">Exponent of ten</param>
     public ScientificDecimal(int exponent)
         : this(1, exponent) {}
 

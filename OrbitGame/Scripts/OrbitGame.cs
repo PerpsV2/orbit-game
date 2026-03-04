@@ -106,7 +106,7 @@ public class OrbitGame : Game
     public static List<Body> Bodies = [];
     public static List<Planet> Planets = [];
     public static List<Ship> Ships = [];
-    public static GraphicsDevice? Graphics;
+    public static GraphicsDevice Graphics = null!;
     public static Camera Camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
@@ -390,6 +390,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.FastForwardKey))
             if (_lastKeyboardState.IsKeyUp(Options.FastForwardKey))
                 FastForwardToSelected();
+        
+        if (keyboardState.IsKeyDown(Keys.D5))
+            if (_lastKeyboardState.IsKeyUp(Keys.D5))
+                GameState.IsFastForward = true;
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
             if (_lastKeyboardState.IsKeyUp(Options.FocusKey))
@@ -422,7 +426,6 @@ public class OrbitGame : Game
 
     protected override void Update(GameTime gameTime)
     {
-        base.Update(gameTime);
         UpdateFrame?.Invoke(this, EventArgs.Empty);
 
         InterpolationHandler<ScientificDecimal>.UpdateInterpolationValues();
@@ -436,10 +439,6 @@ public class OrbitGame : Game
         
         foreach (var body in Bodies)
             body.Acceleration = SD_Vector2.Zero;
-        
-        OriginBody.ResetOrigin();
-        
-        HandleInput(GameState.DeltaRealTime);
         
         if (Options.EnablePhysics)
         {
@@ -479,10 +478,13 @@ public class OrbitGame : Game
                     ship.UpdatePosition_Landed();
         }
         
+        OriginBody.ResetOrigin();
         Camera.Update();
+        HandleInput(GameState.DeltaRealTime);
         
         Ships.RemoveAll(ship => ship.MarkedForRemoval);
         Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
+        base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)

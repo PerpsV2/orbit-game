@@ -30,7 +30,7 @@ public class KeplerOrbitPath
 
     public static KeplerOrbitPathPoint? HoverPoint;
     public static KeplerOrbitPathPoint? SelectedPoint;
-    private static float _minMouseDistanceToOrbit = float.MaxValue;
+    private static ScientificDecimal _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
 
     public KeplerOrbitPath()
     {
@@ -39,28 +39,87 @@ public class KeplerOrbitPath
         OrbitGame.UpdateFrame += OrbitPath_UpdateFrame;
     }
 
+    /// <summary>
+    /// Returns the point on the orbit with the minimum Euclidean distance to a chosen point.
+    /// </summary>
+    /// <param name="orbit">Keplerian orbit</param>
+    /// <param name="externalPoint">Point which may not lie on the orbit in world space</param>
+    /// <param name="minimumDistance">Distance between the external point and the parabola</param>
+    /// <returns>The true anomaly of the closest point on the orbit</returns>
+    private double GetClosestOrbitPoint(KeplerOrbit orbit, SD_Vector2 externalPoint, out ScientificDecimal minimumDistance)
+    {
+        externalPoint -= orbit.Parent.Position;
+        
+        double guessIntervalStart = externalPoint.Direction() - orbit.Periapsis;
+        if (orbit.Equation(guessIntervalStart + orbit.Periapsis) < 0) guessIntervalStart += Math.PI; 
+        double guessIntervalEnd = guessIntervalStart;
+        double learningRate = 0.01;
+        ScientificDecimal currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
+        ScientificDecimal lastIntervalDistance;
+        minimumDistance = currentIntervalDistance;
+
+        int iterations = 0;
+        do
+        {
+            do
+            {
+                lastIntervalDistance = currentIntervalDistance;
+                guessIntervalStart += learningRate;
+                guessIntervalEnd += learningRate;
+                currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
+
+            } while (currentIntervalDistance - lastIntervalDistance < 0);
+
+            do
+            {
+                lastIntervalDistance = currentIntervalDistance;
+                guessIntervalStart -= learningRate;
+                guessIntervalEnd -= learningRate;
+                currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
+
+            } while (currentIntervalDistance - lastIntervalDistance < 0);
+
+            learningRate /= 2;
+            iterations++;
+        } while ((lastIntervalDistance - currentIntervalDistance).Abs() > 100 || iterations < 10);
+
+        minimumDistance = currentIntervalDistance;
+        return (guessIntervalStart + guessIntervalEnd) / 2;
+
+        ScientificDecimal GetGuessIntervalMidpointDistance(double intervalStart, double intervalEnd)
+        {
+            double midPoint = (intervalStart + intervalEnd) / 2;
+            SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(midPoint);
+            return (externalPoint - orbitalPosition).MagnitudeSquared();
+        }
+    }
+
     private static void OrbitPath_UpdateFrame(object? sender, EventArgs e)
     {
-        _minMouseDistanceToOrbit = float.MaxValue;
+        _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
     }
     
     private void OrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
         if (!_onScreen) return;
         if (Orbit == null) return;
+        Camera camera = OrbitGame.Camera;
         KeplerOrbit orbit = Orbit.Value;
-        SD_Vector2 mouseWorldPosition = OrbitGame.Camera.ConvertToWorldCoordinates(e.Position);
-        SD_Vector2 mouseParentDifferenceVector = mouseWorldPosition - orbit.Parent.Position;
-        double mouseClickTrueAnomaly = mouseParentDifferenceVector.Direction() - orbit.Periapsis;
-        ScientificDecimal mouseClickPathDistance = mouseParentDifferenceVector.Magnitude();
-        float thisMouseDistanceToOrbit = OrbitGame.Camera.ConvertToScreenDistance(
-            (orbit.Equation(mouseClickTrueAnomaly + orbit.Periapsis) - mouseClickPathDistance).Abs()
+        SD_Vector2 mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
+        double closestOrbitPointTrueAnomaly = GetClosestOrbitPoint(
+            orbit, mouseWorldPosition, out ScientificDecimal closestOrbitDistanceSquared
         );
-        if (thisMouseDistanceToOrbit < _minMouseDistanceToOrbit)
+        
+        if (closestOrbitDistanceSquared < _minMouseDistanceToOrbit)
         {
-            _minMouseDistanceToOrbit = thisMouseDistanceToOrbit;
-            if (thisMouseDistanceToOrbit < 10)
-                HoverPoint = new(this, mouseClickTrueAnomaly);
+            _minMouseDistanceToOrbit = closestOrbitDistanceSquared;
+            if (!closestOrbitDistanceSquared.IsInfinite)
+            {
+                float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(closestOrbitDistanceSquared.Sqrt());
+                if (screenMouseDistanceToOrbit < 10)
+                    HoverPoint = new(this, closestOrbitPointTrueAnomaly);
+                else HoverPoint = null;
+            }
             else HoverPoint = null;
         }
     }
@@ -81,9 +140,8 @@ public class KeplerOrbitPath
         {
             if (HoverPoint.Value.Path == this)
             {
-                double absoluteAngle = HoverPoint.Value.TrueAnomaly + orbit.Periapsis;
-                SD_Vector2 orbitPointPosition = orbit.Parent.Position +
-                                                SD_Vector2.FromPolar(absoluteAngle, orbit.Equation(absoluteAngle));
+                SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
+                SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
@@ -91,17 +149,14 @@ public class KeplerOrbitPath
         {
             if (SelectedPoint.Value.Path == this)
             {
-                double absoluteAngle = SelectedPoint.Value.TrueAnomaly + orbit.Periapsis;
-                SD_Vector2 orbitPointPosition = orbit.Parent.Position +
-                                                SD_Vector2.FromPolar(absoluteAngle, orbit.Equation(absoluteAngle));
+                SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
+                SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
-                
             }
         }
     }
     
-    private void DrawPartialEllipseOrbit(KeplerOrbit orbit, 
-        double minAngle, double maxAngle, Color colour)
+    private void DrawPartialEllipseOrbit(KeplerOrbit orbit, double minAngle, double maxAngle, Color colour)
     {
         Camera camera = OrbitGame.Camera;
         GraphicsDevice graphicsDevice = OrbitGame.Graphics;
@@ -142,8 +197,7 @@ public class KeplerOrbitPath
             graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
 
-    private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, 
-        Body centralForce, Color colour)
+    private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
     {
         Camera camera = OrbitGame.Camera;
         GraphicsDevice graphicsDevice = OrbitGame.Graphics;
@@ -182,8 +236,7 @@ public class KeplerOrbitPath
         else DrawPartialEllipseOrbit(orbit, minAngle, maxAngle, colour);
     }
 
-    private void DrawHyperbolaOrbit(KeplerOrbit orbit, 
-        Body centralForce, Color colour)
+    private void DrawHyperbolaOrbit(KeplerOrbit orbit, Body centralForce, Color colour)
     {
         Camera camera = OrbitGame.Camera;
         GraphicsDevice graphicsDevice = OrbitGame.Graphics;

@@ -1,4 +1,5 @@
 using System;
+using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -49,6 +50,9 @@ public static class Options
     public const double EaseFastForwardStartTime = 0.2;
     public const double EaseFastForwardEndTime = 0.2;
     public const double EaseTimeStepChangeTime = 0.5;
+
+    public static readonly ScientificDecimal EccentricAnomalyApproximationTolerance = new(-10);
+    public const uint EccentricAnomalyApproximationMaxIterations = 5;
     
     public const uint IntegratorIterationAmount = 10;
     public const float MinimumShipCrashSpeed = 50f;
