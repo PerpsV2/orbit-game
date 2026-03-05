@@ -87,6 +87,16 @@ public class Utils_Tests
     }
 
     [Fact]
+    public void Utils_AngleInRangeMethod()
+    {
+        double minAngle = 7 * Math.PI / 4;
+        double maxAngle = Math.PI / 4;
+        
+        Assert.True(Utils.AngleInRange(0, minAngle, maxAngle));
+        Assert.False(Utils.AngleInRange(0, maxAngle, minAngle));
+    }
+
+    [Fact]
     public void Utils_DecimalSqrtMethod()
     {
         Assert.Equal(4, Utils.DecimalSqrt(16));

@@ -49,6 +49,15 @@ public static class Utils
     public static double WrapAngle(double angle)
         => UnsignedMod(angle, Math.Tau);
 
+    public static bool AngleInRange(double angle, double min, double max)
+    {
+        min = WrapAngle(min);
+        max = WrapAngle(max);
+        angle = WrapAngle(angle);
+        while (max < min) max += Math.Tau;
+        return (angle >= min && angle <= max) || (angle + Math.Tau >= min && angle + Math.Tau <= max);
+    }
+
     public static void GetMinAngleRange(out double min, out double max, double angle, params double[] angles)
     {
         double[] sortedAngles = angles.Append(angle).OrderBy(WrapAngle).ToArray();

@@ -51,48 +51,50 @@ public class KeplerOrbitPath
     /// <returns>The true anomaly of the closest point on the orbit</returns>
     private double GetClosestOrbitPoint(KeplerOrbit orbit, SD_Vector2 externalPoint, out ScientificDecimal minimumDistance)
     {
-        externalPoint -= orbit.Parent.Position;
+        int funcCalls = 0;
         
-        double guessIntervalStart = externalPoint.Direction() - orbit.Periapsis;
-        if (orbit.Equation(guessIntervalStart + orbit.Periapsis) < 0) guessIntervalStart += Math.PI; 
-        double guessIntervalEnd = guessIntervalStart;
-        double learningRate = 0.01;
-        ScientificDecimal currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
-        ScientificDecimal lastIntervalDistance;
-        minimumDistance = currentIntervalDistance;
+        externalPoint -= orbit.Parent.Position;
+
+        double guessPoint = externalPoint.Direction() - orbit.Periapsis;
+        if (orbit.Equation(guessPoint + orbit.Periapsis) < 0) guessPoint += Math.PI; 
+        double learningRate = 0.1;
+        
+        ScientificDecimal currentGuessDistance = GetGuessDistance(guessPoint);
+        ScientificDecimal lastGuessDistance = ScientificDecimal.PosInfinity;
 
         int iterations = 0;
+
         do
         {
-            do
+            while (true)
             {
-                lastIntervalDistance = currentIntervalDistance;
-                guessIntervalStart += learningRate;
-                guessIntervalEnd += learningRate;
-                currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
+                ScientificDecimal nextGuessDistance = GetGuessDistance(guessPoint + learningRate);
+                if (nextGuessDistance >= currentGuessDistance) break;
+                lastGuessDistance = currentGuessDistance;
+                currentGuessDistance = nextGuessDistance;
+                guessPoint += learningRate;
+            } 
 
-            } while (currentIntervalDistance - lastIntervalDistance < 0);
-
-            do
+            while (true)
             {
-                lastIntervalDistance = currentIntervalDistance;
-                guessIntervalStart -= learningRate;
-                guessIntervalEnd -= learningRate;
-                currentIntervalDistance = GetGuessIntervalMidpointDistance(guessIntervalStart, guessIntervalEnd);
-
-            } while (currentIntervalDistance - lastIntervalDistance < 0);
+                ScientificDecimal nextIntervalDistance = GetGuessDistance(guessPoint - learningRate);
+                if (nextIntervalDistance >= currentGuessDistance) break;
+                lastGuessDistance = currentGuessDistance;
+                currentGuessDistance = nextIntervalDistance;
+                guessPoint -= learningRate;
+            }
 
             learningRate /= 2;
             iterations++;
-        } while ((lastIntervalDistance - currentIntervalDistance).Abs() > 100 || iterations < 10);
+        } while ((lastGuessDistance - currentGuessDistance).Abs() > 100 && iterations < 25);
 
-        minimumDistance = currentIntervalDistance;
-        return (guessIntervalStart + guessIntervalEnd) / 2;
+        minimumDistance = currentGuessDistance;
+        return guessPoint;
 
-        ScientificDecimal GetGuessIntervalMidpointDistance(double intervalStart, double intervalEnd)
+        ScientificDecimal GetGuessDistance(double point)
         {
-            double midPoint = (intervalStart + intervalEnd) / 2;
-            SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(midPoint);
+            SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
+            funcCalls++;
             return (externalPoint - orbitalPosition).MagnitudeSquared();
         }
     }
