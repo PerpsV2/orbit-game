@@ -8,6 +8,12 @@ public class CircularCollider_Tests
     private readonly ScientificDecimal _testMass = 10;
 
     [Fact]
+    public void CircularCollider_Constructor()
+    {
+        Assert.Throws<ArgumentException>(() => new CircularCollider(-1));
+    }
+    
+    [Fact]
     public void CircularCollider_CalculateInertiaMethod()
     {
         Assert.Equal(5, _testUnitCollider.CalculateInertia(_testMass));

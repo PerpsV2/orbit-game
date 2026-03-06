@@ -51,8 +51,6 @@ public class KeplerOrbitPath
     /// <returns>The true anomaly of the closest point on the orbit</returns>
     private double GetClosestOrbitPoint(KeplerOrbit orbit, SD_Vector2 externalPoint, out ScientificDecimal minimumDistance)
     {
-        int funcCalls = 0;
-        
         externalPoint -= orbit.Parent.Position;
 
         double guessPoint = externalPoint.Direction() - orbit.Periapsis;
@@ -94,7 +92,6 @@ public class KeplerOrbitPath
         ScientificDecimal GetGuessDistance(double point)
         {
             SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
-            funcCalls++;
             return (externalPoint - orbitalPosition).MagnitudeSquared();
         }
     }

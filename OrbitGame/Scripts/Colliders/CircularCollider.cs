@@ -14,6 +14,7 @@ public class CircularCollider : CompactCollider
     {
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
+        // TODO: fix bounding box inaccuracies
         _defaultBoundingBox = new(SD_Vector2.Zero, Radius * 2.1, Radius * 2.1);
     }
     
