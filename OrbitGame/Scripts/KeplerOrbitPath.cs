@@ -136,7 +136,7 @@ public class KeplerOrbitPath
     private void DrawSelectedOrbitPoint(KeplerOrbit orbit, Color colour)
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         if (HoverPoint != null)
         {
@@ -161,7 +161,7 @@ public class KeplerOrbitPath
     private void DrawPartialEllipseOrbit(KeplerOrbit orbit, double minAngle, double maxAngle, Color colour)
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         Body centralForce = orbit.Parent;
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
@@ -202,7 +202,7 @@ public class KeplerOrbitPath
     private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         Utils.GetMinAngleRange(out double minAngle, out double maxAngle,
             (camera.TopRight - centralForce.Position).Direction(),
@@ -230,7 +230,7 @@ public class KeplerOrbitPath
                                Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
                                Matrix.CreateScale(new Vector3(1, -1, 0)) *
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-            orbitMesh.Draw(graphicsDevice, transform, new()
+            graphicsDevice.DrawMesh(orbitMesh, transform, new()
             {
                 { "Colour", colour.ToVector4() }
             });
@@ -241,7 +241,7 @@ public class KeplerOrbitPath
     private void DrawHyperbolaOrbit(KeplerOrbit orbit, Body centralForce, Color colour)
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
         

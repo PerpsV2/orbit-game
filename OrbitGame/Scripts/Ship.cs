@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGame;
 
 namespace OrbitGame;
 
@@ -37,15 +35,12 @@ public class Ship : Body, IGameDrawable
         _maximumRadius = maximumRadius;
         _orbitMesh = orbitMesh;
         Collider.CalculateInertia(mass);
-        
-        if (OrbitGame.Graphics is not null)
-            _orbitMesh.GenerateBuffers();
     }
 
     public void Draw()
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius.Square() > camera.MaximumRadiusSquared) return;
         
@@ -59,7 +54,7 @@ public class Ship : Body, IGameDrawable
             Matrix transform = Matrix.CreateScale(new Vector3(scale.X, scale.Y, 1)) *
                                Matrix.CreateRotationZ(-(float)(Angle + camera.Angle)) *
                                Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-            Mesh.Draw(graphicsDevice, transform, new()
+            graphicsDevice.DrawMesh(Mesh, transform, new()
             {
                 { "Colour", Colour.ToVector4() }
             });
@@ -67,7 +62,7 @@ public class Ship : Body, IGameDrawable
         if (screenDistance < 10)
         {
             double iconAngle = -Angle - camera.Angle;
-            float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 255);
+            float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
             graphicsDevice.DrawLine(
                 screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -5), iconAngle), 

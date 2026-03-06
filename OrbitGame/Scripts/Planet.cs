@@ -33,7 +33,7 @@ public class Planet : Body, IGameDrawable
     public void Draw()
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
         KeplerOrbitPath.DrawOrbitalPath(_orbitMesh, Colour);
@@ -104,7 +104,7 @@ public class Planet : Body, IGameDrawable
             intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
             var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
 
-            Utils.DrawPoly(graphicsDevice, polyPoints, Colour);
+            graphicsDevice.DrawPoly(polyPoints, Colour);
         }
         
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
@@ -128,7 +128,7 @@ public class Planet : Body, IGameDrawable
             float screenRadius = camera.ConvertToScreenDistance(Radius);
             Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                                Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-            Mesh.Draw(graphicsDevice, transform, new()
+            graphicsDevice.DrawMesh(Mesh, transform, new()
             {
                 { "Colour", Colour.ToVector4() }
             });
@@ -143,7 +143,7 @@ public class Planet : Body, IGameDrawable
     private void DrawSphereOfInfluence()
     {
         Camera camera = OrbitGame.Camera;
-        GraphicsDevice graphicsDevice = OrbitGame.Graphics;
+        IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         if (KeplerOrbitPath.Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)KeplerOrbitPath.Orbit;
@@ -158,7 +158,7 @@ public class Planet : Body, IGameDrawable
         float screenRadius = camera.ConvertToScreenDistance(sphereOfInfluenceRadius);
         Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                            Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-        Mesh.Draw(graphicsDevice, transform, new()
+        graphicsDevice.DrawMesh(Mesh, transform, new()
         {
             {"Colour", soiColour.ToVector4()}
         });

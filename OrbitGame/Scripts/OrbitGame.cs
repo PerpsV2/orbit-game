@@ -98,7 +98,7 @@ public class OrbitGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
-        Graphics = _graphics.GraphicsDevice;
+        Graphics = new GraphicsHandler(_graphics.GraphicsDevice);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -106,7 +106,7 @@ public class OrbitGame : Game
     public static List<Body> Bodies = [];
     public static List<Planet> Planets = [];
     public static List<Ship> Ships = [];
-    public static GraphicsDevice Graphics = null!;
+    public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
     public static Camera Camera = new("Camera", new(SD_Vector2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
@@ -126,7 +126,7 @@ public class OrbitGame : Game
 
     protected override void Initialize()
     {
-        Graphics = _graphics.GraphicsDevice;
+        Graphics = new GraphicsHandler(_graphics.GraphicsDevice);
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         

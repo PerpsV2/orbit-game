@@ -13,12 +13,9 @@ public class OrbitMesh : IMesh
     private static readonly int OrbitVertices = Options.OrbitVertices;
     private static VertexBuffer? _vertexBuffer;
     private static IndexBuffer? _indexBuffer;
+    private static bool _buffersGenerated;
 
-    public OrbitMesh()
-    {
-    }
-
-    public void GenerateBuffers()
+    public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
         var vertices = new VertexPositionColor[OrbitVertices + 1];
         for (int i = 0; i < OrbitVertices; i++)
@@ -32,13 +29,22 @@ public class OrbitMesh : IMesh
         for (int i = 0; i < indices.Length; i++)
             indices[i] = i;
          
-        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
-        _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
+        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
          
         _vertexBuffer.SetData(vertices);
         _indexBuffer.SetData(indices);
+        
+        _buffersGenerated = true;
     }
-    
+
+    public bool TryGenerateBuffers(GraphicsDevice graphicsDevice)
+    {
+        if (_buffersGenerated) return false;
+        GenerateBuffers(graphicsDevice);
+        return true;
+    }
+
     public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
     {
         if (_vertexBuffer == null || _indexBuffer == null) 

@@ -19,12 +19,14 @@ public class PolyMesh : IMesh
 
     private readonly Vector2[] _points;
 
+    private bool _buffersGenerated;
+    
     public PolyMesh(SD_Vector2[] points)
     {
         _points = points.Select(v => new Vector2((float)v.X, -(float)v.Y)).ToArray();
     }
 
-    public void GenerateBuffers()
+    public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
         if (_points.Length == 0) return;
         
@@ -40,11 +42,20 @@ public class PolyMesh : IMesh
             _indices[i * 3 + 2] = (i + 2) % _vertices.Length;
         }
 
-        _vertexBuffer = new VertexBuffer(OrbitGame.Graphics, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
-        _indexBuffer = new IndexBuffer(OrbitGame.Graphics, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
+        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), _vertices.Length, BufferUsage.None);
+        _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, _indices.Length, BufferUsage.None);
         
         _vertexBuffer.SetData(_vertices);
         _indexBuffer.SetData(_indices);
+
+        _buffersGenerated = true;
+    }
+
+    public bool TryGenerateBuffers(GraphicsDevice graphicsDevice)
+    {
+        if (_buffersGenerated) return false;
+        GenerateBuffers(graphicsDevice);
+        return true;
     }
 
     public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)

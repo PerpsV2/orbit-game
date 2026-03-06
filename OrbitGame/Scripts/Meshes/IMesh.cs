@@ -12,7 +12,13 @@ public interface IMesh
     /// <summary>
     /// Generate vertex and index buffers for the mesh.
     /// </summary>
-    public void GenerateBuffers();
+    public void GenerateBuffers(GraphicsDevice graphicsDevice);
+    
+    /// <summary>
+    /// Generates vertex and index buffers for the mesh only if they have not already been generated.
+    /// </summary>
+    /// <returns>Returns true if successful, false otherwise.</returns>
+    public bool TryGenerateBuffers(GraphicsDevice graphicsDevice);
 
     /// <summary>
     /// Draw the mesh using the generated vertex and index buffers.
