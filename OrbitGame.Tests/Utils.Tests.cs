@@ -2,6 +2,7 @@ namespace OrbitGame.Tests;
 
 public class Utils_Tests
 {
+    private readonly SD_Vector2[] _testEmptyHull = [];
     private readonly SD_Vector2[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
     private readonly SD_Vector2[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
     private readonly SD_Vector2[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
@@ -111,10 +112,18 @@ public class Utils_Tests
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(2, 5)));
         Assert.Equal(0, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(0, 3)));
     }
+
+    [Fact]
+    public void Utils_LogEnumerableMethod()
+    {
+        Utils.LogEnumerable(_testConvexHull);
+        throw new NotImplementedException();
+    }
     
     [Fact]
-    public void Vector2_TriangulateConvexMethod()
+    public void Utils_TriangulateConvexMethod()
     {
+        Assert.Throws<ArgumentException>(() => Utils.TriangulateConvex(_testEmptyHull));
         Assert.Equal(new[] {
             (new SD_Vector2(4, 4), new SD_Vector2(4, 0), new SD_Vector2(0, 0)), 
             (new SD_Vector2(4, 4), new SD_Vector2(0, 0), new SD_Vector2(0, 4))
@@ -122,13 +131,13 @@ public class Utils_Tests
     }
 
     [Fact]
-    public void Vector2_CenterOfMassConvexMethod()
+    public void Utils_CenterOfMassConvexMethod()
     {
         Assert.Equal(new SD_Vector2(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
     }
 
     [Fact]
-    public void Vector2_CenterConvexMethod()
+    public void Utils_CenterConvexMethod()
     {
         Assert.Equal([
                 new SD_Vector2(2, 2),
@@ -141,7 +150,7 @@ public class Utils_Tests
     }
 
     [Fact]
-    public void Vector2_TripletRotationDirectionMethod()
+    public void Utils_TripletRotationDirectionMethod()
     {
         Assert.Equal(RotationDirection.Clockwise, Utils.TripletRotationDirection(_testCWConvexHull));
         Assert.Equal(RotationDirection.Counterclockwise, Utils.TripletRotationDirection(_testCCWConvexHull));

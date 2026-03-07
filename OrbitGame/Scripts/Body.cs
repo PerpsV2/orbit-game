@@ -103,12 +103,14 @@ public abstract class Body : KinematicObject
                     Acceleration = calculateAcceleration();
                     Velocity += Acceleration * timeStep;
                     Position += Velocity * timeStep;
+                    AngularVelocity += AngularAcceleration * (double)timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
                 case NumericalIntegrator.ImplicitEuler:
                     Acceleration = calculateAcceleration();
                     Position += Velocity * timeStep;
                     Velocity += Acceleration * timeStep;
+                    AngularVelocity += AngularAcceleration * (double)timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
                 case NumericalIntegrator.VelocityVerlet:
@@ -116,6 +118,7 @@ public abstract class Body : KinematicObject
                     Position += Velocity * timeStep + acceleration1 * 0.5f * timeStep * timeStep;
                     SD_Vector2 acceleration2 = calculateAcceleration();
                     Velocity += (acceleration1 + acceleration2) * 0.5f * timeStep;
+                    AngularVelocity += AngularAcceleration * (double)timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
                 case NumericalIntegrator.RungeKutta4:
@@ -153,6 +156,7 @@ public abstract class Body : KinematicObject
                     Position = originalPosition +
                                (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
 
+                    AngularVelocity += AngularAcceleration * (double)timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
             }
@@ -166,6 +170,7 @@ public abstract class Body : KinematicObject
         newState.Velocity = (newState.Position - Position) / timeDiff;
         SpatialInfo.Position = newState.Position;
         SpatialInfo.Velocity = newState.Velocity;
+        SpatialInfo.AngularVelocity += (double)(AngularAcceleration * timeDiff); 
         SpatialInfo.Angle += (double)(AngularVelocity * timeDiff);
     }
 }

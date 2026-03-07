@@ -17,12 +17,12 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     private readonly KinematicObject _surface;
     private readonly KinematicObject _tracking;
     
-    public SurfaceCameraScheme(KinematicObject surface, KinematicObject tracking)
+    public SurfaceCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject surface, KinematicObject tracking)
     {
         _surface = surface;
         _tracking = tracking;
-        _localPosition = new SD_Vector2();
-        _localAngle = 0;
+        _localPosition = cameraSpatialInfo.Position - _tracking.Position;
+        _localAngle = cameraSpatialInfo.Angle - (_surface.Position - cameraSpatialInfo.Position).Direction() - Math.PI / 2;
     }
 
     public void Focus()
@@ -56,7 +56,8 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = _tracking.Position + _localPosition;
-        spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).Direction() 
-                            - Math.PI / 2 - _localAngle;
+        if (_surface.Position - _tracking.Position - _localPosition == SD_Vector2.Zero) spatialInfo.Angle = _localAngle;
+        else spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).Direction() 
+                                 - Math.PI / 2 - _localAngle;
     }
 }

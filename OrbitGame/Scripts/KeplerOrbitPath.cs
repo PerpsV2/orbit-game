@@ -144,7 +144,7 @@ public class KeplerOrbitPath
             {
                 SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
-                graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, colour);
+                graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
         if (SelectedPoint != null)
@@ -153,7 +153,7 @@ public class KeplerOrbitPath
             {
                 SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
                 SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
-                graphicsDevice.GS_DrawPoint(camera, orbitPointPosition, Color.Red);
+                graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, Color.Red);
             }
         }
     }
@@ -196,7 +196,7 @@ public class KeplerOrbitPath
 
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
-            graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
+            graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
 
     private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
@@ -277,7 +277,7 @@ public class KeplerOrbitPath
         orbitPoints.RemoveAll(x => x.MagnitudeSquared().IsInfinite);
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
-            graphicsDevice.GS_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
+            graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
     }
 
     /// <summary>

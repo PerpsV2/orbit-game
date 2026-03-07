@@ -5,33 +5,57 @@ namespace OrbitGame;
 
 public class DebugGraphicsHandler : IGraphicsHandler
 {
+    public readonly record struct DrawPolyCall(List<Vector2> Points, Color Color);
+    public readonly record struct DrawLineCall(Vector2 Start, Vector2 End, Color Colour);
+    public readonly record struct DrawPointCall(Vector2 Position, Color Colour);
+    public readonly record struct DrawMeshCall(
+        IMesh Mesh,
+        Matrix Transform,
+        Dictionary<string, object> ShaderParameters
+    );
+    
+    public List<DrawPolyCall> DrawPolyCalls = [];
+    public List<DrawLineCall> DrawLineCalls = [];
+    public List<DrawPointCall> DrawPointCalls = [];
+    public List<DrawMeshCall> DrawMeshCalls = [];
+    
     public void DrawPoly(List<Vector2> points, Color colour)
     {
-        throw new System.NotImplementedException();
+        DrawPolyCalls.Add(new DrawPolyCall(points, colour));
     }
 
     public void DrawLine(Vector2 start, Vector2 end, Color colour)
     {
-        throw new System.NotImplementedException();
+        DrawLineCalls.Add(new DrawLineCall(start, end, colour));
     }
 
-    public void GS_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
+    public void DrawLineR(Vector2 start, Vector2 displacement, Color colour)
     {
-        throw new System.NotImplementedException();
+        DrawLine(start, start + displacement, colour);
     }
 
-    public void GS_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
+    public void SD_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
     {
-        throw new System.NotImplementedException();
+        DrawLine(camera.ConvertToScreenCoordinates(start), camera.ConvertToScreenCoordinates(end), colour);
     }
 
-    public void GS_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+    public void SD_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
     {
-        throw new System.NotImplementedException();
+        SD_DrawLine(camera, start, start + displacement, colour);
+    }
+
+    public void DrawPoint(Vector2 position, Color colour)
+    {
+        DrawPointCalls.Add(new DrawPointCall(position, colour));
+    }
+
+    public void SD_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+    {
+        DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }
 
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters)
     {
-        throw new System.NotImplementedException();
+        DrawMeshCalls.Add(new DrawMeshCall(mesh, transform, shaderParameters));
     }
 }

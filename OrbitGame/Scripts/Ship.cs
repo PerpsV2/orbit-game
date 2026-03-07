@@ -131,7 +131,7 @@ public class Ship : Body, IGameDrawable
         thrust = SD_Vector2.RotatePoint(thrust, Angle);
         position = SD_Vector2.RotatePoint(position, Angle);
         ScientificDecimal torque = SD_Vector2.Cross(thrust, position).Z;
-        AngularVelocity += (double)(torque / Mass);
+        AngularAcceleration += (double)(torque / Mass);
         ArtificialAcceleration += thrust / Mass;
         DisturbLandingState();
     }

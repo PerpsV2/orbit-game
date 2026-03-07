@@ -136,7 +136,7 @@ public readonly struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     {
         return X.Equals(other.X) && Y.Equals(other.Y);
     }
-
+    
     public override bool Equals(object? obj)
     {
         return obj is SD_Vector2 other && Equals(other);

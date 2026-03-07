@@ -1,6 +1,6 @@
 namespace OrbitGame.Tests;
 
-public class Vector2_Tests
+public class SD_Vector2_Tests
 {
     private readonly double _testAngle = Math.PI;
     private readonly double _testMagnitude = 5;
@@ -40,6 +40,13 @@ public class Vector2_Tests
         Assert.Equal(5, _testPythagoreanVector.Magnitude());
         Assert.Equal(5, _testHorizontalVector.Magnitude());
     }
+    
+    [Fact]
+    public void Vector2_MagnitudeSquaredMethod()
+    {
+        Assert.Equal(25, _testPythagoreanVector.MagnitudeSquared());
+        Assert.Equal(25, _testHorizontalVector.MagnitudeSquared());
+    }
 
     [Fact]
     public void Vector2_NormalizeMethod()
@@ -49,7 +56,15 @@ public class Vector2_Tests
         Assert.Throws<ArithmeticException>(() => _testZeroVector.Normalize());
     }
     
-    #region Operators
+    [Fact]
+    public void Vector2_DirectionMethod()
+    {
+        Assert.Throws<DivideByZeroException>(() => SD_Vector2.Zero.Direction());
+        Assert.Equal(_testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
+        Assert.Equal(Math.PI - _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
+        Assert.Equal(Math.PI + _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
+        Assert.Equal(Math.Tau - _testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
+    }
 
     [Fact]
     public void Vector2_NegativeOperator()
@@ -81,16 +96,5 @@ public class Vector2_Tests
     {
         Assert.Equal(new SD_Vector2(1, 0), _testHorizontalVector / _testScalar);
         Assert.Throws<ArithmeticException>(() => _testHorizontalVector / 0);
-    }
-    
-    #endregion
-
-    [Fact]
-    public void Vector2_GetPrincipalAngleMethod()
-    {
-        Assert.Equal(_testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
-        Assert.Equal(Math.PI - _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(_testReferenceAngle)).Direction());
-        Assert.Equal(Math.PI + _testReferenceAngle, new SD_Vector2(Math.Cos(-_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
-        Assert.Equal(Math.Tau - _testReferenceAngle, new SD_Vector2(Math.Cos(_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
     }
 }

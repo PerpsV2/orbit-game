@@ -14,11 +14,11 @@ public class TrackingFixedCameraScheme : ICameraMovementScheme
     private double _localAngle;
     private readonly KinematicObject? _tracking;
 
-    public TrackingFixedCameraScheme(SpatialInfo spatialInfo, KinematicObject? tracking)
+    public TrackingFixedCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;
-        _localPosition = spatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
-        _localAngle = spatialInfo.Angle - (_tracking?.Angle ?? 0);
+        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
+        _localAngle = cameraSpatialInfo.Angle - (_tracking?.Angle ?? 0);
     }
 
     public void Focus()

@@ -113,13 +113,13 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             DrawDebug.Add(() => {
                 var g = OrbitGame.Graphics;
                 var cam = OrbitGame.Camera;
-                g.GS_DrawPoint(cam, reference.Position + cPr, Color.Blue);
-                g.GS_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Blue);
-                g.GS_DrawLineR(cam, reference.Position + cPr, cTangent, Color.Purple);
+                g.SD_DrawPoint(cam, reference.Position + cPr, Color.Blue);
+                g.SD_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Blue);
+                g.SD_DrawLineR(cam, reference.Position + cPr, cTangent, Color.Purple);
                 foreach (var point in c1.CollisionManifold)
-                    g.GS_DrawPoint(cam, reference.Position + point, Color.Red);
-                g.GS_DrawLineR(cam, reference.Position + cPr, relV, Color.Yellow);
-                g.GS_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), Color.Orange);
+                    g.SD_DrawPoint(cam, reference.Position + point, Color.Red);
+                g.SD_DrawLineR(cam, reference.Position + cPr, relV, Color.Yellow);
+                g.SD_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), Color.Orange);
             });
     }
 

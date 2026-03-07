@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -147,9 +146,7 @@ public class Planet : Body, IGameDrawable
         
         if (KeplerOrbitPath.Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)KeplerOrbitPath.Orbit;
-
-        if (orbit.SphereOfInfluenceRadius == null) return;
-        ScientificDecimal sphereOfInfluenceRadius = (ScientificDecimal)orbit.SphereOfInfluenceRadius;
+        ScientificDecimal sphereOfInfluenceRadius = orbit.SphereOfInfluenceRadius;
 
         // paint for spheres of influence
         Color soiColour = new Color(Colour.R, Colour.G, Colour.B) * Options.SOIAlpha;

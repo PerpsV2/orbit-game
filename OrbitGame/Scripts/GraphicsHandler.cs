@@ -52,21 +52,25 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         }
     }
 
-    public void GS_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
+    public void DrawLineR(Vector2 start, Vector2 displacement, Color colour)
+    {
+        DrawLine(start, start + displacement, colour);
+    }
+
+    public void SD_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
     {
         Vector2 screenStart = camera.ConvertToScreenCoordinates(start);
         Vector2 screenEnd = camera.ConvertToScreenCoordinates(end);
         DrawLine(screenStart, screenEnd, colour);
     }
 
-    public void GS_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
+    public void SD_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
     {
-        GS_DrawLine(camera, start, start + displacement, colour);
+        SD_DrawLine(camera, start, start + displacement, colour);
     }
-    
-    public void GS_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+
+    public void DrawPoint(Vector2 position, Color colour)
     {
-        Vector2 screenPosition = camera.ConvertToScreenCoordinates(position);
         VertexPositionColor[] vertices = [
             new(new Vector3(0, 5, 0), colour), 
             new(new Vector3(5, 0, 0), colour),
@@ -75,7 +79,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         int[] indices = [0, 1, 3, 3, 1, 2];
         
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");;
-        effect.Parameters["World"].SetValue(Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0)));
+        effect.Parameters["World"].SetValue(Matrix.CreateTranslation(new Vector3(position.X, position.Y, 0)));
         effect.Parameters["Colour"].SetValue(colour.ToVector4());
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
@@ -84,6 +88,11 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, 2
             );
         }
+    }
+
+    public void SD_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+    {
+        DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }
 
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters)

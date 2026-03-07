@@ -40,6 +40,12 @@ public abstract class KinematicObject
         set => SpatialInfo.AngularVelocity = value;
     }
 
+    public double AngularAcceleration
+    {
+        get => SpatialInfo.AngularAcceleration;
+        set => SpatialInfo.AngularAcceleration = value;
+    }
+
     public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(SpatialInfo.Angle);
     public SD_Vector2 RightVector => SD_Vector2.FromPolar(SpatialInfo.Angle - Math.PI / 2);
     

@@ -1,6 +1,6 @@
 namespace OrbitGame.Tests;
 
-public class Vector3_Tests
+public class SD_Vector3_Tests
 {
     private readonly SD_Vector3 _testXVector = new(5, 0, 0);
     private readonly SD_Vector3 _testYVector = new(0, 5, 0);
@@ -32,6 +32,13 @@ public class Vector3_Tests
         Assert.Equal(5, _testYVector.Magnitude());
         Assert.Equal(5, _testZVector.Magnitude());
     }
+    
+    [Fact]
+    public void Vector3_DirectionVectorMethod()
+    {
+        Assert.Equal(new SD_Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
+            SD_Vector3.DirectionVector(_testZVector, _testXVector));
+    }
 
     [Fact]
     public void Vector3_NormalizeMethod()
@@ -39,8 +46,6 @@ public class Vector3_Tests
         Assert.Equal(new SD_Vector3(1, 0, 0), _testXVector.Normalize());
         Assert.Throws<ArithmeticException>(() => _testZeroVector.Normalize());
     }
-    
-    #region Operators
 
     [Fact]
     public void Vector3_NegativeOperator()
@@ -71,13 +76,24 @@ public class Vector3_Tests
     {
         Assert.Equal(new SD_Vector3(1, 0, 0), _testXVector / _testScalar);
     }
-
+    
     [Fact]
-    public void Vector3_DirectionVectorBetweenMethod()
+    public void Vector3_EqualsOperator()
     {
-        Assert.Equal(new SD_Vector3(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
-            SD_Vector3.DirectionVector(_testZVector, _testXVector));
+        Assert.True(_testXVector == new SD_Vector3(5, 0, 0));
+        Assert.False(_testXVector == _testYVector);
     }
     
-    #endregion
+    [Fact]
+    public void Vector3_UnequalsOperator()
+    {
+        Assert.False(_testXVector != new SD_Vector3(5, 0, 0));
+        Assert.True(_testXVector != _testYVector);
+    }
+
+    [Fact]
+    public void Vector3_ToStringMethod()
+    {
+        Assert.Equal("<5e+0, 0e+0, 0e+0>", _testXVector.ToString());
+    }
 }

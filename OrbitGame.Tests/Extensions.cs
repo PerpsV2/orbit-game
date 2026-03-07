@@ -1,4 +1,7 @@
 // ReSharper disable once CheckNamespace
+
+using Microsoft.Xna.Framework;
+
 namespace Xunit;
 
 public abstract partial class Assert
@@ -34,6 +37,12 @@ public abstract partial class Assert
     }
     
     public static void Equal(OrbitGame.SD_Vector2 left, OrbitGame.SD_Vector2 right)
+    {
+        Equal(left.X, right.X, Epsilon);
+        Equal(left.Y, right.Y, Epsilon);
+    }
+
+    public static void Equal(Vector2 left, Vector2 right)
     {
         Equal(left.X, right.X, Epsilon);
         Equal(left.Y, right.Y, Epsilon);

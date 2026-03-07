@@ -47,8 +47,8 @@ public class Camera : KinematicObject
     public SD_Vector2 BottomLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
     public SD_Vector2 BottomRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
 
-    public Matrix3X3 ViewMatrix;
-    public Matrix3X3 InverseViewMatrix;
+    private Matrix3X3 _viewMatrix;
+    private Matrix3X3 _inverseViewMatrix;
     
     public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height,
         int screenWidth, int screenHeight, ICameraMovementScheme movementScheme) 
@@ -58,6 +58,7 @@ public class Camera : KinematicObject
         _height = height;
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
+        MaximumRadiusSquared = _height * _height + _width * _width;
         MovementScheme = movementScheme;
         UpdateViewMatrix();
         OriginBody.OnResetOrigin += Camera_OnResetOrigin;
@@ -97,24 +98,24 @@ public class Camera : KinematicObject
     
     private void UpdateViewMatrix()
     {
-        ViewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
+        _viewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
                      Matrix3X3.Translation(Width / 2, Height / 2) *
                      Matrix3X3.Rotation(-Angle) *
                      Matrix3X3.Scale(1, -1);
-        InverseViewMatrix = Matrix3X3.Scale(1, -1) * 
+        _inverseViewMatrix = Matrix3X3.Scale(1, -1) * 
                             Matrix3X3.Rotation(Angle) *
                             Matrix3X3.Translation(-Width / 2, -Height / 2) *
                             Matrix3X3.Scale(Width / _screenWidth, Height / _screenHeight);
     }
 
     public SD_Vector2 SD_ConvertToWorldCoordinates(SD_Vector2 point)
-        => InverseViewMatrix * point + Position;
+        => _inverseViewMatrix * point + Position;
 
     public SD_Vector2 ConvertToWorldCoordinates(Vector2 point)
         => SD_ConvertToWorldCoordinates(new(point.X, point.Y));
     
     public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
-        => ViewMatrix * (point - Position);
+        => _viewMatrix * (point - Position);
     
     public Vector2 ConvertToScreenCoordinates(SD_Vector2 point)
     {

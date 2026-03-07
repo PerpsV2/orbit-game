@@ -13,10 +13,10 @@ public class TrackingCameraScheme : ICameraMovementScheme
     private SD_Vector2 _localPosition;
     private readonly KinematicObject? _tracking;
 
-    public TrackingCameraScheme(SpatialInfo spatialInfo, KinematicObject? tracking)
+    public TrackingCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;
-        _localPosition = spatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
+        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
     }
 
     public void Focus()

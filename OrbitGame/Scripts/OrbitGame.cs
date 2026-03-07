@@ -355,7 +355,8 @@ public class OrbitGame : Game
             case TrackingFixedCameraScheme:
                 if (GameState.Tracking.Parent == null)
                     Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
-                else Camera.MovementScheme = new SurfaceCameraScheme(GameState.Tracking.Parent, GameState.Tracking);
+                else Camera.MovementScheme = new SurfaceCameraScheme(Camera.SpatialInfo, 
+                    GameState.Tracking.Parent, GameState.Tracking);
                 break;
             case SurfaceCameraScheme:
                 Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);

@@ -9,7 +9,7 @@ namespace OrbitGame;
 
 public static class Constants
 {
-    public static readonly ScientificDecimal G = new(6.6743, -11);
+    public static ScientificDecimal G = new(6.6743, -11);
 }
 
 public enum RotationDirection
