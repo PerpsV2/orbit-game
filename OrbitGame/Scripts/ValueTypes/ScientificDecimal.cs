@@ -15,6 +15,8 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public static ScientificDecimal Zero => 0;
     public static ScientificDecimal One => 1;
+    public static ScientificDecimal AdditiveIdentity => 0;
+    public static ScientificDecimal MultiplicativeIdentity => 1;
     public static int Radix => 10;
 
     /// <summary>
@@ -88,7 +90,6 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public bool Positive => double.IsPositive(_mantissa);
     public bool Negative => double.IsNegative(_mantissa);
-    public bool IsInfinite => _infinite;
 
     /// <summary>
     /// Sets the largest non-zero digit of the mantissa to be in the ones place
@@ -201,6 +202,10 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (_infinite) return new ScientificDecimal(true, true);
         return new (Math.Abs(Mantissa), Exponent);
     }
+    
+    [Obsolete("Use non-static Abs method.")]
+    public static ScientificDecimal Abs(ScientificDecimal value)
+        => value.Abs();
 
     public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
     {
@@ -217,6 +222,20 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
             if (n > result) result = n;
         return result;
     }
+    
+    [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
+    public static ScientificDecimal MinMagnitude(ScientificDecimal x, ScientificDecimal y)
+        => Min(x, y);
+
+    public static ScientificDecimal MinMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Min(x, y);
+    
+    [Obsolete("MaxMagnitude is obsolete. Use Max method instead.")]
+    public static ScientificDecimal MaxMagnitude(ScientificDecimal x, ScientificDecimal y)
+        => Max(x, y);
+
+    public static ScientificDecimal MaxMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
 
     public ScientificDecimal Clamp(ScientificDecimal min, ScientificDecimal max)
     {
@@ -323,6 +342,57 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     
     #endregion
     
+    public static bool IsZero(ScientificDecimal value)
+        => value.Mantissa == 0;
+    
+    public static bool IsPositive(ScientificDecimal value)
+        => value == 0 || value.Positive;
+    
+    public static bool IsNegative(ScientificDecimal value)
+        => value.Negative;
+    
+    public static bool IsFinite(ScientificDecimal value)
+        => !value._infinite;
+    
+    public static bool IsRealNumber(ScientificDecimal value)
+        => true;
+
+    public static bool IsImaginaryNumber(ScientificDecimal value)
+        => false;
+    
+    public static bool IsComplexNumber(ScientificDecimal value)
+        => false;
+    
+    public static bool IsInteger(ScientificDecimal value)
+        => double.IsInteger((double)value);
+
+    public static bool IsOddInteger(ScientificDecimal value)
+        => double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
+
+    public static bool IsEvenInteger(ScientificDecimal value)
+        => double.Abs((double)value % 2) <= ComparisonTolerance;
+
+    public static bool IsNaN(ScientificDecimal value)
+        => IsInfinity(value) || IsNaN(value.Mantissa);
+    
+    public static bool IsInfinity(ScientificDecimal value)
+        => value._infinite;
+
+    public static bool IsNegativeInfinity(ScientificDecimal value)
+        => value.Negative && IsInfinity(value);
+
+    public static bool IsPositiveInfinity(ScientificDecimal value)
+        => value.Positive && IsInfinity(value);
+    
+    public static bool IsCanonical(ScientificDecimal value)
+        => value.Mantissa is >= 0 and < 10;
+    
+    public static bool IsNormal(ScientificDecimal value)
+        => double.IsNormal(value.Mantissa);
+
+    public static bool IsSubnormal(ScientificDecimal value)
+        => double.IsSubnormal(value.Mantissa);
+    
     public override string ToString()
     {
         if (_infinite) return (Positive ? "" : "-") + "Infinity";
@@ -331,49 +401,41 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
             Math.Min(PrintPrecision + 1, mantissaString.Length - (Positive ? 0 : 1)));
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
-
-    public int CompareTo(object? obj)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+    
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
-
-    public int CompareTo(ScientificDecimal other)
-        => this < other ? -1 : this > other ? 1 : 0;
-
-    public bool Equals(ScientificDecimal other)
-    {
-        if (_infinite && other._infinite) return Positive == other.Positive;
-        if (_infinite || other._infinite) return false;
-        return Math.Abs(Mantissa - other.Mantissa) < ComparisonTolerance && Exponent == other.Exponent;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is ScientificDecimal other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Mantissa, Exponent);
-    }
-
+    
     public static ScientificDecimal Parse(string s, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
-
+    
+    public static ScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ScientificDecimal result)
     {
         throw new NotImplementedException();
     }
-
-    public static ScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
+        out ScientificDecimal result)
     {
         throw new NotImplementedException();
     }
@@ -382,88 +444,9 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         throw new NotImplementedException();
     }
-
-    public static ScientificDecimal AdditiveIdentity { get; }
-    public static ScientificDecimal MultiplicativeIdentity { get; }
-
-    public static ScientificDecimal Abs(ScientificDecimal value)
-        => value.Abs();
-
-    public static bool IsCanonical(ScientificDecimal value)
-        => throw new NotImplementedException();
-
-    public static bool IsComplexNumber(ScientificDecimal value)
-        => false;
-
-    public static bool IsEvenInteger(ScientificDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool IsFinite(ScientificDecimal value)
-        => !value.IsInfinite;
-
-    public static bool IsImaginaryNumber(ScientificDecimal value)
-        => false;
-
-    public static bool IsInfinity(ScientificDecimal value)
-        => value.IsInfinite;
-
-    public static bool IsInteger(ScientificDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool IsNaN(ScientificDecimal value)
-        => IsInfinity(value) || IsNaN(value.Mantissa);
-
-    public static bool IsNegative(ScientificDecimal value)
-        => value.Negative;
-
-    public static bool IsNegativeInfinity(ScientificDecimal value)
-        => value is { Negative: true, IsInfinite: true };
-
-    public static bool IsNormal(ScientificDecimal value)
-        => double.IsNormal(value.Mantissa);
-
-    public static bool IsOddInteger(ScientificDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool IsPositive(ScientificDecimal value)
-        => value == 0 || value.Positive;
-
-    public static bool IsPositiveInfinity(ScientificDecimal value)
-        => value is { Positive: true, IsInfinite: true };
-
-    public static bool IsRealNumber(ScientificDecimal value)
-        => true;
-
-    public static bool IsSubnormal(ScientificDecimal value)
-        => double.IsSubnormal(value.Mantissa);
-
-    public static bool IsZero(ScientificDecimal value)
-        => value.Mantissa == 0;
-
-    public static ScientificDecimal MaxMagnitude(ScientificDecimal x, ScientificDecimal y)
-        => Max(x, y);
-
-    public static ScientificDecimal MaxMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
-        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : MaxMagnitude(x, y);
-
-    public static ScientificDecimal MinMagnitude(ScientificDecimal x, ScientificDecimal y)
-        => Min(x, y);
-
-    public static ScientificDecimal MinMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
-        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : MinMagnitude(x, y);
-
-    public static ScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static ScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
+        out ScientificDecimal result)
     {
         throw new NotImplementedException();
     }
@@ -503,16 +486,30 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         throw new NotImplementedException();
     }
-
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
-        out ScientificDecimal result)
+    
+    public int CompareTo(object? obj)
     {
-        throw new NotImplementedException();
+        if (obj is ScientificDecimal other)
+            return this < other ? -1 : this > other ? 1 : 0;
+        return -1;
+    }
+    public int CompareTo(ScientificDecimal other)
+        => this < other ? -1 : this > other ? 1 : 0;
+    
+    public override bool Equals(object? obj)
+    {
+        return obj is ScientificDecimal other && Equals(other);
     }
 
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
-        out ScientificDecimal result)
+    public bool Equals(ScientificDecimal other)
     {
-        throw new NotImplementedException();
+        if (_infinite && other._infinite) return Positive == other.Positive;
+        if (_infinite || other._infinite) return false;
+        return Math.Abs(Mantissa - other.Mantissa) < ComparisonTolerance && Exponent == other.Exponent;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Mantissa, Exponent);
     }
 }

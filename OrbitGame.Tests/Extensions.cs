@@ -1,5 +1,7 @@
-// ReSharper disable once CheckNamespace
 
+
+using OrbitGame;
+// ReSharper disable once CheckNamespace
 using Microsoft.Xna.Framework;
 
 namespace Xunit;
@@ -10,9 +12,9 @@ public abstract partial class Assert
 
     public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right)
     {
-        if (left.IsInfinite && right.IsInfinite)
+        if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
         {
-            Equal(left.IsInfinite, right.IsInfinite);
+            Equal(ScientificDecimal.IsInfinity(left), ScientificDecimal.IsInfinity(right));
             Equal(left.Positive, right.Positive);
         }
         else
@@ -25,9 +27,9 @@ public abstract partial class Assert
     public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right, 
         OrbitGame.ScientificDecimal tolerance)
     {
-        if (left.IsInfinite && right.IsInfinite)
+        if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
         {
-            Equal(left.IsInfinite, right.IsInfinite);
+            Equal(ScientificDecimal.IsInfinity(left), ScientificDecimal.IsInfinity(right));
             Equal(left.Positive, right.Positive);
         }
         else
@@ -79,5 +81,21 @@ public abstract partial class Assert
         Equal(left.Reference, right.Reference);
         Equal(left.CollisionManifold, right.CollisionManifold);
         Equal(left.PenetrationVector, right.PenetrationVector);
+    }
+
+    public static void Raises<T>(Action<Action<object?, T>> subscribeAction, Action testAction)
+    {
+        bool eventRaised = false;
+        subscribeAction((_, _) => { eventRaised = true; });
+        testAction();
+        True(eventRaised);
+    }
+    
+    public static void NotRaises<T>(Action<Action<object?, T>> subscribeAction, Action testAction)
+    {
+        bool eventRaised = false;
+        subscribeAction((_, _) => { eventRaised = true; });
+        testAction();
+        False(eventRaised);
     }
 }

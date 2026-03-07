@@ -15,9 +15,9 @@ public class Material
     {
         if (restitution < 0)
             throw new ArgumentOutOfRangeException(nameof(restitution), "Coefficient of restitution cannot be less than zero");
-        if (staticFriction < 0 || staticFriction > 1)
+        if (staticFriction < dynamicFriction || staticFriction > 1)
             throw new ArgumentOutOfRangeException(nameof(staticFriction),
-                "Static friction cannot be negative or greater than 1");
+                "Static friction cannot be less than dynamic friction or greater than 1");
         if (dynamicFriction < 0 || dynamicFriction > 1)
             throw new ArgumentOutOfRangeException(nameof(dynamicFriction),
                 "Dynamic friction cannot be negative or greater than 1");

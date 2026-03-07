@@ -24,8 +24,7 @@ public class Camera_Tests
     private readonly SpatialInfo _testCameraSpatialInfo = new(new SD_Vector2(0, 10), Math.PI);
     
     private readonly KinematicObject _testTrackingObject;
-    private readonly KinematicObject _testSurfaceObject;
-    
+
     private readonly TrackingCameraScheme _testTrackingCameraScheme;
     private readonly TrackingFixedCameraScheme _testTrackingFixedCameraScheme;
     private readonly SurfaceCameraScheme _testSurfaceCameraScheme;
@@ -36,11 +35,11 @@ public class Camera_Tests
     {
         TestKinematicObject.TestTemplate testTemplate = new();
         _testTrackingObject = testTemplate.CreateTestInstance("Tracking Object", new(new SD_Vector2(10, 0), Math.PI / 2));
-        _testSurfaceObject = testTemplate.CreateTestInstance("Surface Object", new(SD_Vector2.Zero, 3 * Math.PI / 2));
+        KinematicObject testSurfaceObject = testTemplate.CreateTestInstance("Surface Object", new(SD_Vector2.Zero, 3 * Math.PI / 2));
         
         _testTrackingCameraScheme = new TrackingCameraScheme(_testCameraSpatialInfo, _testTrackingObject);
         _testTrackingFixedCameraScheme = new TrackingFixedCameraScheme(_testCameraSpatialInfo, _testTrackingObject);
-        _testSurfaceCameraScheme = new SurfaceCameraScheme(_testCameraSpatialInfo, _testSurfaceObject, _testTrackingObject);
+        _testSurfaceCameraScheme = new SurfaceCameraScheme(_testCameraSpatialInfo, testSurfaceObject, _testTrackingObject);
         
         _testSquareCamera = new Camera("Test Square Camera", _testCameraSpatialInfo, 10, 10, 
             _testScreenSize.width, _testScreenSize.height, _testTrackingCameraScheme);

@@ -8,7 +8,7 @@ namespace OrbitGame;
 
 public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
 {
-    public delegate void Interpolator(InterpolatorRef variableReferences,
+    public delegate void InterpolatorMethod(InterpolatorRef variableReferences,
         T startIndependent, T endIndependent, T startDependent, T endDependent);
     
     public class InterpolatorRef(Func<T> independentGetter, Action<T> dependentSetter)
@@ -22,7 +22,7 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
 
     public class Interpolation(
         InterpolatorRef variableReferences,
-        Interpolator interpolator,
+        InterpolatorMethod interpolator,
         T startIndependent,
         T endIndependent,
         T startDependent,
@@ -30,21 +30,22 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
     {
         public delegate void InterpolationEvent(object? sender, EventArgs e);
 
-        private bool _lastActiveState;
-
         public event InterpolationEvent? InterpolationStart;
         public event InterpolationEvent? InterpolationEnd;
+
+        public InterpolatorMethod Interpolator = interpolator;
+        
+        private T _lastIndependentValue = variableReferences.Independent;
         
         public void UpdateValue()
         {
-            bool currentActiveState = IsActive();
-            if (currentActiveState != _lastActiveState)
-            {
-                if (currentActiveState) OnInterpolationStart();
-                else OnInterpolationEnd();
-            }
-            interpolator(variableReferences, startIndependent, endIndependent, startDependent, endDependent);
-            _lastActiveState = currentActiveState;
+            T currentIndependentValue = variableReferences.Independent;
+            if (_lastIndependentValue < startIndependent && currentIndependentValue >= startIndependent) 
+                OnInterpolationStart();
+            else if (_lastIndependentValue < endIndependent && currentIndependentValue >= endIndependent)
+                OnInterpolationEnd();
+            Interpolator(variableReferences, startIndependent, endIndependent, startDependent, endDependent);
+            _lastIndependentValue = currentIndependentValue;
         }
 
         private void OnInterpolationStart()
@@ -82,27 +83,15 @@ public static class InterpolationHandler<T> where T : INumber<T>, IComparable<T>
         variableReferences.Dependent = startDependent + (endDependent - startDependent) * progress;
     }
     
-    public static void CubicInterpolate(
-        InterpolatorRef variableReferences,
-        T startIndependent, T endIndependent, T startDependent, T endDependent
-    )
-    {
-        if (variableReferences.Independent < startIndependent) return;
-        if (variableReferences.Independent > endIndependent) return;
-        T progress = (variableReferences.Independent - startIndependent) / (endIndependent - startIndependent);
-        double progressDouble = double.CreateSaturating(progress);
-        progressDouble = 3 * Math.Pow(progressDouble, 2) - 2 * Math.Pow(progressDouble, 3);
-        variableReferences.Dependent = startDependent + (endDependent - startDependent) * T.CreateSaturating(progressDouble);
-    }
-    
     private static readonly List<Interpolation> Interpolations = [];
     
     public static Interpolation CreateInterpolation(
         InterpolatorRef variableReferences,
         T startIndependent, T endIndependent, T startDependent, T endDependent,
-        Interpolator? interpolator = null
+        InterpolatorMethod? interpolator = null
     )
     {
+        if (endIndependent < startIndependent) throw new ArgumentOutOfRangeException(nameof(endIndependent));
         Interpolations.Add(new Interpolation(variableReferences, interpolator ?? LinearInterpolate,
             startIndependent, endIndependent, startDependent, endDependent));
         return Interpolations.Last();

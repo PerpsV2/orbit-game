@@ -115,7 +115,7 @@ public class KeplerOrbitPath
         if (closestOrbitDistanceSquared < _minMouseDistanceToOrbit)
         {
             _minMouseDistanceToOrbit = closestOrbitDistanceSquared;
-            if (!closestOrbitDistanceSquared.IsInfinite)
+            if (!ScientificDecimal.IsInfinity(closestOrbitDistanceSquared))
             {
                 float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(closestOrbitDistanceSquared.Sqrt());
                 if (screenMouseDistanceToOrbit < 10)
@@ -258,7 +258,7 @@ public class KeplerOrbitPath
                 if (dist > 0 && dist < parentSOIRadius)
                     orbitPoints.Add(orbitPoint);
             }
-            else if (dist > 0 && !dist.IsInfinite) 
+            else if (dist > 0 && ScientificDecimal.IsFinite(dist)) 
                 orbitPoints.Add(orbitPoint);
             if (double.IsPositive(trueAngle - objectAngle) !=  
                 double.IsPositive(trueAngle + 2 * asymptoteAngle / Options.OrbitResolutionNumPoints - objectAngle))
@@ -274,7 +274,7 @@ public class KeplerOrbitPath
             orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
         }
 
-        orbitPoints.RemoveAll(x => x.MagnitudeSquared().IsInfinite);
+        orbitPoints.RemoveAll(x => ScientificDecimal.IsInfinity(x.MagnitudeSquared()));
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
