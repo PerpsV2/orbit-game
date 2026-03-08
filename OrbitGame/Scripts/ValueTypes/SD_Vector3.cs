@@ -40,7 +40,7 @@ public readonly struct SD_Vector3(ScientificDecimal x, ScientificDecimal y, Scie
     /// Calculates the Euclidean distance magnitude of the vector
     /// </summary>
     public ScientificDecimal Magnitude()
-        => (X * X + Y * Y + Z * Z).Sqrt();
+        => ScientificDecimal.Sqrt(X * X + Y * Y + Z * Z);
     
     /// <summary>
     /// Sets the magnitude of the vector to one without changing direction.

@@ -41,7 +41,7 @@ public class Camera : KinematicObject
     }
 
     public ScientificDecimal MaximumRadiusSquared;
-    public ScientificDecimal MaximumRadius => MaximumRadiusSquared.Sqrt();
+    public ScientificDecimal MaximumRadius => ScientificDecimal.Sqrt(MaximumRadiusSquared);
     public SD_Vector2 TopLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
     public SD_Vector2 TopRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
     public SD_Vector2 BottomLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);

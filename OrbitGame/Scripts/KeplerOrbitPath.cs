@@ -84,7 +84,7 @@ public class KeplerOrbitPath
 
             learningRate /= 2;
             iterations++;
-        } while ((lastGuessDistance - currentGuessDistance).Abs() > 100 && iterations < 25);
+        } while (ScientificDecimal.Abs(lastGuessDistance - currentGuessDistance) > 100 && iterations < 25);
 
         minimumDistance = currentGuessDistance;
         return guessPoint;
@@ -117,7 +117,8 @@ public class KeplerOrbitPath
             _minMouseDistanceToOrbit = closestOrbitDistanceSquared;
             if (!ScientificDecimal.IsInfinity(closestOrbitDistanceSquared))
             {
-                float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(closestOrbitDistanceSquared.Sqrt());
+                float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(
+                    ScientificDecimal.Sqrt(closestOrbitDistanceSquared));
                 if (screenMouseDistanceToOrbit < 10)
                     HoverPoint = new(this, closestOrbitPointTrueAnomaly);
                 else HoverPoint = null;

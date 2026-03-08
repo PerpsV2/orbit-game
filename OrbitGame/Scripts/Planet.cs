@@ -37,7 +37,7 @@ public class Planet : Body, IGameDrawable
         DrawSphereOfInfluence();
         KeplerOrbitPath.DrawOrbitalPath(_orbitMesh, Colour);
 
-        if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius.Square() > camera.MaximumRadiusSquared) return;
+        if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
@@ -60,41 +60,41 @@ public class Planet : Body, IGameDrawable
 
             if (topDiscriminant >= 0)
             {
-                radical = topDiscriminant.Sqrt();
+                radical = ScientificDecimal.Sqrt(topDiscriminant);
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new SD_Vector2((p2 - radical).Clamp(0, w), h));
-                    intersectionPoints.Add(new SD_Vector2((p2 + radical).Clamp(0, w), h));
+                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), h));
+                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), h));
                 }
             }
 
             if (rightDiscriminant >= 0)
             {
-                radical = rightDiscriminant.Sqrt();
+                radical = ScientificDecimal.Sqrt(rightDiscriminant);
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new SD_Vector2(w, (p1 + radical).Clamp(0, h)));
-                    intersectionPoints.Add(new SD_Vector2(w, (p1 - radical).Clamp(0, h)));
+                    intersectionPoints.Add(new SD_Vector2(w, ScientificDecimal.Clamp(p1 + radical, 0, h)));
+                    intersectionPoints.Add(new SD_Vector2(w, ScientificDecimal.Clamp(p1 - radical, 0, h)));
                 }
             }
 
             if (bottomDiscriminant >= 0)
             {
-                radical = bottomDiscriminant.Sqrt();
+                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new SD_Vector2((p2 + radical).Clamp(0, w), 0));
-                    intersectionPoints.Add(new SD_Vector2((p2 - radical).Clamp(0, w), 0));
+                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), 0));
+                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), 0));
                 }
             }
 
             if (leftDiscriminant >= 0)
             {
-                radical = leftDiscriminant.Sqrt();
+                radical = ScientificDecimal.Sqrt(leftDiscriminant);
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new SD_Vector2(0, (p1 - radical).Clamp(0, h)));
-                    intersectionPoints.Add(new SD_Vector2(0, (p1 + radical).Clamp(0, h)));
+                    intersectionPoints.Add(new SD_Vector2(0, ScientificDecimal.Clamp(p1 - radical, 0, h)));
+                    intersectionPoints.Add(new SD_Vector2(0, ScientificDecimal.Clamp(p1 + radical, 0, h)));
                 }
             }
 

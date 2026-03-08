@@ -103,7 +103,7 @@ public static class Utils
 
     public static ScientificDecimal CalculateTriangleArea(SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)
     {
-        return (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)).Abs()/ 2;
+        return ScientificDecimal.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
     }
     
     public static ScientificDecimal CalculateConvexInertia(SD_Vector2[] points, ScientificDecimal mass)
@@ -130,7 +130,8 @@ public static class Utils
 
         ScientificDecimal totalInertia = 0;
         for (int i = 0; i < triangles.Length; ++i)
-            totalInertia += inertias[i] + masses[i] * (centroids[i].X.Square() + centroids[i].Y.Square());
+            totalInertia += inertias[i] + masses[i] * (ScientificDecimal.Square(centroids[i].X) + 
+                                                       ScientificDecimal.Square(centroids[i].Y));
         
         return totalInertia;
     }

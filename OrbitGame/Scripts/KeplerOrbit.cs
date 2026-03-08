@@ -79,7 +79,7 @@ public readonly record struct KeplerOrbit
         ScientificDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
         LRLVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) - 
                     orbitalDirectionVector * Body.Mass * forceStrength;
-        SemiLatusRectum = angularMomentum.Magnitude().Square() / Body.Mass / forceStrength;
+        SemiLatusRectum = ScientificDecimal.Square(angularMomentum.Magnitude()) / Body.Mass / forceStrength;
         
         // initialize lazy fields
         _lazyEccentricity = new(LazyInitializeEccentricity);
@@ -97,7 +97,7 @@ public readonly record struct KeplerOrbit
         => LRLVector != SD_Vector2.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
 
     private double LazyInitializeEccentricity()
-        => (double)(LRLVector.Magnitude() / (Body.Mass * Body.Mass * Parent.Mass * Constants.G).Abs());
+        => (double)(LRLVector.Magnitude() / ScientificDecimal.Abs(Body.Mass * Body.Mass * Parent.Mass * Constants.G));
     
     private OrbitEquation LazyInitializeEquation()
     {
@@ -123,7 +123,7 @@ public readonly record struct KeplerOrbit
         switch (Eccentricity)
         {
             case <= 0: return SemiLatusRectum;
-            case > 0 and < 1: return (Equation(Periapsis) * Equation(Periapsis + Math.PI)).Sqrt();
+            case > 0 and < 1: return ScientificDecimal.Sqrt(Equation(Periapsis) * Equation(Periapsis + Math.PI));
             case >= 1: return SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
@@ -134,7 +134,8 @@ public readonly record struct KeplerOrbit
         switch (Eccentricity)
         {
             case <= 0: 
-            case > 0 and < 1: return Math.Tau * (SemiMajorAxis.IntPow(3) / Constants.G / Parent.Mass).Sqrt();
+            case > 0 and < 1: return Math.Tau * ScientificDecimal.Sqrt(
+                ScientificDecimal.IntPow(SemiMajorAxis, 3) / Constants.G / Parent.Mass);
             case >= 1: return ScientificDecimal.PosInfinity;
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
@@ -236,13 +237,14 @@ public readonly record struct KeplerOrbit
         => (double)(timeSincePeriapsis * Math.Tau / Period);
         
     private double CalculateMeanAnomalyFromTimeSincePeriapsisHyperbolic(ScientificDecimal timeSincePeriapsis)
-        => (double)(timeSincePeriapsis / (SemiMajorAxis.Square() * -SemiMajorAxis / (Parent.Mass * Constants.G)).Sqrt());
+        => (double)(timeSincePeriapsis / ScientificDecimal.Sqrt(ScientificDecimal.IntPow(-SemiMajorAxis, 3) /
+                                                                (Parent.Mass * Constants.G)));
 
     private ScientificDecimal CalculateTimeSincePeriapsisFromMeanAnomalyElliptic(double meanAnomaly)
         => meanAnomaly * Period / Math.Tau;
     
     private ScientificDecimal CalculateTimeSincePeriapsisFromMeanAnomalyHyperbolic(double meanAnomaly)
-        => (SemiMajorAxis.Square() * -SemiMajorAxis / (Parent.Mass * Constants.G)).Sqrt() * meanAnomaly;
+        => ScientificDecimal.Sqrt(ScientificDecimal.IntPow(-SemiMajorAxis, 3) / (Parent.Mass * Constants.G)) * meanAnomaly;
 
     public ScientificDecimal CalculateTimeSincePeriapsisFromTrueAnomaly(double trueAnomaly)
     {

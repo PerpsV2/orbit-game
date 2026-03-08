@@ -53,10 +53,11 @@ public class ConvexCollider : CompactCollider
             ScientificDecimal edgeUpperBound = SD_Vector2.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
             SD_Vector2 transformedCenter = SD_Vector2.RotatePoint(relativeCenter - currentVertex, -edgeAngle);
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
-                transformedCenter.Y.Abs() <= collider.Radius)
+                ScientificDecimal.Abs(transformedCenter.Y) <= collider.Radius)
             {
                 ScientificDecimal penetrationDistance = -collider.Radius + transformedCenter.Y;
-                if (penetrationDistance.Abs() < minPenetrationVector.Magnitude() || minPenetrationVector.Equals(SD_Vector2.Zero))
+                if (ScientificDecimal.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
+                    minPenetrationVector.Equals(SD_Vector2.Zero))
                 {
                     minPenetrationVector = SD_Vector2.RotatePoint(
                         SD_Vector2.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance), referenceSpatial.Angle

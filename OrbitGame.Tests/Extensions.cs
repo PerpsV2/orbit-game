@@ -34,7 +34,7 @@ public abstract partial class Assert
         }
         else
         {
-            True((left - right).Abs() < tolerance);
+            True(ScientificDecimal.Abs(left - right) < tolerance);
         }
     }
     

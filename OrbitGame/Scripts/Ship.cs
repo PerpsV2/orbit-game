@@ -42,7 +42,8 @@ public class Ship : Body, IGameDrawable
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
-        if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius.Square() > camera.MaximumRadiusSquared) return;
+        if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius * _maximumRadius > camera.MaximumRadiusSquared) 
+            return;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);

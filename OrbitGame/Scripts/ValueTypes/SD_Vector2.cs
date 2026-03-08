@@ -46,7 +46,7 @@ public readonly struct SD_Vector2(ScientificDecimal x, ScientificDecimal y)
     /// Returns the Euclidean distance magnitude of the vector.
     /// </summary>
     public ScientificDecimal Magnitude()
-        => (X * X + Y * Y).Sqrt();
+        => ScientificDecimal.Sqrt(X * X + Y * Y);
     
     /// <summary>
     /// Returns the squared Euclidean distance magnitude of the vector.

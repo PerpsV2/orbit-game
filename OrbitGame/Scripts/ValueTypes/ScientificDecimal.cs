@@ -1,16 +1,18 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace OrbitGame;
 
 /// <summary>
 /// Number with decimal precision but arbitrary place value.
 /// </summary>
-public struct ScientificDecimal : INumber<ScientificDecimal>
+public partial struct ScientificDecimal : INumber<ScientificDecimal>
 {
-    private const int PrintPrecision = Options.ScientificPrintPrecision;
+    private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
     private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
 
     public static ScientificDecimal Zero => 0;
@@ -33,7 +35,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     private double _mantissa;
     public double Mantissa
     {
-        get
+        readonly get
         {
             if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no mantissa");
             return _mantissa;
@@ -48,7 +50,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     private int _exponent;
     public int Exponent
     {
-        get
+        readonly get
         {
             if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no exponent");
             return _exponent;
@@ -88,8 +90,8 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         _infinite = infinite;
     }
 
-    public bool Positive => double.IsPositive(_mantissa);
-    public bool Negative => double.IsNegative(_mantissa);
+    public readonly bool Positive => double.IsPositive(_mantissa);
+    public readonly bool Negative => double.IsNegative(_mantissa);
 
     /// <summary>
     /// Sets the largest non-zero digit of the mantissa to be in the ones place
@@ -176,36 +178,33 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
         return value - mod * (value / mod).Round();
     }
+    
+    public static ScientificDecimal Square(ScientificDecimal value)
+        => value * value;
 
-    public readonly ScientificDecimal Square()
-        => this * this;
 
-    public readonly ScientificDecimal IntPow(uint amount)
+    public static ScientificDecimal IntPow(ScientificDecimal value, uint amount)
     {
         ScientificDecimal result = 1;
         for (uint i = 0; i < amount; ++i)
-            result *= this;
+            result *= value;
 
         return result;
     }
-    
-    public ScientificDecimal Sqrt()
+
+    public static ScientificDecimal Sqrt(ScientificDecimal value)
     {
-        if (Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
-        if (_infinite) return this;
-        if (Exponent % 2 != 0) IncreaseExponent(Exponent + 1);
-        return new ScientificDecimal(Utils.DecimalSqrt(Mantissa), Exponent / 2);
+        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
+        if (value._infinite) return value;
+        if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
+        return new ScientificDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
     }
 
-    public ScientificDecimal Abs()
-    {
-        if (_infinite) return new ScientificDecimal(true, true);
-        return new (Math.Abs(Mantissa), Exponent);
-    }
-    
-    [Obsolete("Use non-static Abs method.")]
     public static ScientificDecimal Abs(ScientificDecimal value)
-        => value.Abs();
+    {
+        if (value._infinite) return new ScientificDecimal(true, true);
+        return new (Math.Abs(value.Mantissa), value.Exponent);
+    }
 
     public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
     {
@@ -237,10 +236,10 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static ScientificDecimal MaxMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
 
-    public ScientificDecimal Clamp(ScientificDecimal min, ScientificDecimal max)
+    public static ScientificDecimal Clamp(ScientificDecimal value, ScientificDecimal min, ScientificDecimal max)
     {
         if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
-        return this < min ? min : this > max ? max : this;
+        return value < min ? min : value > max ? max : value;
     }
 
     /// <summary>
@@ -343,11 +342,13 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     #endregion
     
     public static bool IsZero(ScientificDecimal value)
-        => value.Mantissa == 0;
+        => value is { _infinite: false, Mantissa: 0 };
     
+    [Obsolete("IsPositive method is obsolete. Use Positive property instead.")]
     public static bool IsPositive(ScientificDecimal value)
-        => value == 0 || value.Positive;
+        => IsZero(value) || value.Positive;
     
+    [Obsolete("IsNegative method is obsolete. Use Negative property instead.")]
     public static bool IsNegative(ScientificDecimal value)
         => value.Negative;
     
@@ -364,16 +365,16 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         => false;
     
     public static bool IsInteger(ScientificDecimal value)
-        => double.IsInteger((double)value);
+        => !value._infinite && double.IsInteger((double)value);
 
     public static bool IsOddInteger(ScientificDecimal value)
-        => double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
+        => !value._infinite && double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
 
     public static bool IsEvenInteger(ScientificDecimal value)
-        => double.Abs((double)value % 2) <= ComparisonTolerance;
+        => !value._infinite && double.Abs((double)value % 2) <= ComparisonTolerance;
 
     public static bool IsNaN(ScientificDecimal value)
-        => IsInfinity(value) || IsNaN(value.Mantissa);
+        => IsInfinity(value) || double.IsNaN(value.Mantissa);
     
     public static bool IsInfinity(ScientificDecimal value)
         => value._infinite;
@@ -393,16 +394,91 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static bool IsSubnormal(ScientificDecimal value)
         => double.IsSubnormal(value.Mantissa);
     
-    public override string ToString()
+    private string ToStringPrecision(string format)
     {
-        if (_infinite) return (Positive ? "" : "-") + "Infinity";
-        string mantissaString = Mantissa.ToString(CultureInfo.InvariantCulture);
-        mantissaString = (Positive ? "" : "-") + mantissaString.Substring(Positive ? 0 : 1, 
-            Math.Min(PrintPrecision + 1, mantissaString.Length - (Positive ? 0 : 1)));
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+
+        string mantissaString = Mantissa.ToString("F" + (sigFigs - 1));
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
+
+    private string ToStringStandardDecimal()
+        => ToStringStandardDecimal("S" + DefaultPrintPrecision);
+
+    private string ToStringStandardDecimal(string format)
+    {
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+        
+        string mantissaString = Mantissa.ToString("N" + (sigFigs - 1));
+        if (Negative) mantissaString = mantissaString.Substring(1);
+        int mantissaDecimalIndex = mantissaString.IndexOf('.');
+        int resultDecimalIndex = mantissaDecimalIndex + Exponent;
+        string result = mantissaString.Substring(0, mantissaDecimalIndex) + 
+                        mantissaString.Substring(mantissaDecimalIndex + 1);
+        string resultDecimalInsert = ".";
+        
+        if (resultDecimalIndex < 0)
+        {
+            result = result.PadLeft(result.Length + Math.Abs(resultDecimalIndex), '0');
+            resultDecimalIndex = 0;
+            resultDecimalInsert = "0.";
+        }
+        
+        if (resultDecimalIndex > result.Length)
+        {
+            result = result.PadRight(resultDecimalIndex, '0');
+            resultDecimalInsert = "";
+        }
+        
+        result = result.Insert(resultDecimalIndex, resultDecimalInsert);
+        if (Negative) return "-" + result;
+        return result;
+    }
+
+    private string ToStringGeneral()
+        => ToStringPrecision("P" + DefaultPrintPrecision);
     
-    public string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+    public override string ToString()
+        => ToStringGeneral();
+
+    public string ToString(string? format, IFormatProvider? formatProvider)
+    {
+        if (string.IsNullOrEmpty(format))
+            format = "G";
+
+        switch (format.ToUpperInvariant())
+        {
+            case "G": return ToStringGeneral(); // general format
+            case "S": return ToStringStandardDecimal(); // standard decimal format
+            case var f when StandardDecimalFormatRegex().IsMatch(f): 
+                return ToStringStandardDecimal(f); // standard decimal format with precision
+            case var f when PrecisionFormatRegex().IsMatch(f): 
+                return ToStringPrecision(f); // custom precision format
+            default: throw new FormatException($"The format '{format}' is not supported.");
+        }
+    }
     
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
@@ -512,4 +588,10 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         return HashCode.Combine(Mantissa, Exponent);
     }
+
+    [GeneratedRegex(@"P\d+")]
+    private static partial Regex PrecisionFormatRegex();
+    
+    [GeneratedRegex(@"S\d*")]
+    private static partial Regex StandardDecimalFormatRegex();
 }
