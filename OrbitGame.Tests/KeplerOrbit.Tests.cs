@@ -5,6 +5,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Xunit;
 using Xunit.Abstractions;
 using static OrbitGame.Planet;
+using NullReferenceException = System.NullReferenceException;
+
 namespace OrbitGame.Tests;
 
 public class KeplerOrbit_Tests
@@ -16,6 +18,8 @@ public class KeplerOrbit_Tests
     private readonly Planet _circularBody;
     private readonly Planet _ellipticBody;
     private readonly Planet _hyperbolicBody;
+
+    private readonly ScientificDecimal _largeTimeFrame = 10000;
 
     public KeplerOrbit_Tests(ITestOutputHelper output)
     {
@@ -58,6 +62,9 @@ public class KeplerOrbit_Tests
         Assert.Equal(1, orbit.SemiLatusRectum, Assert.Epsilon);
         Assert.Equal(1, orbit.SemiMajorAxis, Assert.Epsilon);
         Assert.Equal(1, orbit.SemiMinorAxis, Assert.Epsilon);
+
+        Assert.Equal(SD_Vector2.Zero, orbit.Center);
+        Assert.Equal(1, orbit.SphereOfInfluenceRadius);
         
         Assert.Equal(Math.Tau, orbit.Period, Assert.Epsilon);
         // Time since periapsis for this orbit is the same as arc angle between periapsis and starting position
@@ -81,6 +88,9 @@ public class KeplerOrbit_Tests
         Assert.Equal(1.96, orbit.SemiLatusRectum, Assert.Epsilon);
         Assert.Equal(25, orbit.SemiMajorAxis, Assert.Epsilon);
         Assert.Equal(7, orbit.SemiMinorAxis, Assert.Epsilon);
+        
+        Assert.Equal(new(0, -24), orbit.Center);
+        Assert.Equal(25, orbit.SphereOfInfluenceRadius, Assert.Epsilon);
         
         Assert.Equal(Math.Tau * 125, orbit.Period, Assert.Epsilon);
         Assert.Equal(0, orbit.InitialTimeSincePeriapsis);
@@ -108,8 +118,52 @@ public class KeplerOrbit_Tests
     }
 
     [Fact]
-    public void KeplerOrbit_CalculateTrueAnomalyFromTimeFromPeriapsis()
-    { 
+    public void KeplerOrbit_CalculateTrueAnomalyFromTimeSincePeriapsis()
+    {
+        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        for (int i = 0; i < 10; ++i)
+            Assert.Equal(Utils.WrapAngle(i), orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(i));
+
+        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(Math.PI, orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(Math.Tau * 62.5), Assert.Epsilon);
+
+        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(Math.Acos(-1d / orbit.Eccentricity), orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(_largeTimeFrame), 
+            Assert.Epsilon);
+    }
+
+    [Fact]
+    public void KeplerOrbit_CalculateTimeSincePeriapsisFromTrueAnomaly()
+    {
+        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        for (double i = 0; i < Math.Tau; i += Math.Tau / 10)
+            Assert.Equal(i, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(i), Assert.Epsilon);
+
+        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(Math.Tau * 62.5, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.PI), Assert.Epsilon);
         
+        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.True(orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.Acos(-1d / orbit.Eccentricity)) > _largeTimeFrame);
+    }
+
+    [Fact]
+    public void KeplerOrbit_GetOrbitPositionFromTrueAnomaly()
+    {
+        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        for (int i = 0; i < 10; ++i)
+            Assert.Equal(SD_Vector2.FromPolar(i + orbit.Periapsis), orbit.GetOrbitPositionFromTrueAnomaly(i));
+
+        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(new SD_Vector2(1.96, 0), orbit.GetOrbitPositionFromTrueAnomaly(Math.PI / 2));
+
+        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(new SD_Vector2(3.6, 0), orbit.GetOrbitPositionFromTrueAnomaly(Math.PI / 2));
+    }
+
+    [Fact]
+    public void KeplerOrbit_GetStateAtTime()
+    {
+        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        throw new NotImplementedException();
     }
 }

@@ -58,4 +58,12 @@ public class DebugGraphicsHandler : IGraphicsHandler
     {
         DrawMeshCalls.Add(new DrawMeshCall(mesh, transform, shaderParameters));
     }
+
+    public void ResetCalls()
+    {
+        DrawPolyCalls.Clear();
+        DrawMeshCalls.Clear();
+        DrawLineCalls.Clear();
+        DrawPointCalls.Clear();
+    }
 }
