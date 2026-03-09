@@ -1,3 +1,6 @@
+using System;
+using Xunit;
+
 namespace OrbitGame.Tests;
 
 public class CircularCollider_Tests

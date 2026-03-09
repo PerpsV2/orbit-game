@@ -49,8 +49,7 @@ public abstract class KinematicObject
     public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(SpatialInfo.Angle);
     public SD_Vector2 RightVector => SD_Vector2.FromPolar(SpatialInfo.Angle - Math.PI / 2);
     
-    protected KinematicObject(string identifier,
-        SpatialInfo spatialInfo)
+    protected KinematicObject(string identifier, SpatialInfo spatialInfo)
     {
         Identifier = identifier;
         SpatialInfo = spatialInfo;
@@ -96,18 +95,26 @@ public abstract class KinematicObject
     /// </summary>
     public abstract class KinematicObjectTemplate
     {
+        public static Dictionary<string, KinematicObject> AllInstances { get; } = new();
+        
         private Dictionary<string, KinematicObject> Instances { get; } = new();
 
         /// <summary>
         /// Add an instance of a KinematicObject into the pool of objects
         /// </summary>
         protected void AddInstance(string identifier, KinematicObject instance)
-            => Instances.Add(identifier, instance);
+        {
+            AllInstances.TryAdd(identifier, instance);
+            Instances.Add(identifier, instance);
+        }
 
         /// <summary>
         /// Remove an instance from the pool of objects
         /// </summary>
         public bool Destroy(string identifier)
-            => Instances.Remove(identifier);
+        {
+            AllInstances.Remove(identifier);
+            return Instances.Remove(identifier);
+        }
     }
 }

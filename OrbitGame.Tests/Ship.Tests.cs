@@ -1,4 +1,6 @@
+using System;
 using Microsoft.Xna.Framework;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace OrbitGame.Tests;
@@ -81,14 +83,6 @@ public class Ship_Tests
         _ship.ApplyThrust(_displacedThrust.thrust, _displacedThrust.displacement);
         Assert.Equal(new SD_Vector2(30, 0), _ship.CalculateNetAcceleration());
         Assert.Equal(50, _ship.AngularAcceleration);
-    }
-
-    [Fact]
-    public void Ship_ResetThrustMethod()
-    {
-        _ship.ApplyThrust(_centerThrust.thrust, _centerThrust.displacement);
-        _ship.ResetThrust();
-        Assert.Equal(SD_Vector2.Zero, _ship.CalculateNetAcceleration());
     }
 
     [Fact]

@@ -1,3 +1,5 @@
+using System;
+using Xunit;
 using Xunit.Abstractions;
 using Interpolation = OrbitGame.InterpolationHandler<OrbitGame.ScientificDecimal>.Interpolation;
 

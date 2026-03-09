@@ -1,3 +1,6 @@
+using System;
+using Xunit;
+
 namespace OrbitGame.Tests;
 
 public class SD_Vector2_Tests
@@ -96,5 +99,11 @@ public class SD_Vector2_Tests
     {
         Assert.Equal(new SD_Vector2(1, 0), _testHorizontalVector / _testScalar);
         Assert.Throws<ArithmeticException>(() => _testHorizontalVector / 0);
+    }
+
+    [Fact]
+    public void Vector2_ToString()
+    {
+        Assert.Equal("<5.0000e+0, 0.0000e+0>", _testHorizontalVector.ToString());
     }
 }

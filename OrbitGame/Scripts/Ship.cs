@@ -37,6 +37,12 @@ public class Ship : Body, IGameDrawable
         Collider.CalculateInertia(mass);
     }
 
+    protected override void Body_UpdateFrame(object? e, EventArgs args)
+    {
+        base.Body_UpdateFrame(e, args);
+        ArtificialAcceleration = SD_Vector2.Zero;
+    }
+
     public void Draw()
     {
         Camera camera = OrbitGame.Camera;
@@ -135,11 +141,6 @@ public class Ship : Body, IGameDrawable
         AngularAcceleration += (double)(torque / Mass);
         ArtificialAcceleration += thrust / Mass;
         DisturbLandingState();
-    }
-
-    public void ResetThrust()
-    {
-        ArtificialAcceleration = SD_Vector2.Zero;
     }
 
     public override SD_Vector2 CalculateNetAcceleration()

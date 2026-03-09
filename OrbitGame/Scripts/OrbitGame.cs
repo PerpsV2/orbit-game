@@ -416,11 +416,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
-        GameState.ControlShip.ResetThrust();
         if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.ApplyThrust(new SD_Vector2(-100000, 0), new SD_Vector2(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.D8)) GameState.ControlShip.ApplyThrust(new SD_Vector2(-1000000, 0), new SD_Vector2(-0.4, 0));
-        if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, 0.1));
-        if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(new SD_Vector2(500, 0), new SD_Vector2(-0.4, -0.1));
+        if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(new SD_Vector2(10000, 0), new SD_Vector2(-0.4, 0.1));
+        if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(new SD_Vector2(10000, 0), new SD_Vector2(-0.4, -0.1));
 
         _lastKeyboardState = keyboardState;
     }
@@ -428,7 +427,7 @@ public class OrbitGame : Game
     protected override void Update(GameTime gameTime)
     {
         UpdateFrame?.Invoke(this, EventArgs.Empty);
-
+        
         InterpolationHandler<ScientificDecimal>.UpdateInterpolationValues();
         
         GameState.DeltaRealTime = (DateTime.Now - GameState.PreviousDateTime).TotalSeconds;
@@ -438,8 +437,7 @@ public class OrbitGame : Game
         GameState.RealTime = gameTime.TotalGameTime.TotalSeconds;
         GameState.FrameCountThisSecond++;
         
-        foreach (var body in Bodies)
-            body.Acceleration = SD_Vector2.Zero;
+        HandleInput(GameState.DeltaRealTime);
         
         if (Options.EnablePhysics)
         {
@@ -481,10 +479,10 @@ public class OrbitGame : Game
         
         OriginBody.ResetOrigin();
         Camera.Update();
-        HandleInput(GameState.DeltaRealTime);
         
         Ships.RemoveAll(ship => ship.MarkedForRemoval);
         Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
+        
         base.Update(gameTime);
     }
 

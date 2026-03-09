@@ -1,3 +1,6 @@
+using System;
+using Xunit;
+
 namespace OrbitGame.Tests;
 
 public class KinematicObject_Tests
@@ -50,5 +53,24 @@ public class KinematicObject_Tests
     public void KinematicObject_ObjectToObjectSpaceMethod()
     {
         Assert.Equal(new SD_Vector2(-10, 0), _testKinematicObject1.ObjectToObjectSpace(_testVector, _testKinematicObject2));
+    }
+
+    [Fact]
+    public void KinematicObject_Properties()
+    {
+        _testKinematicObject1.Acceleration = new SD_Vector2(5, 0);
+        Assert.Equal(new SD_Vector2(5, 0), _testKinematicObject1.Acceleration);
+        
+        _testKinematicObject1.AngularVelocity = 5;
+        Assert.Equal(5, _testKinematicObject1.AngularVelocity);
+        
+        _testKinematicObject1.AngularAcceleration = 5;
+        Assert.Equal(5, _testKinematicObject1.AngularAcceleration);
+        
+        Assert.Equal(new SD_Vector2(0, 1), _testKinematicObject1.ForwardVector);
+        Assert.Equal(new SD_Vector2(0, -1), _testKinematicObject2.ForwardVector);
+        
+        Assert.Equal(new SD_Vector2(1, 0), _testKinematicObject1.RightVector);
+        Assert.Equal(new SD_Vector2(-1, -0), _testKinematicObject2.RightVector);
     }
 }

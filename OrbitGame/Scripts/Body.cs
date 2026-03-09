@@ -26,8 +26,6 @@ public abstract class Body : KinematicObject
     public IMesh Mesh => _objectInfo.Mesh;
     public CompactCollider Collider => _objectInfo.Collider;
     public Material Material => _objectInfo.Material;
-
-    private readonly IEnumerable<Body> _attractors = OrbitGame.Bodies;
     
     protected Body(
         string identifier, 
@@ -44,6 +42,13 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? SD_Vector2.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? SD_Vector2.Zero);
+        OrbitGame.UpdateFrame += Body_UpdateFrame;
+    }
+    
+    protected virtual void Body_UpdateFrame(object? e, EventArgs args)
+    {
+        Acceleration = SD_Vector2.Zero;
+        AngularAcceleration = 0;
     }
     
     /// <summary>
@@ -74,7 +79,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual SD_Vector2 CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(_attractors);
+        return CalculateNetGravitationalAcceleration(KinematicObjectTemplate.AllInstances.Values.OfType<Body>());
     }
     
     /// <summary>
@@ -92,10 +97,11 @@ public abstract class Body : KinematicObject
     public void UpdatePosition_Integrator(
         ScientificDecimal timeStep, 
         NumericalIntegrator integrator, 
-        CalculateAccelerationMethod calculateAcceleration)
+        CalculateAccelerationMethod calculateAcceleration,
+        uint integrationIterationAmount = Options.IntegratorIterationAmount)
     {
-        timeStep /= Options.IntegratorIterationAmount;
-        for (int i = 0; i < Options.IntegratorIterationAmount; ++i)
+        timeStep /= integrationIterationAmount;
+        for (int i = 0; i < integrationIterationAmount; ++i)
         {
             switch (integrator)
             {
@@ -159,6 +165,7 @@ public abstract class Body : KinematicObject
                     AngularVelocity += AngularAcceleration * (double)timeStep;
                     Angle += AngularVelocity * (double)timeStep;
                     break;
+                default: throw new ArgumentOutOfRangeException(nameof(integrator));
             }
         }
     }

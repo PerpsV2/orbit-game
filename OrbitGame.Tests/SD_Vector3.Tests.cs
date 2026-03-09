@@ -1,3 +1,6 @@
+using System;
+using Xunit;
+
 namespace OrbitGame.Tests;
 
 public class SD_Vector3_Tests
@@ -94,6 +97,6 @@ public class SD_Vector3_Tests
     [Fact]
     public void Vector3_ToStringMethod()
     {
-        Assert.Equal("<5e+0, 0e+0, 0e+0>", _testXVector.ToString());
+        Assert.Equal("<5.0000e+0, 0.0000e+0, 0.0000e+0>", _testXVector.ToString());
     }
 }

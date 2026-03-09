@@ -17,7 +17,7 @@ public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double 
         ScientificDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
         ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
         ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;
-        if (orbit.Eccentricity >= 1) return timeUntilPoint + currentTime + timeSincePeriapsis;
+        if (orbit.Eccentricity >= 1) return timeUntilPoint + 2 * currentTime + timeSincePeriapsis;
         while (timeUntilPoint < 0) timeUntilPoint += orbit.Period;
         return currentTime + timeUntilPoint;
     }
@@ -39,7 +39,7 @@ public class KeplerOrbitPath
     {
         MouseHandler.MouseHover += OrbitPath_MouseHover;
         MouseHandler.MouseDown += OrbitPathMouseDown;
-        OrbitGame.UpdateFrame += OrbitPath_UpdateFrame;
+        OrbitGame.UpdateFrame += OrbitPathUpdateFrame;
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class KeplerOrbitPath
         }
     }
 
-    private static void OrbitPath_UpdateFrame(object? sender, EventArgs e)
+    private static void OrbitPathUpdateFrame(object? sender, EventArgs e)
     {
         _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
     }
