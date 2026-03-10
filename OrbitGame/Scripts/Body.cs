@@ -174,7 +174,6 @@ public abstract class Body : KinematicObject
     {
         if (KeplerOrbitPath.Orbit == null) return;
         SpatialInfo newState = KeplerOrbitPath.Orbit.Value.GetStateAtTime(totalTime);
-        newState.Velocity = (newState.Position - Position) / timeDiff;
         SpatialInfo.Position = newState.Position;
         SpatialInfo.Velocity = newState.Velocity;
         SpatialInfo.AngularVelocity += (double)(AngularAcceleration * timeDiff); 

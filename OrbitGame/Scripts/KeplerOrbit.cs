@@ -1,4 +1,6 @@
 using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
@@ -284,12 +286,30 @@ public readonly record struct KeplerOrbit
         return SD_Vector2.FromPolar(trueAnomaly + Periapsis, distance);
     }
 
+    private double GetOrbitalVelocityDirection(double trueAnomaly)
+    {
+        return Math.Atan2(Eccentricity + Math.Cos(trueAnomaly), -Math.Sin(trueAnomaly)) + Periapsis;
+    }
+
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
         if (Eccentricity < 1) time = Utils.UnsignedMod(time + InitialTimeSincePeriapsis, Period);
         SpatialInfo newState = new();
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
-        newState.Position = Parent.Position + GetOrbitPositionFromTrueAnomaly(trueAnomaly);
+        ScientificDecimal orbitDistance = Equation(trueAnomaly + Periapsis);
+        SD_Vector2 orbitPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, orbitDistance);
+        newState.Position = Parent.Position + orbitPosition;
+        ScientificDecimal orbitSpeed = ScientificDecimal.Sqrt(Parent.Mass * Constants.G * (2 / orbitDistance - 1 / SemiMajorAxis));
+        SD_Vector2 orbitalVelocity = SD_Vector2.FromPolar(GetOrbitalVelocityDirection(trueAnomaly), orbitSpeed);
+        var body = Body;
+        DrawDebug.Add(() =>
+        {
+            var g = OrbitGame.Graphics;
+            var c = OrbitGame.Camera;
+            
+            g.SD_DrawLineR(c, body.Position, orbitalVelocity, Color.Red);
+        });
+        newState.Velocity = Parent.Velocity + orbitalVelocity;
         return newState;
     }
 }
