@@ -294,22 +294,15 @@ public readonly record struct KeplerOrbit
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
         if (Eccentricity < 1) time = Utils.UnsignedMod(time + InitialTimeSincePeriapsis, Period);
-        SpatialInfo newState = new();
+        else time += InitialTimeSincePeriapsis;
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
         ScientificDecimal orbitDistance = Equation(trueAnomaly + Periapsis);
         SD_Vector2 orbitPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, orbitDistance);
-        newState.Position = Parent.Position + orbitPosition;
         ScientificDecimal orbitSpeed = ScientificDecimal.Sqrt(Parent.Mass * Constants.G * (2 / orbitDistance - 1 / SemiMajorAxis));
         SD_Vector2 orbitalVelocity = SD_Vector2.FromPolar(GetOrbitalVelocityDirection(trueAnomaly), orbitSpeed);
-        var body = Body;
-        DrawDebug.Add(() =>
-        {
-            var g = OrbitGame.Graphics;
-            var c = OrbitGame.Camera;
-            
-            g.SD_DrawLineR(c, body.Position, orbitalVelocity, Color.Red);
-        });
-        newState.Velocity = Parent.Velocity + orbitalVelocity;
-        return newState;
+        return new SpatialInfo(
+            position: Parent.Position + orbitPosition,
+            velocity: Parent.Velocity + orbitalVelocity
+        );
     }
 }
