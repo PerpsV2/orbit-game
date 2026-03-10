@@ -176,7 +176,7 @@ public partial struct ScientificDecimal : INumber<ScientificDecimal>
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
         if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
-        return value - mod * (value / mod).Round();
+        return value - mod * Math.Floor((double)(value / mod));
     }
     
     public static ScientificDecimal Square(ScientificDecimal value)
@@ -259,7 +259,7 @@ public partial struct ScientificDecimal : INumber<ScientificDecimal>
         if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
         if (Mantissa == 0) return this;
         if (Exponent < -1) return 0;
-        if (Exponent == -1) return new(double.Floor(Mantissa * 0.1), 0);
+        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
         return new(double.Round(Mantissa, Exponent), Exponent);
     }
     

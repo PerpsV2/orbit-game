@@ -35,7 +35,7 @@ public class Planet : Body, IGameDrawable
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
-        KeplerOrbitPath.DrawOrbitalPath(_orbitMesh, Colour);
+        KeplerOrbitPath.Draw(_orbitMesh, Colour);
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
         

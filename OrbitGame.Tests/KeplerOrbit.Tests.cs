@@ -167,16 +167,19 @@ public class KeplerOrbit_Tests
     public void KeplerOrbit_GetStateAtTime()
     {
         KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
-        SpatialInfo bodyState = orbit.GetStateAtTime(0);
-        Assert.Equal(new SD_Vector2(0, 1), bodyState.Position);
-        Assert.Equal(new SD_Vector2(1, 0), bodyState.Velocity);
-        bodyState = orbit.GetStateAtTime(Math.PI);
+        SpatialInfo bodyState = orbit.GetStateAtTime(Math.PI);
         Assert.Equal(new SD_Vector2(0, -1), bodyState.Position);
-        Assert.Equal(new SD_Vector2(-1, 0), bodyState.Velocity);
-        
-        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.Equal(new SD_Vector2(-1, 0), bodyState.Velocity); 
         bodyState = orbit.GetStateAtTime(0);
         Assert.Equal(new SD_Vector2(0, 1), bodyState.Position);
-        Assert.Equal(new SD_Vector2(Math.Sqrt(1 + 0.96), 0), bodyState.Velocity);
+        Assert.Equal(new SD_Vector2(1, 0), bodyState.Velocity);
+        
+        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        bodyState = orbit.GetStateAtTime(Math.Tau * 62.5);
+        Assert.Equal(new SD_Vector2(0, -49), bodyState.Position);
+        Assert.Equal(new SD_Vector2(-Math.Sqrt(2d/49-1d/25), 0), bodyState.Velocity);
+        bodyState = orbit.GetStateAtTime(0);
+        Assert.Equal(new SD_Vector2(0, 1), bodyState.Position);
+        Assert.Equal(new SD_Vector2(Math.Sqrt(1.96), 0), bodyState.Velocity);
     }
 }

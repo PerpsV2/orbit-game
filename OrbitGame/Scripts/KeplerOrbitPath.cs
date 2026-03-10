@@ -37,9 +37,9 @@ public class KeplerOrbitPath
 
     public KeplerOrbitPath()
     {
-        MouseHandler.MouseHover += OrbitPath_MouseHover;
-        MouseHandler.MouseDown += OrbitPathMouseDown;
-        OrbitGame.UpdateFrame += OrbitPathUpdateFrame;
+        MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
+        MouseHandler.MouseDown += KeplerOrbitPath_MouseDown;
+        OrbitGame.UpdateFrame += KeplerOrbitPath_UpdateFrame;
     }
 
     /// <summary>
@@ -96,12 +96,12 @@ public class KeplerOrbitPath
         }
     }
 
-    private static void OrbitPathUpdateFrame(object? sender, EventArgs e)
+    private static void KeplerOrbitPath_UpdateFrame(object? sender, EventArgs e)
     {
         _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
     }
     
-    private void OrbitPath_MouseHover(object? sender, MouseEventArgs e)
+    private void KeplerOrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
         if (!_onScreen) return;
         if (Orbit == null) return;
@@ -127,7 +127,7 @@ public class KeplerOrbitPath
         }
     }
 
-    private void OrbitPathMouseDown(object? sender, MouseEventArgs e)
+    private void KeplerOrbitPath_MouseDown(object? sender, MouseEventArgs e)
     {
         if (HoverPoint == null)
             SelectedPoint = null;
@@ -284,7 +284,7 @@ public class KeplerOrbitPath
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void DrawOrbitalPath(OrbitMesh orbitMesh, Color colour)
+    public void Draw(OrbitMesh orbitMesh, Color colour)
     {
         if (Orbit == null)
         {

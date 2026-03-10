@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
@@ -296,8 +297,8 @@ public readonly record struct KeplerOrbit
 
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
     {
-        if (Eccentricity < 1) time = Utils.UnsignedMod(time + InitialTimeSincePeriapsis, Period);
-        else time += InitialTimeSincePeriapsis;
+        time += InitialTimeSincePeriapsis;
+        if (Eccentricity < 1) time %= Period;
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
         ScientificDecimal orbitDistance = Equation(trueAnomaly + Periapsis);
         SD_Vector2 orbitPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, orbitDistance);
