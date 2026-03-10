@@ -29,6 +29,7 @@ public readonly record struct KeplerOrbit
     // ----- Orbital Parameters ----- 
     public readonly SD_Vector2 LRLVector;
     public readonly ScientificDecimal SemiLatusRectum;
+    public readonly bool Prograde;
     
     private readonly Lazy<double> _lazyPeriapsis;
     public double Periapsis => _lazyPeriapsis.Value;
@@ -79,6 +80,7 @@ public readonly record struct KeplerOrbit
         SD_Vector3 angularMomentum = SD_Vector2.Cross(_initialOrbitalSpatialInfo.Position, momentum);
         SD_Vector2 orbitalDirectionVector = _initialOrbitalSpatialInfo.Position.Normalize();
         ScientificDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
+        Prograde = Math.Acos(angularMomentum.Z.Positive ? 1 : -1) == 0;
         LRLVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) - 
                     orbitalDirectionVector * Body.Mass * forceStrength;
         SemiLatusRectum = ScientificDecimal.Square(angularMomentum.Magnitude()) / Body.Mass / forceStrength;
@@ -288,7 +290,8 @@ public readonly record struct KeplerOrbit
 
     private double GetOrbitalVelocityDirection(double trueAnomaly)
     {
-        return Math.Atan2(Eccentricity + Math.Cos(trueAnomaly), -Math.Sin(trueAnomaly)) + Periapsis;
+        return Math.Atan2(Eccentricity + Math.Cos(trueAnomaly), -Math.Sin(trueAnomaly)) + Periapsis + 
+               (Prograde ? 0 : Math.PI);
     }
 
     public SpatialInfo GetStateAtTime(ScientificDecimal time)
