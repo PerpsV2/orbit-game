@@ -5,15 +5,15 @@ using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
-namespace OrbitGame;
+namespace OrbitGame.Profiling;
 
 /// <summary>
 /// Number with decimal precision but arbitrary place value.
 /// </summary>
 public struct ScientificDecimal : INumber<ScientificDecimal>
 {
-    private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
-    private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
+    private const int DefaultPrintPrecision = 5;
+    private const double ComparisonTolerance = 0.000000001;
 
     public static ScientificDecimal Zero => 0;
     public static ScientificDecimal One => 1;
@@ -197,7 +197,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
         if (value._infinite) return value;
         if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
-        return new ScientificDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
+        return new ScientificDecimal(Math.Sqrt(value.Mantissa), value.Exponent / 2);
     }
 
     public static ScientificDecimal Abs(ScientificDecimal value)

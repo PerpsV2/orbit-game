@@ -1,3 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System;
+using System.Globalization;
+using OrbitGame.Profiling;
 
-Console.WriteLine("Hello, World!");
+var value = BinaryScientificDecimal.FromDecimal(1300, 5, 5);
+Console.WriteLine(value.ToString("B", CultureInfo.InvariantCulture));
+Console.WriteLine(value.ToString("G", CultureInfo.InvariantCulture));

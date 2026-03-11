@@ -79,14 +79,11 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
     [Fact]
     public void ScientificDecimal_FloorMethod()
     {
-        ScientificDecimal argument = new(0.00001, 0);
-        Assert.Equal(0, argument.Floor());
-        argument = new(0.9, 0);
-        Assert.Equal(0, argument.Floor());
-        argument = new(1.1, 0);
-        Assert.Equal(1, argument.Floor());
-        argument = new(10000.9, 0);
-        Assert.Equal(10000, argument.Floor(), Assert.Epsilon);
+        Assert.Equal(0, new ScientificDecimal(0.00001, 0).Floor());
+        Assert.Equal(-1, new ScientificDecimal(-0.00001, 0).Floor());
+        Assert.Equal(10000, new ScientificDecimal(10000.9, 0).Floor());
+        Assert.Equal(10001, new ScientificDecimal(10001, 0).Floor());
+        Assert.Equal(new ScientificDecimal(100), new ScientificDecimal(100).Floor());
     }
     
     #region Operators
