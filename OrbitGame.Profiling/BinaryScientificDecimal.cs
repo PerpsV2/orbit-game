@@ -44,18 +44,19 @@ public struct BinaryScientificDecimal : IFormattable
         }
     }
 
-    public void IncreaseExponent(int goal)
+    private void IncreaseExponent(int goal)
     {
         bool negative = _mantissa < 0;
         if (negative) _mantissa = -_mantissa;
         if (_exponent == goal) return;
         if (_exponent > goal) throw new ArithmeticException();
         _mantissa >>= goal - _exponent;
+        _precision -= goal - _exponent;
         _exponent = goal;
         if (negative) _mantissa = -_mantissa;
     }
 
-    public static BinaryScientificDecimal Add(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    private static BinaryScientificDecimal Add(BinaryScientificDecimal left, BinaryScientificDecimal right)
     {
         if (left._exponent < right._exponent) left.IncreaseExponent(right._exponent);
         else if (right._exponent < left._exponent) right.IncreaseExponent(left._exponent);
@@ -64,8 +65,12 @@ public struct BinaryScientificDecimal : IFormattable
             int.Min(left._precision, right._precision));
     }
 
-    public static BinaryScientificDecimal Multiply(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    private static BinaryScientificDecimal Multiply(BinaryScientificDecimal left, BinaryScientificDecimal right)
     {
+        bool leftNegative = left._mantissa < 0;
+        bool rightNegative = right._mantissa < 0;
+        if (leftNegative) left._mantissa *= -1;
+        if (rightNegative) right._mantissa *= -1;
         int resultPrecision = int.Min(left._precision, right._precision);
         long resultMantissa = 0b0L;
         for (int i = 0; i < resultPrecision; ++i)
@@ -78,8 +83,50 @@ public struct BinaryScientificDecimal : IFormattable
             }
         }
         int resultExponent = left._precision + left._exponent + right._precision + right._exponent - resultPrecision - 2;
+        if (leftNegative ^ rightNegative) resultMantissa *= -1;
         return new(resultMantissa, resultExponent, resultPrecision);
     }
+
+    private static BinaryScientificDecimal Divide(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    {
+        bool leftNegative = left._mantissa < 0;
+        bool rightNegative = right._mantissa < 0;
+        if (leftNegative) left._mantissa *= -1;
+        if (rightNegative) right._mantissa *= -1;
+        int resultPrecision = int.Min(left._precision, right._precision);
+        if (left._exponent < right._exponent) left.IncreaseExponent(right._exponent);
+        else if (right._exponent < left._exponent) right.IncreaseExponent(left._exponent);
+        long resultMantissa = 0b0L;
+        right._mantissa <<= left._precision - right._precision;
+        for (int i = 0; i < resultPrecision; ++i)
+        {
+            if (left._mantissa == 0) break;
+            if (right._mantissa <= left._mantissa)
+            {
+                left._mantissa -= right._mantissa;
+                resultMantissa += 0b1L << resultPrecision - i - 1;
+            }
+            right._mantissa >>= 1;
+        }
+
+        int resultExponent = left._precision + left._exponent - right._precision - right._exponent - resultPrecision + 1;
+        if (leftNegative ^ rightNegative) resultMantissa *= -1;
+        return new(resultMantissa, resultExponent, resultPrecision);
+    }
+
+    public static BinaryScientificDecimal operator +(BinaryScientificDecimal value)
+        => value;
+    public static BinaryScientificDecimal operator -(BinaryScientificDecimal value)
+        => new(-value._mantissa, value._exponent, value._precision);
+    public static BinaryScientificDecimal operator +(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => Add(left, right);
+    public static BinaryScientificDecimal operator -(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => Add(left, -right);
+    public static BinaryScientificDecimal operator *(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => Multiply(left, right);
+
+    public static BinaryScientificDecimal operator /(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => Divide(left, right);
 
     public override string ToString()
     {
