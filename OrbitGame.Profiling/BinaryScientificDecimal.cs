@@ -31,25 +31,28 @@ public struct BinaryScientificDecimal : IFormattable
 
     private void Normalize()
     {
-        while (_mantissa < 1L << (_precision - 1))
+        while (Math.Abs(_mantissa) < 1L << (_precision - 1))
         {
             _mantissa <<= 1;
             _exponent -= 1;
         }
 
-        while (_mantissa > 1L << _precision)
+        while (Math.Abs(_mantissa) > 1L << _precision)
         {
             _mantissa >>= 1;
             _exponent += 1;
         }
     }
 
-    private void IncreaseExponent(int goal)
+    public void IncreaseExponent(int goal)
     {
+        bool negative = _mantissa < 0;
+        if (negative) _mantissa = -_mantissa;
         if (_exponent == goal) return;
         if (_exponent > goal) throw new ArithmeticException();
         _mantissa >>= goal - _exponent;
         _exponent = goal;
+        if (negative) _mantissa = -_mantissa;
     }
 
     public static BinaryScientificDecimal Add(BinaryScientificDecimal left, BinaryScientificDecimal right)
@@ -74,27 +77,8 @@ public struct BinaryScientificDecimal : IFormattable
                 if ((leftDigitValue & rightDigitValue) == 1) resultMantissa += 0b1L << (resultPrecision - i);
             }
         }
-        int resultExponent = resultPrecision - (left._precision + left._exponent) - (right._precision + right._exponent);
+        int resultExponent = left._precision + left._exponent + right._precision + right._exponent - resultPrecision - 2;
         return new(resultMantissa, resultExponent, resultPrecision);
-        
-        /* result precision is min of left and right precision
-         * 1011*2^0 (4 digits) * 101*2^1 (3 digits)
-         * 1011 * 1010
-         *
-         * Major factors
-         * i from 0 to < minPrecision
-         * i = 0: 1000 * 1000 11 (1011 >> 3) * (1010 >> 3) = 1000000 (1000)
-         * i = 1: 1000 * 000  10 (1011 >> 3) * (1010 >> 2) = 000000  (000)
-         *        000 * 1000  01 (1011 >> 2) * (1010 >> 3) = 000000  (000)
-         * i = 2: 1000 * 10   11 (1011 >> 3) * (1010 >> 1) = 10000   (10)
-         *        000 * 000   00 (1011 >> 2) * (1010 >> 2) = 00000   (00)
-         *        10 * 1000   11 (1011 >> 1) * (1010 >> 3) = 10000   (10)
-         * i = 3: 1000 * 0    10 = (0)
-         *        000 * 10    01 = (0)
-         *        10 * 000    10 = (0)
-         *        1 * 1000    11 = (1)
-         * Result 1101
-         */
     }
 
     public override string ToString()
