@@ -60,7 +60,7 @@ public struct BinaryScientificDecimal : IFormattable
             int.Min(left._precision, right._precision));
     }
 
-    private static BinaryScientificDecimal Multiply(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    private static BinaryScientificDecimal MultiplyOld(BinaryScientificDecimal left, BinaryScientificDecimal right)
     {
         bool leftNegative = left._mantissa < 0;
         bool rightNegative = right._mantissa < 0;
@@ -80,6 +80,21 @@ public struct BinaryScientificDecimal : IFormattable
         int resultExponent = left._precision + left._exponent + right._precision + right._exponent - resultPrecision - 2;
         if (leftNegative ^ rightNegative) resultMantissa *= -1;
         return new(resultMantissa, resultExponent, resultPrecision);
+    }
+
+    private static BinaryScientificDecimal Multiply(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    {
+        bool leftNegative = left._mantissa < 0;
+        bool rightNegative = right._mantissa < 0;
+        if (leftNegative) left._mantissa *= -1;
+        if (rightNegative) right._mantissa *= -1;
+        int resultPrecision = int.Min(left._precision, right._precision);
+        left._mantissa >>= left._precision - resultPrecision / 2;
+        right._mantissa >>= right._precision - resultPrecision / 2 - resultPrecision % 2;
+        long resultMantissa = left._mantissa * right._mantissa;
+        int resultExponent = left._exponent + left._precision + right._exponent + right._precision - resultPrecision;
+        if (leftNegative ^ rightNegative) resultMantissa *= -1;
+        return new BinaryScientificDecimal(resultMantissa, resultExponent, resultPrecision);
     }
 
     private static BinaryScientificDecimal Divide(BinaryScientificDecimal left, BinaryScientificDecimal right)
@@ -103,7 +118,6 @@ public struct BinaryScientificDecimal : IFormattable
             }
             right._mantissa >>= 1;
         }
-
         int resultExponent = left._precision + left._exponent - right._precision - right._exponent - resultPrecision + 1;
         if (leftNegative ^ rightNegative) resultMantissa *= -1;
         return new(resultMantissa, resultExponent, resultPrecision);
