@@ -193,6 +193,15 @@ public struct BinaryScientificDecimal
     {
         throw new NotImplementedException();
     }
+    
+    public bool Equals(BinaryScientificDecimal other)
+    {
+        if (_infinite && other._infinite) return Positive == other.Positive;
+        if (_infinite || other._infinite) return false;
+        return _mantissa == other._mantissa &&
+               _exponent == other._exponent &&
+               _precision == other._precision;
+    }
 
     private static BinaryScientificDecimal Square(BinaryScientificDecimal value)
         => value * value;
@@ -206,6 +215,66 @@ public struct BinaryScientificDecimal
     }
 
     private static BinaryScientificDecimal Sqrt(BinaryScientificDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static BinaryScientificDecimal Abs(BinaryScientificDecimal value)
+    {
+        if (value._infinite) return new(true, true);
+        return new(long.Abs(value._mantissa), value._exponent, value._precision);
+    }
+    
+    public static BinaryScientificDecimal Min(BinaryScientificDecimal value, params BinaryScientificDecimal[] values)
+    {
+        BinaryScientificDecimal result = value;
+        foreach (var n in values)
+            if (n < result) result = n;
+        return result;
+    }
+    
+    public static BinaryScientificDecimal Max(BinaryScientificDecimal value, params BinaryScientificDecimal[] values)
+    {
+        BinaryScientificDecimal result = value;
+        foreach (var n in values)
+            if (n > result) result = n;
+        return result;
+    }
+    
+    [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
+    public static BinaryScientificDecimal MinMagnitude(BinaryScientificDecimal x, BinaryScientificDecimal y)
+        => Min(x, y);
+
+    public static BinaryScientificDecimal MinMagnitudeNumber(BinaryScientificDecimal x, BinaryScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Min(x, y);
+    
+    [Obsolete("MaxMagnitude is obsolete. Use Max method instead.")]
+    public static BinaryScientificDecimal MaxMagnitude(BinaryScientificDecimal x, BinaryScientificDecimal y)
+        => Max(x, y);
+
+    public static BinaryScientificDecimal MaxMagnitudeNumber(BinaryScientificDecimal x, BinaryScientificDecimal y)
+        => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
+
+    public static BinaryScientificDecimal Clamp(
+        BinaryScientificDecimal value, 
+        BinaryScientificDecimal min, 
+        BinaryScientificDecimal max)
+    {
+        if (max < min) throw new ArithmeticException("Clamp maximum cannot be less than the minimum");
+        return value < min ? min : value > max ? max : value;
+    }
+
+    public static BinaryScientificDecimal Round()
+    {
+        throw new NotImplementedException();
+    }
+
+    public static BinaryScientificDecimal Floor()
+    {
+        throw new NotImplementedException();
+    }
+
+    public static BinaryScientificDecimal Ceil()
     {
         throw new NotImplementedException();
     }
@@ -226,36 +295,35 @@ public struct BinaryScientificDecimal
         => Multiply(left, right);
     public static BinaryScientificDecimal operator /(BinaryScientificDecimal left, BinaryScientificDecimal right)
         => Divide(left, right);
-    
-    public static BinaryScientificDecimal MaxMagnitude(BinaryScientificDecimal x, BinaryScientificDecimal y)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static BinaryScientificDecimal MaxMagnitudeNumber(BinaryScientificDecimal x, BinaryScientificDecimal y)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static BinaryScientificDecimal MinMagnitude(BinaryScientificDecimal x, BinaryScientificDecimal y)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static BinaryScientificDecimal MinMagnitudeNumber(BinaryScientificDecimal x, BinaryScientificDecimal y)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool Equals(BinaryScientificDecimal other)
-    {
-        throw new NotImplementedException();
-    }
-
     public static BinaryScientificDecimal operator %(BinaryScientificDecimal left, BinaryScientificDecimal right)
     {
         throw new NotImplementedException();
     }
+    
+    public static bool operator ==(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => left.Equals(right);
+    public static bool operator !=(BinaryScientificDecimal left, BinaryScientificDecimal right) 
+        => !left.Equals(right);
+    public static bool operator <(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    {
+        if (left == right) return false;
+        if (left._infinite) return left.Negative;
+        if (right._infinite) return right.Positive;
+        return (right - left).Positive;
+    }
+    
+    public static bool operator >(BinaryScientificDecimal left, BinaryScientificDecimal right)
+    {
+        if (left == right) return false;
+        if (left._infinite) return left.Positive;
+        if (right._infinite) return right.Negative;
+        return (left - right).Positive;
+    }
+
+    public static bool operator <=(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => left < right || left == right;
+    public static bool operator >=(BinaryScientificDecimal left, BinaryScientificDecimal right)
+        => left > right || left == right;
 
     public override string ToString()
     {
@@ -281,35 +349,55 @@ public struct BinaryScientificDecimal
                 throw new FormatException();
         }
     }
-
     
-    public static bool operator ==(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsZero(BinaryScientificDecimal value)
+        => value is { _infinite: false, Mantissa: 0 };
+    
+    private static bool IsPositive(BinaryScientificDecimal value)
+        => IsZero(value) || value.Positive;
+    
+    private static bool IsNegative(BinaryScientificDecimal value)
+        => value.Negative;
+    
+    public static bool IsFinite(BinaryScientificDecimal value)
+        => !value._infinite;
+    
+    public static bool IsRealNumber(BinaryScientificDecimal value)
+        => true;
 
-    public static bool operator !=(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsImaginaryNumber(BinaryScientificDecimal value)
+        => false;
+    
+    public static bool IsComplexNumber(BinaryScientificDecimal value)
+        => false;
+    
+    public static bool IsInteger(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
 
-    public static bool operator >(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsOddInteger(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
 
-    public static bool operator >=(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsEvenInteger(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
 
-    public static bool operator <(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsNaN(BinaryScientificDecimal value)
+        => IsInfinity(value);
+    
+    public static bool IsInfinity(BinaryScientificDecimal value)
+        => value._infinite;
 
-    public static bool operator <=(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool IsNegativeInfinity(BinaryScientificDecimal value)
+        => value.Negative && IsInfinity(value);
+
+    public static bool IsPositiveInfinity(BinaryScientificDecimal value)
+        => value.Positive && IsInfinity(value);
+
+    public static bool IsCanonical(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
+    
+    private static bool IsNormal(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
+
+    public static bool IsSubnormal(BinaryScientificDecimal value)
+        => throw new NotImplementedException();
 }
