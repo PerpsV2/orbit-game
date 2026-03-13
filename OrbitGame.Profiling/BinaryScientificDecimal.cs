@@ -16,6 +16,8 @@ public class PrecisionException : Exception
 public struct BinaryScientificDecimal : INumber<BinaryScientificDecimal>
 {
     private const int MaxPrecision = 62;
+    private const int SqrtMaxIterations = 16;
+    private static readonly BinaryScientificDecimal SqrtEpsilon = new(0b1L, -62);
 
     private long _mantissa;
     private int _exponent;
@@ -198,10 +200,10 @@ public struct BinaryScientificDecimal : INumber<BinaryScientificDecimal>
         return value - mod * Floor(value / mod);
     }
 
-    private static BinaryScientificDecimal Square(BinaryScientificDecimal value)
+    public static BinaryScientificDecimal Square(BinaryScientificDecimal value)
         => value * value;
 
-    private static BinaryScientificDecimal IntPow(BinaryScientificDecimal value, uint power)
+    public static BinaryScientificDecimal IntPow(BinaryScientificDecimal value, uint power)
     {
         BinaryScientificDecimal result = One;
         for (uint i = 0; i < power; ++i)
@@ -209,9 +211,22 @@ public struct BinaryScientificDecimal : INumber<BinaryScientificDecimal>
         return result;
     }
 
-    private static BinaryScientificDecimal Sqrt(BinaryScientificDecimal value)
+    public static BinaryScientificDecimal Sqrt(BinaryScientificDecimal value)
     {
-        throw new NotImplementedException();
+        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative number");
+        BinaryScientificDecimal bestGuess = value;
+        BinaryScientificDecimal nextGuess = bestGuess;
+        int iterations = 0;
+        do
+        {
+            bestGuess = nextGuess;
+            nextGuess = bestGuess + value / bestGuess;
+            nextGuess._exponent--;
+            iterations++;
+            Console.WriteLine(iterations);
+        } while (Abs(nextGuess - bestGuess) > SqrtEpsilon && iterations < SqrtMaxIterations);
+
+        return bestGuess;
     }
 
     public static BinaryScientificDecimal Abs(BinaryScientificDecimal value)

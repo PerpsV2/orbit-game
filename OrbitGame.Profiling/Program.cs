@@ -4,14 +4,14 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using OrbitGame.Profiling;
 
-var value1 = new BinaryScientificDecimal(0b11, -1);
+var value1 = new BinaryScientificDecimal(0b1101100101110101, -1);
 var value2 = new BinaryScientificDecimal(0b111, -2);
 //var result = value1 % value2;
 var format = "N";
 Console.WriteLine(value1.ToString(format));
 //Console.WriteLine(value2.ToString(format));
 //Console.WriteLine(result.ToString(format));
-Console.WriteLine(BinaryScientificDecimal.Round(value1).ToString(format));
+Console.WriteLine(BinaryScientificDecimal.Sqrt(value1).ToString(format));
 
 //var summary = BenchmarkRunner.Run<Profiler>();
 
