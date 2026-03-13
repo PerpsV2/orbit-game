@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
 
 namespace OrbitGame.Profiling;
 
@@ -11,7 +13,7 @@ public class PrecisionException : Exception
 /// <summary>
 /// Number with decimal precision but arbitrary place value.
 /// </summary>
-public struct BinaryScientificDecimal
+public struct BinaryScientificDecimal : INumber<BinaryScientificDecimal>
 {
     private const int MaxPrecision = 62;
 
@@ -48,15 +50,14 @@ public struct BinaryScientificDecimal
         }
     }
 
-    public static BinaryScientificDecimal Zero { get; } = new BinaryScientificDecimal(0, 0, MaxPrecision);
-    public static BinaryScientificDecimal One { get; } = new BinaryScientificDecimal(1, 0, MaxPrecision);
-    public static BinaryScientificDecimal AdditiveIdentity { get; } = Zero;
-    public static BinaryScientificDecimal MultiplicativeIdentity { get; } = One;
-    public static BinaryScientificDecimal PositiveInfinity { get; } = new(true, true);
-    public static BinaryScientificDecimal NegativeInfinity { get; } = new(true, false);
-    
-    public static int Radix { get; } = 2;
-    
+    public static BinaryScientificDecimal Zero => new(0, 0);
+    public static BinaryScientificDecimal One => new(1, 0);
+    public static BinaryScientificDecimal AdditiveIdentity => Zero;
+    public static BinaryScientificDecimal MultiplicativeIdentity => One;
+    public static BinaryScientificDecimal PositiveInfinity => new(true, true);
+    public static BinaryScientificDecimal NegativeInfinity => new(true, false);
+    public static int Radix => 2;
+
 
     public BinaryScientificDecimal(long mantissa, int exponent, int precision = MaxPrecision)
     {
@@ -159,7 +160,7 @@ public struct BinaryScientificDecimal
     {
         if (divisor._mantissa == 0 && dividend._mantissa == 0)
             throw new ArithmeticException("Cannot divide zero by zero");
-        if (divisor._mantissa == 0) return PositiveInfinity * (dividend.Positive ? new(1, 0) : new(-1, 0));
+        if (divisor._mantissa == 0) return dividend.Positive ? PositiveInfinity : NegativeInfinity;
         if (divisor._infinite && dividend._infinite)
             throw new ArithmeticException("Cannot divide an infinite value by an infinite value");
         if (dividend._infinite) return dividend;
@@ -191,16 +192,10 @@ public struct BinaryScientificDecimal
 
     private static BinaryScientificDecimal Modulo(BinaryScientificDecimal value, BinaryScientificDecimal mod)
     {
-        throw new NotImplementedException();
-    }
-    
-    public bool Equals(BinaryScientificDecimal other)
-    {
-        if (_infinite && other._infinite) return Positive == other.Positive;
-        if (_infinite || other._infinite) return false;
-        return _mantissa == other._mantissa &&
-               _exponent == other._exponent &&
-               _precision == other._precision;
+        if (mod._mantissa == 0) throw new ArithmeticException("Cannot modulate a value by zero");
+        if (value._infinite || mod._infinite) 
+            throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
+        return value - mod * Floor(value / mod);
     }
 
     private static BinaryScientificDecimal Square(BinaryScientificDecimal value)
@@ -247,7 +242,7 @@ public struct BinaryScientificDecimal
 
     public static BinaryScientificDecimal MinMagnitudeNumber(BinaryScientificDecimal x, BinaryScientificDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Min(x, y);
-    
+
     [Obsolete("MaxMagnitude is obsolete. Use Max method instead.")]
     public static BinaryScientificDecimal MaxMagnitude(BinaryScientificDecimal x, BinaryScientificDecimal y)
         => Max(x, y);
@@ -264,19 +259,42 @@ public struct BinaryScientificDecimal
         return value < min ? min : value > max ? max : value;
     }
 
-    public static BinaryScientificDecimal Round()
+    public static BinaryScientificDecimal Round(BinaryScientificDecimal value)
     {
-        throw new NotImplementedException();
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        return negative ? ((value._mantissa >> -value._exponent - 1) & 0b1L) == 0 ? -Floor(value) : -Ceil(value) :
+            ((value._mantissa >> -value._exponent - 1) & 0b1L) == 1 ? Ceil(value) : Floor(value);
     }
 
-    public static BinaryScientificDecimal Floor()
+    public static BinaryScientificDecimal Floor(BinaryScientificDecimal value)
     {
-        throw new NotImplementedException();
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value._mantissa >>= -value._exponent;
+        value._mantissa <<= -value._exponent;
+        if (negative)
+        {
+            value += new BinaryScientificDecimal(1, 0);
+            value._mantissa *= -1;
+        }
+        return value;
     }
 
-    public static BinaryScientificDecimal Ceil()
+    public static BinaryScientificDecimal Ceil(BinaryScientificDecimal value)
     {
-        throw new NotImplementedException();
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value = Floor(value);
+        if (negative)
+        {
+            value._mantissa *= -1;
+            return value;
+        }
+        return value + new BinaryScientificDecimal(1, 0);
     }
 
     public static BinaryScientificDecimal operator +(BinaryScientificDecimal value)
@@ -296,9 +314,7 @@ public struct BinaryScientificDecimal
     public static BinaryScientificDecimal operator /(BinaryScientificDecimal left, BinaryScientificDecimal right)
         => Divide(left, right);
     public static BinaryScientificDecimal operator %(BinaryScientificDecimal left, BinaryScientificDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+        => Modulo(left, right);
     
     public static bool operator ==(BinaryScientificDecimal left, BinaryScientificDecimal right)
         => left.Equals(right);
@@ -311,7 +327,6 @@ public struct BinaryScientificDecimal
         if (right._infinite) return right.Positive;
         return (right - left).Positive;
     }
-    
     public static bool operator >(BinaryScientificDecimal left, BinaryScientificDecimal right)
     {
         if (left == right) return false;
@@ -319,21 +334,51 @@ public struct BinaryScientificDecimal
         if (right._infinite) return right.Negative;
         return (left - right).Positive;
     }
-
     public static bool operator <=(BinaryScientificDecimal left, BinaryScientificDecimal right)
         => left < right || left == right;
     public static bool operator >=(BinaryScientificDecimal left, BinaryScientificDecimal right)
         => left > right || left == right;
 
+    public static implicit operator BinaryScientificDecimal(int value)
+        => new(value, 0);
+    public static implicit operator BinaryScientificDecimal(uint value)
+        => new(value, 0);
+    public static implicit operator BinaryScientificDecimal(long value)
+        => new(value, 0);
+    public static implicit operator BinaryScientificDecimal(ulong value)
+        => new(value, 0);
+    public static explicit operator BinaryScientificDecimal(decimal value)
+        => FromDecimal(value, 0);
+    public static explicit operator BinaryScientificDecimal(float value)
+        => FromDecimal((decimal)value, 0);
+    public static explicit operator BinaryScientificDecimal(double value)
+        => FromDecimal((decimal)value, 0);
+
+    public static explicit operator int(BinaryScientificDecimal value)
+        => (int)(Floor(value)._mantissa << value._exponent);
+    public static explicit operator long(BinaryScientificDecimal value)
+        => Floor(value)._mantissa << value._exponent;
+    public static explicit operator float(BinaryScientificDecimal value)
+        => (float)(value._mantissa * Math.Pow(2, value._exponent));
+    public static explicit operator double(BinaryScientificDecimal value)
+        => value._mantissa * Math.Pow(2, value._exponent);
     public override string ToString()
     {
         return ToString("G", CultureInfo.CurrentCulture);
     }
 
+    public int CompareTo(object? obj)
+    {
+        if (obj is BinaryScientificDecimal scientificDecimal)
+            return CompareTo(scientificDecimal);
+        return -1;
+    }
+    
+    public int CompareTo(BinaryScientificDecimal other)
+        => this < other ? -1 : this > other ? 1 : 0;
+
     public string ToString(string? format, IFormatProvider? formatProvider = null)
     {
-        formatProvider ??= CultureInfo.InvariantCulture;
-        
         if (string.IsNullOrEmpty(format))
             format = "G";
         
@@ -350,13 +395,107 @@ public struct BinaryScientificDecimal
         }
     }
     
+    public bool Equals(BinaryScientificDecimal other)
+    {
+        if (_infinite && other._infinite) return Positive == other.Positive;
+        if (_infinite || other._infinite) return false;
+        return _mantissa == other._mantissa &&
+               _exponent == other._exponent &&
+               _precision == other._precision;
+    }
+    
+    public override bool Equals(object? obj)
+    {
+        return obj is BinaryScientificDecimal other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_mantissa, _exponent, _precision, _infinite);
+    }
+    
+    public static BinaryScientificDecimal Parse(string s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out BinaryScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static BinaryScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out BinaryScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static BinaryScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static BinaryScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, out BinaryScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, out BinaryScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromChecked<TOther>(TOther value, out BinaryScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromSaturating<TOther>(TOther value, out BinaryScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromTruncating<TOther>(TOther value, out BinaryScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToChecked<TOther>(BinaryScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToSaturating<TOther>(BinaryScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToTruncating<TOther>(BinaryScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
     public static bool IsZero(BinaryScientificDecimal value)
         => value is { _infinite: false, Mantissa: 0 };
     
-    private static bool IsPositive(BinaryScientificDecimal value)
+    public static bool IsPositive(BinaryScientificDecimal value)
         => IsZero(value) || value.Positive;
     
-    private static bool IsNegative(BinaryScientificDecimal value)
+    public static bool IsNegative(BinaryScientificDecimal value)
         => value.Negative;
     
     public static bool IsFinite(BinaryScientificDecimal value)
@@ -370,15 +509,34 @@ public struct BinaryScientificDecimal
     
     public static bool IsComplexNumber(BinaryScientificDecimal value)
         => false;
-    
+
     public static bool IsInteger(BinaryScientificDecimal value)
-        => throw new NotImplementedException();
+    {
+        if (value._mantissa < 0) value._mantissa *= -1;
+        if (value._exponent >= 0) return true;
+        for (int i = 0; i < -value._exponent; ++i)
+        {
+            if ((value._mantissa & 1) == 1) return false;
+            value._mantissa >>= 1;
+        }
+        return true;
+    }
 
     public static bool IsOddInteger(BinaryScientificDecimal value)
-        => throw new NotImplementedException();
+    {
+        if (!IsInteger(value)) return false;
+        value._mantissa >>= -value._exponent - 1;
+        if ((value._mantissa & 1) == 1) return true;
+        return false;
+    }
 
     public static bool IsEvenInteger(BinaryScientificDecimal value)
-        => throw new NotImplementedException();
+    {
+        if (!IsInteger(value)) return false;
+        value._mantissa >>= -value._exponent - 1;
+        if ((value._mantissa & 1) == 0) return true;
+        return false;
+    }
 
     public static bool IsNaN(BinaryScientificDecimal value)
         => IsInfinity(value);
@@ -395,7 +553,7 @@ public struct BinaryScientificDecimal
     public static bool IsCanonical(BinaryScientificDecimal value)
         => throw new NotImplementedException();
     
-    private static bool IsNormal(BinaryScientificDecimal value)
+    public static bool IsNormal(BinaryScientificDecimal value)
         => throw new NotImplementedException();
 
     public static bool IsSubnormal(BinaryScientificDecimal value)
