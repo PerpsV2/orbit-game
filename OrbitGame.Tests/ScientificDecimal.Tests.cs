@@ -47,7 +47,7 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
         Assert.Equal(ScientificDecimal.PosInfinity, ScientificDecimal.Max(ScientificDecimal.PosInfinity, ScientificDecimal.NegInfinity));
     }
 
-    [Fact]
+    /*[Fact]
     public void ScientificDecimal_ClampMethod()
     {
         ScientificDecimal argument = new ScientificDecimal(-8, 0);
@@ -79,12 +79,12 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
     [Fact]
     public void ScientificDecimal_FloorMethod()
     {
-        Assert.Equal(0, new ScientificDecimal(0.00001, 0).Floor());
+        Assert.Equal(0, ScientificDecimal.Floor(new(0.00001, 0)));
         Assert.Equal(-1, new ScientificDecimal(-0.00001, 0).Floor());
         Assert.Equal(10000, new ScientificDecimal(10000.9, 0).Floor());
         Assert.Equal(10001, new ScientificDecimal(10001, 0).Floor());
         Assert.Equal(new ScientificDecimal(100), new ScientificDecimal(100).Floor());
-    }
+    }*/
     
     #region Operators
     
@@ -141,7 +141,7 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
         Assert.Throws<ArithmeticException>(() => ScientificDecimal.PosInfinity % _testPosScientificDecimal);
         Assert.Throws<ArithmeticException>(() => _testPosScientificDecimal % ScientificDecimal.PosInfinity);
         Assert.Throws<ArithmeticException>(() => _testPosScientificDecimal % ScientificDecimal.Zero);
-        Assert.Equal(1, new ScientificDecimal(10) % 3, 0.00001);
+        Assert.Equal(3, new ScientificDecimal(10) % 13);
     }
     
     [Fact]

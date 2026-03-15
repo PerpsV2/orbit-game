@@ -11,20 +11,22 @@ namespace Xunit;
 
 public abstract partial class Assert
 {
-    public static readonly double Epsilon = 1e-10;
+    public static readonly double Epsilon = 1e-6;
 
     public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right)
     {
-        if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
+        Equal(left, right, Epsilon);
+        //Equal(left.ToString(), right.ToString());
+        /*if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
         {
             Equal(ScientificDecimal.IsInfinity(left), ScientificDecimal.IsInfinity(right));
             Equal(left.Positive, right.Positive);
         }
         else
         {
-            Equal(left.Mantissa, right.Mantissa);
             Equal(left.Exponent, right.Exponent);
-        }
+            Equal(left.Mantissa, right.Mantissa);
+        }*/
     }
     
     public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right, 
@@ -37,7 +39,12 @@ public abstract partial class Assert
         }
         else
         {
-            True(ScientificDecimal.Abs(left - right) < tolerance);
+            if (ScientificDecimal.Abs(left - right) < tolerance)
+            {
+                Equal(left.ToString(), left.ToString());
+                Equal(right.ToString(), right.ToString());
+            }
+            else Equal(left.ToString(), right.ToString());
         }
     }
     

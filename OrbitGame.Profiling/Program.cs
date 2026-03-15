@@ -3,5 +3,7 @@ using BenchmarkDotNet;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using OrbitGame.Profiling;
+using OrbitGame;
 
-var value1 = new ScientificDecimal(3.14159265358979323, 310410000);
+var value1 = 3.52525f;
+Console.WriteLine(((ScientificDecimal)(value1)).ToString("N"));

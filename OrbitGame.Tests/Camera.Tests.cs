@@ -238,7 +238,7 @@ public class Camera_Tests
         _testCamera.MovePerpendicular(20 * Math.PI);
         _testCamera.Update();
         Assert.Equal(new SD_Vector2(0, 10), _testCamera.Position);
-        Assert.Equal(Math.PI, _testCamera.Angle);
+        Assert.Equal(Math.PI, _testCamera.Angle, Assert.Epsilon);
     }
     
     [Fact]

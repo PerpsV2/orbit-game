@@ -5,12 +5,6 @@ using System.Numerics;
 
 namespace OrbitGame.Profiling;
 
-public class PrecisionException : Exception
-{
-    public PrecisionException() { }
-    public PrecisionException(string message) : base(message) { }
-}
-
 /// <summary>
 /// Number with decimal precision but arbitrary place value.
 /// </summary>
@@ -57,8 +51,8 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static ScientificDecimal One { get; } = new(1, 0, MaxPrecision);
     public static ScientificDecimal AdditiveIdentity => Zero;
     public static ScientificDecimal MultiplicativeIdentity => One;
-    public static ScientificDecimal PositiveInfinity => new(true, true);
-    public static ScientificDecimal NegativeInfinity => new(true, false);
+    public static ScientificDecimal PosInfinity => new(true, true);
+    public static ScientificDecimal NegInfinity => new(true, false);
     public static int Radix => 2;
 
 
@@ -70,7 +64,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         Normalize();
     }
 
-    public ScientificDecimal(decimal mantissa, int exponent)
+    /*public ScientificDecimal(decimal mantissa, int exponent)
     {
         bool negative = mantissa < 0;
         if (negative) mantissa *= -1;
@@ -83,7 +77,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
             this = FromDecimal(mantissa) * FromPowerOfTen(exponent);
         }
         if (negative) _mantissa *= -1;
-    }
+    }*/
 
     public ScientificDecimal(double mantissa, int exponent)
     {
@@ -91,6 +85,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (negative) mantissa *= -1;
         try
         {
+            if (exponent < -10) throw new OverflowException();
             this = FromFloatingPoint(mantissa * Math.Pow(10, exponent));
         }
         catch (OverflowException)
@@ -98,6 +93,19 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
             this = FromFloatingPoint(mantissa) * FromPowerOfTen(exponent);
         }
         if (negative) _mantissa *= -1;
+    }
+
+    public ScientificDecimal(int exponent)
+    {
+        try
+        {
+            if (exponent < -10) throw new OverflowException();
+            this = FromFloatingPoint(Math.Pow(10, exponent));
+        }
+        catch (OverflowException)
+        {
+            this = FromPowerOfTen(exponent);
+        }
     }
 
     private ScientificDecimal(bool isInfinite, bool isPositive)
@@ -178,6 +186,12 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (negative) Mantissa = -Mantissa;
     }
 
+    private static ScientificDecimal Negate(ScientificDecimal value)
+    {
+        if (value._infinite) return new(true, value.Negative);
+        return new(-value._mantissa, value._exponent, value._precision);
+    }
+
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
         if (left._infinite && right._infinite)
@@ -218,10 +232,10 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         if (divisor._mantissa == 0 && dividend._mantissa == 0)
             throw new ArithmeticException("Cannot divide zero by zero");
-        if (divisor._mantissa == 0) return dividend.Positive ? PositiveInfinity : NegativeInfinity;
+        if (divisor._mantissa == 0) return dividend.Positive ? PosInfinity : NegInfinity;
         if (divisor._infinite && dividend._infinite)
             throw new ArithmeticException("Cannot divide an infinite value by an infinite value");
-        if (dividend._infinite) return dividend;
+        if (dividend._infinite) return divisor.Positive == dividend.Positive ? PosInfinity : NegInfinity;
         if (divisor._infinite) return Zero;
         
         bool leftNegative = dividend.Mantissa < 0;
@@ -232,7 +246,9 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (dividend.Exponent < divisor.Exponent) dividend.IncreaseExponent(divisor.Exponent);
         else if (divisor.Exponent < dividend.Exponent) divisor.IncreaseExponent(dividend.Exponent);
         long resultMantissa = 0b0L;
-        divisor.Mantissa <<= dividend.Precision - divisor.Precision;
+        int precisionDifference = dividend.Precision - divisor.Precision;
+        if (precisionDifference > 0) divisor.Mantissa <<= precisionDifference;
+        else divisor.Mantissa >>= -precisionDifference;
         for (int i = 0; i < resultPrecision; ++i)
         {
             if (dividend.Mantissa == 0) break;
@@ -270,6 +286,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static ScientificDecimal Sqrt(ScientificDecimal value)
     {
         if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative number");
+        if (value._infinite) return value;
         ScientificDecimal bestGuess = value;
         ScientificDecimal nextGuess = bestGuess;
         int iterations = 0;
@@ -352,6 +369,17 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         }
         return value;
     }
+    
+    public static ScientificDecimal FloorTowardsZero(ScientificDecimal value)
+    {
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value._mantissa >>= -value._exponent;
+        value._mantissa <<= -value._exponent;
+        if (negative) value._mantissa *= -1;
+        return value;
+    }
 
     public static ScientificDecimal Ceil(ScientificDecimal value)
     {
@@ -370,7 +398,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static ScientificDecimal operator +(ScientificDecimal value)
         => value;
     public static ScientificDecimal operator -(ScientificDecimal value)
-        => new(-value.Mantissa, value.Exponent, value.Precision);
+        => Negate(value);
     public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right)
         => Add(left, right);
     public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right)
@@ -417,17 +445,23 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         => new(value, 0, MaxPrecision);
     public static implicit operator ScientificDecimal(ulong value)
         => new((long)value, 0, MaxPrecision);
-    public static explicit operator ScientificDecimal(decimal value)
+    public static implicit operator ScientificDecimal(decimal value)
         => FromDecimal(value, 0);
-    public static explicit operator ScientificDecimal(float value)
+    public static implicit operator ScientificDecimal(float value)
         => FromDecimal((decimal)value, 0);
-    public static explicit operator ScientificDecimal(double value)
+    public static implicit operator ScientificDecimal(double value)
         => FromDecimal((decimal)value, 0);
 
     public static explicit operator int(ScientificDecimal value)
-        => (int)(Floor(value)._mantissa << value._exponent);
+    {
+        if (value._exponent < 0) return (int)(Round(value)._mantissa >> -value._exponent);
+        return (int)(Round(value)._mantissa << value._exponent);
+    }
     public static explicit operator long(ScientificDecimal value)
-        => Floor(value)._mantissa << value._exponent;
+    {
+        if (value._exponent < 0) return Round(value)._mantissa >> -value._exponent;
+        return Round(value)._mantissa << value._exponent;
+    }
     public static explicit operator float(ScientificDecimal value)
         => (float)(value._mantissa * Math.Pow(2, value._exponent));
     public static explicit operator double(ScientificDecimal value)

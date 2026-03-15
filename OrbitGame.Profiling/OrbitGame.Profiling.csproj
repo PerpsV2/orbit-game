@@ -12,4 +12,12 @@
       <PackageReference Include="BenchmarkDotNet.Annotations" Version="0.15.8" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\OrbitGame\OrbitGame.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="ScientificDecimal.cs" />
+    </ItemGroup>
+
 </Project>

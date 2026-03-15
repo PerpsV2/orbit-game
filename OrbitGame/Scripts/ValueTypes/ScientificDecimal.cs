@@ -12,200 +12,327 @@ namespace OrbitGame;
 /// </summary>
 public struct ScientificDecimal : INumber<ScientificDecimal>
 {
-    private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
-    private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
+    private const int MaxPrecision = 62;
+    private const int SqrtMaxIterations = 16;
+    private static readonly ScientificDecimal SqrtEpsilon = new(0b1L, -30, MaxPrecision);
 
-    public static ScientificDecimal Zero => 0;
-    public static ScientificDecimal One => 1;
-    public static ScientificDecimal AdditiveIdentity => 0;
-    public static ScientificDecimal MultiplicativeIdentity => 1;
-    public static int Radix => 10;
+    private long _mantissa;
+    private int _exponent;
+    private int _precision;
+    private readonly bool _infinite;
 
-    /// <summary>
-    /// Represents a number that approaches positive infinity.
-    /// </summary>
-    public static readonly ScientificDecimal PosInfinity = new(true, true);
-    /// <summary>
-    /// Represents a number that approaches negative infinity.
-    /// </summary>
-    public static readonly ScientificDecimal NegInfinity = new(true, false);
-    
-    private readonly bool _infinite = false;
-
-    private double _mantissa;
-    public double Mantissa
+    public long Mantissa
     {
-        readonly get
-        {
-            if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no mantissa");
-            return _mantissa;
-        }
+        get => _mantissa;
         private set
         {
-            if (_infinite) throw new ArithmeticException("Cannot set mantissa of infinite ScientificDecimal");
+            if (_infinite) throw new ArithmeticException("Cannot set the mantissa of an infinite ScientificDecimal");
             _mantissa = value;
         }
     }
-
-    private int _exponent;
     public int Exponent
     {
-        readonly get
-        {
-            if (_infinite) throw new ArithmeticException("Infinite ScientificDecimal has no exponent");
-            return _exponent;
-        }
+        get => _exponent;
         private set
         {
-            if (_infinite) throw new ArithmeticException("Cannot set exponent of infinite ScientificDecimal");
+            if (_infinite) throw new ArithmeticException("Cannot set the mantissa of an infinite ScientificDecimal");
             _exponent = value;
         }
     }
+    public int Precision
+    {
+        get => _precision;
+        private set
+        {
+            if (_infinite) throw new ArithmeticException("Cannot set the mantissa of an infinite ScientificDecimal");
+            _precision = value;
+        }
+    }
 
-    /// <summary>
-    /// Create a ScientificDecimal using a mantissa and an exponent of ten.
-    /// </summary>
-    /// <param name="mantissa">Mantissa (does not need to be normalized)</param>
-    /// <param name="exponent">Exponent of ten</param>
-    public ScientificDecimal(double mantissa, int exponent)
+    public static ScientificDecimal Zero { get; } = new(0, 0, MaxPrecision);
+    public static ScientificDecimal One { get; } = new(1, 0, MaxPrecision);
+    public static ScientificDecimal AdditiveIdentity => Zero;
+    public static ScientificDecimal MultiplicativeIdentity => One;
+    public static ScientificDecimal PosInfinity => new(true, true);
+    public static ScientificDecimal NegInfinity => new(true, false);
+    public static int Radix => 2;
+
+
+    public ScientificDecimal(long mantissa, int exponent, int precision)
     {
         Mantissa = mantissa;
         Exponent = exponent;
+        Precision = precision;
         Normalize();
     }
 
-    /// <summary>
-    /// Create a ScientificDecimal using an exponent of ten.
-    /// </summary>
-    /// <param name="exponent">Exponent of ten</param>
+    /*public ScientificDecimal(decimal mantissa, int exponent)
+    {
+        bool negative = mantissa < 0;
+        if (negative) mantissa *= -1;
+        try
+        {
+            this = FromDecimal(mantissa * (decimal)Math.Pow(10, exponent));
+        }
+        catch (OverflowException)
+        {
+            this = FromDecimal(mantissa) * FromPowerOfTen(exponent);
+        }
+        if (negative) _mantissa *= -1;
+    }*/
+
+    public ScientificDecimal(double mantissa, int exponent)
+    {
+        bool negative = mantissa < 0;
+        if (negative) mantissa *= -1;
+        try
+        {
+            if (exponent < -10) throw new OverflowException();
+            this = FromFloatingPoint(mantissa * Math.Pow(10, exponent));
+        }
+        catch (OverflowException)
+        {
+            this = FromFloatingPoint(mantissa) * FromPowerOfTen(exponent);
+        }
+        if (negative) _mantissa *= -1;
+    }
+
     public ScientificDecimal(int exponent)
-        : this(1, exponent) {}
-
-    public ScientificDecimal()
-        : this(0, 0) {}
-
-    private ScientificDecimal(bool infinite, bool positive)
-        : this(positive ? 1 : -1, 0)
     {
-        _infinite = infinite;
+        try
+        {
+            if (exponent < -10) throw new OverflowException();
+            this = FromFloatingPoint(Math.Pow(10, exponent));
+        }
+        catch (OverflowException)
+        {
+            this = FromPowerOfTen(exponent);
+        }
     }
 
-    public readonly bool Positive => double.IsPositive(_mantissa);
-    public readonly bool Negative => double.IsNegative(_mantissa);
-
-    /// <summary>
-    /// Sets the largest non-zero digit of the mantissa to be in the ones place
-    /// </summary>
-    private ScientificDecimal Normalize()
+    private ScientificDecimal(bool isInfinite, bool isPositive)
     {
-        if (_infinite) throw new ArithmeticException("Cannot normalize infinite ScientificDecimal");
-        
-        if (Mantissa == 0)
-        {
-            Exponent = 0;
-            return this;
-        }
-        
-        while (Math.Abs(Mantissa) >= 10)
-        {
-            Mantissa /= 10;
-            Exponent++;
-        }
-
-        while (Math.Abs(Mantissa) < 1)
-        {
-            Mantissa *= 10;
-            Exponent--;
-        }
-
-        return this;
-    }
-
-    /// <summary>
-    /// Increase the exponent without modifying the actual value of the number
-    /// </summary>
-    private ScientificDecimal IncreaseExponent(int exponent)
-    {
-        int exponentDifference = exponent - Exponent;
-        if (exponentDifference < 0) throw new ArgumentOutOfRangeException();
-        if (exponentDifference == 0) return this;
-        Mantissa /= Math.Pow(10, exponentDifference);
-        Exponent += exponentDifference;
-
-        return this;
+        Mantissa = isPositive ? 1 : -1;
+        _infinite = isInfinite;
     }
     
+    public readonly bool Positive => long.IsPositive(_mantissa);
+    public readonly bool Negative => long.IsNegative(_mantissa);
+    
+    private static ScientificDecimal FromDecimal(decimal mantissa, int precision = MaxPrecision)
+    {
+        bool negative = mantissa < 0;
+        if (negative) mantissa *= -1;
+        long integralComponent = (long)decimal.Truncate(mantissa);
+        string binMantissaString = integralComponent.ToString("B");
+        int integralDigits = binMantissaString.Length;
+        decimal fractionalComponent = mantissa - integralComponent;
+        int fractionalDigits = precision - integralDigits;
+        for (int i = 0; i < fractionalDigits; ++i)
+        {
+            fractionalComponent *= 2;
+            if (fractionalComponent > 1)
+            {
+                fractionalComponent--;
+                binMantissaString += '1';
+            }
+            else binMantissaString += '0';
+        }
+
+        ScientificDecimal result = new ScientificDecimal(long.Parse(binMantissaString, NumberStyles.BinaryNumber), 
+            integralDigits - precision, precision);
+        return negative ? -result : result;
+    }
+
+    private static ScientificDecimal FromFloatingPoint(double mantissa, int precision = MaxPrecision)
+    {
+        bool negative = mantissa < 0;
+        if (negative) mantissa *= -1;
+        long integralComponent = (long)double.Truncate(mantissa);
+        string binMantissaString = integralComponent.ToString("B");
+        int integralDigits = binMantissaString.Length;
+        double fractionalComponent = mantissa - integralComponent;
+        int fractionalDigits = precision - integralDigits;
+        for (int i = 0; i < fractionalDigits; ++i)
+        {
+            fractionalComponent *= 2;
+            if (fractionalComponent > 1)
+            {
+                fractionalComponent--;
+                binMantissaString += '1';
+            }
+            else binMantissaString += '0';
+        }
+
+        ScientificDecimal result = new ScientificDecimal(long.Parse(binMantissaString, NumberStyles.BinaryNumber), 
+            integralDigits - precision, precision);
+        return negative ? -result : result;
+    }
+
+    private static ScientificDecimal FromPowerOfTen(int exponent, int precision = MaxPrecision)
+    {
+        double log = exponent * Math.Log2(10);
+        int logIntegral = (int)Math.Floor(log);
+        double logFractional = log - logIntegral;
+        long binMantissa = (long)Math.Floor(Math.Pow(2, logFractional + MaxPrecision));
+        return new ScientificDecimal(binMantissa, logIntegral - precision, precision);
+    }
+
+    private void Normalize()
+    {
+        if (Mantissa == 0)
+        {
+            Exponent = -Precision;
+            return;
+        }
+        
+        while (Math.Abs(Mantissa) < 1L << (Precision - 1))
+        {
+            Mantissa <<= 1;
+            Exponent -= 1;
+        }
+
+        while (Math.Abs(Mantissa) > 1L << Precision)
+        {
+            Mantissa >>= 1;
+            Exponent += 1;
+        }
+    }
+
+    private void IncreaseExponent(int goal)
+    {
+        bool negative = Mantissa < 0;
+        if (negative) Mantissa = -Mantissa;
+        if (Exponent == goal) return;
+        if (Exponent > goal) throw new ArithmeticException();
+        Mantissa >>= int.Min(goal - Exponent, 63);
+        Precision -= goal - Exponent;
+        Exponent = goal;
+        if (negative) Mantissa = -Mantissa;
+    }
+
+    private static ScientificDecimal Negate(ScientificDecimal value)
+    {
+        if (value._infinite) return new(true, value.Negative);
+        return new(-value._mantissa, value._exponent, value._precision);
+    }
+
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
         if (left._infinite && right._infinite)
         {
             if (left.Positive == right.Positive) return left;
-            throw new ArithmeticException("Cannot add opposite signed infinite ScientificDecimals");
+            throw new ArithmeticException("Cannot add opposite signed scientific decimals");
         }
         if (left._infinite) return left;
         if (right._infinite) return right;
-        if (left.Exponent > right.Exponent)
-            return new ScientificDecimal(right.IncreaseExponent(left.Exponent).Mantissa + left.Mantissa, left.Exponent);
-        if (right.Exponent > left.Exponent)
-            return new ScientificDecimal(left.IncreaseExponent(right.Exponent).Mantissa + right.Mantissa, right.Exponent);
-        return new ScientificDecimal(left.Mantissa + right.Mantissa, left.Exponent);
+        
+        if (left.Exponent < right.Exponent) left.IncreaseExponent(right.Exponent);
+        else if (right.Exponent < left.Exponent) right.IncreaseExponent(left.Exponent);
+        return new(left.Mantissa + right.Mantissa, 
+            int.Max(left.Exponent, right.Exponent), 
+            int.Max(left.Precision, right.Precision));
     }
 
     private static ScientificDecimal Multiply(ScientificDecimal left, ScientificDecimal right)
     {
-        if (left == 0 || right == 0) return 0;
+        if (left._mantissa == 0 || right._mantissa == 0) return Zero;
         if (left._infinite || right._infinite) return new(true, 
             (left.Positive && right.Positive) || (left.Negative && right.Negative));
-        return new ScientificDecimal(left.Mantissa * right.Mantissa, 
-            left.Exponent + right.Exponent).Normalize();
+        
+        bool leftNegative = left.Mantissa < 0;
+        bool rightNegative = right.Mantissa < 0;
+        if (leftNegative) left.Mantissa *= -1;
+        if (rightNegative) right.Mantissa *= -1;
+        int resultPrecision = int.Min(left.Precision, right.Precision);
+        left.Mantissa >>= left.Precision - resultPrecision / 2;
+        right.Mantissa >>= right.Precision - resultPrecision / 2 - resultPrecision % 2;
+        long resultMantissa = left.Mantissa * right.Mantissa;
+        int resultExponent = left.Exponent + left.Precision + right.Exponent + right.Precision - resultPrecision;
+        if (leftNegative ^ rightNegative) resultMantissa *= -1;
+        return new ScientificDecimal(resultMantissa, resultExponent, resultPrecision);
     }
 
     private static ScientificDecimal Divide(ScientificDecimal dividend, ScientificDecimal divisor)
     {
-        if (divisor == 0 && dividend == 0) throw new ArithmeticException("Cannot divide zero by zero");
-        if (divisor == 0) return PosInfinity * (dividend.Positive ? 1 : -1);
-        if (dividend._infinite && divisor._infinite) 
-            throw new ArithmeticException("Cannot divide an infinite ScientificDecimal by another infinite ScientificDecimal");
-        if (dividend._infinite) return dividend * divisor;
-        if (divisor._infinite) return 0;
-        return new ScientificDecimal(dividend.Mantissa / divisor.Mantissa, 
-            dividend.Exponent - divisor.Exponent).Normalize();
+        if (divisor._mantissa == 0 && dividend._mantissa == 0)
+            throw new ArithmeticException("Cannot divide zero by zero");
+        if (divisor._mantissa == 0) return dividend.Positive ? PosInfinity : NegInfinity;
+        if (divisor._infinite && dividend._infinite)
+            throw new ArithmeticException("Cannot divide an infinite value by an infinite value");
+        if (dividend._infinite) return divisor.Positive == dividend.Positive ? PosInfinity : NegInfinity;
+        if (divisor._infinite) return Zero;
+        
+        bool leftNegative = dividend.Mantissa < 0;
+        bool rightNegative = divisor.Mantissa < 0;
+        if (leftNegative) dividend.Mantissa *= -1;
+        if (rightNegative) divisor.Mantissa *= -1;
+        int resultPrecision = int.Min(dividend.Precision, divisor.Precision);
+        if (dividend.Exponent < divisor.Exponent) dividend.IncreaseExponent(divisor.Exponent);
+        else if (divisor.Exponent < dividend.Exponent) divisor.IncreaseExponent(dividend.Exponent);
+        long resultMantissa = 0b0L;
+        int precisionDifference = dividend.Precision - divisor.Precision;
+        if (precisionDifference > 0) divisor.Mantissa <<= precisionDifference;
+        else divisor.Mantissa >>= -precisionDifference;
+        for (int i = 0; i < resultPrecision; ++i)
+        {
+            if (dividend.Mantissa == 0) break;
+            if (divisor.Mantissa <= dividend.Mantissa)
+            {
+                dividend.Mantissa -= divisor.Mantissa;
+                resultMantissa += 0b1L << resultPrecision - i - 1;
+            }
+            divisor.Mantissa >>= 1;
+        }
+        int resultExponent = dividend.Precision + dividend.Exponent - divisor.Precision - divisor.Exponent - resultPrecision + 1;
+        if (leftNegative ^ rightNegative) resultMantissa *= -1;
+        return new(resultMantissa, resultExponent, resultPrecision);
     }
 
     private static ScientificDecimal Modulo(ScientificDecimal value, ScientificDecimal mod)
     {
-        if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
-        if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
-        return value - mod * Math.Floor((double)(value / mod));
+        if (mod._mantissa == 0) throw new ArithmeticException("Cannot modulate a value by zero");
+        if (value._infinite || mod._infinite) 
+            throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
+        return value - mod * Floor(value / mod);
     }
-    
+
     public static ScientificDecimal Square(ScientificDecimal value)
         => value * value;
 
-
-    public static ScientificDecimal IntPow(ScientificDecimal value, uint amount)
+    public static ScientificDecimal IntPow(ScientificDecimal value, uint power)
     {
-        ScientificDecimal result = 1;
-        for (uint i = 0; i < amount; ++i)
+        ScientificDecimal result = One;
+        for (uint i = 0; i < power; ++i)
             result *= value;
-
         return result;
     }
 
     public static ScientificDecimal Sqrt(ScientificDecimal value)
     {
-        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
+        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative number");
         if (value._infinite) return value;
-        if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
-        return new ScientificDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
+        if (value == Zero) return Zero;
+        ScientificDecimal bestGuess = value;
+        ScientificDecimal nextGuess = bestGuess;
+        int iterations = 0;
+        do
+        {
+            bestGuess = nextGuess;
+            nextGuess = bestGuess + value / bestGuess;
+            nextGuess._exponent--;
+            iterations++;
+        } while (Abs(bestGuess * bestGuess - value) > SqrtEpsilon && iterations < SqrtMaxIterations);
+
+        return bestGuess;
     }
 
     public static ScientificDecimal Abs(ScientificDecimal value)
     {
-        if (value._infinite) return new ScientificDecimal(true, true);
-        return new (Math.Abs(value.Mantissa), value.Exponent);
+        if (value._infinite) return new(true, true);
+        return value.Negative ? -value : value;
     }
-
+    
     public static ScientificDecimal Min(ScientificDecimal value, params ScientificDecimal[] values)
     {
         ScientificDecimal result = value;
@@ -228,7 +355,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public static ScientificDecimal MinMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Min(x, y);
-    
+
     [Obsolete("MaxMagnitude is obsolete. Use Max method instead.")]
     public static ScientificDecimal MaxMagnitude(ScientificDecimal x, ScientificDecimal y)
         => Max(x, y);
@@ -236,57 +363,83 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static ScientificDecimal MaxMagnitudeNumber(ScientificDecimal x, ScientificDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
 
-    public static ScientificDecimal Clamp(ScientificDecimal value, ScientificDecimal min, ScientificDecimal max)
+    public static ScientificDecimal Clamp(
+        ScientificDecimal value, 
+        ScientificDecimal min, 
+        ScientificDecimal max)
     {
-        if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
+        if (max < min) throw new ArithmeticException("Clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
     }
 
-    /// <summary>
-    /// Rounds to the nearest integer value.
-    /// </summary>
-    public ScientificDecimal Round()
+    public static ScientificDecimal Round(ScientificDecimal value)
     {
-        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
-        if (Mantissa == 0) return this;
-        if (Exponent < -1) return 0;
-        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Exponent), Exponent);
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        return negative ? ((value._mantissa >> -value._exponent - 1) & 0b1L) == 0 ? -Floor(value) : -Ceil(value) :
+            ((value._mantissa >> -value._exponent - 1) & 0b1L) == 1 ? Ceil(value) : Floor(value);
     }
-    
-    public ScientificDecimal Floor()
-    {
-        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
-        if (Mantissa == 0) return this;
-        if (Exponent < -1) return 0;
-        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Exponent), Exponent);
-    }
-    
-    #region Operators
 
-    public static ScientificDecimal operator +(ScientificDecimal value) 
+    public static ScientificDecimal Floor(ScientificDecimal value)
+    {
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value._mantissa >>= -value._exponent;
+        value._mantissa <<= -value._exponent;
+        if (negative)
+        {
+            value += One;
+            value._mantissa *= -1;
+        }
+        return value;
+    }
+    
+    public static ScientificDecimal FloorTowardsZero(ScientificDecimal value)
+    {
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value._mantissa >>= -value._exponent;
+        value._mantissa <<= -value._exponent;
+        if (negative) value._mantissa *= -1;
+        return value;
+    }
+
+    public static ScientificDecimal Ceil(ScientificDecimal value)
+    {
+        bool negative = value._mantissa < 0;
+        if (negative) value._mantissa *= -1;
+        if (IsInteger(value)) return value;
+        value = Floor(value);
+        if (negative)
+        {
+            value._mantissa *= -1;
+            return value;
+        }
+        return value + One;
+    }
+
+    public static ScientificDecimal operator +(ScientificDecimal value)
         => value;
-
     public static ScientificDecimal operator -(ScientificDecimal value)
-    {
-        if (value._infinite) return new(true, value.Negative);
-        return new(-value.Mantissa, value.Exponent);
-    } 
-    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right) 
+        => Negate(value);
+    public static ScientificDecimal operator +(ScientificDecimal left, ScientificDecimal right)
         => Add(left, right);
-    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right) 
+    public static ScientificDecimal operator -(ScientificDecimal left, ScientificDecimal right)
         => Add(left, -right);
-    public static ScientificDecimal operator ++(ScientificDecimal value) 
-        => Add(value, 1);
+    public static ScientificDecimal operator ++(ScientificDecimal value)
+        => Add(value, One);
     public static ScientificDecimal operator --(ScientificDecimal value)
-        => Add(value, -1);
-    public static ScientificDecimal operator*(ScientificDecimal left, ScientificDecimal right)
+        => Add(value, -One);
+    public static ScientificDecimal operator *(ScientificDecimal left, ScientificDecimal right)
         => Multiply(left, right);
-    public static ScientificDecimal operator/(ScientificDecimal dividend, ScientificDecimal divisor)
-        => Divide(dividend, divisor);
-    public static ScientificDecimal operator %(ScientificDecimal value, ScientificDecimal mod)
-        => Modulo(value, mod);
+    public static ScientificDecimal operator /(ScientificDecimal left, ScientificDecimal right)
+        => Divide(left, right);
+    public static ScientificDecimal operator %(ScientificDecimal left, ScientificDecimal right)
+        => Modulo(left, right);
+    
     public static bool operator ==(ScientificDecimal left, ScientificDecimal right)
         => left.Equals(right);
     public static bool operator !=(ScientificDecimal left, ScientificDecimal right) 
@@ -298,7 +451,6 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (right._infinite) return right.Positive;
         return (right - left).Positive;
     }
-
     public static bool operator >(ScientificDecimal left, ScientificDecimal right)
     {
         if (left == right) return false;
@@ -306,49 +458,173 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
         if (right._infinite) return right.Negative;
         return (left - right).Positive;
     }
-
     public static bool operator <=(ScientificDecimal left, ScientificDecimal right)
         => left < right || left == right;
     public static bool operator >=(ScientificDecimal left, ScientificDecimal right)
         => left > right || left == right;
-    
-    #endregion
-    
-    #region Casts
 
-    // to scientific decimal
-    public static implicit operator ScientificDecimal(int value) 
-        => new(value, 0);
-
+    public static implicit operator ScientificDecimal(int value)
+        => new(value, 0, MaxPrecision);
+    public static implicit operator ScientificDecimal(uint value)
+        => new(value, 0, MaxPrecision);
+    public static implicit operator ScientificDecimal(long value)
+        => new(value, 0, MaxPrecision);
+    public static implicit operator ScientificDecimal(ulong value)
+        => new((long)value, 0, MaxPrecision);
+    public static implicit operator ScientificDecimal(decimal value)
+        => FromDecimal(value);
+    public static implicit operator ScientificDecimal(float value)
+        => FromFloatingPoint(value);
     public static implicit operator ScientificDecimal(double value)
-        => new(value, 0);
-    
-    public static implicit operator ScientificDecimal(float value) 
-        => new(value, 0);
+        => FromFloatingPoint(value);
 
-    // from scientific decimal
-    public static explicit operator double(ScientificDecimal value)
-        => value.Mantissa * Math.Pow(10, value.Exponent);
-    
+    public static explicit operator int(ScientificDecimal value)
+    {
+        if (value._exponent < 0) return (int)(FloorTowardsZero(value)._mantissa >> -value._exponent);
+        return (int)(FloorTowardsZero(value)._mantissa << value._exponent);
+    }
+    public static explicit operator long(ScientificDecimal value)
+    {
+        if (value._exponent < 0) return FloorTowardsZero(value)._mantissa >> -value._exponent;
+        return FloorTowardsZero(value)._mantissa << value._exponent;
+    }
     public static explicit operator float(ScientificDecimal value)
-        => Convert.ToSingle((double)value);
+        => (float)(value._mantissa * Math.Pow(2, value._exponent));
+    public static explicit operator double(ScientificDecimal value)
+        => value._mantissa * Math.Pow(2, value._exponent);
+    public override string ToString()
+    {
+        return ToString("N", CultureInfo.CurrentCulture);
+    }
     
-    public static explicit operator int (ScientificDecimal value)
-        => (int)(value.Mantissa * Math.Pow(10, value.Exponent));
+    public string ToString(string? format, IFormatProvider? formatProvider = null)
+    {
+        if (string.IsNullOrEmpty(format))
+            format = "G";
+        
+        switch (format.ToUpperInvariant())
+        {
+            case "B":
+                return $"M:{Mantissa:B}, E:{Exponent}, P:{Precision}";
+            case "G":
+                return $"M:{Mantissa}, E:{Exponent}, P:{Precision}";
+            case "N":
+                return $"{Mantissa * Math.Pow(2, Exponent)}";
+            default:
+                throw new FormatException();
+        }
+    }
+
+    public int CompareTo(object? obj)
+    {
+        if (obj is ScientificDecimal scientificDecimal)
+            return CompareTo(scientificDecimal);
+        return -1;
+    }
     
-    public static explicit operator uint (ScientificDecimal value)
-        => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
+    public int CompareTo(ScientificDecimal other)
+        => this < other ? -1 : this > other ? 1 : 0;
     
-    #endregion
+    public bool Equals(ScientificDecimal other)
+    {
+        if (_infinite && other._infinite) return Positive == other.Positive;
+        if (_infinite || other._infinite) return false;
+        return _mantissa == other._mantissa &&
+               _exponent == other._exponent &&
+               _precision == other._precision;
+    }
     
+    public override bool Equals(object? obj)
+    {
+        return obj is ScientificDecimal other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_mantissa, _exponent, _precision, _infinite);
+    }
+    
+    public static ScientificDecimal Parse(string s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static ScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static ScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, out ScientificDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromChecked<TOther>(TOther value, out ScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromSaturating<TOther>(TOther value, out ScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertFromTruncating<TOther>(TOther value, out ScientificDecimal result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToChecked<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToSaturating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryConvertToTruncating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    {
+        throw new NotImplementedException();
+    }
+
     public static bool IsZero(ScientificDecimal value)
         => value is { _infinite: false, Mantissa: 0 };
     
-    [Obsolete("IsPositive method is obsolete. Use Positive property instead.")]
     public static bool IsPositive(ScientificDecimal value)
         => IsZero(value) || value.Positive;
     
-    [Obsolete("IsNegative method is obsolete. Use Negative property instead.")]
     public static bool IsNegative(ScientificDecimal value)
         => value.Negative;
     
@@ -363,18 +639,37 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     
     public static bool IsComplexNumber(ScientificDecimal value)
         => false;
-    
+
     public static bool IsInteger(ScientificDecimal value)
-        => !value._infinite && double.IsInteger((double)value);
+    {
+        if (value._mantissa < 0) value._mantissa *= -1;
+        if (value._exponent >= 0) return true;
+        for (int i = 0; i < -value._exponent; ++i)
+        {
+            if ((value._mantissa & 1) == 1) return false;
+            value._mantissa >>= 1;
+        }
+        return true;
+    }
 
     public static bool IsOddInteger(ScientificDecimal value)
-        => !value._infinite && double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
+    {
+        if (!IsInteger(value)) return false;
+        value._mantissa >>= -value._exponent - 1;
+        if ((value._mantissa & 1) == 1) return true;
+        return false;
+    }
 
     public static bool IsEvenInteger(ScientificDecimal value)
-        => !value._infinite && double.Abs((double)value % 2) <= ComparisonTolerance;
+    {
+        if (!IsInteger(value)) return false;
+        value._mantissa >>= -value._exponent - 1;
+        if ((value._mantissa & 1) == 0) return true;
+        return false;
+    }
 
     public static bool IsNaN(ScientificDecimal value)
-        => IsInfinity(value) || double.IsNaN(value.Mantissa);
+        => IsInfinity(value);
     
     public static bool IsInfinity(ScientificDecimal value)
         => value._infinite;
@@ -384,208 +679,13 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public static bool IsPositiveInfinity(ScientificDecimal value)
         => value.Positive && IsInfinity(value);
-    
+
     public static bool IsCanonical(ScientificDecimal value)
-        => value.Mantissa is >= 0 and < 10;
+        => throw new NotImplementedException();
     
     public static bool IsNormal(ScientificDecimal value)
-        => double.IsNormal(value.Mantissa);
+        => throw new NotImplementedException();
 
     public static bool IsSubnormal(ScientificDecimal value)
-        => double.IsSubnormal(value.Mantissa);
-    
-    private string ToStringPrecision(string format)
-    {
-        if (IsPositiveInfinity(this)) return "PositiveInfinity";
-        if (IsNegativeInfinity(this)) return "NegativeInfinity";
-        
-        int sigFigs;
-        try
-        {
-            sigFigs = int.Parse(format.Substring(1));
-        }
-        catch (FormatException)
-        {
-            sigFigs = DefaultPrintPrecision;
-        }
-
-        string mantissaString = Mantissa.ToString("F" + (sigFigs - 1));
-        return mantissaString + "e" + Exponent.ToString("+0;-#");
-    }
-
-    private string ToStringStandardDecimal()
-        => ToStringStandardDecimal("S" + DefaultPrintPrecision);
-
-    private string ToStringStandardDecimal(string format)
-    {
-        if (IsPositiveInfinity(this)) return "PositiveInfinity";
-        if (IsNegativeInfinity(this)) return "NegativeInfinity";
-        
-        int sigFigs;
-        try
-        {
-            sigFigs = int.Parse(format.Substring(1));
-        }
-        catch (FormatException)
-        {
-            sigFigs = DefaultPrintPrecision;
-        }
-        
-        string mantissaString = Mantissa.ToString("N" + (sigFigs - 1));
-        if (Negative) mantissaString = mantissaString.Substring(1);
-        int mantissaDecimalIndex = mantissaString.IndexOf('.');
-        int resultDecimalIndex = mantissaDecimalIndex + Exponent;
-        string result = mantissaString.Substring(0, mantissaDecimalIndex) + 
-                        mantissaString.Substring(mantissaDecimalIndex + 1);
-        string resultDecimalInsert = ".";
-        
-        if (resultDecimalIndex < 0)
-        {
-            result = result.PadLeft(result.Length + Math.Abs(resultDecimalIndex), '0');
-            resultDecimalIndex = 0;
-            resultDecimalInsert = "0.";
-        }
-        
-        if (resultDecimalIndex > result.Length)
-        {
-            result = result.PadRight(resultDecimalIndex, '0');
-            resultDecimalInsert = "";
-        }
-        
-        result = result.Insert(resultDecimalIndex, resultDecimalInsert);
-        if (Negative) return "-" + result;
-        return result;
-    }
-
-    private string ToStringGeneral()
-        => ToStringPrecision("P" + DefaultPrintPrecision);
-    
-    public override string ToString()
-        => ToStringGeneral();
-
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        if (string.IsNullOrEmpty(format))
-            format = "G";
-
-        switch (format.ToUpperInvariant())
-        {
-            case "G": return ToStringGeneral(); // general format
-            case "S": return ToStringStandardDecimal(); // standard decimal format
-            case var f when new Regex(@"S\d*").IsMatch(f): 
-                return ToStringStandardDecimal(f); // standard decimal format with precision
-            case var f when new Regex(@"S\d+").IsMatch(f): 
-                return ToStringPrecision(f); // custom precision format
-            default: throw new FormatException($"The format '{format}' is not supported.");
-        }
-    }
-    
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static ScientificDecimal Parse(string s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static ScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static ScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static ScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out ScientificDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
-        out ScientificDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out ScientificDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
-        out ScientificDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertFromChecked<TOther>(TOther value, out ScientificDecimal result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertFromSaturating<TOther>(TOther value, out ScientificDecimal result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertFromTruncating<TOther>(TOther value, out ScientificDecimal result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertToChecked<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertToSaturating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryConvertToTruncating<TOther>(ScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
-        where TOther : INumberBase<TOther>
-    {
-        throw new NotImplementedException();
-    }
-    
-    public int CompareTo(object? obj)
-    {
-        if (obj is ScientificDecimal other)
-            return this < other ? -1 : this > other ? 1 : 0;
-        return -1;
-    }
-    public int CompareTo(ScientificDecimal other)
-        => this < other ? -1 : this > other ? 1 : 0;
-    
-    public override bool Equals(object? obj)
-    {
-        return obj is ScientificDecimal other && Equals(other);
-    }
-
-    public bool Equals(ScientificDecimal other)
-    {
-        if (_infinite && other._infinite) return Positive == other.Positive;
-        if (_infinite || other._infinite) return false;
-        return Math.Abs(Mantissa - other.Mantissa) < ComparisonTolerance && Exponent == other.Exponent;
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Mantissa, Exponent);
-    }
+        => throw new NotImplementedException();
 }
