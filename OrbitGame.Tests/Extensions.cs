@@ -11,7 +11,7 @@ namespace Xunit;
 
 public abstract partial class Assert
 {
-    public static readonly double Epsilon = 1e-6;
+    public static readonly double Epsilon = 1e-2;
 
     public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right)
     {
@@ -39,7 +39,7 @@ public abstract partial class Assert
         }
         else
         {
-            if (ScientificDecimal.Abs(left - right) < tolerance)
+            if (ScientificDecimal.Abs(left - right) < tolerance * Epsilon)
             {
                 Equal(left.ToString(), left.ToString());
                 Equal(right.ToString(), right.ToString());

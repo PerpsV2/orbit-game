@@ -5,5 +5,6 @@ using BenchmarkDotNet.Running;
 using OrbitGame.Profiling;
 using OrbitGame;
 
-var value1 = 3.52525f;
-Console.WriteLine(((ScientificDecimal)(value1)).ToString("N"));
+ScientificDecimal value1 = new ScientificDecimal(100, 5);
+Console.WriteLine(value1.ToString("B"));
+Console.WriteLine(value1.ToString("N"));

@@ -182,7 +182,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         if (Mantissa == 0)
         {
-            Exponent = -Precision;
+            Exponent = int.MinValue;
             return;
         }
         
@@ -219,6 +219,8 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     private static ScientificDecimal Add(ScientificDecimal left, ScientificDecimal right)
     {
+        if (left._mantissa == 0) return right;
+        if (right._mantissa == 0) return left;
         if (left._infinite && right._infinite)
         {
             if (left.Positive == right.Positive) return left;
@@ -312,7 +314,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     {
         if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative number");
         if (value._infinite) return value;
-        if (value == Zero) return Zero;
+        if (value._mantissa == 0) return Zero;
         ScientificDecimal bestGuess = value;
         ScientificDecimal nextGuess = bestGuess;
         int iterations = 0;
@@ -642,6 +644,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
 
     public static bool IsInteger(ScientificDecimal value)
     {
+        if (IsInfinity(value)) return false;
         if (value._mantissa < 0) value._mantissa *= -1;
         if (value._exponent >= 0) return true;
         for (int i = 0; i < -value._exponent; ++i)
@@ -655,7 +658,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static bool IsOddInteger(ScientificDecimal value)
     {
         if (!IsInteger(value)) return false;
-        value._mantissa >>= -value._exponent - 1;
+        value._mantissa >>= -value._exponent;
         if ((value._mantissa & 1) == 1) return true;
         return false;
     }
@@ -663,7 +666,7 @@ public struct ScientificDecimal : INumber<ScientificDecimal>
     public static bool IsEvenInteger(ScientificDecimal value)
     {
         if (!IsInteger(value)) return false;
-        value._mantissa >>= -value._exponent - 1;
+        value._mantissa >>= -value._exponent;
         if ((value._mantissa & 1) == 0) return true;
         return false;
     }
