@@ -5,17 +5,14 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using OrbitGame.Profiling;
 
-/*BigIntScientificDecimal value1 = new(144, 30);
-BigIntScientificDecimal value2 = Math.Tau;
-Console.WriteLine($"{value1.ToString("N")}, {value2.ToString("N")}");
-Console.WriteLine(BigIntScientificDecimal.Sqrt(value1).ToString("G"));*/
-
 Random rnd = new();
 for (int i = 0; i < 1000000; ++i)
 {
-    BigIntScientificDecimal left1 = new(rnd.NextInt64(1, 30), rnd.Next(-5, 5));
+    //BigIntScientificDecimal left1 = new(rnd.NextInt64(1, 30), rnd.Next(-5, 5));
     BigIntScientificDecimal right1 = new(rnd.NextInt64(0, 30), rnd.Next(-5, 5));
-    Console.WriteLine($"{left1:G} / {right1:G} = {left1/right1:N}");
+    BigIntScientificDecimal.Sqrt(right1);
+    //left1 /= right1;
+    //Console.WriteLine($"sqrt({right1:N}) = {BigIntScientificDecimal.Sqrt(right1):N}");
 }
 
 //var summary = BenchmarkRunner.Run<Benchmarker>();
@@ -31,9 +28,9 @@ public class Benchmarker
     
     [Benchmark]
     public BigIntScientificDecimal Operation1()
-        => _left1 / _right1;
+        => BigIntScientificDecimal.Sqrt(_left1);
 
     [Benchmark]
     public ScientificDecimal Operation2()
-        => _left2 / _right2;
+        => ScientificDecimal.Sqrt(_left2);
 }
