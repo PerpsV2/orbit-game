@@ -73,7 +73,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         if (float.IsNegativeInfinity(value)) return new BigIntScientificDecimal(-1, 0, true);
         if (float.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN float to scientific decimal");
             
-        while (value < 1e+7)
+        while (Math.Abs(value) < 1e+7)
         {
             value *= 10;
             exponent--;
@@ -89,7 +89,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         if (double.IsNegativeInfinity(value)) return new BigIntScientificDecimal(-1, 0, true);
         if (double.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN double to scientific decimal");
         
-        while (value < 1e+16)
+        while (Math.Abs(value) < 1e+16)
         {
             value *= 10;
             exponent--;
@@ -109,12 +109,12 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         }
         if (Exponent < MinExponent) IncreaseExponent(MinExponent);
 
-        /*while (true) {
+        while (true) {
             BigInteger quotient = BigInteger.DivRem(Mantissa, 10, out BigInteger remainder);
             if (!remainder.IsZero) break;
             Mantissa = quotient;
             Exponent++;
-        }*/
+        }
     }
 
     private void DecreaseExponent(int exponent)
@@ -145,6 +145,8 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
 
     private static BigIntScientificDecimal Add(BigIntScientificDecimal left, BigIntScientificDecimal right)
     {
+        if (left == 0) return right;
+        if (right == 0) return left;
         if (left._infinite && right._infinite)
         {
             if (left.Positive == right.Positive) return left;
@@ -195,7 +197,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
 
     public static BigIntScientificDecimal Floor(BigIntScientificDecimal value)
     {
-        if (value._infinite) return value;
+        if (value._infinite || IsInteger(value)) return value;
         if (value.Negative) return -Ceiling(-value);
         value.IncreaseExponent(0);
         return value;
@@ -203,15 +205,29 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
 
     public static BigIntScientificDecimal Ceiling(BigIntScientificDecimal value)
     {
-        if (value._infinite) return value;
+        if (value._infinite || IsInteger(value)) return value;
         if (value.Negative) return -Floor(-value);
-        if (value.Exponent == 0) return value;
         return Floor(value) + 1;
     }
 
-    public static BigIntScientificDecimal Round(BigIntScientificDecimal value)
+    public static BigIntScientificDecimal Round(BigIntScientificDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        throw new NotImplementedException();
+        if (value._infinite || IsInteger(value)) return value;
+        BigIntScientificDecimal floor = Floor(value);
+        BigIntScientificDecimal ceiling = Ceiling(value);
+        BigIntScientificDecimal floorDist = Abs(floor - value);
+        BigIntScientificDecimal ceilDist = Abs(ceiling - value);
+        if (floorDist < ceilDist) return floor;
+        if (ceilDist < floorDist) return ceiling;
+        switch (mode)
+        {
+            case MidpointRounding.ToEven: return IsEvenInteger(floor) ? floor : ceiling;
+            case MidpointRounding.AwayFromZero: return value.Positive ? ceiling : floor;
+            case MidpointRounding.ToZero: return value.Positive ? floor : ceiling;
+            case MidpointRounding.ToPositiveInfinity: return ceiling;
+            case MidpointRounding.ToNegativeInfinity: return floor; 
+            default: throw new ArgumentException("Invalid midpoint rounding mode");
+        }
     }
     
     public static BigIntScientificDecimal Abs(BigIntScientificDecimal value)
@@ -278,6 +294,15 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
     
     public static BigIntScientificDecimal MaxMagnitudeNumber(BigIntScientificDecimal x, BigIntScientificDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
+    
+    public static BigIntScientificDecimal Clamp(
+        BigIntScientificDecimal value, 
+        BigIntScientificDecimal min, 
+        BigIntScientificDecimal max)
+    {
+        if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
+        return value < min ? min : value > max ? max : value;
+    }
     
     public static BigIntScientificDecimal operator +(BigIntScientificDecimal value)
         => value;
@@ -453,7 +478,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
             case "N":
                 if (_infinite && Positive) return "Positive Infinity";
                 if (_infinite && Negative) return "Negative Infinity";
-                return ((double)this).ToString("N");
+                return ((double)this).ToString("N10");
             default:
                 throw new FormatException();
         }

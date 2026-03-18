@@ -1,18 +1,11 @@
-﻿using System.Collections;
-using System.Globalization;
-using BenchmarkDotNet;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Attributes;
 using OrbitGame.Profiling;
 
 Random rnd = new();
 for (int i = 0; i < 1000000; ++i)
 {
-    //BigIntScientificDecimal left1 = new(rnd.NextInt64(1, 30), rnd.Next(-5, 5));
-    BigIntScientificDecimal right1 = new(rnd.NextInt64(0, 30), rnd.Next(-5, 5));
-    BigIntScientificDecimal.Sqrt(right1);
-    //left1 /= right1;
-    //Console.WriteLine($"sqrt({right1:N}) = {BigIntScientificDecimal.Sqrt(right1):N}");
+    BigIntScientificDecimal right1 = new(rnd.NextInt64(-30, 30), rnd.Next(-1, -1));
+    Console.WriteLine($"{right1.ToString("N")} = {BigIntScientificDecimal.Round(right1).ToString("N")}");
 }
 
 //var summary = BenchmarkRunner.Run<Benchmarker>();
