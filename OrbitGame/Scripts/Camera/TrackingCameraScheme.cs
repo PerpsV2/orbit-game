@@ -10,28 +10,28 @@ namespace OrbitGame;
 /// </summary>
 public class TrackingCameraScheme : ICameraMovementScheme
 {
-    private SD_Vector2 _localPosition;
+    private DVector2<SDecimal> _localPosition;
     private readonly KinematicObject? _tracking;
 
     public TrackingCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;
-        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? SD_Vector2.Zero);
+        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? DVector2<SDecimal>.Zero);
     }
 
     public void Focus()
     {
-        _localPosition = SD_Vector2.Zero;
+        _localPosition = DVector2<SDecimal>.Zero;
     }
 
-    public void MovePerpendicular(ScientificDecimal distance, ref SpatialInfo spatialInfo)
+    public void MovePerpendicular(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += SD_Vector2.FromPolar(-spatialInfo.Angle, distance);
+        _localPosition += DVector2<SDecimal>.FromPolar(-spatialInfo.Angle, distance);
     }
 
-    public void MoveParallel(ScientificDecimal distance, ref SpatialInfo spatialInfo)
+    public void MoveParallel(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += SD_Vector2.FromPolar(-spatialInfo.Angle + Math.PI / 2, distance);
+        _localPosition += DVector2<SDecimal>.FromPolar(-spatialInfo.Angle + Math.PI / 2, distance);
     }
 
     public void RotateBy(double angle, ref SpatialInfo spatialInfo)
@@ -41,6 +41,6 @@ public class TrackingCameraScheme : ICameraMovementScheme
 
     public void Update(ref SpatialInfo spatialInfo)
     {
-        spatialInfo.Position = (_tracking?.Position ?? SD_Vector2.Zero) + _localPosition;
+        spatialInfo.Position = (_tracking?.Position ?? DVector2<SDecimal>.Zero) + _localPosition;
     }
 }

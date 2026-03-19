@@ -9,7 +9,8 @@ namespace OrbitGame;
 
 public static class Constants
 {
-    public static ScientificDecimal G = new(6.6743, -11);
+    public static SDecimal G = new(6.6743, -11);
+    public static PDecimal GPrecise = new(6.6743, -11);
 }
 
 public enum RotationDirection
@@ -43,8 +44,11 @@ public static class Utils
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
     
-    public static ScientificDecimal UnsignedMod(ScientificDecimal a, ScientificDecimal b)
+    public static SDecimal UnsignedMod(SDecimal a, SDecimal b)
         => a - b * (a / b).Floor();
+    
+    public static PDecimal UnsignedMod(PDecimal a, PDecimal b)
+        => a - b * PDecimal.Floor(a / b);
 
     public static double WrapAngle(double angle)
         => UnsignedMod(angle, Math.Tau);
@@ -101,37 +105,37 @@ public static class Utils
         return current;
     }
 
-    public static ScientificDecimal CalculateTriangleArea(SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)
+    public static SDecimal CalculateTriangleArea(DVector2<SDecimal> a, DVector2<SDecimal> b, DVector2<SDecimal> c)
     {
-        return ScientificDecimal.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
+        return SDecimal.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
     }
     
-    public static ScientificDecimal CalculateConvexInertia(SD_Vector2[] points, ScientificDecimal mass)
+    public static SDecimal CalculateConvexInertia(DVector2<SDecimal>[] points, SDecimal mass)
     {
         var triangles = TriangulateConvex(points);
-        ScientificDecimal totalArea = triangles.Aggregate(new ScientificDecimal(0),
+        SDecimal totalArea = triangles.Aggregate(new SDecimal(0),
             (a, t) => a + CalculateTriangleArea(t.a, t.b, t.c));
         
-        ScientificDecimal[] masses = new ScientificDecimal[triangles.Length];
-        SD_Vector2[] centroids = new SD_Vector2[triangles.Length];
-        ScientificDecimal[] inertias = new ScientificDecimal[triangles.Length];
+        SDecimal[] masses = new SDecimal[triangles.Length];
+        DVector2<SDecimal>[] centroids = new DVector2<SDecimal>[triangles.Length];
+        SDecimal[] inertias = new SDecimal[triangles.Length];
         for (int i = 0; i < triangles.Length; ++i)
         {
-            SD_Vector2 a = triangles[i].a;
-            SD_Vector2 b = triangles[i].b;
-            SD_Vector2 c = triangles[i].c;
+            DVector2<SDecimal> a = triangles[i].a;
+            DVector2<SDecimal> b = triangles[i].b;
+            DVector2<SDecimal> c = triangles[i].c;
             
             masses[i] = mass / totalArea * CalculateTriangleArea(a, b, c);
             centroids[i] = (a + b + c) / 3;
-            inertias[i] = masses[i] * (SD_Vector2.Dot(a, a) + SD_Vector2.Dot(b, b) + SD_Vector2.Dot(c, c) +
-                                       SD_Vector2.Dot(c, c) + SD_Vector2.Dot(a, b) + SD_Vector2.Dot(b, c) + 
-                                       SD_Vector2.Dot(c, a))/ 6;
+            inertias[i] = masses[i] * (DVector2<SDecimal>.Dot(a, a) + DVector2<SDecimal>.Dot(b, b) + DVector2<SDecimal>.Dot(c, c) +
+                                       DVector2<SDecimal>.Dot(c, c) + DVector2<SDecimal>.Dot(a, b) + DVector2<SDecimal>.Dot(b, c) + 
+                                       DVector2<SDecimal>.Dot(c, a))/ 6;
         }
 
-        ScientificDecimal totalInertia = 0;
+        SDecimal totalInertia = 0;
         for (int i = 0; i < triangles.Length; ++i)
-            totalInertia += inertias[i] + masses[i] * (ScientificDecimal.Square(centroids[i].X) + 
-                                                       ScientificDecimal.Square(centroids[i].Y));
+            totalInertia += inertias[i] + masses[i] * (SDecimal.Square(centroids[i].X) + 
+                                                       SDecimal.Square(centroids[i].Y));
         
         return totalInertia;
     }
@@ -139,10 +143,10 @@ public static class Utils
     /// <summary>
     /// Decomposes the vertices of a convex polygon into triangles
     /// </summary>
-    public static (SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)[] TriangulateConvex(SD_Vector2[] points)
+    public static (DVector2<SDecimal> a, DVector2<SDecimal> b, DVector2<SDecimal> c)[] TriangulateConvex(DVector2<SDecimal>[] points)
     {
         if (points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
-        var triangulation = new (SD_Vector2 a, SD_Vector2 b, SD_Vector2 c)[points.Length - 2];
+        var triangulation = new (DVector2<SDecimal> a, DVector2<SDecimal> b, DVector2<SDecimal> c)[points.Length - 2];
         for (int i = 1; i < points.Length - 1; ++i)
             triangulation[i - 1] = (points[0], points[i], points[i + 1]);
 
@@ -152,13 +156,13 @@ public static class Utils
     /// <summary>
     /// Returns the center of mass from the vertices of a convex polygon
     /// </summary>
-    public static SD_Vector2 CenterOfMassConvex(SD_Vector2[] points)
+    public static DVector2<SDecimal> CenterOfMassConvex(DVector2<SDecimal>[] points)
     {
         var triangles = TriangulateConvex(points);
-        SD_Vector2 centerOfMass = SD_Vector2.Zero;
+        DVector2<SDecimal> centerOfMass = DVector2<SDecimal>.Zero;
         foreach (var triangle in triangles)
         {
-            SD_Vector2 centroid = (triangle.a + triangle.b + triangle.c) / 3;
+            DVector2<SDecimal> centroid = (triangle.a + triangle.b + triangle.c) / 3;
             centerOfMass += centroid;
         }
 
@@ -170,13 +174,13 @@ public static class Utils
     /// <summary>
     /// Re-centers a convex polygon at its center of mass
     /// </summary>
-    public static SD_Vector2[] CenterConvex(SD_Vector2[] points)
+    public static DVector2<SDecimal>[] CenterConvex(DVector2<SDecimal>[] points)
         => points.Select(v => v - CenterOfMassConvex(points)).ToArray();
 
     /// <summary>
     /// Returns whether a set of three points is ordered clockwise or counter-clockwise
     /// </summary>
-    public static RotationDirection TripletRotationDirection(SD_Vector2[] triplet)
+    public static RotationDirection TripletRotationDirection(DVector2<SDecimal>[] triplet)
     {
         if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
         double edgeSlope1 = (double)((triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X));
@@ -188,7 +192,7 @@ public static class Utils
     /// <summary>
     /// Returns the vertex order of the convex hull for the set of points given as a linked list
     /// </summary>
-    public static LinkedList<int> GetConvexHullIndices(SD_Vector2[] points)
+    public static LinkedList<int> GetConvexHullIndices(DVector2<SDecimal>[] points)
     {
         // get leftmost point to start
         int leftmostIndex = 0;

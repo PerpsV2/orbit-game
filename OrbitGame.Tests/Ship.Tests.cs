@@ -12,22 +12,22 @@ public class Ship_Tests
     private readonly Planet.PlanetTemplate _testPlanetTemplate = new(new Material(0, 0, 0));
     private readonly Planet _planet;
     private readonly Ship.ShipTemplate _testShipTemplate = new([
-        new SD_Vector2(2, 2),
-        new SD_Vector2(2, -2),
-        new SD_Vector2(-2, -2),
-        new SD_Vector2(-2, 2)
+        new DVector2<>(2, 2),
+        new DVector2<>(2, -2),
+        new DVector2<>(-2, -2),
+        new DVector2<>(-2, 2)
     ], new Material(0, 0, 0));
     private readonly Ship _ship;
 
-    private readonly (SD_Vector2 thrust, SD_Vector2 displacement) _centerThrust = (new(1000, 0), SD_Vector2.Zero);
-    private readonly (SD_Vector2 thrust, SD_Vector2 displacement) _displacedThrust = (new(1000, 0), new(0, 5));
+    private readonly (DVector2<> thrust, DVector2<> displacement) _centerThrust = (new(1000, 0), DVector2<>.Zero);
+    private readonly (DVector2<> thrust, DVector2<> displacement) _displacedThrust = (new(1000, 0), new(0, 5));
     private readonly SpatialInfo _newPlanetSpatialInfo = new(new(500, 0), Math.PI);
 
     public Ship_Tests(ITestOutputHelper output)
     {
         _output = output;
-        _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(SD_Vector2.Zero, Math.PI / 2), 0, 0, Color.White, null);
-        _ship = _testShipTemplate.CreateInstance("Test Ship", new(new SD_Vector2(100, 0)), 100, Color.White, _planet);
+        _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(DVector2<>.Zero, Math.PI / 2), 0, 0, Color.White, null);
+        _ship = _testShipTemplate.CreateInstance("Test Ship", new(new DVector2<>(100, 0)), 100, Color.White, _planet);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class Ship_Tests
         _planet.SpatialInfo = _newPlanetSpatialInfo;
         _ship.SetLandingState(_planet);
         _ship.UpdatePosition_Landed();
-        Assert.Equal(new SD_Vector2(400, 0), _ship.Position);
+        Assert.Equal(new DVector2<>(400, 0), _ship.Position);
         Assert.Equal(-Math.PI / 2, _ship.Angle);
     }
 
@@ -67,7 +67,7 @@ public class Ship_Tests
         _ship.SetLandingState(_planet);
         Assert.NotNull(_ship.LandingState);
         if (_ship.LandingState == null) throw new NullReferenceException();
-        Assert.Equal(new SD_Vector2(0, -100), _ship.LandingState.Value.RelativePosition);
+        Assert.Equal(new DVector2<>(0, -100), _ship.LandingState.Value.RelativePosition);
         Assert.Equal(-Math.PI / 2, _ship.LandingState.Value.RelativeAngle);
     }
 
@@ -75,13 +75,13 @@ public class Ship_Tests
     public void Ship_ApplyThrustMethod()
     {
         _ship.ApplyThrust(_centerThrust.thrust, _centerThrust.displacement);
-        Assert.Equal(new SD_Vector2(10, 0), _ship.CalculateNetAcceleration());
+        Assert.Equal(new DVector2<>(10, 0), _ship.CalculateNetAcceleration());
         
         _ship.ApplyThrust(_centerThrust.thrust, _centerThrust.displacement);
-        Assert.Equal(new SD_Vector2(20, 0), _ship.CalculateNetAcceleration());
+        Assert.Equal(new DVector2<>(20, 0), _ship.CalculateNetAcceleration());
         
         _ship.ApplyThrust(_displacedThrust.thrust, _displacedThrust.displacement);
-        Assert.Equal(new SD_Vector2(30, 0), _ship.CalculateNetAcceleration());
+        Assert.Equal(new DVector2<>(30, 0), _ship.CalculateNetAcceleration());
         Assert.Equal(50, _ship.AngularAcceleration);
     }
 

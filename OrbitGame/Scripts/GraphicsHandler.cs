@@ -9,7 +9,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
 {
     public void DrawPoly(List<Vector2> points, Color colour)
     {
-        if (points.Count == 0) return;
+        if (points.Count < 3) return;
         
         var vertices = new VertexPositionColor[points.Count];
         for (int i = 0; i < vertices.Length; i++)
@@ -37,7 +37,9 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
 
     public void DrawLine(Vector2 start, Vector2 end, Color colour)
     {
-        VertexPositionColor[] vertices = [new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)];
+        VertexPositionColor[] vertices = [
+            new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)
+        ];
         int[] indices = [0, 1];
         
         Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
@@ -57,14 +59,14 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         DrawLine(start, start + displacement, colour);
     }
 
-    public void SD_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
+    public void SD_DrawLine(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> end, Color colour)
     {
         Vector2 screenStart = camera.ConvertToScreenCoordinates(start);
         Vector2 screenEnd = camera.ConvertToScreenCoordinates(end);
         DrawLine(screenStart, screenEnd, colour);
     }
 
-    public void SD_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
+    public void SD_DrawLineR(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> displacement, Color colour)
     {
         SD_DrawLine(camera, start, start + displacement, colour);
     }
@@ -90,7 +92,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         }
     }
 
-    public void SD_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+    public void SD_DrawPoint(Camera camera, DVector2<SDecimal> position, Color colour)
     {
         DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }

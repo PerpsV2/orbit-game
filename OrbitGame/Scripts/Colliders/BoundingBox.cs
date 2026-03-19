@@ -8,12 +8,12 @@ namespace OrbitGame;
 /// <param name="Top">Positive distance from the center to the top edge of the BoundingBox</param>
 /// <param name="Bottom">Positive distance from the center to the bottom edge of the BoundingBox</param>
 public readonly record struct BoundingBox(
-    ScientificDecimal Left,
-    ScientificDecimal Right,
-    ScientificDecimal Top,
-    ScientificDecimal Bottom)
+    SDecimal Left,
+    SDecimal Right,
+    SDecimal Top,
+    SDecimal Bottom)
 {
-    public BoundingBox(SD_Vector2 center, ScientificDecimal width, ScientificDecimal height) : 
+    public BoundingBox(DVector2<SDecimal> center, SDecimal width, SDecimal height) : 
         this(center.X - width / 2, center.X + width / 2, center.Y + height / 2, center.Y - height / 2)
     { }
 

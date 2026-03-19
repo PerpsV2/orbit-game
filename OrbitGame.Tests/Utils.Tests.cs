@@ -7,12 +7,12 @@ namespace OrbitGame.Tests;
 
 public class Utils_Tests
 {
-    private readonly SD_Vector2[] _testEmptyHull = [];
-    private readonly SD_Vector2[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
-    private readonly SD_Vector2[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
-    private readonly SD_Vector2[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
-    private readonly SD_Vector2[] _testNoRotationConvexHull = [new(-1, -1), new(-1, -1), new(1, 1)];
-    private readonly SD_Vector2[] _testNonConvexHull =
+    private readonly DVector2<>[] _testEmptyHull = [];
+    private readonly DVector2<>[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
+    private readonly DVector2<>[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
+    private readonly DVector2<>[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
+    private readonly DVector2<>[] _testNoRotationConvexHull = [new(-1, -1), new(-1, -1), new(1, 1)];
+    private readonly DVector2<>[] _testNonConvexHull =
     [
         new(2, 2),
         new(-4, -2),
@@ -27,15 +27,15 @@ public class Utils_Tests
     {
         int clampedInt = Utils.Clamp(-10, -20, 30);
         double clampedDouble = Utils.Clamp(-30, 20, 30);
-        ScientificDecimal clampedScientificDecimal = Utils.Clamp(
-            ScientificDecimal.NegInfinity, 
-            ScientificDecimal.NegInfinity, 
+        PDecimal clampedPDecimal = Utils.Clamp(
+            PDecimal.NegInfinity, 
+            PDecimal.NegInfinity, 
             30
             );
         
         Assert.Equal(-10, clampedInt);
         Assert.Equal(20, clampedDouble);
-        Assert.Equal(ScientificDecimal.NegInfinity, clampedScientificDecimal);
+        Assert.Equal(PDecimal.NegInfinity, clampedPDecimal);
     }
 
     [Fact]
@@ -130,25 +130,25 @@ public class Utils_Tests
     {
         Assert.Throws<ArgumentException>(() => Utils.TriangulateConvex(_testEmptyHull));
         Assert.Equal(new[] {
-            (new SD_Vector2(4, 4), new SD_Vector2(4, 0), new SD_Vector2(0, 0)), 
-            (new SD_Vector2(4, 4), new SD_Vector2(0, 0), new SD_Vector2(0, 4))
+            (new DVector2<>(4, 4), new DVector2<>(4, 0), new DVector2<>(0, 0)), 
+            (new DVector2<>(4, 4), new DVector2<>(0, 0), new DVector2<>(0, 4))
         }, Utils.TriangulateConvex(_testConvexHull));
     }
 
     [Fact]
     public void Utils_CenterOfMassConvexMethod()
     {
-        Assert.Equal(new SD_Vector2(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
+        Assert.Equal(new DVector2<>(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
     }
 
     [Fact]
     public void Utils_CenterConvexMethod()
     {
         Assert.Equal([
-                new SD_Vector2(2, 2),
-                new SD_Vector2(2, -2),
-                new SD_Vector2(-2, -2),
-                new SD_Vector2(-2, 2)
+                new DVector2<>(2, 2),
+                new DVector2<>(2, -2),
+                new DVector2<>(-2, -2),
+                new DVector2<>(-2, 2)
             ],
             Utils.CenterConvex(_testConvexHull)
         );

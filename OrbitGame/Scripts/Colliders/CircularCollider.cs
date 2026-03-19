@@ -7,18 +7,18 @@ namespace OrbitGame;
 /// </summary>
 public class CircularCollider : CompactCollider
 {
-    public readonly ScientificDecimal Radius;
+    public readonly SDecimal Radius;
     private readonly BoundingBox _defaultBoundingBox;
 
-    public CircularCollider(ScientificDecimal radius)
+    public CircularCollider(SDecimal radius)
     {
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
         // TODO: fix bounding box inaccuracies
-        _defaultBoundingBox = new(SD_Vector2.Zero, Radius * 2.1, Radius * 2.1);
+        _defaultBoundingBox = new(DVector2<SDecimal>.Zero, Radius * 2.1, Radius * 2.1);
     }
     
-    public override ScientificDecimal CalculateInertia(ScientificDecimal mass)
+    public override SDecimal CalculateInertia(SDecimal mass)
     {
         return Inertia = mass * Radius * Radius / 2;
     }
@@ -26,7 +26,7 @@ public class CircularCollider : CompactCollider
     protected override BoundingBox GetBoundingBox(double angle) =>
         _defaultBoundingBox;
 
-    public override PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo spatial) =>
+    public override PointCollision IntersectsWith(DVector2<SDecimal> point, SpatialInfo spatial) =>
         new((point - spatial.Position).Magnitude() <= Radius && !IsEmpty());
 
     protected override PhysicsCollision? IntersectsWith(
@@ -35,14 +35,14 @@ public class CircularCollider : CompactCollider
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
-        SD_Vector2 diffVector = incidentSpatial.Position - referenceSpatial.Position;
-        ScientificDecimal distance = diffVector.Magnitude();
+        DVector2<SDecimal> diffVector = incidentSpatial.Position - referenceSpatial.Position;
+        SDecimal distance = diffVector.Magnitude();
         if (distance == 0) return PhysicsCollision.CreateUnresolvable(referenceSpatial, incidentSpatial);
         if (distance <= Radius + collider.Radius)
         {
-            SD_Vector2 dirVector = diffVector.Normalize();
-            SD_Vector2 collisionPoint = dirVector * Radius;
-            SD_Vector2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            DVector2<SDecimal> dirVector = diffVector.Normalize();
+            DVector2<SDecimal> collisionPoint = dirVector * Radius;
+            DVector2<SDecimal> penetrationVector = -dirVector * (Radius + collider.Radius - distance);
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], penetrationVector);
         }
 

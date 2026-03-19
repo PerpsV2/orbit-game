@@ -14,17 +14,17 @@ public abstract class KinematicObject
     public SpatialInfo SpatialInfo;
 
     // Access properties of SpatialInfo
-    public SD_Vector2 Position
+    public DVector2<SDecimal> Position
     {
         get => SpatialInfo.Position;
         set => SpatialInfo.Position = value;
     }
-    public SD_Vector2 Velocity
+    public DVector2<SDecimal> Velocity
     {
         get => SpatialInfo.Velocity;
         set => SpatialInfo.Velocity = value;
     }
-    public SD_Vector2 Acceleration
+    public DVector2<SDecimal> Acceleration
     {
         get => SpatialInfo.Acceleration;
         set => SpatialInfo.Acceleration = value;
@@ -46,8 +46,8 @@ public abstract class KinematicObject
         set => SpatialInfo.AngularAcceleration = value;
     }
 
-    public SD_Vector2 ForwardVector => SD_Vector2.FromPolar(SpatialInfo.Angle);
-    public SD_Vector2 RightVector => SD_Vector2.FromPolar(SpatialInfo.Angle - Math.PI / 2);
+    public DVector2<SDecimal> ForwardVector => DVector2<SDecimal>.FromPolar(SpatialInfo.Angle);
+    public DVector2<SDecimal> RightVector => DVector2<SDecimal>.FromPolar(SpatialInfo.Angle - Math.PI / 2);
     
     protected KinematicObject(string identifier, SpatialInfo spatialInfo)
     {
@@ -67,17 +67,17 @@ public abstract class KinematicObject
     /// <summary>
     /// Convert a SD_Vector2 from object space to world space.
     /// </summary>
-    public SD_Vector2 ObjectToWorldSpace(SD_Vector2 point)
+    public DVector2<SDecimal> ObjectToWorldSpace(DVector2<SDecimal> point)
     {
-        return Matrix3X3.Translation(SpatialInfo.Position) * Matrix3X3.Rotation(SpatialInfo.Angle) * point;
+        return Matrix3X3<SDecimal>.Translation(SpatialInfo.Position) * Matrix3X3<SDecimal>.Rotation(SpatialInfo.Angle) * point;
     }
 
     /// <summary>
     /// Convert a SD_Vector2 from world space to object space.
     /// </summary>
-    public SD_Vector2 WorldToObjectSpace(SD_Vector2 point)
+    public DVector2<SDecimal> WorldToObjectSpace(DVector2<SDecimal> point)
     {
-        return Matrix3X3.Rotation(-SpatialInfo.Angle) * Matrix3X3.Translation(-SpatialInfo.Position) * point;
+        return Matrix3X3<SDecimal>.Rotation(-SpatialInfo.Angle) * Matrix3X3<SDecimal>.Translation(-SpatialInfo.Position) * point;
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public abstract class KinematicObject
     /// </summary>
     /// <param name="point">Point to convert</param>
     /// <param name="newOriginObject">Kinematic object space to convert into</param>
-    public SD_Vector2 ObjectToObjectSpace(SD_Vector2 point, KinematicObject newOriginObject)
+    public DVector2<SDecimal> ObjectToObjectSpace(DVector2<SDecimal> point, KinematicObject newOriginObject)
     {
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }

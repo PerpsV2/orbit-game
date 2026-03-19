@@ -9,7 +9,7 @@ namespace OrbitGame;
 /// </summary>
 public class Planet : Body, IGameDrawable
 {
-    public readonly ScientificDecimal Radius;
+    public readonly SDecimal Radius;
     private readonly OrbitMesh _orbitMesh;
 
     private Planet(
@@ -17,8 +17,8 @@ public class Planet : Body, IGameDrawable
         SpatialInfo spatialInfo,
         ObjectInfo objectInfo,
         OrbitMesh orbitMesh,
-        ScientificDecimal mass,
-        ScientificDecimal radius,
+        SDecimal mass,
+        SDecimal radius,
         Color colour,
         Body? parent)
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
@@ -42,59 +42,59 @@ public class Planet : Body, IGameDrawable
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
-            SD_Vector2 screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
+            DVector2<SDecimal> screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
 
             float h = Options.ScreenSize.height;
             float w = Options.ScreenSize.width;
-            ScientificDecimal p1 = screenPosition.Y;
-            ScientificDecimal p2 = screenPosition.X;
-            ScientificDecimal r = camera.SD_ConvertToScreenDistance(Radius);
+            SDecimal p1 = screenPosition.Y;
+            SDecimal p2 = screenPosition.X;
+            SDecimal r = camera.SD_ConvertToScreenDistance(Radius);
 
-            ScientificDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
-            ScientificDecimal bottomDiscriminant = r * r - p1 * p1;
-            ScientificDecimal rightDiscriminant = 2 * w * p2 - p2 * p2 - w * w + r * r;
-            ScientificDecimal leftDiscriminant = r * r - p2 * p2;
-            ScientificDecimal radical;
+            SDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
+            SDecimal bottomDiscriminant = r * r - p1 * p1;
+            SDecimal rightDiscriminant = 2 * w * p2 - p2 * p2 - w * w + r * r;
+            SDecimal leftDiscriminant = r * r - p2 * p2;
+            SDecimal radical;
 
-            List<SD_Vector2> intersectionPoints = new();
+            List<DVector2<SDecimal>> intersectionPoints = new();
 
             if (topDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(topDiscriminant);
+                radical = SDecimal.Sqrt(topDiscriminant);
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), h));
-                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), h));
+                    intersectionPoints.Add(new DVector2<SDecimal>(SDecimal.Clamp(p2 - radical, 0, w), h));
+                    intersectionPoints.Add(new DVector2<SDecimal>(SDecimal.Clamp(p2 + radical, 0, w), h));
                 }
             }
 
             if (rightDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(rightDiscriminant);
+                radical = SDecimal.Sqrt(rightDiscriminant);
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new SD_Vector2(w, ScientificDecimal.Clamp(p1 + radical, 0, h)));
-                    intersectionPoints.Add(new SD_Vector2(w, ScientificDecimal.Clamp(p1 - radical, 0, h)));
+                    intersectionPoints.Add(new DVector2<SDecimal>(w, SDecimal.Clamp(p1 + radical, 0, h)));
+                    intersectionPoints.Add(new DVector2<SDecimal>(w, SDecimal.Clamp(p1 - radical, 0, h)));
                 }
             }
 
             if (bottomDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(bottomDiscriminant);
+                radical = SDecimal.Sqrt(bottomDiscriminant);
                 if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
                 {
-                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 + radical, 0, w), 0));
-                    intersectionPoints.Add(new SD_Vector2(ScientificDecimal.Clamp(p2 - radical, 0, w), 0));
+                    intersectionPoints.Add(new DVector2<SDecimal>(SDecimal.Clamp(p2 + radical, 0, w), 0));
+                    intersectionPoints.Add(new DVector2<SDecimal>(SDecimal.Clamp(p2 - radical, 0, w), 0));
                 }
             }
 
             if (leftDiscriminant >= 0)
             {
-                radical = ScientificDecimal.Sqrt(leftDiscriminant);
+                radical = SDecimal.Sqrt(leftDiscriminant);
                 if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
                 {
-                    intersectionPoints.Add(new SD_Vector2(0, ScientificDecimal.Clamp(p1 - radical, 0, h)));
-                    intersectionPoints.Add(new SD_Vector2(0, ScientificDecimal.Clamp(p1 + radical, 0, h)));
+                    intersectionPoints.Add(new DVector2<SDecimal>(0, SDecimal.Clamp(p1 - radical, 0, h)));
+                    intersectionPoints.Add(new DVector2<SDecimal>(0, SDecimal.Clamp(p1 + radical, 0, h)));
                 }
             }
 
@@ -146,7 +146,7 @@ public class Planet : Body, IGameDrawable
         
         if (KeplerOrbitPath.Orbit == null) return;
         KeplerOrbit orbit = (KeplerOrbit)KeplerOrbitPath.Orbit;
-        ScientificDecimal sphereOfInfluenceRadius = orbit.SphereOfInfluenceRadius;
+        SDecimal sphereOfInfluenceRadius = orbit.SphereOfInfluenceRadius;
 
         // paint for spheres of influence
         Color soiColour = new Color(Colour.R, Colour.G, Colour.B) * Options.SOIAlpha;
@@ -170,8 +170,8 @@ public class Planet : Body, IGameDrawable
         public Planet CreateInstance(
             string identifier,
             SpatialInfo spatialInfo,
-            ScientificDecimal mass,
-            ScientificDecimal radius,
+            SDecimal mass,
+            SDecimal radius,
             Color colour,
             Body? parent)
         {

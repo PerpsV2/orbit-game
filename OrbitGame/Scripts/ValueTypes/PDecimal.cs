@@ -1,13 +1,16 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
-namespace OrbitGame.Profiling;
+namespace OrbitGame;
 
-public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
+public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 {
     private BigInteger _mantissa;
-    private BigInteger Mantissa
+    public BigInteger Mantissa
     {
         get
         {
@@ -22,7 +25,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
     }
 
     private int _exponent;
-    private int Exponent
+    public int Exponent
     {
         get
         {
@@ -36,18 +39,20 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         }
     }
     private readonly bool _infinite;
-    private readonly bool Positive => BigInteger.IsPositive(_mantissa);
-    private readonly bool Negative => BigInteger.IsNegative(_mantissa);
+    public readonly bool Positive => BigInteger.IsPositive(_mantissa);
+    public readonly bool Negative => BigInteger.IsNegative(_mantissa);
 
     public static int Radix { get; } = 10;
 
-    public static BigIntScientificDecimal One { get; } = new(1, 0, false);
-    public static BigIntScientificDecimal Zero { get; } = new(0, 0, false);
-    public static BigIntScientificDecimal AdditiveIdentity { get; } = new(0, 0, false);
-    public static BigIntScientificDecimal MultiplicativeIdentity { get; } = new(1, 0, false);
-    private static int MinExponent { get; } = -100;
+    public static PDecimal One { get; } = new(1, 0, false);
+    public static PDecimal Zero { get; } = new(0, 0, false);
+    public static PDecimal AdditiveIdentity { get; } = new(0, 0, false);
+    public static PDecimal MultiplicativeIdentity { get; } = new(1, 0, false);
+    public static PDecimal PosInfinity { get; } = new(1, 0, true);
+    public static PDecimal NegInfinity { get; } = new(-1, 0, true);
+    private static int MinExponent { get; } = -50;
 
-    private BigIntScientificDecimal(BigInteger mantissa, int exponent, bool infinite)
+    private PDecimal(BigInteger mantissa, int exponent, bool infinite)
     {
         _infinite = infinite;
         if (infinite)
@@ -61,12 +66,12 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         Normalize();
     }
 
-    public BigIntScientificDecimal(double mantissa, int exponent)
+    public PDecimal(double mantissa, int exponent)
     {
-        this = FromFloatingPoint(mantissa, exponent);
+        this = FromDouble(mantissa, exponent);
     }
-
-    public BigIntScientificDecimal(int exponent)
+    
+    public PDecimal(int exponent)
     {
         _infinite = false;
         _mantissa = 1;
@@ -74,11 +79,11 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         Normalize();
     }
     
-    private static BigIntScientificDecimal FromFloatingPoint(float value, int exponent)
+    public static PDecimal FromDouble(float value, int exponent)
     {
         if (value == 0) return Zero;
-        if (float.IsPositiveInfinity(value)) return new BigIntScientificDecimal(1, 0, true);
-        if (float.IsNegativeInfinity(value)) return new BigIntScientificDecimal(-1, 0, true);
+        if (float.IsPositiveInfinity(value)) return new PDecimal(1, 0, true);
+        if (float.IsNegativeInfinity(value)) return new PDecimal(-1, 0, true);
         if (float.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN float to scientific decimal");
             
         while (Math.Abs(value) < 1e+7)
@@ -87,14 +92,14 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
             exponent--;
         }
         
-        return new BigIntScientificDecimal((long)value, exponent, false);
+        return new PDecimal((long)value, exponent, false);
     }
     
-    private static BigIntScientificDecimal FromFloatingPoint(double value, int exponent)
+    public static PDecimal FromDouble(double value, int exponent)
     {
         if (value == 0) return Zero;
-        if (double.IsPositiveInfinity(value)) return new BigIntScientificDecimal(1, 0, true);
-        if (double.IsNegativeInfinity(value)) return new BigIntScientificDecimal(-1, 0, true);
+        if (double.IsPositiveInfinity(value)) return new PDecimal(1, 0, true);
+        if (double.IsNegativeInfinity(value)) return new PDecimal(-1, 0, true);
         if (double.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN double to scientific decimal");
         
         while (Math.Abs(value) < 1e+16)
@@ -103,7 +108,13 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
             exponent--;
         }
 
-        return new BigIntScientificDecimal((long)value, exponent, false);
+        return new PDecimal((long)value, exponent, false);
+    }
+
+    public static double ToDouble(PDecimal value)
+    {
+        double result = (double)value.Mantissa;
+        return result * Math.Pow(10, value.Exponent);
     }
     
     private void Normalize()
@@ -145,16 +156,14 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         Exponent = exponent;
     }
     
-    private static BigIntScientificDecimal Negate(BigIntScientificDecimal value)
+    private static PDecimal Negate(PDecimal value)
     {
-        value.Mantissa *= -1;
+        value._mantissa *= -1;
         return value;
     }
 
-    private static BigIntScientificDecimal Add(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    private static PDecimal Add(PDecimal left, PDecimal right)
     {
-        if (left == 0) return right;
-        if (right == 0) return left;
         if (left._infinite && right._infinite)
         {
             if (left.Positive == right.Positive) return left;
@@ -162,13 +171,15 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         }
         if (left._infinite) return left;
         if (right._infinite) return right;
+        if (left == 0) return right;
+        if (right == 0) return left;
         
         if (left.Exponent > right.Exponent) left.DecreaseExponent(right.Exponent);
         if (right.Exponent > left.Exponent) right.DecreaseExponent(left.Exponent);
         return new(left.Mantissa + right.Mantissa, left.Exponent, false);
     }
 
-    private static BigIntScientificDecimal Multiply(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    private static PDecimal Multiply(PDecimal left, PDecimal right)
     {
         if (left == 0 || right == 0) return 0;
         if (left._infinite || right._infinite)
@@ -178,8 +189,9 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         }
         return new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent, false);
     }
-    
-    private static BigIntScientificDecimal Divide(BigIntScientificDecimal dividend, BigIntScientificDecimal divisor)
+
+    private const int DivisionDecimals = 15;
+    private static PDecimal Divide(PDecimal dividend, PDecimal divisor)
     {
         if (divisor._mantissa == 0 && dividend._mantissa == 0) throw new ArithmeticException("Cannot divide zero by zero");
         if (divisor._mantissa == 0) return new(dividend.Positive ? 1 : -1, 0, true);
@@ -189,13 +201,13 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         if (dividend._infinite) return dividend * divisor;
         if (divisor._infinite) return 0;
         
-        int precisionPlaces = (int)Math.Ceiling(BigInteger.Log10(BigInteger.Abs(dividend.Mantissa)));
+        int precisionPlaces = (int)Math.Ceiling(BigInteger.Log10(BigInteger.Abs(dividend.Mantissa))) + DivisionDecimals;
         BigInteger resultMantissa = dividend._mantissa * BigInteger.Pow(10, precisionPlaces) / divisor._mantissa;
         int resultExponent = dividend._exponent - divisor._exponent - precisionPlaces;
         return new(resultMantissa, resultExponent, false);
     }
 
-    private static BigIntScientificDecimal Modulo(BigIntScientificDecimal value, BigIntScientificDecimal mod)
+    private static PDecimal Modulo(PDecimal value, PDecimal mod)
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
         if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite scientific decimal");
@@ -203,7 +215,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         return value - mod * Floor(value / mod);
     }
 
-    public static BigIntScientificDecimal Floor(BigIntScientificDecimal value)
+    public static PDecimal Floor(PDecimal value)
     {
         if (value._infinite || IsInteger(value)) return value;
         if (value.Negative) return -Ceiling(-value);
@@ -211,20 +223,20 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         return value;
     }
 
-    public static BigIntScientificDecimal Ceiling(BigIntScientificDecimal value)
+    public static PDecimal Ceiling(PDecimal value)
     {
         if (value._infinite || IsInteger(value)) return value;
         if (value.Negative) return -Floor(-value);
         return Floor(value) + 1;
     }
 
-    public static BigIntScientificDecimal Round(BigIntScientificDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
+    public static PDecimal Round(PDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
         if (value._infinite || IsInteger(value)) return value;
-        BigIntScientificDecimal floor = Floor(value);
-        BigIntScientificDecimal ceiling = Ceiling(value);
-        BigIntScientificDecimal floorDist = Abs(floor - value);
-        BigIntScientificDecimal ceilDist = Abs(ceiling - value);
+        PDecimal floor = Floor(value);
+        PDecimal ceiling = Ceiling(value);
+        PDecimal floorDist = Abs(floor - value);
+        PDecimal ceilDist = Abs(ceiling - value);
         if (floorDist < ceilDist) return floor;
         if (ceilDist < floorDist) return ceiling;
         switch (mode)
@@ -238,23 +250,23 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         }
     }
     
-    public static BigIntScientificDecimal Abs(BigIntScientificDecimal value)
-        => new(BigInteger.Abs(value.Mantissa), value.Exponent, value._infinite);
+    public static PDecimal Abs(PDecimal value)
+        => new(BigInteger.Abs(value._mantissa), value._exponent, value._infinite);
     
-    public static BigIntScientificDecimal Square(BigIntScientificDecimal value)
+    public static PDecimal Square(PDecimal value)
         => value * value;
 
-    public static BigIntScientificDecimal IntPow(BigIntScientificDecimal value, uint amount)
+    public static PDecimal IntPow(PDecimal value, uint amount)
     {
-        BigIntScientificDecimal result = One;
+        PDecimal result = One;
         for (uint i = 0; i < amount; ++i)
             result *= value;
         return result;
     }
 
-    private const int SqrtDecimals = 10;
+    private const int SqrtDecimals = 20;
     
-    public static BigIntScientificDecimal Sqrt(BigIntScientificDecimal value)
+    public static PDecimal Sqrt(PDecimal value)
     {
         if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
         if (value._infinite) return value;
@@ -271,81 +283,98 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
             bestGuess = (lastGuess + value._mantissa / lastGuess) >> 1;
         } while (BigInteger.Abs(bestGuess - lastGuess) > 1);
 
-        return new BigIntScientificDecimal(bestGuess, value._exponent / 2, false);
+        return new PDecimal(bestGuess, value._exponent / 2, false);
     }
-    
-    public static BigIntScientificDecimal Min(BigIntScientificDecimal value, params BigIntScientificDecimal[] values)
+
+    public static double Atan2(PDecimal y, PDecimal x)
     {
-        BigIntScientificDecimal result = value;
+        return Math.Atan2((double)y, (double)x);
+    }
+
+    public static PDecimal Min(PDecimal value, params PDecimal[] values)
+    {
+        PDecimal result = value;
         foreach (var n in values)
             if (n < result) result = n;
         return result;
     }
     
-    public static BigIntScientificDecimal Max(BigIntScientificDecimal value, params BigIntScientificDecimal[] values)
+    public static PDecimal Max(PDecimal value, params PDecimal[] values)
     {
-        BigIntScientificDecimal result = value;
+        PDecimal result = value;
         foreach (var n in values)
             if (n > result) result = n;
         return result;
     }
 
     [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
-    public static BigIntScientificDecimal MinMagnitude(BigIntScientificDecimal x, BigIntScientificDecimal y)
+    public static PDecimal MinMagnitude(PDecimal x, PDecimal y)
         => Max(x, y);
     
-    public static BigIntScientificDecimal MinMagnitudeNumber(BigIntScientificDecimal x, BigIntScientificDecimal y)
+    public static PDecimal MinMagnitudeNumber(PDecimal x, PDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Min(x, y);
 
-    public static BigIntScientificDecimal MaxMagnitude(BigIntScientificDecimal x, BigIntScientificDecimal y)
+    public static PDecimal MaxMagnitude(PDecimal x, PDecimal y)
         => Max(x, y);
     
-    public static BigIntScientificDecimal MaxMagnitudeNumber(BigIntScientificDecimal x, BigIntScientificDecimal y)
+    public static PDecimal MaxMagnitudeNumber(PDecimal x, PDecimal y)
         => IsNaN(x) ? IsNaN(y) ? throw new ArithmeticException() : y : IsNaN(y) ? x : Max(x, y);
     
-    public static BigIntScientificDecimal Clamp(
-        BigIntScientificDecimal value, 
-        BigIntScientificDecimal min, 
-        BigIntScientificDecimal max)
+    public static PDecimal Clamp(
+        PDecimal value, 
+        PDecimal min, 
+        PDecimal max)
     {
         if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
     }
     
-    public static BigIntScientificDecimal operator +(BigIntScientificDecimal value)
+    public static TOther Map<TOther>(PDecimal value) where TOther : new()
+    {
+        TOther other = new TOther();
+        if (other is SDecimal)
+        {
+            SDecimal sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
+            if (sDecimal is TOther result) return result;
+        }
+        
+        throw new NotImplementedException();
+    }
+    
+    public static PDecimal operator +(PDecimal value)
         => value;
     
-    public static BigIntScientificDecimal operator -(BigIntScientificDecimal value)
+    public static PDecimal operator -(PDecimal value)
         => Negate(value);
     
-    public static BigIntScientificDecimal operator +(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static PDecimal operator +(PDecimal left, PDecimal right)
         => Add(left, right);
     
-    public static BigIntScientificDecimal operator -(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static PDecimal operator -(PDecimal left, PDecimal right)
         => Add(left, -right);
 
-    public static BigIntScientificDecimal operator ++(BigIntScientificDecimal value)
+    public static PDecimal operator ++(PDecimal value)
         => Add(value, One);
     
-    public static BigIntScientificDecimal operator --(BigIntScientificDecimal value)
+    public static PDecimal operator --(PDecimal value)
         => Add(value, -One);
     
-    public static BigIntScientificDecimal operator *(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static PDecimal operator *(PDecimal left, PDecimal right)
         => Multiply(left, right);
     
-    public static BigIntScientificDecimal operator /(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static PDecimal operator /(PDecimal left, PDecimal right)
         => Divide(left, right);
 
-    public static BigIntScientificDecimal operator %(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static PDecimal operator %(PDecimal left, PDecimal right)
         => Modulo(left, right);
 
-    public static bool operator ==(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator ==(PDecimal left, PDecimal right)
         => Equals(left, right);
 
-    public static bool operator !=(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator !=(PDecimal left, PDecimal right)
         => !Equals(left, right);
 
-    public static bool operator >(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator >(PDecimal left, PDecimal right)
     {
         if (left == right) return false;
         if (left._infinite) return left.Positive;
@@ -353,7 +382,7 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         return (left - right).Positive;
     }
 
-    public static bool operator <(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator <(PDecimal left, PDecimal right)
     {
         if (left == right) return false;
         if (left._infinite) return left.Negative;
@@ -361,115 +390,112 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         return (right - left).Positive;
     }
 
-    public static bool operator >=(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator >=(PDecimal left, PDecimal right)
         => left > right || left == right;
 
-    public static bool operator <=(BigIntScientificDecimal left, BigIntScientificDecimal right)
+    public static bool operator <=(PDecimal left, PDecimal right)
         => left < right || left == right;
     
-    public static implicit operator BigIntScientificDecimal(int value)
+    public static implicit operator PDecimal(int value)
         => new(value, 0);
     
-    public static implicit operator BigIntScientificDecimal(uint value)
+    public static implicit operator PDecimal(uint value)
         => new(value, 0);
     
-    public static implicit operator BigIntScientificDecimal(long value)
+    public static implicit operator PDecimal(long value)
         => new(value, 0);
 
-    public static implicit operator BigIntScientificDecimal(float value)
-        => FromFloatingPoint(value, 0);
+    public static implicit operator PDecimal(float value)
+        => FromDouble(value, 0);
 
-    public static implicit operator BigIntScientificDecimal(double value)
-        => FromFloatingPoint(value, 0);
+    public static implicit operator PDecimal(double value)
+        => FromDouble(value, 0);
 
-    public static explicit operator int(BigIntScientificDecimal value)
+    public static explicit operator int(PDecimal value)
     {
-        BigIntScientificDecimal result = Floor(value);
+        PDecimal result = value.Positive ? Floor(value) : Ceiling(value);
         result.DecreaseExponent(0);
         return (int)result.Mantissa;
     }
     
-    public static explicit operator uint(BigIntScientificDecimal value)
+    public static explicit operator uint(PDecimal value)
     {
-        BigIntScientificDecimal result = Floor(value);
+        PDecimal result = Floor(value);
         result.DecreaseExponent(0);
         return (uint)result.Mantissa;
     }
     
-    public static explicit operator long(BigIntScientificDecimal value)
+    public static explicit operator long(PDecimal value)
     {
-        BigIntScientificDecimal result = Floor(value);
+        PDecimal result = Floor(value);
         result.DecreaseExponent(0);
         return (long)result.Mantissa;
     }
-    
-    public static explicit operator float(BigIntScientificDecimal value)
-    {
-        double result = (double)value.Mantissa;
-        return (float)(result * Math.Pow(10, value.Exponent));
-    }
-    
-    public static explicit operator double(BigIntScientificDecimal value)
-    {
-        double result = (double)value.Mantissa;
-        return result * Math.Pow(10, value.Exponent);
-    }
 
-    public static bool IsZero(BigIntScientificDecimal value)
+    public static explicit operator float(PDecimal value)
+        => (float)ToDouble(value);
+    
+    public static explicit operator double(PDecimal value)
+        => ToDouble(value);
+
+    public static explicit operator SDecimal(PDecimal value)
+        => Map<SDecimal>(value);
+    
+    public static bool IsZero(PDecimal value)
         => !value._infinite && value._mantissa == 0;
     
     [Obsolete("IsPositive method is obsolete. Use Positive property instead.")]
-    public static bool IsPositive(BigIntScientificDecimal value)
+    public static bool IsPositive(PDecimal value)
         => value.Positive;
     
     [Obsolete("IsNegative method is obsolete. Use Negative property instead.")]
-    public static bool IsNegative(BigIntScientificDecimal value)
+    public static bool IsNegative(PDecimal value)
         => value.Negative;
 
-    public static bool IsInteger(BigIntScientificDecimal value)
+    public static bool IsInteger(PDecimal value)
         => value is { _infinite: false, _exponent: >= 0 };
     
-    public static bool IsEvenInteger(BigIntScientificDecimal value)
+    public static bool IsEvenInteger(PDecimal value)
         => IsInteger(value) && value % 2 == Zero;
     
-    public static bool IsOddInteger(BigIntScientificDecimal value)
+    public static bool IsOddInteger(PDecimal value)
         => IsInteger(value) && value % 2 == One;
     
-    public static bool IsRealNumber(BigIntScientificDecimal value)
+    public static bool IsRealNumber(PDecimal value)
         => true;
 
-    public static bool IsImaginaryNumber(BigIntScientificDecimal value)
+    public static bool IsImaginaryNumber(PDecimal value)
         => false;
     
-    public static bool IsComplexNumber(BigIntScientificDecimal value)
+    public static bool IsComplexNumber(PDecimal value)
         => false;
     
-    public static bool IsCanonical(BigIntScientificDecimal value)
+    public static bool IsCanonical(PDecimal value)
     {
-        BigIntScientificDecimal normalized = value;
+        PDecimal normalized = value;
         normalized.Normalize();
         return value == normalized;
     }
 
-    public static bool IsNormal(BigIntScientificDecimal value)
+    public static bool IsNormal(PDecimal value)
         => !value._infinite && value._mantissa != 0;
 
-    public static bool IsSubnormal(BigIntScientificDecimal value)
+    public static bool IsSubnormal(PDecimal value)
         => false;
     
-    public static bool IsFinite(BigIntScientificDecimal value)
+    public static bool IsFinite(PDecimal value)
         => !value._infinite;
     
-    public static bool IsInfinity(BigIntScientificDecimal value)
+    public static bool IsInfinity(PDecimal value)
         => value._infinite;
     
-    public static bool IsPositiveInfinity(BigIntScientificDecimal value)
+    public static bool IsPositiveInfinity(PDecimal value)
         => value is { Positive: true, _infinite: true };
     
-    public static bool IsNegativeInfinity(BigIntScientificDecimal value)
+    public static bool IsNegativeInfinity(PDecimal value)
         => value is { Negative: true, _infinite: true };
     
-    public static bool IsNaN(BigIntScientificDecimal value)
+    public static bool IsNaN(PDecimal value)
         => value._infinite;
 
     public override string ToString()
@@ -497,79 +523,79 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
         throw new NotImplementedException();
     }
     
-    public static BigIntScientificDecimal Parse(string s, IFormatProvider? provider)
+    public static PDecimal Parse(string s, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
     
-    public static BigIntScientificDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
+    public static PDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
     
-    public static BigIntScientificDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
+    public static PDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
     
-    public static BigIntScientificDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
+    public static PDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out BigIntScientificDecimal result)
+    public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out PDecimal result)
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out BigIntScientificDecimal result)
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out PDecimal result)
     {
         throw new NotImplementedException();
     }
     
     public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
-        out BigIntScientificDecimal result)
+        out PDecimal result)
     {
         throw new NotImplementedException();
     }
 
     public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
-        out BigIntScientificDecimal result)
+        out PDecimal result)
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertFromChecked<TOther>(TOther value, out BigIntScientificDecimal result) 
+    public static bool TryConvertFromChecked<TOther>(TOther value, out PDecimal result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertFromSaturating<TOther>(TOther value, out BigIntScientificDecimal result) 
+    public static bool TryConvertFromSaturating<TOther>(TOther value, out PDecimal result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertFromTruncating<TOther>(TOther value, out BigIntScientificDecimal result) 
+    public static bool TryConvertFromTruncating<TOther>(TOther value, out PDecimal result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertToChecked<TOther>(BigIntScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+    public static bool TryConvertToChecked<TOther>(PDecimal value, [MaybeNullWhen(false)] out TOther result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertToSaturating<TOther>(BigIntScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+    public static bool TryConvertToSaturating<TOther>(PDecimal value, [MaybeNullWhen(false)] out TOther result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
     }
 
-    public static bool TryConvertToTruncating<TOther>(BigIntScientificDecimal value, [MaybeNullWhen(false)] out TOther result) 
+    public static bool TryConvertToTruncating<TOther>(PDecimal value, [MaybeNullWhen(false)] out TOther result) 
         where TOther : INumberBase<TOther>
     {
         throw new NotImplementedException();
@@ -577,23 +603,25 @@ public struct BigIntScientificDecimal : INumber<BigIntScientificDecimal>
     
     public int CompareTo(object? obj)
     {
-        if (obj is BigIntScientificDecimal other)
+        if (obj is PDecimal other)
             return this < other ? -1 : this > other ? 1 : 0;
         return -1;
     }
     
-    public int CompareTo(BigIntScientificDecimal other)
+    public int CompareTo(PDecimal other)
         => this < other ? -1 : this > other ? 1 : 0;
 
     public override bool Equals(object? obj)
     {
-        return obj is BigIntScientificDecimal other && Equals(other);
+        return obj is PDecimal other && Equals(other);
     }
     
-    public bool Equals(BigIntScientificDecimal other)
+    public bool Equals(PDecimal other)
     {
-        return Mantissa == other.Mantissa &&
-               Exponent == other.Exponent;
+        return (_mantissa == other._mantissa &&
+               _exponent == other._exponent) || 
+               (_infinite && other._infinite &&
+                Positive == other.Positive);
     }
 
     public override int GetHashCode()

@@ -10,13 +10,13 @@ namespace OrbitGame;
 /// </summary>
 public readonly record struct KeplerOrbitPathPoint(KeplerOrbitPath Path, double TrueAnomaly)
 {
-    public ScientificDecimal GetTimeAtPoint(ScientificDecimal currentTime)
+    public SDecimal GetTimeAtPoint(SDecimal currentTime)
     {
         if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
         KeplerOrbit orbit = Path.Orbit.Value;
-        ScientificDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
-        ScientificDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
-        ScientificDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;
+        SDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
+        SDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
+        SDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;
         if (orbit.Eccentricity >= 1) return currentTime + timeUntilPoint;
         while (timeUntilPoint < 0) timeUntilPoint += orbit.Period;
         return currentTime + timeUntilPoint;
@@ -33,7 +33,7 @@ public class KeplerOrbitPath
 
     public static KeplerOrbitPathPoint? HoverPoint;
     public static KeplerOrbitPathPoint? SelectedPoint;
-    private static ScientificDecimal _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
+    private static SDecimal _minMouseDistanceToOrbit = SDecimal.PosInfinity;
 
     public KeplerOrbitPath()
     {
@@ -49,7 +49,7 @@ public class KeplerOrbitPath
     /// <param name="externalPoint">Point which may not lie on the orbit in world space</param>
     /// <param name="minimumDistance">Distance between the external point and the parabola</param>
     /// <returns>The true anomaly of the closest point on the orbit</returns>
-    private double GetClosestOrbitPoint(KeplerOrbit orbit, SD_Vector2 externalPoint, out ScientificDecimal minimumDistance)
+    private double GetClosestOrbitPoint(KeplerOrbit orbit, DVector2<SDecimal> externalPoint, out SDecimal minimumDistance)
     {
         externalPoint -= orbit.Parent.Position;
 
@@ -57,8 +57,8 @@ public class KeplerOrbitPath
         if (orbit.Equation(guessPoint + orbit.Periapsis) < 0) guessPoint += Math.PI; 
         double learningRate = 0.1;
         
-        ScientificDecimal currentGuessDistance = GetGuessDistance(guessPoint);
-        ScientificDecimal lastGuessDistance = ScientificDecimal.PosInfinity;
+        SDecimal currentGuessDistance = GetGuessDistance(guessPoint);
+        SDecimal lastGuessDistance = SDecimal.PosInfinity;
 
         int iterations = 0;
 
@@ -66,7 +66,7 @@ public class KeplerOrbitPath
         {
             while (true)
             {
-                ScientificDecimal nextGuessDistance = GetGuessDistance(guessPoint + learningRate);
+                SDecimal nextGuessDistance = GetGuessDistance(guessPoint + learningRate);
                 if (nextGuessDistance >= currentGuessDistance) break;
                 lastGuessDistance = currentGuessDistance;
                 currentGuessDistance = nextGuessDistance;
@@ -75,7 +75,7 @@ public class KeplerOrbitPath
 
             while (true)
             {
-                ScientificDecimal nextIntervalDistance = GetGuessDistance(guessPoint - learningRate);
+                SDecimal nextIntervalDistance = GetGuessDistance(guessPoint - learningRate);
                 if (nextIntervalDistance >= currentGuessDistance) break;
                 lastGuessDistance = currentGuessDistance;
                 currentGuessDistance = nextIntervalDistance;
@@ -84,21 +84,21 @@ public class KeplerOrbitPath
 
             learningRate /= 2;
             iterations++;
-        } while (ScientificDecimal.Abs(lastGuessDistance - currentGuessDistance) > 100 && iterations < 25);
+        } while (SDecimal.Abs(lastGuessDistance - currentGuessDistance) > 100 && iterations < 25);
 
         minimumDistance = currentGuessDistance;
         return guessPoint;
 
-        ScientificDecimal GetGuessDistance(double point)
+        SDecimal GetGuessDistance(double point)
         {
-            SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
+            DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
             return (externalPoint - orbitalPosition).MagnitudeSquared();
         }
     }
 
     private static void KeplerOrbitPath_UpdateFrame(object? sender, EventArgs e)
     {
-        _minMouseDistanceToOrbit = ScientificDecimal.PosInfinity;
+        _minMouseDistanceToOrbit = SDecimal.PosInfinity;
     }
     
     private void KeplerOrbitPath_MouseHover(object? sender, MouseEventArgs e)
@@ -107,18 +107,18 @@ public class KeplerOrbitPath
         if (Orbit == null) return;
         Camera camera = OrbitGame.Camera;
         KeplerOrbit orbit = Orbit.Value;
-        SD_Vector2 mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
+        DVector2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
         double closestOrbitPointTrueAnomaly = GetClosestOrbitPoint(
-            orbit, mouseWorldPosition, out ScientificDecimal closestOrbitDistanceSquared
+            orbit, mouseWorldPosition, out SDecimal closestOrbitDistanceSquared
         );
         
         if (closestOrbitDistanceSquared < _minMouseDistanceToOrbit)
         {
             _minMouseDistanceToOrbit = closestOrbitDistanceSquared;
-            if (!ScientificDecimal.IsInfinity(closestOrbitDistanceSquared))
+            if (!SDecimal.IsInfinity(closestOrbitDistanceSquared))
             {
                 float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(
-                    ScientificDecimal.Sqrt(closestOrbitDistanceSquared));
+                    SDecimal.Sqrt(closestOrbitDistanceSquared));
                 if (screenMouseDistanceToOrbit < 10)
                     HoverPoint = new(this, closestOrbitPointTrueAnomaly);
                 else HoverPoint = null;
@@ -143,8 +143,8 @@ public class KeplerOrbitPath
         {
             if (HoverPoint.Value.Path == this)
             {
-                SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
-                SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
+                DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
+                DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
@@ -152,8 +152,8 @@ public class KeplerOrbitPath
         {
             if (SelectedPoint.Value.Path == this)
             {
-                SD_Vector2 orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
-                SD_Vector2 orbitPointPosition = orbit.Parent.Position + orbitalPosition;
+                DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
+                DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, Color.Red);
             }
         }
@@ -165,7 +165,7 @@ public class KeplerOrbitPath
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         Body centralForce = orbit.Parent;
-        List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
+        List<DVector2<SDecimal>> orbitPoints = new List<DVector2<SDecimal>>();
         
         // redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
@@ -190,8 +190,8 @@ public class KeplerOrbitPath
                  a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
             {
                 double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
-                ScientificDecimal dist = orbit.Equation(trueAngle);
-                orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist));
+                SDecimal dist = orbit.Equation(trueAngle);
+                orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist));
             }
         }
 
@@ -244,38 +244,39 @@ public class KeplerOrbitPath
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
-        List<SD_Vector2> orbitPoints = new List<SD_Vector2>();
+        List<DVector2<SDecimal>> orbitPoints = new List<DVector2<SDecimal>>();
         
-        ScientificDecimal? parentSOIRadius = centralForce.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius ?? null;
+        SDecimal? parentSOIRadius = centralForce.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius ?? null;
         double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
         double objectAngle = Utils.WrapAngle((orbit.Body.Position - centralForce.Position).Direction());
         for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
         {
             double trueAngle = Utils.WrapAngle(a + orbit.Periapsis);
-            ScientificDecimal dist = orbit.Equation(trueAngle);
-            SD_Vector2 orbitPoint = centralForce.Position + SD_Vector2.FromPolar(trueAngle, dist);
+            SDecimal dist = orbit.Equation(trueAngle);
+            DVector2<SDecimal> orbitPoint = centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist);
             if (parentSOIRadius != null)
             {
                 if (dist > 0 && dist < parentSOIRadius)
                     orbitPoints.Add(orbitPoint);
             }
-            else if (dist > 0 && ScientificDecimal.IsFinite(dist)) 
+            else if (dist > 0 && SDecimal.IsFinite(dist)) 
                 orbitPoints.Add(orbitPoint);
             if (double.IsPositive(trueAngle - objectAngle) !=  
                 double.IsPositive(trueAngle + 2 * asymptoteAngle / Options.OrbitResolutionNumPoints - objectAngle))
-                orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(objectAngle, orbit.Equation(objectAngle)));
+                orbitPoints.Add(centralForce.Position + orbit.GetOrbitPositionFromWorldAngle(objectAngle));
         }
 
         if (parentSOIRadius != null)
         {
-            double escapeAngle = Math.Acos((double)((parentSOIRadius / orbit.SemiLatusRectum - 1) /
+            SDecimal semiLatusRectum = orbit.SemiLatusRectum;
+            double escapeAngle = Math.Acos((double)((parentSOIRadius / semiLatusRectum - 1) /
                                                     (orbit.Eccentricity * parentSOIRadius /
-                                                     orbit.SemiLatusRectum))) + Math.PI;
-            orbitPoints.Add(centralForce.Position + SD_Vector2.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
-            orbitPoints.Insert(0, centralForce.Position + SD_Vector2.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+                                                     semiLatusRectum))) + Math.PI;
+            orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+            orbitPoints.Insert(0, centralForce.Position + DVector2<SDecimal>.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
         }
 
-        orbitPoints.RemoveAll(x => ScientificDecimal.IsInfinity(x.MagnitudeSquared()));
+        orbitPoints.RemoveAll(x => SDecimal.IsInfinity(x.MagnitudeSquared()));
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);

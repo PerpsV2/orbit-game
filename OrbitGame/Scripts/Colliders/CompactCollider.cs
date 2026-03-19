@@ -15,11 +15,11 @@ namespace OrbitGame;
 /// </remarks>
 public abstract class CompactCollider
 {
-    public ScientificDecimal Inertia;
+    public SDecimal Inertia;
         
     public bool Fixed;
 
-    public abstract ScientificDecimal CalculateInertia(ScientificDecimal mass);
+    public abstract SDecimal CalculateInertia(SDecimal mass);
     
     /// <summary>
     /// Method to return the axis-aligned rectangular collider which best fits the set of points in the collider
@@ -33,7 +33,7 @@ public abstract class CompactCollider
         );
     }
     
-    public abstract PointCollision IntersectsWith(SD_Vector2 point, SpatialInfo referenceSpatial);
+    public abstract PointCollision IntersectsWith(DVector2<SDecimal> point, SpatialInfo referenceSpatial);
     public PhysicsCollision? IntersectsWith(CompactCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial)
     {
         switch (collider)

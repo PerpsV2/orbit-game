@@ -15,8 +15,8 @@ public class Camera : KinematicObject
     private readonly int _screenWidth;
     private readonly int _screenHeight;
     
-    private ScientificDecimal _width;
-    public ScientificDecimal Width
+    private SDecimal _width;
+    public SDecimal Width
     {
         get => _width;
         private set
@@ -27,9 +27,9 @@ public class Camera : KinematicObject
         }
     }
 
-    private ScientificDecimal _height;
+    private SDecimal _height;
 
-    public ScientificDecimal Height
+    public SDecimal Height
     {
         get => _height;
         private set
@@ -40,17 +40,21 @@ public class Camera : KinematicObject
         }
     }
 
-    public ScientificDecimal MaximumRadiusSquared;
-    public ScientificDecimal MaximumRadius => ScientificDecimal.Sqrt(MaximumRadiusSquared);
-    public SD_Vector2 TopLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
-    public SD_Vector2 TopRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
-    public SD_Vector2 BottomLeft => Position + SD_Vector2.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
-    public SD_Vector2 BottomRight => Position + SD_Vector2.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
+    public SDecimal MaximumRadiusSquared;
+    public SDecimal MaximumRadius => SDecimal.Sqrt(MaximumRadiusSquared);
+    public DVector2<SDecimal> TopLeft 
+        => Position + DVector2<SDecimal>.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
+    public DVector2<SDecimal> TopRight
+        => Position + DVector2<SDecimal>.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
+    public DVector2<SDecimal> BottomLeft 
+        => Position + DVector2<SDecimal>.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
+    public DVector2<SDecimal> BottomRight 
+        => Position + DVector2<SDecimal>.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
 
-    private Matrix3X3 _viewMatrix;
-    private Matrix3X3 _inverseViewMatrix;
+    private Matrix3X3<SDecimal> _viewMatrix;
+    private Matrix3X3<SDecimal> _inverseViewMatrix;
     
-    public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height,
+    public Camera(string identifier, SpatialInfo spatialInfo, SDecimal width, SDecimal height,
         int screenWidth, int screenHeight, ICameraMovementScheme movementScheme) 
         : base(identifier, spatialInfo)
     {
@@ -69,16 +73,16 @@ public class Camera : KinematicObject
         Position += e.PositionOffset;
     }
 
-    public Camera(string identifier, SpatialInfo spatialInfo, ScientificDecimal width, ScientificDecimal height)
+    public Camera(string identifier, SpatialInfo spatialInfo, SDecimal width, SDecimal height)
         : this(identifier, spatialInfo, width, height, Options.ScreenSize.width, Options.ScreenSize.height, 
             new TrackingCameraScheme(spatialInfo, null))
     { }
 
     public void Focus() 
         => MovementScheme.Focus();
-    public void MovePerpendicular(ScientificDecimal distance) 
+    public void MovePerpendicular(SDecimal distance) 
         => MovementScheme.MovePerpendicular(distance, ref SpatialInfo);
-    public void MoveParallel(ScientificDecimal distance)
+    public void MoveParallel(SDecimal distance)
         => MovementScheme.MoveParallel(distance, ref SpatialInfo);
     public void RotateBy(double angle)
         => MovementScheme.RotateBy(angle, ref SpatialInfo);
@@ -90,7 +94,7 @@ public class Camera : KinematicObject
         if (prevSpatialInfo != SpatialInfo) UpdateViewMatrix();
     }
 
-    public void ScaleZoom(ScientificDecimal scale)
+    public void ScaleZoom(SDecimal scale)
     {
         Width *= scale;
         Height *= scale;
@@ -98,38 +102,38 @@ public class Camera : KinematicObject
     
     private void UpdateViewMatrix()
     {
-        _viewMatrix = Matrix3X3.Scale(_screenWidth / Width, _screenHeight / Height) *
-                     Matrix3X3.Translation(Width / 2, Height / 2) *
-                     Matrix3X3.Rotation(-Angle) *
-                     Matrix3X3.Scale(1, -1);
-        _inverseViewMatrix = Matrix3X3.Scale(1, -1) * 
-                            Matrix3X3.Rotation(Angle) *
-                            Matrix3X3.Translation(-Width / 2, -Height / 2) *
-                            Matrix3X3.Scale(Width / _screenWidth, Height / _screenHeight);
+        _viewMatrix = Matrix3X3<SDecimal>.Scale(_screenWidth / Width, _screenHeight / Height) *
+                     Matrix3X3<SDecimal>.Translation(Width / 2, Height / 2) *
+                     Matrix3X3<SDecimal>.Rotation(-Angle) *
+                     Matrix3X3<SDecimal>.Scale(1, -1);
+        _inverseViewMatrix = Matrix3X3<SDecimal>.Scale(1, -1) * 
+                            Matrix3X3<SDecimal>.Rotation(Angle) *
+                            Matrix3X3<SDecimal>.Translation(-Width / 2, -Height / 2) *
+                            Matrix3X3<SDecimal>.Scale(Width / _screenWidth, Height / _screenHeight);
     }
 
-    public SD_Vector2 SD_ConvertToWorldCoordinates(SD_Vector2 point)
+    public DVector2<SDecimal> SD_ConvertToWorldCoordinates(DVector2<SDecimal> point)
         => _inverseViewMatrix * point + Position;
 
-    public SD_Vector2 ConvertToWorldCoordinates(Vector2 point)
+    public DVector2<SDecimal> ConvertToWorldCoordinates(Vector2 point)
         => SD_ConvertToWorldCoordinates(new(point.X, point.Y));
     
-    public SD_Vector2 SD_ConvertToScreenCoordinates(SD_Vector2 point)
+    public DVector2<SDecimal> SD_ConvertToScreenCoordinates(DVector2<SDecimal> point)
         => _viewMatrix * (point - Position);
     
-    public Vector2 ConvertToScreenCoordinates(SD_Vector2 point)
+    public Vector2 ConvertToScreenCoordinates(DVector2<SDecimal> point)
     {
-        SD_Vector2 transformedPoint = SD_ConvertToScreenCoordinates(point);
+        DVector2<SDecimal> transformedPoint = SD_ConvertToScreenCoordinates(point);
         return new((float)transformedPoint.X, (float)transformedPoint.Y);
     }
 
-    public ScientificDecimal SD_ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
+    public SDecimal SD_ConvertToScreenDistance(SDecimal distance, bool xAxis = true)
     {
         if (xAxis) return distance / Width * _screenWidth;
         return distance / Height * _screenHeight;
     }
     
-    public float ConvertToScreenDistance(ScientificDecimal distance, bool xAxis = true)
+    public float ConvertToScreenDistance(SDecimal distance, bool xAxis = true)
     {
         if (xAxis) return (float)SD_ConvertToScreenDistance(distance);
         return (float)SD_ConvertToScreenDistance(distance, false);

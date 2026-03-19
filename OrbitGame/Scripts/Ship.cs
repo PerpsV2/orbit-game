@@ -11,10 +11,10 @@ namespace OrbitGame;
 /// </summary>
 public class Ship : Body, IGameDrawable
 {
-    private readonly ScientificDecimal _maximumRadius;
+    private readonly SDecimal _maximumRadius;
     private readonly OrbitMesh _orbitMesh;
     
-    private SD_Vector2 ArtificialAcceleration { get; set; }
+    private DVector2<SDecimal> ArtificialAcceleration { get; set; }
     
     public bool DrawOrbitalPath { get; set; }
     public bool MarkedForRemoval { get; set; }
@@ -26,8 +26,8 @@ public class Ship : Body, IGameDrawable
         SpatialInfo spatialInfo,
         ObjectInfo objectInfo,
         OrbitMesh orbitMesh,
-        ScientificDecimal maximumRadius,
-        ScientificDecimal mass,
+        SDecimal maximumRadius,
+        SDecimal mass,
         Color colour,
         Planet parent)
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
@@ -40,7 +40,7 @@ public class Ship : Body, IGameDrawable
     protected override void Body_UpdateFrame(object? e, EventArgs args)
     {
         base.Body_UpdateFrame(e, args);
-        ArtificialAcceleration = SD_Vector2.Zero;
+        ArtificialAcceleration = DVector2<SDecimal>.Zero;
     }
 
     public void Draw()
@@ -72,17 +72,17 @@ public class Ship : Body, IGameDrawable
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, -5), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 5), iconAngle), colour);
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, -5), iconAngle), 
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, 5), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(10, 0), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, 0), iconAngle), 
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(5, -8), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(5, -8), iconAngle), 
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(5, 8), iconAngle), 
-                screenPosition + (Vector2)SD_Vector2.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(5, 8), iconAngle), 
+                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
         }
     }
 
@@ -91,12 +91,12 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public void UpdateShipKeplerianOrbit(List<Planet> planets, ScientificDecimal time)
+    public void UpdateShipKeplerianOrbit(List<Planet> planets, SDecimal time)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
         
-        ScientificDecimal? parentSOIRadius = Parent.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
+        SDecimal? parentSOIRadius = Parent.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
         if (parentSOIRadius != null)
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
@@ -104,7 +104,7 @@ public class Ship : Body, IGameDrawable
         foreach (Planet planet in planets)
         {
             if (planet == Parent) continue;
-            ScientificDecimal? bodySOIRadius = planet.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
+            SDecimal? bodySOIRadius = planet.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
             if (bodySOIRadius != null)
                 if ((Position - planet.Position).Magnitude() < bodySOIRadius)
                     Parent = planet;
@@ -118,7 +118,7 @@ public class Ship : Body, IGameDrawable
         if (LandingState == null)
             throw new NullReferenceException("Ship is not landed");
         Landing landing = LandingState.Value;
-        Position = landing.Parent.Position + SD_Vector2.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
+        Position = landing.Parent.Position + DVector2<SDecimal>.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
         Velocity = landing.Parent.Velocity;
         Angle = landing.Parent.Angle + landing.RelativeAngle;
     }
@@ -133,17 +133,17 @@ public class Ship : Body, IGameDrawable
         LandingState = null;
     }
 
-    public void ApplyThrust(SD_Vector2 thrust, SD_Vector2 position)
+    public void ApplyThrust(DVector2<SDecimal> thrust, DVector2<SDecimal> position)
     {
-        thrust = SD_Vector2.RotatePoint(thrust, Angle);
-        position = SD_Vector2.RotatePoint(position, Angle);
-        ScientificDecimal torque = SD_Vector2.Cross(thrust, position).Z;
+        thrust = DVector2<SDecimal>.RotatePoint(thrust, Angle);
+        position = DVector2<SDecimal>.RotatePoint(position, Angle);
+        SDecimal torque = DVector2<SDecimal>.Cross(thrust, position).Z;
         AngularAcceleration += (double)(torque / Mass);
         ArtificialAcceleration += thrust / Mass;
         DisturbLandingState();
     }
 
-    public override SD_Vector2 CalculateNetAcceleration()
+    public override DVector2<SDecimal> CalculateNetAcceleration()
     {
         return base.CalculateNetAcceleration() + ArtificialAcceleration;
     }
@@ -158,10 +158,10 @@ public class Ship : Body, IGameDrawable
         private readonly IMesh _mesh;
         private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();
-        private readonly ScientificDecimal _maximumRadius;
+        private readonly SDecimal _maximumRadius;
         private readonly Material _material;
         
-        public ShipTemplate(SD_Vector2[] shipVertices, Material material)
+        public ShipTemplate(DVector2<SDecimal>[] shipVertices, Material material)
         {
             _material = material;
             _mesh = new PolyMesh(shipVertices);
@@ -172,7 +172,7 @@ public class Ship : Body, IGameDrawable
         public Ship CreateInstance(
             string identifier, 
             SpatialInfo spatialInfo,
-            ScientificDecimal mass,
+            SDecimal mass,
             Color colour,
             Planet parent
             )

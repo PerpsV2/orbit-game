@@ -6,13 +6,13 @@ namespace OrbitGame;
 /// Struct containing positional information about an object and some of its derivatives.
 /// </summary>
 public struct SpatialInfo(
-    SD_Vector2 position, SD_Vector2 velocity, SD_Vector2 acceleration, 
+    DVector2<SDecimal> position, DVector2<SDecimal> velocity, DVector2<SDecimal> acceleration, 
     double angle, double angularVelocity, double angularAcceleration) 
     : IEquatable<SpatialInfo>
 {
-    public SD_Vector2 Position { get; set; } = position;
-    public SD_Vector2 Velocity { get; set; } = velocity;
-    public SD_Vector2 Acceleration { get; set; } = acceleration;
+    public DVector2<SDecimal> Position { get; set; } = position;
+    public DVector2<SDecimal> Velocity { get; set; } = velocity;
+    public DVector2<SDecimal> Acceleration { get; set; } = acceleration;
     private double _angle = Utils.WrapAngle(angle);
 
     public double Angle
@@ -24,14 +24,14 @@ public struct SpatialInfo(
     public double AngularVelocity { get; set; } = angularVelocity;
     public double AngularAcceleration { get; set; } = angularAcceleration;
 
-    public SpatialInfo(SD_Vector2 position, SD_Vector2 velocity, double angle = 0, double angularVelocity = 0)
-        : this(position, velocity, SD_Vector2.Zero, angle, angularVelocity, 0) { }
+    public SpatialInfo(DVector2<SDecimal> position, DVector2<SDecimal> velocity, double angle = 0, double angularVelocity = 0)
+        : this(position, velocity, DVector2<SDecimal>.Zero, angle, angularVelocity, 0) { }
     
-    public SpatialInfo(SD_Vector2 position, double angle)
-        : this(position, SD_Vector2.Zero, angle) { }
+    public SpatialInfo(DVector2<SDecimal> position, double angle)
+        : this(position, DVector2<SDecimal>.Zero, angle) { }
     
-    public SpatialInfo(SD_Vector2 position)
-        : this(position, SD_Vector2.Zero, SD_Vector2.Zero, 0, 0, 0) {}
+    public SpatialInfo(DVector2<SDecimal> position)
+        : this(position, DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero, 0, 0, 0) {}
 
     public static bool operator !=(SpatialInfo left, SpatialInfo right)
     {

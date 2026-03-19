@@ -9,8 +9,8 @@ public static class Options
 {
     // initial states
     public static readonly (int width, int height) ScreenSize = (800, 600);
-    public static readonly ScientificDecimal DefaultZoomScale = new(1);
-    public static readonly ScientificDecimal DefaultTimeStep = 1;
+    public static readonly SDecimal DefaultZoomScale = new(1);
+    public static readonly SDecimal DefaultTimeStep = 1;
     
     // debug options
     public static readonly bool EnablePhysics = true;
@@ -51,7 +51,7 @@ public static class Options
     public const double EaseFastForwardEndTime = 0.2;
     public const double EaseTimeStepChangeTime = 0.5;
 
-    public static readonly ScientificDecimal EccentricAnomalyApproximationTolerance = new(-10);
+    public static readonly SDecimal EccentricAnomalyApproximationTolerance = new(-10);
     public const uint EccentricAnomalyApproximationMaxIterations = 5;
     
     public const uint IntegratorIterationAmount = 10;

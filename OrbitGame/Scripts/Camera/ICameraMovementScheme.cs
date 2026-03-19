@@ -15,14 +15,14 @@ public interface ICameraMovementScheme
     /// </summary>
     /// <param name="distance">Distance to move</param>
     /// <param name="spatialInfo">SpatialInfo of the camera</param>
-    public void MovePerpendicular(ScientificDecimal distance, ref SpatialInfo spatialInfo);
+    public void MovePerpendicular(SDecimal distance, ref SpatialInfo spatialInfo);
     
     /// <summary>
     /// Method for when the camera moves parallel to its facing (forwards and backwards controls).
     /// </summary>
     /// <param name="distance">Distance to move</param>
     /// <param name="spatialInfo">SpatialInfo of the camera</param>
-    public void MoveParallel(ScientificDecimal distance, ref SpatialInfo spatialInfo);
+    public void MoveParallel(SDecimal distance, ref SpatialInfo spatialInfo);
     
     /// <summary>
     /// Method for when the camera changes its object rotation (clockwise and counterclockwise controls).

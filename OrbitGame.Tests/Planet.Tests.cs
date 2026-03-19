@@ -22,20 +22,20 @@ public class Planet_Tests
         OrbitGame.Graphics = debugGraphics;
         _graphics = debugGraphics;
         _output = output;
-        _testPlanet = _testPlanetTemplate.CreateInstance("Test Planet", new(SD_Vector2.Zero, Math.PI / 2), 
+        _testPlanet = _testPlanetTemplate.CreateInstance("Test Planet", new(DVector2<>.Zero, Math.PI / 2), 
             1, 10000, Color.White, null);
         
-        SpatialInfo cameraSpatialInfo = new(position: new SD_Vector2(10000, 0));
+        SpatialInfo cameraSpatialInfo = new(position: new DVector2<>(10000, 0));
         ICameraMovementScheme surfaceCameraMovement = new TrackingCameraScheme(cameraSpatialInfo, null);
         _testSurfaceCamera = new Camera("Test Surface Camera", cameraSpatialInfo, 16, 9, 1600, 900,
             surfaceCameraMovement);
 
-        cameraSpatialInfo = new(position: SD_Vector2.Zero);
+        cameraSpatialInfo = new(position: DVector2<>.Zero);
         ICameraMovementScheme markerCameraMovement = new TrackingCameraScheme(cameraSpatialInfo, null);
         _testMarkerCamera = new Camera("Test Marker Camera", cameraSpatialInfo, 16000000, 9000000, 1600, 900,
             markerCameraMovement);
 
-        cameraSpatialInfo = new(position: SD_Vector2.Zero);
+        cameraSpatialInfo = new(position: DVector2<>.Zero);
         ICameraMovementScheme fullPlanetCameraMovement = new TrackingCameraScheme(cameraSpatialInfo, null);
         _testFullPlanetCamera = new Camera("Test Full Planet Camera", cameraSpatialInfo, 16000, 9000, 1600, 900,
             fullPlanetCameraMovement);

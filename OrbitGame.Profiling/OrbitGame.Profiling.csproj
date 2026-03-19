@@ -16,4 +16,10 @@
       <ProjectReference Include="..\OrbitGame\OrbitGame.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="BitScientificDecimal.cs" />
+      <Compile Remove="BigIntScientificDecimal.cs" />
+      <Compile Remove="ScientificDecimal.cs" />
+    </ItemGroup>
+
 </Project>

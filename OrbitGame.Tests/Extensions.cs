@@ -13,35 +13,26 @@ public abstract partial class Assert
 {
     public static readonly double Epsilon = 1e-10;
 
-    public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right)
+    public static void Equal(OrbitGame.PDecimal left, OrbitGame.PDecimal right)
     {
-        if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
+        Equal(left, right, Epsilon);
+    }
+    
+    public static void Equal(OrbitGame.PDecimal left, OrbitGame.PDecimal right, 
+        OrbitGame.PDecimal tolerance)
+    {
+        if (PDecimal.IsInfinity(left) && PDecimal.IsInfinity(right))
         {
-            Equal(ScientificDecimal.IsInfinity(left), ScientificDecimal.IsInfinity(right));
+            Equal(PDecimal.IsInfinity(left), PDecimal.IsInfinity(right));
             Equal(left.Positive, right.Positive);
         }
         else
         {
-            Equal(left.Mantissa, right.Mantissa);
-            Equal(left.Exponent, right.Exponent);
+            True(PDecimal.Abs(left - right) < tolerance);
         }
     }
     
-    public static void Equal(OrbitGame.ScientificDecimal left, OrbitGame.ScientificDecimal right, 
-        OrbitGame.ScientificDecimal tolerance)
-    {
-        if (ScientificDecimal.IsInfinity(left) && ScientificDecimal.IsInfinity(right))
-        {
-            Equal(ScientificDecimal.IsInfinity(left), ScientificDecimal.IsInfinity(right));
-            Equal(left.Positive, right.Positive);
-        }
-        else
-        {
-            True(ScientificDecimal.Abs(left - right) < tolerance);
-        }
-    }
-    
-    public static void Equal(OrbitGame.SD_Vector2 left, OrbitGame.SD_Vector2 right)
+    public static void Equal(OrbitGame.DVector2<> left, OrbitGame.DVector2<> right)
     {
         Equal(left.X, right.X, Epsilon);
         Equal(left.Y, right.Y, Epsilon);
@@ -53,7 +44,7 @@ public abstract partial class Assert
         Equal(left.Y, right.Y, Epsilon);
     }
 
-    public static void Equal(OrbitGame.SD_Vector3 left, OrbitGame.SD_Vector3 right)
+    public static void Equal(OrbitGame.DVector3<> left, OrbitGame.DVector3<> right)
     {
         Equal(left.X, right.X, Epsilon);
         Equal(left.Y, right.Y, Epsilon);
@@ -69,7 +60,7 @@ public abstract partial class Assert
     /// <summary>
     /// Assert equality of two collision manifolds
     /// </summary>
-    public static void Equal(HashSet<OrbitGame.SD_Vector2> left, HashSet<OrbitGame.SD_Vector2> right)
+    public static void Equal(HashSet<OrbitGame.DVector2<>> left, HashSet<OrbitGame.DVector2<>> right)
     {
         Equal(left.Count, right.Count);
         for (int i = 0; i < left.Count; ++i)

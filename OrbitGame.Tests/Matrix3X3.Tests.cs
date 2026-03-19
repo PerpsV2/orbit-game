@@ -11,9 +11,9 @@ public class Matrix3X3_Tests
     // Rotation by 90 degrees followed by a translation of (1, 5)
     private readonly Matrix3X3 _testTransformationMatrix = new([0, -1, 1, 1, 0, 5, 0, 0, 1]);
     
-    private readonly SD_Vector2 _testSDVector2 = new(1, -1);
-    private readonly SD_Vector3 _testSDVector3 = new(1, -1, 1);
-    private readonly ScientificDecimal _testScalar = 5;
+    private readonly DVector2<> _testSDDVector2 = new(1, -1);
+    private readonly DVector3<> _testSDDVector3 = new(1, -1, 1);
+    private readonly PDecimal _testScalar = 5;
     
     #region Operators
     
@@ -45,16 +45,16 @@ public class Matrix3X3_Tests
     [Fact]
     public void Matrix3X3_Vector2MultiplicationOperator()
     {
-        Assert.Equal(_testSDVector2, _testIdentityMatrix * _testSDVector2);
-        Assert.Equal(new SD_Vector2(2, 6), _testTransformationMatrix * _testSDVector2);
-        Assert.Throws<ArithmeticException>(() => _testNullMatrix * _testSDVector2);
+        Assert.Equal(_testSDDVector2, _testIdentityMatrix * _testSDDVector2);
+        Assert.Equal(new DVector2<>(2, 6), _testTransformationMatrix * _testSDDVector2);
+        Assert.Throws<ArithmeticException>(() => _testNullMatrix * _testSDDVector2);
     }
 
     [Fact]
     public void Matrix3X3_Vector3MultiplicationOperator()
     {
-        Assert.Equal(_testSDVector3, _testIdentityMatrix * _testSDVector3);
-        Assert.Equal(new SD_Vector3(2, 6, 1), _testTransformationMatrix * _testSDVector3);
+        Assert.Equal(_testSDDVector3, _testIdentityMatrix * _testSDDVector3);
+        Assert.Equal(new DVector3<>(2, 6, 1), _testTransformationMatrix * _testSDDVector3);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class Matrix3X3_Tests
     [Fact]
     public void Matrix3X3_TranslationMethod()
     {
-        SD_Vector2 translation = new SD_Vector2(2, -2);
+        DVector2<> translation = new DVector2<>(2, -2);
         Assert.Equal(new Matrix3X3([1, 0, 2, 0, 1, -2, 0, 0, 1]), Matrix3X3.Translation(translation));
     }
 
@@ -90,7 +90,7 @@ public class Matrix3X3_Tests
     [Fact]
     public void Matrix3X3_ScaleMethod()
     {
-        SD_Vector2 scale = new SD_Vector2(2, -2);
+        DVector2<> scale = new DVector2<>(2, -2);
         Assert.Equal(new Matrix3X3([2, 0, 0, 0, -2, 0, 0, 0, 1]), Matrix3X3.Scale(scale));
     }
     

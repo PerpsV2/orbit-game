@@ -34,12 +34,12 @@ public class DebugGraphicsHandler : IGraphicsHandler
         DrawLine(start, start + displacement, colour);
     }
 
-    public void SD_DrawLine(Camera camera, SD_Vector2 start, SD_Vector2 end, Color colour)
+    public void SD_DrawLine(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> end, Color colour)
     {
         DrawLine(camera.ConvertToScreenCoordinates(start), camera.ConvertToScreenCoordinates(end), colour);
     }
 
-    public void SD_DrawLineR(Camera camera, SD_Vector2 start, SD_Vector2 displacement, Color colour)
+    public void SD_DrawLineR(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> displacement, Color colour)
     {
         SD_DrawLine(camera, start, start + displacement, colour);
     }
@@ -49,7 +49,7 @@ public class DebugGraphicsHandler : IGraphicsHandler
         DrawPointCalls.Add(new DrawPointCall(position, colour));
     }
 
-    public void SD_DrawPoint(Camera camera, SD_Vector2 position, Color colour)
+    public void SD_DrawPoint(Camera camera, DVector2<SDecimal> position, Color colour)
     {
         DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }

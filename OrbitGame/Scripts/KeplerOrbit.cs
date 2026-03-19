@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BenchmarkDotNet.Loggers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Xna.Framework;
 
@@ -14,7 +15,7 @@ public readonly record struct KeplerOrbit
     /// <summary>
     /// Equation which returns the distance of an object to its parent given a true anomaly.
     /// </summary>
-    public delegate ScientificDecimal OrbitEquation(double angle);
+    public delegate SDecimal OrbitEquation(double angle);
     
     public readonly Body Body;
     public readonly Body Parent;
@@ -23,13 +24,13 @@ public readonly record struct KeplerOrbit
     /// <summary>
     /// Time at which the orbit was calculated.
     /// </summary>
-    private readonly ScientificDecimal _initialCalculationTime;
+    private readonly SDecimal _initialCalculationTime;
     private readonly SpatialInfo _initialParentSpatialInfo;
     private readonly SpatialInfo _initialOrbitalSpatialInfo;
     
     // ----- Orbital Parameters ----- 
-    public readonly SD_Vector2 LRLVector;
-    public readonly ScientificDecimal SemiLatusRectum;
+    public readonly DVector2<SDecimal> LRLVector;
+    public readonly SDecimal SemiLatusRectum;
     public readonly bool Prograde;
     
     private readonly Lazy<double> _lazyPeriapsis;
@@ -44,23 +45,23 @@ public readonly record struct KeplerOrbit
     /// <summary>
     /// Semi-major axis of the orbital conic section. Is always negative for hyperbolas.
     /// </summary>
-    private readonly Lazy<ScientificDecimal> _lazySemiMajorAxis;
-    public ScientificDecimal SemiMajorAxis => _lazySemiMajorAxis.Value;
+    private readonly Lazy<SDecimal> _lazySemiMajorAxis;
+    public SDecimal SemiMajorAxis => _lazySemiMajorAxis.Value;
     
-    private readonly Lazy<ScientificDecimal> _lazySemiMinorAxis;
-    public ScientificDecimal SemiMinorAxis => _lazySemiMinorAxis.Value;
+    private readonly Lazy<SDecimal> _lazySemiMinorAxis;
+    public SDecimal SemiMinorAxis => _lazySemiMinorAxis.Value;
     
-    private readonly Lazy<ScientificDecimal> _lazyPeriod;
-    public ScientificDecimal Period => _lazyPeriod.Value;
+    private readonly Lazy<SDecimal> _lazyPeriod;
+    public SDecimal Period => _lazyPeriod.Value;
     
-    private readonly Lazy<ScientificDecimal> _lazySphereOfInfluenceRadius;
-    public ScientificDecimal SphereOfInfluenceRadius => _lazySphereOfInfluenceRadius.Value;
+    private readonly Lazy<SDecimal> _lazySphereOfInfluenceRadius;
+    public SDecimal SphereOfInfluenceRadius => _lazySphereOfInfluenceRadius.Value;
     
-    private readonly Lazy<SD_Vector2> _lazyCenter;
-    public SD_Vector2 Center => _lazyCenter.Value;
+    private readonly Lazy<DVector2<SDecimal>> _lazyCenter;
+    public DVector2<SDecimal> Center => _lazyCenter.Value;
     
-    private readonly Lazy<ScientificDecimal> _lazyInitialTimeSincePeriapsis;
-    public ScientificDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
+    private readonly Lazy<SDecimal> _lazyInitialTimeSincePeriapsis;
+    public SDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
 
     /// <summary>
     /// Creates a Keplerian orbit given two bodies
@@ -68,7 +69,7 @@ public readonly record struct KeplerOrbit
     /// <param name="Body">Orbiting body</param>
     /// <param name="Parent">Central force body</param>
     /// <param name="initialCalculationTime">Time of orbit calculation</param>
-    public KeplerOrbit(Body Body, Body Parent, ScientificDecimal initialCalculationTime)
+    public KeplerOrbit(Body Body, Body Parent, SDecimal initialCalculationTime)
     {
         this.Body = Body;
         this.Parent = Parent;
@@ -76,15 +77,23 @@ public readonly record struct KeplerOrbit
         
         _initialParentSpatialInfo = Parent.SpatialInfo;
         _initialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
+
+        DVector2<SDecimal> orbitalPosition = Body.Position - Parent.Position;
+        DVector2<SDecimal> orbitalVelocity = Body.Velocity - Parent.Velocity;
         
-        SD_Vector2 momentum = _initialOrbitalSpatialInfo.Velocity * Body.Mass;
-        SD_Vector3 angularMomentum = SD_Vector2.Cross(_initialOrbitalSpatialInfo.Position, momentum);
-        SD_Vector2 orbitalDirectionVector = _initialOrbitalSpatialInfo.Position.Normalize();
-        ScientificDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
+        DVector2<SDecimal> momentum = orbitalVelocity * Body.Mass;
+        DVector3<SDecimal> angularMomentum = DVector2<SDecimal>.Cross(orbitalPosition, momentum);
+        DVector2<SDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
+        SDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
         Prograde = Math.Acos(angularMomentum.Z.Positive ? 1 : -1) == 0;
-        LRLVector = (SD_Vector2)SD_Vector3.Cross(momentum, angularMomentum) - 
+        LRLVector = (DVector2<SDecimal>)DVector3<SDecimal>.Cross(momentum, angularMomentum) - 
                     orbitalDirectionVector * Body.Mass * forceStrength;
-        SemiLatusRectum = ScientificDecimal.Square(angularMomentum.Magnitude()) / Body.Mass / forceStrength;
+        SemiLatusRectum = SDecimal.Square(angularMomentum.Magnitude()) / Body.Mass / forceStrength;
+        
+        Console.WriteLine(Body.Identifier);
+        Console.WriteLine(momentum);
+        Console.WriteLine(angularMomentum);
+        Console.WriteLine(LRLVector);
         
         // initialize lazy fields
         _lazyEccentricity = new(LazyInitializeEccentricity);
@@ -99,20 +108,20 @@ public readonly record struct KeplerOrbit
     }
 
     private double LazyInitializePeriapsis()
-        => LRLVector != SD_Vector2.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
+        => LRLVector != DVector2<SDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
 
     private double LazyInitializeEccentricity()
-        => (double)(LRLVector.Magnitude() / ScientificDecimal.Abs(Body.Mass * Body.Mass * Parent.Mass * Constants.G));
+        => (double)(LRLVector.Magnitude() / SDecimal.Abs(Body.Mass * Body.Mass * Parent.Mass * Constants.G));
     
     private OrbitEquation LazyInitializeEquation()
     {
         double periapsis = Periapsis;
         double eccentricity = Eccentricity;
-        ScientificDecimal semiLatusRectum = SemiLatusRectum;
+        SDecimal semiLatusRectum = SemiLatusRectum;
         return angle => semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis));
     }
 
-    private ScientificDecimal LazyInitializeSemiMajorAxis()
+    private SDecimal LazyInitializeSemiMajorAxis()
     {
         switch (Eccentricity)
         {
@@ -123,55 +132,55 @@ public readonly record struct KeplerOrbit
         }
     }
 
-    private ScientificDecimal LazyInitializeSemiMinorAxis()
+    private SDecimal LazyInitializeSemiMinorAxis()
     {
         switch (Eccentricity)
         {
             case <= 0: return SemiLatusRectum;
-            case > 0 and < 1: return ScientificDecimal.Sqrt(Equation(Periapsis) * Equation(Periapsis + Math.PI));
+            case > 0 and < 1: return SDecimal.Sqrt(Equation(Periapsis) * Equation(Periapsis + Math.PI));
             case >= 1: return SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }
 
-    private ScientificDecimal LazyInitializePeriod()
+    private SDecimal LazyInitializePeriod()
     {
         switch (Eccentricity)
         {
             case <= 0: 
-            case > 0 and < 1: return Math.Tau * ScientificDecimal.Sqrt(
-                ScientificDecimal.IntPow(SemiMajorAxis, 3) / Constants.G / Parent.Mass);
-            case >= 1: return ScientificDecimal.PosInfinity;
+            case > 0 and < 1: return
+                Math.Tau * SDecimal.Sqrt(SDecimal.IntPow(SemiMajorAxis, 3) / Constants.G / Parent.Mass);
+            case >= 1: return SDecimal.PosInfinity;
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }
 
-    private ScientificDecimal LazyInitializeSphereOfInfluenceRadius()
+    private SDecimal LazyInitializeSphereOfInfluenceRadius()
     {
         switch (Eccentricity)
         {
             case <= 0:
             case > 0 and < 1: return SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
-            case >= 1: return ScientificDecimal.PosInfinity;
+            case >= 1: return SDecimal.PosInfinity;
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }
 
-    private SD_Vector2 LazyInitializeCenter()
+    private DVector2<SDecimal> LazyInitializeCenter()
     {
         OrbitEquation equation = Equation;
         double periapsis = Periapsis;
-        return SD_Vector2.FromPolar(periapsis, equation(periapsis)) - 
-               SD_Vector2.FromPolar(periapsis, (equation(periapsis) + equation(periapsis + Math.PI)) / 2);
+        return DVector2<SDecimal>.FromPolar(periapsis, equation(periapsis)) - 
+               DVector2<SDecimal>.FromPolar(periapsis, (equation(periapsis) + equation(periapsis + Math.PI)) / 2);
     }
 
-    private ScientificDecimal LazyInitializeInitialTimeSincePeriapsis()
+    private SDecimal LazyInitializeInitialTimeSincePeriapsis()
     {
-        double trueAnomaly = Utils.WrapAngle(SD_Vector2.Direction(
+        double trueAnomaly = Utils.WrapAngle(DVector2<SDecimal>.Direction(
             _initialParentSpatialInfo.Position,
             _initialOrbitalSpatialInfo.Position
         ) - Periapsis);
-        ScientificDecimal timeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
+        SDecimal timeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
         if (Eccentricity < 1) return Utils.UnsignedMod(timeSincePeriapsis - _initialCalculationTime, Period);
         return timeSincePeriapsis - _initialCalculationTime;
     }
@@ -201,7 +210,7 @@ public readonly record struct KeplerOrbit
 
     private static double CalculateEccentricFromMeanAnomalyElliptic(double eccentricity, double meanAnomaly)
     {
-        ScientificDecimal epsilon = Options.EccentricAnomalyApproximationTolerance;
+        SDecimal epsilon = Options.EccentricAnomalyApproximationTolerance;
         double estimate = eccentricity > 0.8 ? Math.PI : meanAnomaly;
         double finalEccentricAnomaly = estimate;
         int iterations = 0;
@@ -217,7 +226,7 @@ public readonly record struct KeplerOrbit
 
     private static double CalculateEccentricFromMeanAnomalyHyperbolic(double eccentricity, double meanAnomaly)
     {
-        ScientificDecimal epsilon = Options.EccentricAnomalyApproximationTolerance;
+        SDecimal epsilon = Options.EccentricAnomalyApproximationTolerance;
         double estimate = meanAnomaly;
         double finalEccentricAnomaly = estimate;
         int iterations = 0;
@@ -227,6 +236,7 @@ public readonly record struct KeplerOrbit
             finalEccentricAnomaly = estimate - (eccentricity * Math.Sinh(estimate) - estimate - meanAnomaly) /
                 (eccentricity * Math.Cosh(estimate) - 1);
             iterations++;
+            if (double.IsNaN(finalEccentricAnomaly)) return finalEccentricAnomaly;
         } while (double.Abs(finalEccentricAnomaly - estimate) > epsilon && iterations <= 
                  Options.EccentricAnomalyApproximationMaxIterations);
         return finalEccentricAnomaly;
@@ -238,20 +248,20 @@ public readonly record struct KeplerOrbit
     private static double CalculateMeanFromEccentricAnomalyHyperbolic(double eccentricity, double eccentricAnomaly)
         => eccentricity * Math.Sinh(eccentricAnomaly) - eccentricAnomaly;
     
-    private double CalculateMeanAnomalyFromTimeSincePeriapsisElliptic(ScientificDecimal timeSincePeriapsis)
+    private double CalculateMeanAnomalyFromTimeSincePeriapsisElliptic(SDecimal timeSincePeriapsis)
         => (double)(timeSincePeriapsis * Math.Tau / Period);
         
-    private double CalculateMeanAnomalyFromTimeSincePeriapsisHyperbolic(ScientificDecimal timeSincePeriapsis)
-        => (double)(timeSincePeriapsis / ScientificDecimal.Sqrt(ScientificDecimal.IntPow(-SemiMajorAxis, 3) /
-                                                                (Parent.Mass * Constants.G)));
+    private double CalculateMeanAnomalyFromTimeSincePeriapsisHyperbolic(SDecimal timeSincePeriapsis)
+        => (double)(timeSincePeriapsis / SDecimal.Sqrt(SDecimal.Map<SDecimal>(SDecimal.IntPow(-SemiMajorAxis, 3)) /
+                                                       (Parent.Mass * Constants.G)));
 
-    private ScientificDecimal CalculateTimeSincePeriapsisFromMeanAnomalyElliptic(double meanAnomaly)
+    private SDecimal CalculateTimeSincePeriapsisFromMeanAnomalyElliptic(double meanAnomaly)
         => meanAnomaly * Period / Math.Tau;
     
-    private ScientificDecimal CalculateTimeSincePeriapsisFromMeanAnomalyHyperbolic(double meanAnomaly)
-        => ScientificDecimal.Sqrt(ScientificDecimal.IntPow(-SemiMajorAxis, 3) / (Parent.Mass * Constants.G)) * meanAnomaly;
+    private SDecimal CalculateTimeSincePeriapsisFromMeanAnomalyHyperbolic(double meanAnomaly)
+        => SDecimal.Sqrt(SDecimal.IntPow(-SemiMajorAxis, 3)) / (Parent.Mass * Constants.G) * meanAnomaly;
 
-    public ScientificDecimal CalculateTimeSincePeriapsisFromTrueAnomaly(double trueAnomaly)
+    public SDecimal CalculateTimeSincePeriapsisFromTrueAnomaly(double trueAnomaly)
     {
         if (Eccentricity < 1)
         {
@@ -267,7 +277,7 @@ public readonly record struct KeplerOrbit
         }
     }
 
-    public double CalculateTrueAnomalyFromTimeSincePeriapsis(ScientificDecimal timeFromPeriapsis)
+    public double CalculateTrueAnomalyFromTimeSincePeriapsis(SDecimal timeFromPeriapsis)
     {
         if (Eccentricity < 1)
         {
@@ -283,10 +293,16 @@ public readonly record struct KeplerOrbit
         }
     }
     
-    public SD_Vector2 GetOrbitPositionFromTrueAnomaly(double trueAnomaly)
+    public DVector2<SDecimal> GetOrbitPositionFromTrueAnomaly(double trueAnomaly)
     {
-        ScientificDecimal distance = Equation(trueAnomaly + Periapsis);
-        return SD_Vector2.FromPolar(trueAnomaly + Periapsis, distance);
+        SDecimal distance = Equation(trueAnomaly + Periapsis);
+        return DVector2<SDecimal>.FromPolar(trueAnomaly + Periapsis, distance);
+    }
+
+    public DVector2<SDecimal> GetOrbitPositionFromWorldAngle(double worldAngle)
+    {
+        SDecimal distance = Equation(worldAngle);
+        return DVector2<SDecimal>.FromPolar(worldAngle, distance);
     }
 
     private double GetOrbitalVelocityDirection(double trueAnomaly)
@@ -295,17 +311,18 @@ public readonly record struct KeplerOrbit
                (Prograde ? 0 : Math.PI);
     }
 
-    public SpatialInfo GetStateAtTime(ScientificDecimal time)
+    public SpatialInfo GetStateAtTime(SDecimal time)
     {
         time += InitialTimeSincePeriapsis;
         if (Eccentricity < 1) time %= Period;
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
-        ScientificDecimal orbitDistance = Equation(trueAnomaly + Periapsis);
-        SD_Vector2 orbitPosition = SD_Vector2.FromPolar(trueAnomaly + Periapsis, orbitDistance);
-        ScientificDecimal orbitSpeed = ScientificDecimal.Sqrt(Parent.Mass * Constants.G * (2 / orbitDistance - 1 / SemiMajorAxis));
-        SD_Vector2 orbitalVelocity = SD_Vector2.FromPolar(GetOrbitalVelocityDirection(trueAnomaly), orbitSpeed);
+        if (double.IsNaN(trueAnomaly)) return Body.SpatialInfo;
+        SDecimal orbitalDistance = Equation(trueAnomaly + Periapsis);
+        DVector2<SDecimal> orbitalPosition = DVector2<SDecimal>.FromPolar(trueAnomaly + Periapsis, orbitalDistance);
+        SDecimal orbitalSpeed = SDecimal.Sqrt(Parent.Mass * Constants.G * (2 / orbitalDistance - 1 / SemiMajorAxis));
+        DVector2<SDecimal> orbitalVelocity = DVector2<SDecimal>.FromPolar(GetOrbitalVelocityDirection(trueAnomaly), orbitalSpeed);
         return new SpatialInfo(
-            position: Parent.Position + orbitPosition,
+            position: Parent.Position + orbitalPosition,
             velocity: Parent.Velocity + orbitalVelocity
         );
     }
