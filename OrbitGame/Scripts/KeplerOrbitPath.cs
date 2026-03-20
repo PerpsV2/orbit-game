@@ -268,7 +268,7 @@ public class KeplerOrbitPath
 
         if (parentSOIRadius != null)
         {
-            SDecimal semiLatusRectum = orbit.SemiLatusRectum;
+            SDecimal semiLatusRectum = (SDecimal)orbit.SemiLatusRectum;
             double escapeAngle = Math.Acos((double)((parentSOIRadius / semiLatusRectum - 1) /
                                                     (orbit.Eccentricity * parentSOIRadius /
                                                      semiLatusRectum))) + Math.PI;

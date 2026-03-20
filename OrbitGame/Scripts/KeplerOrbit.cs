@@ -28,9 +28,12 @@ public readonly record struct KeplerOrbit
     private readonly SpatialInfo _initialParentSpatialInfo;
     private readonly SpatialInfo _initialOrbitalSpatialInfo;
     
+    private PDecimal PBodyMass => (PDecimal)Body.Mass;
+    private PDecimal PParentMass => (PDecimal) Parent.Mass;
+    
     // ----- Orbital Parameters ----- 
-    public readonly DVector2<SDecimal> LRLVector;
-    public readonly SDecimal SemiLatusRectum;
+    public readonly DVector2<PDecimal> LRLVector;
+    public readonly PDecimal SemiLatusRectum;
     public readonly bool Prograde;
     
     private readonly Lazy<double> _lazyPeriapsis;
@@ -78,22 +81,19 @@ public readonly record struct KeplerOrbit
         _initialParentSpatialInfo = Parent.SpatialInfo;
         _initialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
 
-        DVector2<SDecimal> orbitalPosition = Body.Position - Parent.Position;
-        DVector2<SDecimal> orbitalVelocity = Body.Velocity - Parent.Velocity;
+        DVector2<PDecimal> orbitalPosition = DVector2<SDecimal>.Map<PDecimal>(Body.Position - Parent.Position);
+        DVector2<PDecimal> orbitalVelocity = DVector2<SDecimal>.Map<PDecimal>(Body.Velocity - Parent.Velocity);
+        PDecimal objectMass = (PDecimal)Body.Mass;
+        PDecimal parentMass = (PDecimal)Parent.Mass;
         
-        DVector2<SDecimal> momentum = orbitalVelocity * Body.Mass;
-        DVector3<SDecimal> angularMomentum = DVector2<SDecimal>.Cross(orbitalPosition, momentum);
-        DVector2<SDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
-        SDecimal forceStrength = Body.Mass * Parent.Mass * Constants.G;
+        DVector2<PDecimal> momentum = orbitalVelocity * objectMass;
+        DVector3<PDecimal> angularMomentum = DVector2<PDecimal>.Cross(orbitalPosition, momentum);
+        DVector2<PDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
+        PDecimal forceStrength = objectMass * parentMass * Constants.GPrecise;
         Prograde = Math.Acos(angularMomentum.Z.Positive ? 1 : -1) == 0;
-        LRLVector = (DVector2<SDecimal>)DVector3<SDecimal>.Cross(momentum, angularMomentum) - 
-                    orbitalDirectionVector * Body.Mass * forceStrength;
-        SemiLatusRectum = SDecimal.Square(angularMomentum.Magnitude()) / Body.Mass / forceStrength;
-        
-        Console.WriteLine(Body.Identifier);
-        Console.WriteLine(momentum);
-        Console.WriteLine(angularMomentum);
-        Console.WriteLine(LRLVector);
+        LRLVector = (DVector2<PDecimal>)DVector3<PDecimal>.Cross(momentum, angularMomentum) - 
+                    orbitalDirectionVector * objectMass * forceStrength;
+        SemiLatusRectum = PDecimal.Square(angularMomentum.Magnitude()) / objectMass / forceStrength;
         
         // initialize lazy fields
         _lazyEccentricity = new(LazyInitializeEccentricity);
@@ -108,24 +108,24 @@ public readonly record struct KeplerOrbit
     }
 
     private double LazyInitializePeriapsis()
-        => LRLVector != DVector2<SDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
+        => LRLVector != DVector2<PDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
 
     private double LazyInitializeEccentricity()
-        => (double)(LRLVector.Magnitude() / SDecimal.Abs(Body.Mass * Body.Mass * Parent.Mass * Constants.G));
+        => (double)(LRLVector.Magnitude() / PDecimal.Abs(PBodyMass * PBodyMass * PParentMass * Constants.GPrecise));
     
     private OrbitEquation LazyInitializeEquation()
     {
         double periapsis = Periapsis;
         double eccentricity = Eccentricity;
-        SDecimal semiLatusRectum = SemiLatusRectum;
-        return angle => semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis));
+        PDecimal semiLatusRectum = SemiLatusRectum;
+        return angle => (SDecimal)(semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis)));
     }
 
     private SDecimal LazyInitializeSemiMajorAxis()
     {
         switch (Eccentricity)
         {
-            case <= 0: return SemiLatusRectum;
+            case <= 0: return (SDecimal)SemiLatusRectum;
             case > 0 and < 1: return (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
             case >= 1: return Equation(Periapsis) / (1 - Eccentricity);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
@@ -136,9 +136,9 @@ public readonly record struct KeplerOrbit
     {
         switch (Eccentricity)
         {
-            case <= 0: return SemiLatusRectum;
+            case <= 0: return (SDecimal)SemiLatusRectum;
             case > 0 and < 1: return SDecimal.Sqrt(Equation(Periapsis) * Equation(Periapsis + Math.PI));
-            case >= 1: return SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
+            case >= 1: return (SDecimal)SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }

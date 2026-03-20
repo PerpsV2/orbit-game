@@ -57,6 +57,9 @@ public readonly struct DVector3<T>(T x, T y, T z)
         DVector3<T> difference = end - start;
         return difference / difference.Magnitude();
     }
+    
+    public static DVector3<TResult> Map<TResult>(DVector3<T> value) where TResult : IArbitraryPlaceDecimal<TResult>, new()
+        => new(T.Map<TResult>(value.X), T.Map<TResult>(value.Y), T.Map<TResult>(value.Z));
 
     #region Operators
     
