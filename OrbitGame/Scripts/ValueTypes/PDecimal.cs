@@ -334,9 +334,15 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         TOther other = new TOther();
         if (other is SDecimal)
         {
-            while (BigInteger.Abs(value.Mantissa) > long.MaxValue)
-                value.IncreaseExponent(value._exponent + 1);
-            SDecimal sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
+            SDecimal sDecimal;
+            if (IsPositiveInfinity(value)) sDecimal = SDecimal.PosInfinity;
+            else if (IsNegativeInfinity(value)) sDecimal = SDecimal.NegInfinity;
+            else
+            {
+                while (BigInteger.Abs(value.Mantissa) > long.MaxValue)
+                    value.IncreaseExponent(value._exponent + 1);
+                sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
+            }
             if (sDecimal is TOther result) return result;
         }
         

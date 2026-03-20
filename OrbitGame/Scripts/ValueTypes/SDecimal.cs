@@ -213,18 +213,6 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return Math.Atan2((double)y, (double)x);
     }
 
-    public static TOther Map<TOther>(SDecimal value) where TOther : new()
-    {
-        TOther other = new TOther();
-        if (other is PDecimal)
-        {
-            PDecimal pDecimal = new PDecimal(value.Mantissa, value.Exponent);
-            if (pDecimal is TOther result) return result;
-        }
-        
-        throw new NotImplementedException();
-    }
-
     public static SDecimal Abs(SDecimal value)
     {
         if (value._infinite) return new SDecimal(true, true);
@@ -286,6 +274,21 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (Exponent < -1) return 0;
         if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
         return new(double.Round(Mantissa, Exponent), Exponent);
+    }
+    
+    public static TOther Map<TOther>(SDecimal value) where TOther : new()
+    {
+        TOther other = new TOther();
+        if (other is PDecimal)
+        {
+            PDecimal pDecimal;
+            if (IsPositiveInfinity(value)) pDecimal = PDecimal.PosInfinity;
+            else if (IsNegativeInfinity(value)) pDecimal = PDecimal.NegInfinity;
+            else pDecimal = new PDecimal(value.Mantissa, value.Exponent);
+            if (pDecimal is TOther result) return result;
+        }
+        
+        throw new NotImplementedException();
     }
     
     #region Operators
