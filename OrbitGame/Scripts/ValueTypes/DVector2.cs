@@ -87,8 +87,8 @@ public readonly struct DVector2<T>(T x, T y) : IEquatable<DVector2<T>>, IFormatt
         return FromPolar(Direction());
     }
 
-    public static DVector2<TResult> Map<TResult>(DVector2<T> value) where TResult : IArbitraryPlaceDecimal<TResult>, new()
-        => new(T.Map<TResult>(value.X), T.Map<TResult>(value.Y));
+    public DVector2<TResult> Map<TResult>() where TResult : IArbitraryPlaceDecimal<TResult>, new()
+        => new(X.Map<TResult>(), Y.Map<TResult>());
     
     /// <summary>
     /// Rotates a SD_Vector2 about the origin along the Z-axis by a given angle.

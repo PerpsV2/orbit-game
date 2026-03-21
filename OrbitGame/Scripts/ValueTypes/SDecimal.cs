@@ -24,11 +24,11 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     /// <summary>
     /// Represents a number that approaches positive infinity.
     /// </summary>
-    public static readonly SDecimal PosInfinity = new(true, true);
+    public static SDecimal PosInfinity { get; } = new(true, true);
     /// <summary>
     /// Represents a number that approaches negative infinity.
     /// </summary>
-    public static readonly SDecimal NegInfinity = new(true, false);
+    public static SDecimal NegInfinity { get; } = new(true, false);
     
     private readonly bool _infinite = false;
 
@@ -276,8 +276,9 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return new(double.Round(Mantissa, Exponent), Exponent);
     }
     
-    public static TOther Map<TOther>(SDecimal value) where TOther : new()
+    public TOther Map<TOther>() where TOther : new()
     {
+        SDecimal value = this;
         TOther other = new TOther();
         if (other is PDecimal)
         {
@@ -368,7 +369,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
 
     public static explicit operator PDecimal(SDecimal value)
-        => Map<PDecimal>(value);
+        => value.Map<PDecimal>();
     
     #endregion
     

@@ -7,12 +7,12 @@ namespace OrbitGame.Tests;
 
 public class Utils_Tests
 {
-    private readonly DVector2<>[] _testEmptyHull = [];
-    private readonly DVector2<>[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
-    private readonly DVector2<>[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
-    private readonly DVector2<>[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
-    private readonly DVector2<>[] _testNoRotationConvexHull = [new(-1, -1), new(-1, -1), new(1, 1)];
-    private readonly DVector2<>[] _testNonConvexHull =
+    private readonly DVector2<SDecimal>[] _testEmptyHull = [];
+    private readonly DVector2<SDecimal>[] _testConvexHull = [new(4, 4), new(4, 0), new(0, 0), new(0, 4)];
+    private readonly DVector2<SDecimal>[] _testCWConvexHull = [new(-1, -1), new(0, 1), new(1, 0)];
+    private readonly DVector2<SDecimal>[] _testCCWConvexHull = [new(-1, -1), new(1, 0), new(0, 1)];
+    private readonly DVector2<SDecimal>[] _testNoRotationConvexHull = [new(-1, -1), new(-1, -1), new(1, 1)];
+    private readonly DVector2<SDecimal>[] _testNonConvexHull =
     [
         new(2, 2),
         new(-4, -2),
@@ -130,25 +130,25 @@ public class Utils_Tests
     {
         Assert.Throws<ArgumentException>(() => Utils.TriangulateConvex(_testEmptyHull));
         Assert.Equal(new[] {
-            (new DVector2<>(4, 4), new DVector2<>(4, 0), new DVector2<>(0, 0)), 
-            (new DVector2<>(4, 4), new DVector2<>(0, 0), new DVector2<>(0, 4))
+            (new DVector2<SDecimal>(4, 4), new DVector2<SDecimal>(4, 0), new DVector2<SDecimal>(0, 0)), 
+            (new DVector2<SDecimal>(4, 4), new DVector2<SDecimal>(0, 0), new DVector2<SDecimal>(0, 4))
         }, Utils.TriangulateConvex(_testConvexHull));
     }
 
     [Fact]
     public void Utils_CenterOfMassConvexMethod()
     {
-        Assert.Equal(new DVector2<>(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
+        Assert.Equal(new DVector2<SDecimal>(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
     }
 
     [Fact]
     public void Utils_CenterConvexMethod()
     {
         Assert.Equal([
-                new DVector2<>(2, 2),
-                new DVector2<>(2, -2),
-                new DVector2<>(-2, -2),
-                new DVector2<>(-2, 2)
+                new DVector2<SDecimal>(2, 2),
+                new DVector2<SDecimal>(2, -2),
+                new DVector2<SDecimal>(-2, -2),
+                new DVector2<SDecimal>(-2, 2)
             ],
             Utils.CenterConvex(_testConvexHull)
         );

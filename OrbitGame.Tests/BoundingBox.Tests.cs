@@ -4,9 +4,9 @@ namespace OrbitGame.Tests;
 
 public class BoundingBox_Tests
 {
-    private readonly BoundingBox _testPointBoundingBox = new(DVector2<>.Zero, 0, 0);
-    private readonly BoundingBox _testLineBoundingBox = new(DVector2<>.Zero, 0, 10);
-    private readonly BoundingBox _testBoundingBox = new(DVector2<>.Zero, 10, 10);
+    private readonly BoundingBox _testPointBoundingBox = new(DVector2<SDecimal>.Zero, 0, 0);
+    private readonly BoundingBox _testLineBoundingBox = new(DVector2<SDecimal>.Zero, 0, 10);
+    private readonly BoundingBox _testBoundingBox = new(DVector2<SDecimal>.Zero, 10, 10);
 
     [Fact]
     public void BoundingBox_IsEmptyMethod()
@@ -19,7 +19,7 @@ public class BoundingBox_Tests
     [Fact]
     public void BoundingBox_IntersectsWithMethod()
     {
-        SpatialInfo originSpatialInfo = new(DVector2<>.Zero, 0);
+        SpatialInfo originSpatialInfo = new(DVector2<SDecimal>.Zero, 0);
         SpatialInfo overlappingSpatialInfo = new(new(1, 0), 0);
         SpatialInfo touchingSpatialInfo = new(new(5, 0), 0);
         SpatialInfo notTouchingSpatialInfo = new(new(10, 0), 0);

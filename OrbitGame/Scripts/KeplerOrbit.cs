@@ -81,8 +81,8 @@ public readonly record struct KeplerOrbit
         _initialParentSpatialInfo = Parent.SpatialInfo;
         _initialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
 
-        DVector2<PDecimal> orbitalPosition = DVector2<SDecimal>.Map<PDecimal>(Body.Position - Parent.Position);
-        DVector2<PDecimal> orbitalVelocity = DVector2<SDecimal>.Map<PDecimal>(Body.Velocity - Parent.Velocity);
+        DVector2<PDecimal> orbitalPosition = (Body.Position - Parent.Position).Map<PDecimal>();
+        DVector2<PDecimal> orbitalVelocity = (Body.Velocity - Parent.Velocity).Map<PDecimal>();
         PDecimal objectMass = (PDecimal)Body.Mass;
         PDecimal parentMass = (PDecimal)Parent.Mass;
         
@@ -252,7 +252,7 @@ public readonly record struct KeplerOrbit
         => (double)(timeSincePeriapsis * Math.Tau / Period);
         
     private double CalculateMeanAnomalyFromTimeSincePeriapsisHyperbolic(SDecimal timeSincePeriapsis)
-        => (double)(timeSincePeriapsis / SDecimal.Sqrt(SDecimal.Map<SDecimal>(SDecimal.IntPow(-SemiMajorAxis, 3)) /
+        => (double)(timeSincePeriapsis / SDecimal.Sqrt(SDecimal.IntPow(-SemiMajorAxis, 3).Map<SDecimal>() /
                                                        (Parent.Mass * Constants.G)));
 
     private SDecimal CalculateTimeSincePeriapsisFromMeanAnomalyElliptic(double meanAnomaly)
@@ -291,6 +291,8 @@ public readonly record struct KeplerOrbit
             double eccentricAnomaly = CalculateEccentricFromMeanAnomalyHyperbolic(Eccentricity, meanAnomaly);
             return CalculateTrueFromEccentricAnomalyHyperbolic(Eccentricity, eccentricAnomaly);
         }
+
+        return 0;
     }
     
     public DVector2<SDecimal> GetOrbitPositionFromTrueAnomaly(double trueAnomaly)

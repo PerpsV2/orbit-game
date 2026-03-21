@@ -8,7 +8,7 @@ public class CircularCollider_Tests
     private readonly CircularCollider _testEmptyCollider = new(0);
     private readonly CircularCollider _testUnitCollider = new(1);
     private readonly ConvexCollider _testConvexCollider = new([new(1, 2), new(1, -2), new(-1, -2), new(-1, 2)]);
-    private readonly PDecimal _testMass = 10;
+    private readonly SDecimal _testMass = 10;
 
     [Fact]
     public void CircularCollider_Constructor()
@@ -32,27 +32,27 @@ public class CircularCollider_Tests
     [Fact]
     public void CircularCollider_IntersectsWithPointMethod()
     {
-        SpatialInfo originSpatialInfo = new(DVector2<>.Zero, 0);
-        SpatialInfo touchingSpatialInfo = new(new DVector2<>(1, 0), 0);
-        SpatialInfo notTouchingSpatialInfo = new(new DVector2<>(2, 0), 0);
+        SpatialInfo originSpatialInfo = new(DVector2<SDecimal>.Zero, 0);
+        SpatialInfo touchingSpatialInfo = new(new DVector2<SDecimal>(1, 0), 0);
+        SpatialInfo notTouchingSpatialInfo = new(new DVector2<SDecimal>(2, 0), 0);
 
         Assert.Equal(new PointCollision(false),
-            _testEmptyCollider.IntersectsWith(DVector2<>.Zero, originSpatialInfo));
+            _testEmptyCollider.IntersectsWith(DVector2<SDecimal>.Zero, originSpatialInfo));
         Assert.Equal(new PointCollision(true),
-            _testUnitCollider.IntersectsWith(DVector2<>.Zero, originSpatialInfo));
+            _testUnitCollider.IntersectsWith(DVector2<SDecimal>.Zero, originSpatialInfo));
         Assert.Equal(new PointCollision(true),
-            _testUnitCollider.IntersectsWith(DVector2<>.Zero, touchingSpatialInfo));
+            _testUnitCollider.IntersectsWith(DVector2<SDecimal>.Zero, touchingSpatialInfo));
         Assert.Equal(new PointCollision(false),
-            _testUnitCollider.IntersectsWith(DVector2<>.Zero, notTouchingSpatialInfo));
+            _testUnitCollider.IntersectsWith(DVector2<SDecimal>.Zero, notTouchingSpatialInfo));
     }
 
     [Fact]
     public void CircularCollider_IntersectsWithCircularMethod()
     {
-        SpatialInfo originSpatialInfo = new(DVector2<>.Zero, 0);
-        SpatialInfo overlappingSpatialInfo = new(new DVector2<>(1, 0), 0);
-        SpatialInfo touchingSpatialInfo = new(new DVector2<>(2, 0), 0);
-        SpatialInfo notTouchingSpatialInfo = new(new DVector2<>(3, 0), 0);
+        SpatialInfo originSpatialInfo = new(DVector2<SDecimal>.Zero, 0);
+        SpatialInfo overlappingSpatialInfo = new(new DVector2<SDecimal>(1, 0), 0);
+        SpatialInfo touchingSpatialInfo = new(new DVector2<SDecimal>(2, 0), 0);
+        SpatialInfo notTouchingSpatialInfo = new(new DVector2<SDecimal>(3, 0), 0);
 
         PhysicsCollision? overlappingIntersection = _testUnitCollider
             .IntersectsWith(_testUnitCollider, originSpatialInfo, overlappingSpatialInfo);
@@ -78,10 +78,10 @@ public class CircularCollider_Tests
     [Fact]
     public void CircularCollider_IntersectsWithConvexMethod()
     {
-        SpatialInfo originSpatialInfo = new(DVector2<>.Zero, 0);
-        SpatialInfo overlappingSpatialInfo = new(new DVector2<>(2, 0), Math.PI / 2);
-        SpatialInfo touchingSpatialInfo = new(new DVector2<>(2, 0), 0);
-        SpatialInfo notTouchingSpatialInfo = new(new DVector2<>(3, 0), 0);
+        SpatialInfo originSpatialInfo = new(DVector2<SDecimal>.Zero, 0);
+        SpatialInfo overlappingSpatialInfo = new(new DVector2<SDecimal>(2, 0), Math.PI / 2);
+        SpatialInfo touchingSpatialInfo = new(new DVector2<SDecimal>(2, 0), 0);
+        SpatialInfo notTouchingSpatialInfo = new(new DVector2<SDecimal>(3, 0), 0);
 
         PhysicsCollision? overlappingIntersection = _testUnitCollider
             .IntersectsWith(_testConvexCollider, originSpatialInfo, overlappingSpatialInfo);
@@ -106,10 +106,10 @@ public class CircularCollider_Tests
     [Fact]
     public void CircularCollider_NearsWithMethod()
     {
-        SpatialInfo originSpatialInfo = new(DVector2<>.Zero, 0);
-        SpatialInfo nearsCircularSpatialInfo = new(new DVector2<>(1.5, 1.5), 0);
-        SpatialInfo nearsConvexSpatialInfo = new(new DVector2<>(3 - 0.1, 2 - 0.1), Math.PI / 2);
-        SpatialInfo notNearsSpatialInfo = new(new DVector2<>(5, 0), 0);
+        SpatialInfo originSpatialInfo = new(DVector2<SDecimal>.Zero, 0);
+        SpatialInfo nearsCircularSpatialInfo = new(new DVector2<SDecimal>(1.5, 1.5), 0);
+        SpatialInfo nearsConvexSpatialInfo = new(new DVector2<SDecimal>(3 - 0.1, 2 - 0.1), Math.PI / 2);
+        SpatialInfo notNearsSpatialInfo = new(new DVector2<SDecimal>(5, 0), 0);
             
         Assert.False(_testEmptyCollider.NearsWith(_testUnitCollider, originSpatialInfo, originSpatialInfo));
         Assert.True(_testUnitCollider.NearsWith(_testUnitCollider, originSpatialInfo, nearsCircularSpatialInfo));

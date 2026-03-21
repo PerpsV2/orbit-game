@@ -3,9 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using OrbitGame;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 // ReSharper disable once CheckNamespace
-using Microsoft.Xna.Framework;
 
 namespace Xunit;
 
@@ -13,29 +14,23 @@ public abstract partial class Assert
 {
     public static readonly double Epsilon = 1e-10;
 
-    public static void Equal(OrbitGame.PDecimal left, OrbitGame.PDecimal right)
+    public static void Equal<T>(T left, T right, T tolerance) where T : IArbitraryPlaceDecimal<T>
     {
-        Equal(left, right, Epsilon);
-    }
-    
-    public static void Equal(OrbitGame.PDecimal left, OrbitGame.PDecimal right, 
-        OrbitGame.PDecimal tolerance)
-    {
-        if (PDecimal.IsInfinity(left) && PDecimal.IsInfinity(right))
+        if (T.IsInfinity(left) && T.IsInfinity(right))
         {
-            Equal(PDecimal.IsInfinity(left), PDecimal.IsInfinity(right));
+            Equal(T.IsInfinity(left), T.IsInfinity(right));
             Equal(left.Positive, right.Positive);
         }
         else
         {
-            True(PDecimal.Abs(left - right) < tolerance);
+            True(T.Abs(left - right) < tolerance);
         }
     }
     
-    public static void Equal(OrbitGame.DVector2<> left, OrbitGame.DVector2<> right)
+    public static void Equal<T>(DVector2<T> left, DVector2<T> right) where T : IArbitraryPlaceDecimal<T>
     {
-        Equal(left.X, right.X, Epsilon);
-        Equal(left.Y, right.Y, Epsilon);
+        Equal(left.X, right.X, T.FromDouble(Epsilon));
+        Equal(left.Y, right.Y, T.FromDouble(Epsilon));
     }
 
     public static void Equal(Vector2 left, Vector2 right)
@@ -44,32 +39,33 @@ public abstract partial class Assert
         Equal(left.Y, right.Y, Epsilon);
     }
 
-    public static void Equal(OrbitGame.DVector3<> left, OrbitGame.DVector3<> right)
+    public static void Equal<T>(OrbitGame.DVector3<T> left, OrbitGame.DVector3<T> right) 
+        where T : IArbitraryPlaceDecimal<T>
     {
-        Equal(left.X, right.X, Epsilon);
-        Equal(left.Y, right.Y, Epsilon);
-        Equal(left.Z, right.Z, Epsilon);
+        Equal(left.X, right.X, T.FromDouble(Epsilon));
+        Equal(left.Y, right.Y, T.FromDouble(Epsilon));
+        Equal(left.Z, right.Z, T.FromDouble(Epsilon));
     }
 
-    public static void Equal(OrbitGame.Matrix3X3 left, OrbitGame.Matrix3X3 right)
+    public static void Equal<T>(Matrix3X3<T> left, Matrix3X3<T> right) 
+        where T : IArbitraryPlaceDecimal<T>
     {
         for (int i = 0; i < 9; ++i)
-            True(Math.Abs((double)(left.Data[i] - right.Data[i])) < Epsilon);
+            True(T.Abs(left.Data[i] - right.Data[i]) < T.FromDouble(Epsilon));
     }
     
     /// <summary>
     /// Assert equality of two collision manifolds
     /// </summary>
-    public static void Equal(HashSet<OrbitGame.DVector2<>> left, HashSet<OrbitGame.DVector2<>> right)
+    public static void Equal<T>(HashSet<DVector2<T>> left, HashSet<DVector2<T>> right) 
+        where T : IArbitraryPlaceDecimal<T>
     {
         Equal(left.Count, right.Count);
         for (int i = 0; i < left.Count; ++i)
-        {
             Equal(left.ElementAt(i), right.ElementAt(i));
-        }
     }
         
-    public static void Equal(OrbitGame.PhysicsCollision left, OrbitGame.PhysicsCollision right)
+    public static void Equal(PhysicsCollision left, PhysicsCollision right)
     {
         Equal(left.Incident, right.Incident);
         Equal(left.Reference, right.Reference);

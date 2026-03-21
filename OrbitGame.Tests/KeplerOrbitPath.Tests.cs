@@ -29,18 +29,18 @@ public class KeplerOrbitPath_Tests
         OrbitGame.Graphics = _graphics;
         _orbitMesh = new OrbitMesh();
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
-            new SpatialInfo(DVector2<>.Zero, DVector2<>.Zero), 1, 0, Color.White, null);
+            new SpatialInfo(DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero), 1, 0, Color.White, null);
         _circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
-            new DVector2<>(0, 1),
-            new DVector2<>(Math.Sqrt(1 + 0), 0)
+            new DVector2<SDecimal>(0, 1),
+            new DVector2<SDecimal>(Math.Sqrt(1 + 0), 0)
         ), 1, 0, Color.White, parent);
         _ellipticBody = _testPlanetTemplate.CreateInstance("Elliptic Orbit Body", new SpatialInfo(
-            new DVector2<>(0, 1),
-            new DVector2<>(Math.Sqrt(1 + 0.96), 0)
+            new DVector2<SDecimal>(0, 1),
+            new DVector2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
         ), 1, 0, Color.White, parent);
         _hyperbolicBody = _testPlanetTemplate.CreateInstance("Hyperbolic Orbit Body", new SpatialInfo(
-            new DVector2<>(0, 1),
-            new DVector2<>(Math.Sqrt(1 + 2.6), 0)
+            new DVector2<SDecimal>(0, 1),
+            new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, parent);
         
         _circularBody.GenerateKeplerianOrbit(0);
@@ -49,12 +49,12 @@ public class KeplerOrbitPath_Tests
 
         _selectedOrbitPoint = new KeplerOrbitPathPoint(_circularBody.KeplerOrbitPath, 0);
 
-        SpatialInfo cameraSpatialInfo = new(position: DVector2<>.Zero);
+        SpatialInfo cameraSpatialInfo = new(position: DVector2<SDecimal>.Zero);
         ICameraMovementScheme cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);
         _fullOrbitCamera = new Camera("Full Orbit Camera", cameraSpatialInfo, 2, 2, 
             _screenSize.width, _screenSize.height, cameraMovementScheme);
         
-        cameraSpatialInfo = new(position: new DVector2<>(0, -49));
+        cameraSpatialInfo = new(position: new DVector2<SDecimal>(0, -49));
         cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);
         _partialOrbitCamera = new Camera("Partial Orbit Camera", cameraSpatialInfo, 1, 1, 
             _screenSize.width, _screenSize.height, cameraMovementScheme);

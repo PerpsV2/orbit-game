@@ -1,6 +1,14 @@
 ﻿using BenchmarkDotNet.Attributes;
 using OrbitGame;
 
+var pDecimal = new PDecimal(5, 100);
+var sDecimal = new SDecimal(4, 100);
+Console.WriteLine(pDecimal.Map<SDecimal>());
+Console.WriteLine(sDecimal.Map<PDecimal>());
+
+Console.WriteLine(pDecimal);
+Console.WriteLine(sDecimal);
+
 //var summary = BenchmarkRunner.Run<Benchmarker>();
 
 /*public class Benchmarker

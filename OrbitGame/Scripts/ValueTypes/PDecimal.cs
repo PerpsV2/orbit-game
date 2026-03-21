@@ -329,8 +329,9 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return value < min ? min : value > max ? max : value;
     }
     
-    public static TOther Map<TOther>(PDecimal value) where TOther : new()
+    public TOther Map<TOther>() where TOther : new()
     {
+        PDecimal value = this;
         TOther other = new TOther();
         if (other is SDecimal)
         {
@@ -340,7 +341,8 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             else
             {
                 while (BigInteger.Abs(value.Mantissa) > long.MaxValue)
-                    value.IncreaseExponent(value._exponent + 1);
+                    value.IncreaseExponent(value.Exponent + 1);
+
                 sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
             }
             if (sDecimal is TOther result) return result;
@@ -447,7 +449,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         => ToDouble(value);
 
     public static explicit operator SDecimal(PDecimal value)
-        => Map<SDecimal>(value);
+        => value.Map<SDecimal>();
     
     public static bool IsZero(PDecimal value)
         => !value._infinite && value._mantissa == 0;
