@@ -27,8 +27,13 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
     {
         List<Task> tasks = new List<Task>();
         foreach (var reference in bodies)
-            foreach (var incident in bodies)
-                tasks.Add(Task.Run(() => resolver(reference, incident)));
+        foreach (var incident in bodies)
+        {
+            tasks.Add(Task.Run(() =>
+            {
+                if (reference != incident) resolver(reference, incident);
+            }));
+        }
         Task.WaitAll(tasks.ToArray());
     }
     
@@ -105,12 +110,12 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             (double)(DVector2<SDecimal>.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
         if (!incidentCollider.Fixed) incident.AngularVelocity += 
             (double)(DVector2<SDecimal>.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
-        
         // apply projection method to resolve intersection
+        
         if (!referenceCollider.Fixed && !incidentCollider.Fixed)
         {
             reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
-            incident.Position -= c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
+            incident.Position += c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
         }
         else if (referenceCollider.Fixed) incident.Position += c2.PenetrationVector;
         else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;
@@ -120,7 +125,7 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
                 var g = OrbitGame.Graphics;
                 var cam = OrbitGame.Camera;
                 g.SD_DrawPoint(cam, reference.Position + cPr, Color.Blue);
-                g.SD_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Blue);
+                g.SD_DrawLineR(cam, reference.Position + cPr, c1.PenetrationVector, Color.Red);
                 g.SD_DrawLineR(cam, reference.Position + cPr, cTangent, Color.Purple);
                 foreach (var point in c1.CollisionManifold)
                     g.SD_DrawPoint(cam, reference.Position + point, Color.Red);

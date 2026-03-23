@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -45,8 +47,8 @@ public class ConvexCollider : CompactCollider
             incidentSpatial.Angle - referenceSpatial.Angle
         );
         
-        // // edge case (literally)
-        // // TODO: fix cases where one object is fully within the other
+        // edge case (literally)
+        // TODO: fix cases where one object is fully within the other
         for (int i = 0; i < _points.Length; ++i)
         {
             DVector2<SDecimal> currentVertex = _points[i];
@@ -91,9 +93,69 @@ public class ConvexCollider : CompactCollider
         return null;
     }
 
-    protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial)
+    protected override PhysicsCollision? IntersectsWith(
+        ConvexCollider collider, 
+        SpatialInfo referenceSpatial, 
+        SpatialInfo incidentSpatial)
     {
-        throw new NotImplementedException();
+        if (IsEmpty() || collider.IsEmpty()) return null;
+
+        DVector2<SDecimal>[] referencePoints = _points.Select(x => DVector2<SDecimal>.RotatePoint(x, referenceSpatial.Angle)).ToArray();
+        DVector2<SDecimal>[] incidentPoints = collider._points
+            .Select(x => DVector2<SDecimal>.RotatePoint(x, incidentSpatial.Angle))
+            .Select(x => x + incidentSpatial.Position - referenceSpatial.Position).ToArray();
+        
+        SDecimal minPenetrationDistance = SDecimal.PosInfinity;
+        DVector2<SDecimal> minPenetrationVector = DVector2<SDecimal>.Zero;
+
+        DVector2<SDecimal>[] referenceEdges = new DVector2<SDecimal>[referencePoints.Length];
+        for (int i = 0; i < referenceEdges.Length; i++)
+            referenceEdges[i] = referencePoints[(i + 1) % referencePoints.Length] - referencePoints[i];
+        DVector2<SDecimal>[] incidentEdges = new DVector2<SDecimal>[incidentPoints.Length];
+        for (int i = 0; i < incidentEdges.Length; i++) 
+            incidentEdges[i] = incidentPoints[(i + 1) % incidentPoints.Length] - incidentPoints[i];
+
+        foreach (var edge in referenceEdges.Concat(incidentEdges))
+        {
+            double edgeAngle = edge.Direction();
+            SDecimal[] projectedReferencePoints = referencePoints
+                .Select(x => DVector2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
+            (SDecimal min, SDecimal max) referenceRange = (projectedReferencePoints.Min(), projectedReferencePoints.Max());
+            SDecimal[] projectedIncidentPoints = incidentPoints
+                .Select(x => DVector2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
+            (SDecimal min, SDecimal max) incidentRange = (projectedIncidentPoints.Min(), projectedIncidentPoints.Max());
+            
+            // check for SAT projection intersection
+            if (referenceRange.min <= incidentRange.max && incidentRange.min <= referenceRange.max)
+            {
+                SDecimal forwardsPenetrationDistance = referenceRange.max - incidentRange.min;
+                SDecimal backwardsPenetrationDistance = incidentRange.max - incidentRange.min;
+                SDecimal penetrationDistance =
+                    SDecimal.Abs(forwardsPenetrationDistance - backwardsPenetrationDistance) > 0
+                        ? -forwardsPenetrationDistance
+                        : backwardsPenetrationDistance;
+                if (SDecimal.Abs(penetrationDistance) < minPenetrationDistance)
+                {
+                    minPenetrationDistance = SDecimal.Abs(penetrationDistance);
+                    minPenetrationVector = DVector2<SDecimal>.FromPolar(
+                        edgeAngle - Math.PI / 2,
+                        minPenetrationDistance
+                    );
+                }
+            }
+            // no intersection, therefore no collision
+            else return null;
+        }
+        
+        // determine collision point
+        double collisionNormalAngle = 0;
+        if (minPenetrationVector.MagnitudeSquared() > 0) 
+            collisionNormalAngle = minPenetrationVector.Direction();
+        var indexedColliderPoints = referencePoints.Index();
+        var collisionPoint = indexedColliderPoints
+            .MinBy(x => DVector2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X).Item;
+        
+        return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
     }
 
     public override bool IsEmpty()

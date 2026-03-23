@@ -208,6 +208,8 @@ public class OrbitGame : Game
                 new DVector2<SDecimal>(new SDecimal(8.0919083, 2), new SDecimal(8.0919083, 2))),
             new SDecimal(2.2, 14), new SDecimal(5.5, 3), new Color(200, 100, 200, 255), sun
         );
+        
+        Bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
             
         DVector2<SDecimal>[] points = Utils.CenterConvex([
             new(0.4, 0.4),
@@ -216,29 +218,27 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]);
+        
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
         Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
-        
-        Bodies = [sun, mercury, venus, earth, moon, mars, jupiter, io, europa, ganymede, callisto, saturn, uranus, neptune, halley];
-        
-        // for (int i = 0; i < 5; i++)
-        // {
-        //     SD_Vector2 randomPosition = new(_rnd.Next(-10, 10), _rnd.Next(-10, 10));
-        //     Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
-        //         new(
-        //             new SD_Vector2(2 * new ScientificDecimal(6.378, 6), 0) + randomPosition,
-        //             SD_Vector2.Zero
-        //         ), 1000, new Color(0, 255, 0, 255), earth);
-        //     Bodies.Add(smokestack);
-        //     smokestack.DrawOrbitalPath = true;
-        // }
+        for (int i = 0; i < 10; i++)
+        {
+             DVector2<SDecimal> randomPosition = new(_rnd.Next(-100, 100), _rnd.Next(-100, 100));
+             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
+                 new(
+                     new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
+                     DVector2<SDecimal>.Zero
+                 ), 1000, new Color(0, 255, 0, 255), earth);
+             Bodies.Add(smokestack);
+             smokestack.DrawOrbitalPath = true;
+        }
 
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
-            new(4, 4),
-            new(4, -3),
-            new(-2, -5),
-            new(-4, 0),
-            new(-3, 5)
+            new(1, 1),
+            new(1, -0.75),
+            new(-0.5, -1.25),
+            new(-1, 0),
+            new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
             new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0)), 1000, new Color(255, 0, 0, 255), earth);
@@ -247,22 +247,23 @@ public class OrbitGame : Game
         
         #endregion
 
-        Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(DVector2<SDecimal>.Zero), 50000000, 500, 
+        Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(DVector2<SDecimal>.Zero), 5000000000000, 30, 
             new Color(125, 150, 130, 255), null);
             
-        Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(Utils.CenterConvex([
-            new(4, 3),
-            new(3, -5),
-            new(-2, -5),
-            new(-4, 2)
+        /*Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(Utils.CenterConvex([
+            new(3, 3),
+            new(6, -3),
+            new(-3, -3),
+            new(-6, 3)
         ]), shipMaterial);
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 10; ++i)
         {
-            DVector2<SDecimal> randomPosition = DVector2<SDecimal>.FromPolar(_rnd.NextDouble() * Math.Tau, _rnd.Next(510, 550));
+            DVector2<SDecimal> randomPosition = DVector2<SDecimal>.FromPolar(_rnd.NextDouble() * Math.PI / 8, _rnd.Next(100, 120));
             int randomColour = _rnd.Next(200, 255);
             Ship chimneyPipe = shipTemplate2.CreateInstance("Chimneypipe " + i,
                 new SpatialInfo(randomPosition), 250, new Color(120, 200, randomColour, 255), manatee);
-        }
+            Bodies.Add(chimneyPipe);
+        }*/
 
         Planets = Bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
         Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
@@ -276,7 +277,8 @@ public class OrbitGame : Game
         GameState.TrackingIndex = Bodies.IndexOf(OriginBody.Body);
         _collisionHandler = new CollisionHandler(Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => 
-                CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)}
+                CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)},
+            {(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision}
         });
 
         base.Initialize();
@@ -417,14 +419,14 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
         if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(-100000, 0), new DVector2<SDecimal>(-0.4, 0));
+            new DVector2<SDecimal>(-10000, 0), new DVector2<SDecimal>(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.D8)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(-1000000, 0), new DVector2<SDecimal>(-0.4, 0));
+            new DVector2<SDecimal>(-100000, 0), new DVector2<SDecimal>(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(
             new DVector2<SDecimal>(10000, 0), new DVector2<SDecimal>(-0.4, 0.1));
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(
             new DVector2<SDecimal>(10000, 0), new DVector2<SDecimal>(-0.4, -0.1));
-
+        
         _lastKeyboardState = keyboardState;
     }
 

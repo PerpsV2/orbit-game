@@ -102,4 +102,10 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         mesh.TryGenerateBuffers(graphicsDevice);
         mesh.Draw(graphicsDevice, transform, shaderParameters);
     }
+
+    public void DrawMesh(IMesh mesh, Vector2 scale, Vector2 position, Vector2 rotation, Color colour)
+    {
+        mesh.TryGenerateBuffers(graphicsDevice);
+        
+    }
 }

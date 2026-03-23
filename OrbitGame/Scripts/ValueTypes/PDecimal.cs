@@ -340,8 +340,10 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             else if (IsNegativeInfinity(value)) sDecimal = SDecimal.NegInfinity;
             else
             {
-                while (BigInteger.Abs(value.Mantissa) > long.MaxValue)
-                    value.IncreaseExponent(value.Exponent + 1);
+                if (BigInteger.Abs(value.Mantissa) > long.MaxValue)
+                    value.IncreaseExponent(value.Exponent +
+                                           ((int)Math.Floor(BigInteger.Log10(BigInteger.Abs(value.Mantissa))) - 17)
+                    );
 
                 sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
             }

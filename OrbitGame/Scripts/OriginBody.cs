@@ -22,13 +22,5 @@ public static class OriginBody
     public static void ResetOrigin()
     {
         OnResetOrigin?.Invoke(null, new OriginBodyEventArgs(-Body?.Position ?? DVector2<SDecimal>.Zero));
-        /*if (Body == null) return;
-        foreach (var obj in kinObjects)
-        {
-            if (obj == Body) continue;
-            obj.ResetOrigin(Body.Position);
-        }
-
-        Body.Position = SD_Vector2.Zero;*/
     }
 }

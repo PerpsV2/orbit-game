@@ -291,8 +291,6 @@ public readonly record struct KeplerOrbit
             double eccentricAnomaly = CalculateEccentricFromMeanAnomalyHyperbolic(Eccentricity, meanAnomaly);
             return CalculateTrueFromEccentricAnomalyHyperbolic(Eccentricity, eccentricAnomaly);
         }
-
-        return 0;
     }
     
     public DVector2<SDecimal> GetOrbitPositionFromTrueAnomaly(double trueAnomaly)
@@ -316,7 +314,7 @@ public readonly record struct KeplerOrbit
     public SpatialInfo GetStateAtTime(SDecimal time)
     {
         time += InitialTimeSincePeriapsis;
-        if (Eccentricity < 1) time %= Period;
+        if (Eccentricity < 1) Utils.UnsignedMod(time, Period);
         double trueAnomaly = CalculateTrueAnomalyFromTimeSincePeriapsis(time);
         if (double.IsNaN(trueAnomaly)) return Body.SpatialInfo;
         SDecimal orbitalDistance = Equation(trueAnomaly + Periapsis);

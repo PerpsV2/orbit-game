@@ -119,7 +119,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
             Mantissa /= 10;
             Exponent++;
         }
-
+        
         while (Math.Abs(Mantissa) < 1)
         {
             Mantissa *= 10;
@@ -273,7 +273,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (Mantissa == 0) return this;
         if (Exponent < -1) return 0;
         if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Exponent), Exponent);
+        return new(double.Round(Mantissa, Math.Clamp(Exponent, 0, 15)), Exponent);
     }
     
     public TOther Map<TOther>() where TOther : new()

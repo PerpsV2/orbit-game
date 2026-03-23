@@ -116,5 +116,10 @@ public abstract class KinematicObject
             AllInstances.Remove(identifier);
             return Instances.Remove(identifier);
         }
+
+        public static void DestroyAll()
+        {
+            AllInstances.Clear();
+        }
     }
 }

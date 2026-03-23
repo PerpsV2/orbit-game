@@ -23,8 +23,8 @@ public interface IMesh
     /// <summary>
     /// Draw the mesh using the generated vertex and index buffers.
     /// </summary>
-    /// <param name="graphics">Graphics device to be drawn on.</param>
+    /// <param name="graphicsDevice">Graphics device to be drawn on.</param>
     /// <param name="transform">Transform to be applied to the mesh.</param>
     /// <param name="shaderParameters">Collection of KeyValuePairs with the parameter name as the key.</param>
-    public void Draw(GraphicsDevice graphics, Matrix transform, Dictionary<string, object> shaderParameters);
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters);
 }
