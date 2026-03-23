@@ -102,16 +102,16 @@ public class OrbitGame : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
-
-    public static List<Body> Bodies = [];
-    public static List<Planet> Planets = [];
-    public static List<Ship> Ships = [];
+    
     public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
     public static Camera Camera = new("Camera", new(DVector2<SDecimal>.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
-    CollisionHandler _collisionHandler;
+    private CollisionHandler _collisionHandler;
+    private Body[] Bodies => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Body>().ToArray();
+    private Planet[] Planets => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Planet>().ToArray();
+    private Ship[] Ships => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Ship>().ToArray();
 
     private SpriteFont _font;
     private readonly Random _rnd = new();
@@ -208,31 +208,25 @@ public class OrbitGame : Game
                 new DVector2<SDecimal>(new SDecimal(8.0919083, 2), new SDecimal(8.0919083, 2))),
             new SDecimal(2.2, 14), new SDecimal(5.5, 3), new Color(200, 100, 200, 255), sun
         );
-        
-        Bodies = [sun, mercury, venus, earth, moon, mars, jupiter, saturn, uranus, neptune, halley];
             
-        DVector2<SDecimal>[] points = Utils.CenterConvex([
+        Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
+        Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
             new(0.4, 0.4),
             new(0.4, -0.3),
             new(-0.2, -0.5),
             new(-5, 0),
             new(-0.3, 0.5)
-        ]);
-        
-        Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
-        Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(points, shipMaterial);
-        for (int i = 0; i < 10; i++)
+        ]), shipMaterial);
+        for (int i = 0; i < 50; i++)
         {
-             DVector2<SDecimal> randomPosition = new(_rnd.Next(-100, 100), _rnd.Next(-100, 100));
-             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
-                 new(
+             DVector2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
+             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
                      new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
                      DVector2<SDecimal>.Zero
                  ), 1000, new Color(0, 255, 0, 255), earth);
-             Bodies.Add(smokestack);
-             smokestack.DrawOrbitalPath = true;
+             smokestack.DrawOrbitalPath = false;
         }
-
+        
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
             new(1, 1),
             new(1, -0.75),
@@ -242,15 +236,16 @@ public class OrbitGame : Game
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
             new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0)), 1000, new Color(255, 0, 0, 255), earth);
-        Bodies.Add(strawhat);
         strawhat.DrawOrbitalPath = true;
         
         #endregion
 
-        Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(DVector2<SDecimal>.Zero), 5000000000000, 30, 
+        #region Test Bodies
+        
+        /*Planet manatee = planetTemplate.CreateInstance("Manatee", new SpatialInfo(DVector2<SDecimal>.Zero), 5000000000000, 30, 
             new Color(125, 150, 130, 255), null);
             
-        /*Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(Utils.CenterConvex([
+        Ship.ShipTemplate shipTemplate2 = new Ship.ShipTemplate(Utils.CenterConvex([
             new(3, 3),
             new(6, -3),
             new(-3, -3),
@@ -264,9 +259,9 @@ public class OrbitGame : Game
                 new SpatialInfo(randomPosition), 250, new Color(120, 200, randomColour, 255), manatee);
             Bodies.Add(chimneyPipe);
         }*/
+        
+        #endregion
 
-        Planets = Bodies.Where(x => x is Planet).Select(x => x as Planet ?? throw new Exception()).ToList();
-        Ships = Bodies.Where(x => x is Ship).Select(x => x as Ship ?? throw new Exception()).ToList();
         foreach (var planet in Planets) planet.GenerateKeplerianOrbit(GameState.PhysicsTime);
         OriginBody.Body = Bodies[^1];
         GameState.Tracking = OriginBody.Body;
@@ -274,7 +269,7 @@ public class OrbitGame : Game
         Camera.Focus();
         GameState.ControlShip = Ships[^1];
         GameState.ControlShip.DrawOrbitalPath = true;
-        GameState.TrackingIndex = Bodies.IndexOf(OriginBody.Body);
+        GameState.TrackingIndex = Array.IndexOf(Bodies, OriginBody.Body);
         _collisionHandler = new CollisionHandler(Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => 
                 CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)},
@@ -308,7 +303,7 @@ public class OrbitGame : Game
 
     private void TrackBody(int index)
     {
-        GameState.TrackingIndex = (int)Utils.UnsignedMod(index, Bodies.Count);
+        GameState.TrackingIndex = (int)Utils.UnsignedMod(index, Bodies.Length);
         GameState.Tracking = Bodies[GameState.TrackingIndex];
         Camera.MovementScheme = new TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
     }
@@ -485,9 +480,6 @@ public class OrbitGame : Game
         
         OriginBody.ResetOrigin();
         Camera.Update();
-        
-        Ships.RemoveAll(ship => ship.MarkedForRemoval);
-        Bodies.RemoveAll(body => (body as Ship)?.MarkedForRemoval ?? false);
         
         base.Update(gameTime);
     }

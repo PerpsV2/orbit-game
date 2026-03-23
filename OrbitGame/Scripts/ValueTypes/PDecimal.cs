@@ -127,6 +127,11 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             return;
         }
         if (Exponent < MinExponent) IncreaseExponent(MinExponent);
+        if (Mantissa == 0)
+        {
+            Exponent = 0;
+            return;
+        }
 
         while (true) {
             BigInteger quotient = BigInteger.DivRem(Mantissa, 10, out BigInteger remainder);

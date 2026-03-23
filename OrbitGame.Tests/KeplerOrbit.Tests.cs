@@ -25,6 +25,7 @@ public class KeplerOrbit_Tests
     {
         _output = output;
         Constants.G = 1;
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
         _parent = _testPlanetTemplate.CreateInstance("Test Parent", 
             new SpatialInfo(DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero), 1, 0, Color.White, null);
         _circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
@@ -75,6 +76,8 @@ public class KeplerOrbit_Tests
     [Fact]
     public void KeplerOrbit_EllipticConstructor()
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         Assert.NotNull(_ellipticBody.KeplerOrbitPath.Orbit);
         KeplerOrbit orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
         

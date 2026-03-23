@@ -117,6 +117,11 @@ public abstract class KinematicObject
             return Instances.Remove(identifier);
         }
 
+        public static bool DestroyGlobal(string identifier)
+        {
+            return AllInstances.Remove(identifier);
+        }
+
         public static void DestroyAll()
         {
             AllInstances.Clear();

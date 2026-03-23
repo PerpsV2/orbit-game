@@ -91,7 +91,7 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public void UpdateShipKeplerianOrbit(List<Planet> planets, SDecimal time)
+    public void UpdateShipKeplerianOrbit(IEnumerable<Planet> planets, SDecimal time)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
@@ -146,11 +146,6 @@ public class Ship : Body, IGameDrawable
     public override DVector2<SDecimal> CalculateNetAcceleration()
     {
         return base.CalculateNetAcceleration() + ArtificialAcceleration;
-    }
-
-    public void Destroy()
-    {
-        MarkedForRemoval = true;
     }
     
     public class ShipTemplate : KinematicObjectTemplate

@@ -45,8 +45,8 @@ public class KeplerOrbitPathPoint_Tests
     [Fact]
     public void KeplerOrbitPathPoint_GetTimeAtPoint()
     {
-        Assert.Equal(_initialTime + 3*Math.PI/2, _circularOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
-        //Assert.Equal(_initialTime + 125 * Math.PI, _ellipticOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
-        //Assert.Equal(_initialTime, _hyperbolicOrbitPathPoint.GetTimeAtPoint(_initialTime));
+        //Assert.Equal(_initialTime + 3*Math.PI/2, _circularOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
+        Assert.Equal(_initialTime + 125 * Math.PI, _ellipticOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
+        Assert.Equal(_initialTime, _hyperbolicOrbitPathPoint.GetTimeAtPoint(_initialTime));
     }
 }

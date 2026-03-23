@@ -147,7 +147,7 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             SDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
             if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
             {
-                ship.Destroy();
+                KinematicObject.KinematicObjectTemplate.DestroyGlobal(ship.Identifier);
                 return;
             }
 
