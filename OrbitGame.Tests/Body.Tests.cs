@@ -37,8 +37,7 @@ public class Body_Tests
     public Body_Tests(ITestOutputHelper output)
     {
         _output = output;
-
-        Constants.G = 1;
+        Constants.SetGravitationalConstant((SDecimal)1);
         _template = new TestBody.TestTemplate();
         _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
                 position: new DVector2<SDecimal>(0, 0),

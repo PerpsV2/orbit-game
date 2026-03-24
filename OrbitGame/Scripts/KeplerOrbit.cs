@@ -182,7 +182,7 @@ public readonly record struct KeplerOrbit
         ) - Periapsis);
         SDecimal timeSincePeriapsis = CalculateTimeSincePeriapsisFromTrueAnomaly(trueAnomaly);
         if (Eccentricity < 1) return Utils.UnsignedMod(timeSincePeriapsis - _initialCalculationTime, Period);
-        return timeSincePeriapsis - _initialCalculationTime;
+        return Utils.UnsignedMod(timeSincePeriapsis - _initialCalculationTime, Period);
     }
     
     private static double CalculateTrueFromEccentricAnomalyElliptic(double eccentricity, double eccentricAnomaly)

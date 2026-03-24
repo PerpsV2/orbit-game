@@ -9,8 +9,15 @@ namespace OrbitGame;
 
 public static class Constants
 {
-    public static SDecimal G = new(6.6743, -11);
-    public static PDecimal GPrecise = new(6.6743, -11);
+    public static SDecimal G { get; private set; } = new(6.6743, -11);
+    public static PDecimal GPrecise { get; private set; }= new(6.6743, -11);
+
+    public static void SetGravitationalConstant<T>(IArbitraryPlaceDecimal<T> value) 
+        where T : IArbitraryPlaceDecimal<T>, new()
+    {
+        G = value.Map<SDecimal>();
+        GPrecise = value.Map<PDecimal>();
+    }
 }
 
 public enum RotationDirection

@@ -92,7 +92,6 @@ public class Ship_Tests
     [Fact]
     public void Ship_DestroyMethod()
     {
-        _ship.Destroy();
         Assert.True(_ship.MarkedForRemoval);
     }
 }

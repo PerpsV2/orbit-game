@@ -32,6 +32,12 @@ public abstract partial class Assert
         Equal(left.X, right.X, T.FromDouble(Epsilon));
         Equal(left.Y, right.Y, T.FromDouble(Epsilon));
     }
+    
+    public static void Equal<T>(DVector2<T> left, DVector2<T> right, double epsilon) where T : IArbitraryPlaceDecimal<T>
+    {
+        Equal(left.X, right.X, T.FromDouble(epsilon));
+        Equal(left.Y, right.Y, T.FromDouble(epsilon));
+    }
 
     public static void Equal(Vector2 left, Vector2 right)
     {

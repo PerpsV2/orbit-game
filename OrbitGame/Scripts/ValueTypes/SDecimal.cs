@@ -264,16 +264,16 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (Mantissa == 0) return this;
         if (Exponent < -1) return 0;
         if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Exponent), Exponent);
+        return new(double.Round(Mantissa, Math.Clamp(Exponent, 0, 15)), Exponent);
     }
     
     public SDecimal Floor()
     {
         if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
         if (Mantissa == 0) return this;
-        if (Exponent < -1) return 0;
-        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Math.Clamp(Exponent, 0, 15)), Exponent);
+        SDecimal roundDiff = this - Round();
+        if (roundDiff < 0) return this - 1 - roundDiff;
+        return this - roundDiff;
     }
     
     public TOther Map<TOther>() where TOther : new()
@@ -289,7 +289,12 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
             if (pDecimal is TOther result) return result;
         }
         
-        throw new NotImplementedException();
+        else if (other is SDecimal)
+        {
+            if (value is TOther result) return result;
+        }
+        
+        throw new InvalidCastException();
     }
     
     #region Operators
@@ -367,6 +372,9 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     
     public static explicit operator uint(SDecimal value)
         => (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
+    
+    public static explicit operator long (SDecimal value)
+        => (long)(value.Mantissa * Math.Pow(10, value.Exponent));
 
     public static explicit operator PDecimal(SDecimal value)
         => value.Map<PDecimal>();

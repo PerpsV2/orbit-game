@@ -19,12 +19,12 @@ public class KeplerOrbitPath_Tests
     private readonly Planet _ellipticBody;
     private readonly Planet _hyperbolicBody;
 
-    private readonly KeplerOrbitPathPoint _selectedOrbitPoint;
+    private readonly KeplerOrbitPoint _selectedOrbitPoint;
 
     public KeplerOrbitPath_Tests(ITestOutputHelper output)
     {
         _output = output;
-        Constants.G = 1;
+        Constants.SetGravitationalConstant((SDecimal)1);
         _graphics = new DebugGraphicsHandler();
         OrbitGame.Graphics = _graphics;
         _orbitMesh = new OrbitMesh();
@@ -47,7 +47,7 @@ public class KeplerOrbitPath_Tests
         _ellipticBody.GenerateKeplerianOrbit(0);
         _hyperbolicBody.GenerateKeplerianOrbit(0);
 
-        _selectedOrbitPoint = new KeplerOrbitPathPoint(_circularBody.KeplerOrbitPath, 0);
+        _selectedOrbitPoint = new KeplerOrbitPoint(_circularBody.KeplerOrbitPath, 0);
 
         SpatialInfo cameraSpatialInfo = new(position: DVector2<SDecimal>.Zero);
         ICameraMovementScheme cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);

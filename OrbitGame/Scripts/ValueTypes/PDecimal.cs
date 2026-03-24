@@ -206,7 +206,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (dividend._infinite) return dividend * divisor;
         if (divisor._infinite) return 0;
         
-        int precisionPlaces = (int)Math.Ceiling(BigInteger.Log10(BigInteger.Abs(dividend.Mantissa))) + DivisionDecimals;
+        int precisionPlaces = (int)Math.Floor(BigInteger.Log10(BigInteger.Abs(divisor.Mantissa))) + DivisionDecimals;
         BigInteger resultMantissa = dividend._mantissa * BigInteger.Pow(10, precisionPlaces) / divisor._mantissa;
         int resultExponent = dividend._exponent - divisor._exponent - precisionPlaces;
         return new(resultMantissa, resultExponent, false);
@@ -355,7 +355,12 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             if (sDecimal is TOther result) return result;
         }
         
-        throw new NotImplementedException();
+        else if (other is PDecimal)
+        {
+            if (value is TOther result) return result;
+        }
+        
+        throw new InvalidCastException();
     }
     
     public static PDecimal operator +(PDecimal value)

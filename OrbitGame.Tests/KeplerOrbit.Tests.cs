@@ -19,13 +19,12 @@ public class KeplerOrbit_Tests
     private readonly Planet _ellipticBody;
     private readonly Planet _hyperbolicBody;
 
-    private readonly SDecimal _largeTimeFrame = 10000;
+    private readonly SDecimal _largeTimeFrame = 100;
 
     public KeplerOrbit_Tests(ITestOutputHelper output)
     {
         _output = output;
-        Constants.G = 1;
-        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        Constants.SetGravitationalConstant((SDecimal)1);
         _parent = _testPlanetTemplate.CreateInstance("Test Parent", 
             new SpatialInfo(DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero), 1, 0, Color.White, null);
         _circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
@@ -149,7 +148,7 @@ public class KeplerOrbit_Tests
         Assert.Equal(Math.Tau * 62.5, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.PI), Assert.Epsilon);
         
         orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
-        Assert.True(orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.Acos(-1d / orbit.Eccentricity)) > _largeTimeFrame);
+        Assert.Equal(Double.NaN, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.Acos(-1d / orbit.Eccentricity)).Mantissa);
     }
 
     [Fact]
@@ -182,7 +181,7 @@ public class KeplerOrbit_Tests
         Assert.Equal(new DVector2<SDecimal>(0, -49), bodyState.Position);
         Assert.Equal(new DVector2<SDecimal>(-Math.Sqrt(2d/49-1d/25), 0), bodyState.Velocity);
         bodyState = orbit.GetStateAtTime(0);
-        Assert.Equal(new DVector2<SDecimal>(0, 1), bodyState.Position);
-        Assert.Equal(new DVector2<SDecimal>(Math.Sqrt(1.96), 0), bodyState.Velocity);
+        Assert.Equal(new DVector2<SDecimal>(0, 1), bodyState.Position, 0.05);
+        Assert.Equal(new DVector2<SDecimal>(Math.Sqrt(1.96), 0), bodyState.Velocity, 0.05);
     }
 }

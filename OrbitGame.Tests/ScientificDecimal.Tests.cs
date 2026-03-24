@@ -63,10 +63,10 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
             PDecimal.Clamp(argument, _testPosPDecimal, _testNegPDecimal));
     }
 
-    /*[Fact]
+    [Fact]
     public void ScientificDecimal_RoundMethod()
     {
-        ScientificDecimal argument = new(0.00001, 0);
+        SDecimal argument = new(0.00001, 0);
         Assert.Equal(0, argument.Round());
         argument = new(0.9, 0);
         Assert.Equal(1, argument.Round());
@@ -79,12 +79,12 @@ public class ScientificDecimal_Tests(ITestOutputHelper output)
     [Fact]
     public void ScientificDecimal_FloorMethod()
     {
-        Assert.Equal(0, new ScientificDecimal(0.00001, 0).Floor());
-        Assert.Equal(-1, new ScientificDecimal(-0.00001, 0).Floor());
-        Assert.Equal(10000, new ScientificDecimal(10000.9, 0).Floor());
-        Assert.Equal(10001, new ScientificDecimal(10001, 0).Floor());
-        Assert.Equal(new ScientificDecimal(100), new ScientificDecimal(100).Floor());
-    }*/
+        Assert.Equal(0, new SDecimal(0.00001, 0).Floor());
+        Assert.Equal(-1, new SDecimal(-0.00001, 0).Floor());
+        Assert.Equal(10000, new SDecimal(10000.9, 0).Floor());
+        Assert.Equal(10001, new SDecimal(10001, 0).Floor());
+        Assert.Equal(new SDecimal(100), new SDecimal(100).Floor());
+    }
     
     #region Operators
     
