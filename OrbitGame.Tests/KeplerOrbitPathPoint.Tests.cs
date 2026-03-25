@@ -33,13 +33,13 @@ public class KeplerOrbitPathPoint_Tests
             new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, parent);
         
-        circularBody.GenerateKeplerianOrbit(_initialTime);
-        ellipticBody.GenerateKeplerianOrbit(_initialTime);
-        hyperbolicBody.GenerateKeplerianOrbit(_initialTime);
+        circularBody.GenerateOrbitPath(_initialTime);
+        ellipticBody.GenerateOrbitPath(_initialTime);
+        hyperbolicBody.GenerateOrbitPath(_initialTime);
 
-        _circularOrbitPoint = new KeplerOrbitPoint(circularBody.KeplerOrbitPath, Math.PI);
-        _ellipticOrbitPoint = new KeplerOrbitPoint(ellipticBody.KeplerOrbitPath, Math.PI);
-        _hyperbolicOrbitPoint = new KeplerOrbitPoint(hyperbolicBody.KeplerOrbitPath, 0);
+        _circularOrbitPoint = new KeplerOrbitPoint(circularBody.OrbitPath.Conics[0], Math.PI);
+        _ellipticOrbitPoint = new KeplerOrbitPoint(ellipticBody.OrbitPath.Conics[0], Math.PI);
+        _hyperbolicOrbitPoint = new KeplerOrbitPoint(hyperbolicBody.OrbitPath.Conics[0], 0);
     }
 
     [Fact]

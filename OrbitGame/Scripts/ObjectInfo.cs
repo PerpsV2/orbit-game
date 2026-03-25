@@ -8,7 +8,8 @@ namespace OrbitGame;
 /// <param name="material">Information used to resolve collisions between objects</param>
 public struct ObjectInfo(IMesh mesh, CompactCollider collider, Material material)
 {
-    public IMesh Mesh = mesh;
-    public CompactCollider Collider = collider;
-    public Material Material = material;
+    public readonly IMesh Mesh = mesh;
+    public OrbitMesh? OrbitMesh = null;
+    public readonly CompactCollider Collider = collider;
+    public readonly Material Material = material;
 }

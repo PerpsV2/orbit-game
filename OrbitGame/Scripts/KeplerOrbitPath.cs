@@ -9,15 +9,27 @@ namespace OrbitGame;
 /// </summary>
 public class KeplerOrbitPath
 {
+    public List<ManeuverNode> ManeuverNodes { get; set; } = [];
     public KeplerOrbit? Orbit { get; set; }
+    public double StartAngle { get; }
+    public double EndAngle { get; }
     private bool _onScreen;
 
     public static KeplerOrbitPoint? HoverPoint;
     public static KeplerOrbitPoint? SelectedPoint;
     private static SDecimal _minMouseDistanceToOrbit = SDecimal.PosInfinity;
 
-    public KeplerOrbitPath()
+    private readonly OrbitMesh _mesh;
+    private readonly Color _colour;
+
+    public KeplerOrbitPath(OrbitMesh mesh, Color colour, double startAngle = 0, double endAngle = Math.Tau)
     {
+        _mesh = mesh;
+        _colour = colour;
+        
+        StartAngle = startAngle;
+        EndAngle = endAngle;
+        
         MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
         MouseHandler.MouseDown += KeplerOrbitPath_MouseDown;
         OrbitGame.UpdateFrame += KeplerOrbitPath_UpdateFrame;
@@ -160,20 +172,17 @@ public class KeplerOrbitPath
         double exponent = Options.EllipsePointDistributionBiasStrength * 
             Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
             
-        // draw partial orbit if camera is zoomed in.
-        if (maxAngle - minAngle < Options.OrbitApproximationZoomFraction * Math.PI)
+        // apply inverse ellipse bias function of camera angle limits
+        double unbiasedMinAngle = EllipseBiasFunction(minAngle - orbit.Periapsis, 1 / exponent);
+        double unbiasedMaxAngle = EllipseBiasFunction(maxAngle - orbit.Periapsis, 1 / exponent);
+        
+        // sweep through angle range and re-apply bias function on each point then draw the orbit
+        for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; 
+             a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
         {
-            // apply inverse ellipse bias function of camera angle limits
-            double unbiasedMinAngle = EllipseBiasFunction(minAngle - orbit.Periapsis, 1 / exponent);
-            double unbiasedMaxAngle = EllipseBiasFunction(maxAngle - orbit.Periapsis, 1 / exponent);
-            // sweep through angle range and re-apply bias function on each point then draw the orbit
-            for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; 
-                 a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
-            {
-                double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
-                SDecimal dist = orbit.Equation(trueAngle);
-                orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist));
-            }
+            double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
+            SDecimal dist = orbit.Equation(trueAngle);
+            orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist));
         }
 
         _onScreen = orbitPoints.Count != 0;
@@ -185,7 +194,7 @@ public class KeplerOrbitPath
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
-        
+
         Utils.GetMinAngleRange(out double minAngle, out double maxAngle,
             (camera.TopRight - centralForce.Position).Direction(),
             (camera.TopLeft - centralForce.Position).Direction(),
@@ -194,30 +203,46 @@ public class KeplerOrbitPath
         );
         if (maxAngle < minAngle) maxAngle += Math.Tau;
 
-        if (maxAngle - minAngle > Math.PI / 16)
+        if (maxAngle - minAngle > Options.OrbitApproximationZoomFraction * Math.PI)
         {
-            // draw the entire orbit as an ellipse
-            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
-            float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
-            float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
-
-            if (screenMajorRadius < 1)
+            if (Math.Abs(EndAngle - StartAngle) >= Math.Tau)
             {
-                _onScreen = false;
+                // draw the entire orbit as an ellipse
+                Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
+                float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
+                float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
+
+                if (screenMajorRadius < 1)
+                {
+                    _onScreen = false;
+                    return;
+                }
+
+                _onScreen = true;
+
+                Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
+                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
+                                   Matrix.CreateScale(new Vector3(1, -1, 0)) *
+                                   Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
+                graphicsDevice.DrawMesh(orbitMesh, transform, new()
+                {
+                    { "Colour", colour.ToVector4() }
+                });
                 return;
             }
-            _onScreen = true;
-
-            Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                               Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
-                               Matrix.CreateScale(new Vector3(1, -1, 0)) *
-                               Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-            graphicsDevice.DrawMesh(orbitMesh, transform, new()
-            {
-                { "Colour", colour.ToVector4() }
-            });
+            minAngle = orbit.Periapsis + StartAngle;
+            maxAngle = orbit.Periapsis + EndAngle;
         }
-        else DrawPartialEllipseOrbit(orbit, minAngle, maxAngle, colour);
+        
+        double drawnMinAngle = Math.Max(minAngle, orbit.Periapsis + StartAngle);
+        double drawnMaxAngle = Math.Min(maxAngle, orbit.Periapsis + EndAngle);
+        if (orbit.Body.Identifier == "Earth")
+        {
+            Console.WriteLine($"{drawnMinAngle} {drawnMaxAngle}");
+        }
+
+        if (drawnMinAngle > drawnMaxAngle) return;
+        DrawPartialEllipseOrbit(orbit, drawnMinAngle, drawnMaxAngle, colour);
     }
 
     private void DrawHyperbolaOrbit(KeplerOrbit orbit, Body centralForce, Color colour)
@@ -227,7 +252,7 @@ public class KeplerOrbitPath
         
         List<DVector2<SDecimal>> orbitPoints = new List<DVector2<SDecimal>>();
         
-        SDecimal? parentSOIRadius = centralForce.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius ?? null;
+        SDecimal? parentSOIRadius = centralForce.OrbitPath.GetSphereOfInfluenceRadius();
         double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
         double objectAngle = Utils.WrapAngle((orbit.Body.Position - centralForce.Position).Direction());
         for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
@@ -266,7 +291,7 @@ public class KeplerOrbitPath
     /// <summary>
     /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
     /// </summary>
-    public void Draw(OrbitMesh orbitMesh, Color colour)
+    public void Draw()
     {
         if (Orbit == null)
         {
@@ -277,9 +302,12 @@ public class KeplerOrbitPath
         Body centralForce = orbit.Parent;
         
         // draw circular and elliptical orbits
-        if (orbit.Eccentricity < 1) DrawEllipseOrbit(orbitMesh, orbit, centralForce, colour);
+        if (orbit.Eccentricity < 1) DrawEllipseOrbit(_mesh, orbit, centralForce, _colour);
         // draw parabolic and hyperbolic orbits
-        else DrawHyperbolaOrbit(orbit, centralForce, colour);
-        DrawSelectedOrbitPoint(orbit, colour);
+        else DrawHyperbolaOrbit(orbit, centralForce, _colour);
+        DrawSelectedOrbitPoint(orbit, _colour);
     }
+
+    public void DrawCollider()
+        => Draw();
 }

@@ -12,7 +12,6 @@ namespace OrbitGame;
 public class Ship : Body, IGameDrawable
 {
     private readonly SDecimal _maximumRadius;
-    private readonly OrbitMesh _orbitMesh;
     
     private DVector2<SDecimal> ArtificialAcceleration { get; set; }
     
@@ -25,7 +24,6 @@ public class Ship : Body, IGameDrawable
         string identifier,
         SpatialInfo spatialInfo,
         ObjectInfo objectInfo,
-        OrbitMesh orbitMesh,
         SDecimal maximumRadius,
         SDecimal mass,
         Color colour,
@@ -33,7 +31,6 @@ public class Ship : Body, IGameDrawable
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         _maximumRadius = maximumRadius;
-        _orbitMesh = orbitMesh;
         Collider.CalculateInertia(mass);
     }
 
@@ -53,7 +50,7 @@ public class Ship : Body, IGameDrawable
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
-        if (LandingState == null && DrawOrbitalPath) KeplerOrbitPath.Draw(_orbitMesh, Colour);
+        if (LandingState == null && DrawOrbitalPath) OrbitPath.Draw();
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),
@@ -96,7 +93,7 @@ public class Ship : Body, IGameDrawable
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
         
-        SDecimal? parentSOIRadius = Parent.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
+        SDecimal? parentSOIRadius = Parent.OrbitPath.GetSphereOfInfluenceRadius();
         if (parentSOIRadius != null)
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
@@ -104,13 +101,13 @@ public class Ship : Body, IGameDrawable
         foreach (Planet planet in planets)
         {
             if (planet == Parent) continue;
-            SDecimal? bodySOIRadius = planet.KeplerOrbitPath.Orbit?.SphereOfInfluenceRadius;
+            SDecimal? bodySOIRadius = planet.OrbitPath.GetSphereOfInfluenceRadius();
             if (bodySOIRadius != null)
                 if ((Position - planet.Position).Magnitude() < bodySOIRadius)
                     Parent = planet;
         }
         
-        KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, time);
+        GenerateOrbitPath(time);
     }
 
     public void UpdatePosition_Landed()
@@ -169,11 +166,12 @@ public class Ship : Body, IGameDrawable
             SpatialInfo spatialInfo,
             SDecimal mass,
             Color colour,
-            Planet parent
-            )
+            Planet parent)
         {
-            ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material);
-            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _orbitMesh, _maximumRadius, mass, colour, parent);
+            ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material) {
+                OrbitMesh = _orbitMesh
+            };
+            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent);
             AddInstance(identifier, ship);
             return ship;
         }

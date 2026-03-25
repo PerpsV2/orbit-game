@@ -40,16 +40,16 @@ public class KeplerOrbit_Tests
             new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, _parent);
         
-        _circularBody.GenerateKeplerianOrbit(0);
-        _ellipticBody.GenerateKeplerianOrbit(0);
-        _hyperbolicBody.GenerateKeplerianOrbit(0);
+        _circularBody.GenerateOrbitPath(0);
+        _ellipticBody.GenerateOrbitPath(0);
+        _hyperbolicBody.GenerateOrbitPath(0);
     }
 
     [Fact]
     public void KeplerOrbit_CircularConstructor()
     {
-        Assert.NotNull(_circularBody.KeplerOrbitPath.Orbit);
-        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.NotNull(_circularBody.OrbitPath.Conics[0].Orbit);
+        KeplerOrbit orbit = _circularBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         
         Assert.Same(_circularBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
@@ -77,8 +77,8 @@ public class KeplerOrbit_Tests
     {
         KinematicObject.KinematicObjectTemplate.DestroyAll();
         
-        Assert.NotNull(_ellipticBody.KeplerOrbitPath.Orbit);
-        KeplerOrbit orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.NotNull(_ellipticBody.OrbitPath.Conics[0].Orbit);
+        KeplerOrbit orbit = _ellipticBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         
         Assert.Same(_ellipticBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
@@ -103,8 +103,8 @@ public class KeplerOrbit_Tests
     [Fact]
     public void KeplerOrbit_HyperbolicConstructor()
     {
-        Assert.NotNull(_hyperbolicBody.KeplerOrbitPath.Orbit);
-        KeplerOrbit orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        Assert.NotNull(_hyperbolicBody.OrbitPath.Conics[0].Orbit);
+        KeplerOrbit orbit = _hyperbolicBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         
         Assert.Same(_hyperbolicBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
@@ -125,14 +125,14 @@ public class KeplerOrbit_Tests
     [Fact]
     public void KeplerOrbit_CalculateTrueAnomalyFromTimeSincePeriapsis()
     {
-        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        KeplerOrbit orbit = _circularBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         for (int i = 0; i < 10; ++i)
             Assert.Equal(Utils.WrapAngle(i), orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(i));
 
-        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _ellipticBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(Math.PI, orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(Math.Tau * 62.5), Assert.Epsilon);
 
-        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _hyperbolicBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(Math.Acos(-1d / orbit.Eccentricity), orbit.CalculateTrueAnomalyFromTimeSincePeriapsis(_largeTimeFrame), 
             Assert.Epsilon);
     }
@@ -140,47 +140,47 @@ public class KeplerOrbit_Tests
     [Fact]
     public void KeplerOrbit_CalculateTimeSincePeriapsisFromTrueAnomaly()
     {
-        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        KeplerOrbit orbit = _circularBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         for (double i = 0; i < Math.Tau; i += Math.Tau / 10)
             Assert.Equal(i, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(i), Assert.Epsilon);
 
-        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _ellipticBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(Math.Tau * 62.5, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.PI), Assert.Epsilon);
         
-        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _hyperbolicBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(Double.NaN, orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(Math.Acos(-1d / orbit.Eccentricity)).Mantissa);
     }
 
     [Fact]
     public void KeplerOrbit_GetOrbitPositionFromTrueAnomaly()
     {
-        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        KeplerOrbit orbit = _circularBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         for (int i = 0; i < 10; ++i)
             Assert.Equal(DVector2<SDecimal>.FromPolar(i + orbit.Periapsis), orbit.GetOrbitPositionFromTrueAnomaly(i));
 
-        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _ellipticBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(new DVector2<SDecimal>(-1.96, 0), orbit.GetOrbitPositionFromTrueAnomaly(Math.PI / 2));
 
-        orbit = _hyperbolicBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        orbit = _hyperbolicBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(new DVector2<SDecimal>(-3.6, 0), orbit.GetOrbitPositionFromTrueAnomaly(Math.PI / 2));
     }
 
     [Fact]
     public void KeplerOrbit_GetStateAtTime()
     {
-        KeplerOrbit orbit = _circularBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
-        SpatialInfo bodyState = orbit.GetStateAtTime(Math.PI);
+        KeplerOrbit orbit = _circularBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
+        SpatialInfo bodyState = orbit.GetSpatialInfoAtTime(Math.PI);
         Assert.Equal(new DVector2<SDecimal>(0, -1), bodyState.Position);
         Assert.Equal(new DVector2<SDecimal>(-1, 0), bodyState.Velocity); 
-        bodyState = orbit.GetStateAtTime(0);
+        bodyState = orbit.GetSpatialInfoAtTime(0);
         Assert.Equal(new DVector2<SDecimal>(0, 1), bodyState.Position);
         Assert.Equal(new DVector2<SDecimal>(1, 0), bodyState.Velocity);
         
-        orbit = _ellipticBody.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
-        bodyState = orbit.GetStateAtTime(Math.Tau * 62.5);
+        orbit = _ellipticBody.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
+        bodyState = orbit.GetSpatialInfoAtTime(Math.Tau * 62.5);
         Assert.Equal(new DVector2<SDecimal>(0, -49), bodyState.Position);
         Assert.Equal(new DVector2<SDecimal>(-Math.Sqrt(2d/49-1d/25), 0), bodyState.Velocity);
-        bodyState = orbit.GetStateAtTime(0);
+        bodyState = orbit.GetSpatialInfoAtTime(0);
         Assert.Equal(new DVector2<SDecimal>(0, 1), bodyState.Position, 0.05);
         Assert.Equal(new DVector2<SDecimal>(Math.Sqrt(1.96), 0), bodyState.Velocity, 0.05);
     }

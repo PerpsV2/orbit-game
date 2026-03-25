@@ -60,9 +60,9 @@ public class Body_Tests
     [Fact]
     public void Body_GenerateKeplerianOrbitMethod()
     {
-        _testBody1.GenerateKeplerianOrbit(0);
-        Assert.NotNull(_testBody1.KeplerOrbitPath.Orbit);
-        KeplerOrbit orbit = _testBody1.KeplerOrbitPath.Orbit ?? throw new NullReferenceException();
+        _testBody1.GenerateOrbitPath(0);
+        Assert.NotNull(_testBody1.OrbitPath.Conics[0].Orbit);
+        KeplerOrbit orbit = _testBody1.OrbitPath.Conics[0].Orbit ?? throw new NullReferenceException();
         Assert.Equal(0, orbit.Periapsis);
         Assert.Equal(0, orbit.Eccentricity);
         Assert.Equal(1, orbit.SemiLatusRectum);
@@ -138,7 +138,7 @@ public class Body_Tests
     public void Body_UpdatePosition_KeplerMethod()
     {
         _testBody1.AngularAcceleration = 1;
-        _testBody1.GenerateKeplerianOrbit(0);
+        _testBody1.GenerateOrbitPath(0);
         _testBody1.UpdatePosition_Kepler(Math.PI / 2, 1);
         Assert.Equal(new DVector2<SDecimal>(0, -2), _testBody1.Velocity);
         Assert.Equal(new DVector2<SDecimal>(-1, 0), _testBody1.Position);

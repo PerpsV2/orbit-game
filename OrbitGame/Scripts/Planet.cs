@@ -35,7 +35,7 @@ public class Planet : Body, IGameDrawable
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
-        KeplerOrbitPath.Draw(_orbitMesh, Colour);
+        OrbitPath.Draw();
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
         
@@ -144,15 +144,13 @@ public class Planet : Body, IGameDrawable
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
-        if (KeplerOrbitPath.Orbit == null) return;
-        KeplerOrbit orbit = (KeplerOrbit)KeplerOrbitPath.Orbit;
-        SDecimal sphereOfInfluenceRadius = orbit.SphereOfInfluenceRadius;
+        if (OrbitPath.IsEmpty()) return;
 
         // paint for spheres of influence
         Color soiColour = new Color(Colour.R, Colour.G, Colour.B) * Options.SOIAlpha;
         
         Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
-        float screenRadius = camera.ConvertToScreenDistance(sphereOfInfluenceRadius);
+        float screenRadius = camera.ConvertToScreenDistance(OrbitPath.GetSphereOfInfluenceRadius() ?? 0);
         Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
                            Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
         graphicsDevice.DrawMesh(Mesh, transform, new()
@@ -176,7 +174,9 @@ public class Planet : Body, IGameDrawable
             Body? parent)
         {
             CircularCollider collider = new CircularCollider(radius);
-            ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material);
+            ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
+                OrbitMesh = _orbitMesh
+            };
             Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent);
             AddInstance(identifier, planet);
             return planet;

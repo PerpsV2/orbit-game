@@ -19,7 +19,7 @@ public abstract class Body : KinematicObject
     public SDecimal Mass;
     public Color Colour;
     public Body? Parent;
-    public readonly KeplerOrbitPath KeplerOrbitPath = new();
+    public readonly PatchedConicPath OrbitPath;
 
     private readonly ObjectInfo _objectInfo;
     
@@ -42,6 +42,11 @@ public abstract class Body : KinematicObject
         _objectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? DVector2<SDecimal>.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? DVector2<SDecimal>.Zero);
+        OrbitPath = new PatchedConicPath(
+            objectInfo.OrbitMesh ?? throw new NullReferenceException("Body was constructed without an OrbitMesh"),
+            colour
+        );
+        GenerateOrbitPath(0);
         OrbitGame.UpdateFrame += Body_UpdateFrame;
     }
     
@@ -85,14 +90,11 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the Keplerian orbit around a central force with the option to calculate certain orbital initials
     /// </summary>
-    protected KeplerOrbit? CalculateKeplerianOrbit(Body? centralForce, SDecimal time)
+    public void GenerateOrbitPath(SDecimal time)
     {
-        if (centralForce == null) return null;
-        return new KeplerOrbit(this, centralForce, time);
+        if (Parent == null) return;
+        OrbitPath.Conics[0].Orbit = new KeplerOrbit(this, Parent, time);
     }
-
-    public void GenerateKeplerianOrbit(SDecimal time)
-        => KeplerOrbitPath.Orbit = CalculateKeplerianOrbit(Parent, time);
 
     public void UpdatePosition_Integrator(
         SDecimal timeStep, 
@@ -172,8 +174,8 @@ public abstract class Body : KinematicObject
 
     public void UpdatePosition_Kepler(SDecimal totalTime, SDecimal timeDiff)
     {
-        if (KeplerOrbitPath.Orbit == null) return;
-        SpatialInfo newState = KeplerOrbitPath.Orbit.Value.GetStateAtTime(totalTime);
+        if (OrbitPath.IsEmpty()) return;
+        SpatialInfo newState = OrbitPath.GetSpatialInfoAtTime(totalTime);
         SpatialInfo.Position = newState.Position;
         SpatialInfo.Velocity = newState.Velocity;
         SpatialInfo.AngularVelocity += (double)(AngularAcceleration * timeDiff); 

@@ -43,11 +43,11 @@ public class KeplerOrbitPath_Tests
             new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, parent);
         
-        _circularBody.GenerateKeplerianOrbit(0);
-        _ellipticBody.GenerateKeplerianOrbit(0);
-        _hyperbolicBody.GenerateKeplerianOrbit(0);
+        _circularBody.GenerateOrbitPath(0);
+        _ellipticBody.GenerateOrbitPath(0);
+        _hyperbolicBody.GenerateOrbitPath(0);
 
-        _selectedOrbitPoint = new KeplerOrbitPoint(_circularBody.KeplerOrbitPath, 0);
+        _selectedOrbitPoint = new KeplerOrbitPoint(_circularBody.OrbitPath.Conics[0], 0);
 
         SpatialInfo cameraSpatialInfo = new(position: DVector2<SDecimal>.Zero);
         ICameraMovementScheme cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);
@@ -64,26 +64,26 @@ public class KeplerOrbitPath_Tests
     public void KeplerOrbitPath_DrawMethod()
     {
         OrbitGame.Camera = _fullOrbitCamera;
-        _circularBody.KeplerOrbitPath.Draw(_orbitMesh, Color.White);
+        _circularBody.OrbitPath.Draw();
         Assert.Equal(1, _graphics.DrawMeshCalls.Count);
         Assert.Equal(0, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
         KeplerOrbitPath.SelectedPoint = _selectedOrbitPoint;
-        _circularBody.KeplerOrbitPath.Draw(_orbitMesh, Color.White);
+        _circularBody.OrbitPath.Draw();
         Assert.Equal(1, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
         KeplerOrbitPath.HoverPoint = _selectedOrbitPoint;
-        _circularBody.KeplerOrbitPath.Draw(_orbitMesh, Color.White);
+        _circularBody.OrbitPath.Draw();
         Assert.Equal(2, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
 
         OrbitGame.Camera = _partialOrbitCamera;
-        _ellipticBody.KeplerOrbitPath.Draw(_orbitMesh, Color.White);
+        _ellipticBody.OrbitPath.Draw();
         Assert.True(_graphics.DrawLineCalls.Count > 0);
         _graphics.ResetCalls();
 
         OrbitGame.Camera = _fullOrbitCamera;
-        _hyperbolicBody.KeplerOrbitPath.Draw(_orbitMesh, Color.White);
+        _hyperbolicBody.OrbitPath.Draw();
         Assert.True(_graphics.DrawLineCalls.Count > 0);
         _graphics.ResetCalls();
     }

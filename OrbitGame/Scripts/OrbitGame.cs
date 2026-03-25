@@ -217,7 +217,7 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 2; i++)
         {
              DVector2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
@@ -235,7 +235,8 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0)), 1000, new Color(255, 0, 0, 255), earth);
+            new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 10000), DVector2<SDecimal>.Zero, Math.PI / 2), 
+            1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
         #endregion
@@ -262,7 +263,7 @@ public class OrbitGame : Game
         
         #endregion
 
-        foreach (var planet in Planets) planet.GenerateKeplerianOrbit(GameState.PhysicsTime);
+        foreach (var planet in Planets) planet.GenerateOrbitPath(GameState.PhysicsTime);
         OriginBody.Body = Bodies[^1];
         GameState.Tracking = OriginBody.Body;
         Camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
@@ -311,7 +312,7 @@ public class OrbitGame : Game
     private void FastForwardToSelected()
     {
         foreach (var ship in Ships)
-            ship.GenerateKeplerianOrbit(GameState.PhysicsTime);
+            ship.GenerateOrbitPath(GameState.PhysicsTime);
         SDecimal endTime = KeplerOrbitPath.SelectedPoint?.GetTimeAtPoint(GameState.PhysicsTime) ?? 0;
         if (endTime <= GameState.PhysicsTime) return;
         GameState.IsFastForward = true;

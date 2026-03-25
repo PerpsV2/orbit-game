@@ -67,7 +67,7 @@ public readonly record struct KeplerOrbit
     public SDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
 
     /// <summary>
-    /// Creates a Keplerian orbit given two bodies
+    /// Creates a Keplerian for the orbiting body of a two-body system
     /// </summary>
     /// <param name="Body">Orbiting body</param>
     /// <param name="Parent">Central force body</param>
@@ -311,7 +311,7 @@ public readonly record struct KeplerOrbit
                (Prograde ? 0 : Math.PI);
     }
 
-    public SpatialInfo GetStateAtTime(SDecimal time)
+    public SpatialInfo GetSpatialInfoAtTime(SDecimal time)
     {
         time += InitialTimeSincePeriapsis;
         if (Eccentricity < 1) Utils.UnsignedMod(time, Period);
