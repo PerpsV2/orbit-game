@@ -9,6 +9,6 @@ public class ManeuverNode
 
     public KeplerOrbit GenerateAppliedKeplerOrbit()
     {
-        return _point.Path.Orbit ?? throw new NullReferenceException();
+        return _point.ConicSection.Orbit ?? throw new NullReferenceException();
     }
 }

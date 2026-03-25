@@ -88,7 +88,7 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public void UpdateShipKeplerianOrbit(IEnumerable<Planet> planets, SDecimal time)
+    public override void GenerateOrbitPath(SDecimal time)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
@@ -98,7 +98,7 @@ public class Ship : Body, IGameDrawable
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
         
-        foreach (Planet planet in planets)
+        foreach (Planet planet in KinematicObjectTemplate.AllInstances.Values.OfType<Planet>())
         {
             if (planet == Parent) continue;
             SDecimal? bodySOIRadius = planet.OrbitPath.GetSphereOfInfluenceRadius();
@@ -107,7 +107,7 @@ public class Ship : Body, IGameDrawable
                     Parent = planet;
         }
         
-        GenerateOrbitPath(time);
+        base.GenerateOrbitPath(time);
     }
 
     public void UpdatePosition_Landed()

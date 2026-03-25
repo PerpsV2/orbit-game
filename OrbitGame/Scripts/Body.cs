@@ -90,7 +90,7 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the Keplerian orbit around a central force with the option to calculate certain orbital initials
     /// </summary>
-    public void GenerateOrbitPath(SDecimal time)
+    public virtual void GenerateOrbitPath(SDecimal time)
     {
         if (Parent == null) return;
         OrbitPath.Conics[0].Orbit = new KeplerOrbit(this, Parent, time);

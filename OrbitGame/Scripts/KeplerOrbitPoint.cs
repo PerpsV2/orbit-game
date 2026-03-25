@@ -5,12 +5,12 @@ namespace OrbitGame;
 /// <summary>
 /// Represents a point on a Keplerian Orbit
 /// </summary>
-public readonly record struct KeplerOrbitPoint(KeplerOrbitPath Path, double TrueAnomaly)
+public readonly record struct KeplerOrbitPoint(OrbitConicSection ConicSection, double TrueAnomaly)
 {
     public SDecimal GetTimeAtPoint(SDecimal currentTime)
     {
-        if (Path.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
-        KeplerOrbit orbit = Path.Orbit.Value;
+        if (ConicSection.Orbit == null) throw new NullReferenceException("KeplerOrbitPathPoint has no orbit");
+        KeplerOrbit orbit = ConicSection.Orbit.Value;
         SDecimal timeSincePeriapsis = orbit.InitialTimeSincePeriapsis;
         SDecimal selectTimeFromPeriapsis = orbit.CalculateTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
         SDecimal timeUntilPoint = selectTimeFromPeriapsis - timeSincePeriapsis - currentTime;

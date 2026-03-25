@@ -6,14 +6,14 @@ namespace OrbitGame;
 public class PatchedConicPath
 {
     public List<ManeuverNode> ManeuverNodes { get; set; } = [];
-    public readonly KeplerOrbitPath[] Conics;
+    public readonly OrbitConicSection[] Conics;
 
     public PatchedConicPath(OrbitMesh mesh, Color colour)
     {
-        Conics = new KeplerOrbitPath[4];
-        for (int i = 0; i < 4; i++)
+        Conics = new OrbitConicSection[Options.PatchedConicDetail];
+        for (int i = 0; i < Conics.Length; i++)
         {
-            Conics[i] = new KeplerOrbitPath(mesh, colour);
+            Conics[i] = new OrbitConicSection(mesh, colour);
         }
     }
     

@@ -7,9 +7,8 @@ namespace OrbitGame;
 /// <summary>
 /// Wrapper for a Keplerian orbit which contains interactive functionality and drawing operations.
 /// </summary>
-public class KeplerOrbitPath
+public class OrbitConicSection
 {
-    public List<ManeuverNode> ManeuverNodes { get; set; } = [];
     public KeplerOrbit? Orbit { get; set; }
     public double StartAngle { get; }
     public double EndAngle { get; }
@@ -22,7 +21,7 @@ public class KeplerOrbitPath
     private readonly OrbitMesh _mesh;
     private readonly Color _colour;
 
-    public KeplerOrbitPath(OrbitMesh mesh, Color colour, double startAngle = 0, double endAngle = Math.Tau)
+    public OrbitConicSection(OrbitMesh mesh, Color colour, double startAngle = 0, double endAngle = Math.PI)
     {
         _mesh = mesh;
         _colour = colour;
@@ -79,6 +78,23 @@ public class KeplerOrbitPath
             iterations++;
         } while (SDecimal.Abs(lastGuessDistance - currentGuessDistance) > 100 && iterations < 25);
 
+        guessPoint = Utils.WrapAngle(guessPoint);
+        
+        if (guessPoint < StartAngle || guessPoint > EndAngle)
+        {
+            double startAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - StartAngle));
+            double endAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - EndAngle));
+
+            if (startAngleArc < endAngleArc)
+            {
+                minimumDistance = GetGuessDistance(StartAngle);
+                return StartAngle;
+            }
+
+            minimumDistance = GetGuessDistance(EndAngle);
+            return EndAngle;
+        }
+
         minimumDistance = currentGuessDistance;
         return guessPoint;
 
@@ -134,7 +150,7 @@ public class KeplerOrbitPath
         
         if (HoverPoint != null)
         {
-            if (HoverPoint.Value.Path == this)
+            if (HoverPoint.Value.ConicSection == this)
             {
                 DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
                 DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
@@ -143,7 +159,7 @@ public class KeplerOrbitPath
         }
         if (SelectedPoint != null)
         {
-            if (SelectedPoint.Value.Path == this)
+            if (SelectedPoint.Value.ConicSection == this)
             {
                 DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
                 DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;

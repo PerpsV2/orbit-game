@@ -68,11 +68,11 @@ public class KeplerOrbitPath_Tests
         Assert.Equal(1, _graphics.DrawMeshCalls.Count);
         Assert.Equal(0, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
-        KeplerOrbitPath.SelectedPoint = _selectedOrbitPoint;
+        OrbitConicSection.SelectedPoint = _selectedOrbitPoint;
         _circularBody.OrbitPath.Draw();
         Assert.Equal(1, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
-        KeplerOrbitPath.HoverPoint = _selectedOrbitPoint;
+        OrbitConicSection.HoverPoint = _selectedOrbitPoint;
         _circularBody.OrbitPath.Draw();
         Assert.Equal(2, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();

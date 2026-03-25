@@ -53,7 +53,8 @@ public static class Options
 
     public static readonly SDecimal EccentricAnomalyApproximationTolerance = new(-10);
     public const uint EccentricAnomalyApproximationMaxIterations = 5;
-    
+
+    public const int PatchedConicDetail = 5;
     public const uint IntegratorIterationAmount = 10;
     public const float MinimumShipCrashSpeed = 50f;
     /// <summary>

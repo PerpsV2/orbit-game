@@ -51,7 +51,7 @@ public class Ship_Tests
     [Fact]
     public void Ship_UpdateShipKeplerianOrbitMethod()
     {
-        _ship.UpdateShipKeplerianOrbit([_planet], 0);
+        _ship.GenerateOrbitPath(0);
         throw new NotImplementedException();
     }
 

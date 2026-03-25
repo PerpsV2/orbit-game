@@ -66,34 +66,38 @@ public readonly record struct KeplerOrbit
     private readonly Lazy<SDecimal> _lazyInitialTimeSincePeriapsis;
     public SDecimal InitialTimeSincePeriapsis => _lazyInitialTimeSincePeriapsis.Value;
 
-    /// <summary>
-    /// Creates a Keplerian for the orbiting body of a two-body system
-    /// </summary>
-    /// <param name="Body">Orbiting body</param>
-    /// <param name="Parent">Central force body</param>
-    /// <param name="initialCalculationTime">Time of orbit calculation</param>
-    public KeplerOrbit(Body Body, Body Parent, SDecimal initialCalculationTime)
+    public KeplerOrbit(
+        Body body, 
+        Body parent, 
+        SpatialInfo bodySpatialInfo, 
+        SpatialInfo parentSpatialInfo, 
+        SDecimal bodyMass, 
+        SDecimal parentMass,
+        SDecimal initialCalculationTime)
     {
-        this.Body = Body;
-        this.Parent = Parent;
+        Body = body;
+        Parent = parent;
         _initialCalculationTime = initialCalculationTime;
         
-        _initialParentSpatialInfo = Parent.SpatialInfo;
-        _initialOrbitalSpatialInfo = new SpatialInfo(Body.Position - Parent.Position, Body.Velocity - Parent.Velocity);
+        _initialParentSpatialInfo = parentSpatialInfo;
+        _initialOrbitalSpatialInfo = new SpatialInfo(
+            bodySpatialInfo.Position - parentSpatialInfo.Position,
+            bodySpatialInfo.Velocity - parentSpatialInfo.Velocity
+        );
 
-        DVector2<PDecimal> orbitalPosition = (Body.Position - Parent.Position).Map<PDecimal>();
-        DVector2<PDecimal> orbitalVelocity = (Body.Velocity - Parent.Velocity).Map<PDecimal>();
-        PDecimal objectMass = (PDecimal)Body.Mass;
-        PDecimal parentMass = (PDecimal)Parent.Mass;
+        DVector2<PDecimal> orbitalPosition = (bodySpatialInfo.Position - parentSpatialInfo.Position).Map<PDecimal>();
+        DVector2<PDecimal> orbitalVelocity = (bodySpatialInfo.Velocity - parentSpatialInfo.Velocity).Map<PDecimal>();
+        PDecimal pObjectMass = (PDecimal)bodyMass;
+        PDecimal pParentMass = (PDecimal)parentMass;
         
-        DVector2<PDecimal> momentum = orbitalVelocity * objectMass;
+        DVector2<PDecimal> momentum = orbitalVelocity * pObjectMass;
         DVector3<PDecimal> angularMomentum = DVector2<PDecimal>.Cross(orbitalPosition, momentum);
         DVector2<PDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
-        PDecimal forceStrength = objectMass * parentMass * Constants.GPrecise;
+        PDecimal forceStrength = pObjectMass * pParentMass * Constants.GPrecise;
         Prograde = Math.Acos(angularMomentum.Z.Positive ? 1 : -1) == 0;
         LRLVector = (DVector2<PDecimal>)DVector3<PDecimal>.Cross(momentum, angularMomentum) - 
-                    orbitalDirectionVector * objectMass * forceStrength;
-        SemiLatusRectum = PDecimal.Square(angularMomentum.Magnitude()) / objectMass / forceStrength;
+                    orbitalDirectionVector * pObjectMass * forceStrength;
+        SemiLatusRectum = PDecimal.Square(angularMomentum.Magnitude()) / pObjectMass / forceStrength;
         
         // initialize lazy fields
         _lazyEccentricity = new(LazyInitializeEccentricity);
@@ -106,6 +110,16 @@ public readonly record struct KeplerOrbit
         _lazyCenter = new(LazyInitializeCenter);
         _lazyInitialTimeSincePeriapsis = new(LazyInitializeInitialTimeSincePeriapsis);
     }
+
+    /// <summary>
+    /// Creates a Keplerian for the orbiting body of a two-body system
+    /// </summary>
+    /// <param name="body">Orbiting body</param>
+    /// <param name="parent">Central force body</param>
+    /// <param name="initialCalculationTime">Time of orbit calculation</param>
+    public KeplerOrbit(Body body, Body parent, SDecimal initialCalculationTime)
+        : this(body, parent, body.SpatialInfo, parent.SpatialInfo, body.Mass, parent.Mass, initialCalculationTime)
+    { }
 
     private double LazyInitializePeriapsis()
         => LRLVector != DVector2<PDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;

@@ -313,7 +313,7 @@ public class OrbitGame : Game
     {
         foreach (var ship in Ships)
             ship.GenerateOrbitPath(GameState.PhysicsTime);
-        SDecimal endTime = KeplerOrbitPath.SelectedPoint?.GetTimeAtPoint(GameState.PhysicsTime) ?? 0;
+        SDecimal endTime = OrbitConicSection.SelectedPoint?.GetTimeAtPoint(GameState.PhysicsTime) ?? 0;
         if (endTime <= GameState.PhysicsTime) return;
         GameState.IsFastForward = true;
         SDecimal multiplier = new SDecimal((endTime - GameState.PhysicsTime).Exponent);
@@ -363,6 +363,14 @@ public class OrbitGame : Game
                 throw new Exception("Unrecognized camera movement scheme");
         }
     }
+
+    private void CreateManeuverNode()
+    {
+        Body? selectedPointBody = OrbitConicSection.SelectedPoint?.ConicSection.Orbit?.Body;
+        if (selectedPointBody is Ship ship)
+        {
+        }
+    }
     
     KeyboardState _lastKeyboardState;
 
@@ -401,6 +409,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.ChangeCameraSchemeKey))
             if (_lastKeyboardState.IsKeyUp(Options.ChangeCameraSchemeKey))
                 ToggleCameraMovementScheme();
+        
+        if (keyboardState.IsKeyDown(Keys.Z))
+            if (_lastKeyboardState.IsKeyUp(Keys.Z))
+                CreateManeuverNode();
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);
@@ -458,7 +470,7 @@ public class OrbitGame : Game
                     {
                         ship.UpdatePosition_Integrator(GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
                             ship.CalculateNetAcceleration);
-                        ship.UpdateShipKeplerianOrbit(Planets, GameState.PhysicsTime);
+                        ship.GenerateOrbitPath(GameState.PhysicsTime);
                     }));
                 }
             }
