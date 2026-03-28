@@ -59,14 +59,14 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         DrawLine(start, start + displacement, colour);
     }
 
-    public void SD_DrawLine(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> end, Color colour)
+    public void SD_DrawLine(Camera camera, Vec2<SDecimal> start, Vec2<SDecimal> end, Color colour)
     {
         Vector2 screenStart = camera.ConvertToScreenCoordinates(start);
         Vector2 screenEnd = camera.ConvertToScreenCoordinates(end);
         DrawLine(screenStart, screenEnd, colour);
     }
 
-    public void SD_DrawLineR(Camera camera, DVector2<SDecimal> start, DVector2<SDecimal> displacement, Color colour)
+    public void SD_DrawLineR(Camera camera, Vec2<SDecimal> start, Vec2<SDecimal> displacement, Color colour)
     {
         SD_DrawLine(camera, start, start + displacement, colour);
     }
@@ -92,7 +92,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         }
     }
 
-    public void SD_DrawPoint(Camera camera, DVector2<SDecimal> position, Color colour)
+    public void SD_DrawPoint(Camera camera, Vec2<SDecimal> position, Color colour)
     {
         DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }

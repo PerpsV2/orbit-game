@@ -11,8 +11,8 @@ public class Matrix3X3_Tests
     // Rotation by 90 degrees followed by a translation of (1, 5)
     private readonly Matrix3X3<SDecimal> _testTransformationMatrix = new([0, -1, 1, 1, 0, 5, 0, 0, 1]);
     
-    private readonly DVector2<SDecimal> _testSDDVector2 = new(1, -1);
-    private readonly DVector3<SDecimal> _testSDDVector3 = new(1, -1, 1);
+    private readonly Vec2<SDecimal> _testSDDVector2 = new(1, -1);
+    private readonly Vec3<SDecimal> _testSDDVector3 = new(1, -1, 1);
     private readonly SDecimal _testScalar = 5;
     
     #region Operators
@@ -46,7 +46,7 @@ public class Matrix3X3_Tests
     public void Matrix3X3_Vector2MultiplicationOperator()
     {
         Assert.Equal(_testSDDVector2, _testIdentityMatrix * _testSDDVector2);
-        Assert.Equal(new DVector2<SDecimal>(2, 6), _testTransformationMatrix * _testSDDVector2);
+        Assert.Equal(new Vec2<SDecimal>(2, 6), _testTransformationMatrix * _testSDDVector2);
         Assert.Throws<ArithmeticException>(() => _testNullMatrix * _testSDDVector2);
     }
 
@@ -54,7 +54,7 @@ public class Matrix3X3_Tests
     public void Matrix3X3_Vector3MultiplicationOperator()
     {
         Assert.Equal(_testSDDVector3, _testIdentityMatrix * _testSDDVector3);
-        Assert.Equal(new DVector3<SDecimal>(2, 6, 1), _testTransformationMatrix * _testSDDVector3);
+        Assert.Equal(new Vec3<SDecimal>(2, 6, 1), _testTransformationMatrix * _testSDDVector3);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class Matrix3X3_Tests
     [Fact]
     public void Matrix3X3_TranslationMethod()
     {
-        DVector2<SDecimal> translation = new DVector2<SDecimal>(2, -2);
+        Vec2<SDecimal> translation = new Vec2<SDecimal>(2, -2);
         Assert.Equal(new Matrix3X3<SDecimal>([1, 0, 2, 0, 1, -2, 0, 0, 1]), Matrix3X3<SDecimal>.Translation(translation));
     }
 
@@ -90,7 +90,7 @@ public class Matrix3X3_Tests
     [Fact]
     public void Matrix3X3_ScaleMethod()
     {
-        DVector2<SDecimal> scale = new DVector2<SDecimal>(2, -2);
+        Vec2<SDecimal> scale = new Vec2<SDecimal>(2, -2);
         Assert.Equal(new Matrix3X3<SDecimal>([2, 0, 0, 0, -2, 0, 0, 0, 1]), Matrix3X3<SDecimal>.Scale(scale));
     }
     

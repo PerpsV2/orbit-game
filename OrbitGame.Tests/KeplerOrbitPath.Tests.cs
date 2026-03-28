@@ -29,18 +29,18 @@ public class KeplerOrbitPath_Tests
         OrbitGame.Graphics = _graphics;
         _orbitMesh = new OrbitMesh();
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
-            new SpatialInfo(DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero), 1, 0, Color.White, null);
+            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null);
         _circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 0), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 0), 0)
         ), 1, 0, Color.White, parent);
         _ellipticBody = _testPlanetTemplate.CreateInstance("Elliptic Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
         ), 1, 0, Color.White, parent);
         _hyperbolicBody = _testPlanetTemplate.CreateInstance("Hyperbolic Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, parent);
         
         _circularBody.GenerateOrbitPath(0);
@@ -49,12 +49,12 @@ public class KeplerOrbitPath_Tests
 
         _selectedOrbitPoint = new KeplerOrbitPoint(_circularBody.OrbitPath.Conics[0], 0);
 
-        SpatialInfo cameraSpatialInfo = new(position: DVector2<SDecimal>.Zero);
+        SpatialInfo cameraSpatialInfo = new(position: Vec2<SDecimal>.Zero);
         ICameraMovementScheme cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);
         _fullOrbitCamera = new Camera("Full Orbit Camera", cameraSpatialInfo, 2, 2, 
             _screenSize.width, _screenSize.height, cameraMovementScheme);
         
-        cameraSpatialInfo = new(position: new DVector2<SDecimal>(0, -49));
+        cameraSpatialInfo = new(position: new Vec2<SDecimal>(0, -49));
         cameraMovementScheme = new TrackingCameraScheme(cameraSpatialInfo, parent);
         _partialOrbitCamera = new Camera("Partial Orbit Camera", cameraSpatialInfo, 1, 1, 
             _screenSize.width, _screenSize.height, cameraMovementScheme);
@@ -68,11 +68,11 @@ public class KeplerOrbitPath_Tests
         Assert.Equal(1, _graphics.DrawMeshCalls.Count);
         Assert.Equal(0, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
-        OrbitConicSection.SelectedPoint = _selectedOrbitPoint;
+        ConicPath.SelectedPoint = _selectedOrbitPoint;
         _circularBody.OrbitPath.Draw();
         Assert.Equal(1, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();
-        OrbitConicSection.HoverPoint = _selectedOrbitPoint;
+        ConicPath.HoverPoint = _selectedOrbitPoint;
         _circularBody.OrbitPath.Draw();
         Assert.Equal(2, _graphics.DrawPointCalls.Count);
         _graphics.ResetCalls();

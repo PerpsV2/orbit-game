@@ -7,11 +7,27 @@ namespace OrbitGame;
 /// <summary>
 /// Wrapper for a Keplerian orbit which contains interactive functionality and drawing operations.
 /// </summary>
-public class OrbitConicSection
+public class ConicPath
 {
+    public PatchedConicPath Path { get; }
     public KeplerOrbit? Orbit { get; set; }
-    public double StartAngle { get; }
-    public double EndAngle { get; }
+
+    private double _startAngle;
+
+    public double StartAngle
+    {
+        get => _startAngle + (Orbit?.Periapsis ?? 0);
+        set => _startAngle = value;
+    }
+
+    private double _endAngle;
+
+    public double EndAngle
+    {
+        get => _endAngle + (Orbit?.Periapsis ?? 0);
+        set => _endAngle = value;
+    }
+
     private bool _onScreen;
 
     public static KeplerOrbitPoint? HoverPoint;
@@ -21,13 +37,16 @@ public class OrbitConicSection
     private readonly OrbitMesh _mesh;
     private readonly Color _colour;
 
-    public OrbitConicSection(OrbitMesh mesh, Color colour, double startAngle = 0, double endAngle = Math.PI)
+    public ConicPath(
+        PatchedConicPath patchedConicPath, 
+        OrbitMesh mesh, Color colour, 
+        double startAngle = 0, double endAngle = Math.Tau)
     {
+        Path = patchedConicPath;
         _mesh = mesh;
         _colour = colour;
-        
-        StartAngle = startAngle;
-        EndAngle = endAngle;
+        _startAngle = startAngle;
+        _endAngle = endAngle;
         
         MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
         MouseHandler.MouseDown += KeplerOrbitPath_MouseDown;
@@ -41,13 +60,16 @@ public class OrbitConicSection
     /// <param name="externalPoint">Point which may not lie on the orbit in world space</param>
     /// <param name="minimumDistance">Distance between the external point and the parabola</param>
     /// <returns>The true anomaly of the closest point on the orbit</returns>
-    private double GetClosestOrbitPoint(KeplerOrbit orbit, DVector2<SDecimal> externalPoint, out SDecimal minimumDistance)
+    private double GetClosestOrbitPoint(KeplerOrbit orbit, Vec2<SDecimal> externalPoint, out SDecimal minimumDistance)
     {
         externalPoint -= orbit.Parent.Position;
 
         double guessPoint = externalPoint.Direction() - orbit.Periapsis;
         if (orbit.Equation(guessPoint + orbit.Periapsis) < 0) guessPoint += Math.PI; 
         double learningRate = 0.1;
+
+        double worldStartAngle = StartAngle - orbit.Periapsis;
+        double worldEndAngle = EndAngle - orbit.Periapsis;
         
         SDecimal currentGuessDistance = GetGuessDistance(guessPoint);
         SDecimal lastGuessDistance = SDecimal.PosInfinity;
@@ -80,19 +102,19 @@ public class OrbitConicSection
 
         guessPoint = Utils.WrapAngle(guessPoint);
         
-        if (guessPoint < StartAngle || guessPoint > EndAngle)
+        if (guessPoint < worldStartAngle || guessPoint > worldEndAngle)
         {
-            double startAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - StartAngle));
-            double endAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - EndAngle));
+            double startAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - worldStartAngle));
+            double endAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - worldEndAngle));
 
             if (startAngleArc < endAngleArc)
             {
-                minimumDistance = GetGuessDistance(StartAngle);
-                return StartAngle;
+                minimumDistance = GetGuessDistance(worldStartAngle);
+                return worldStartAngle;
             }
 
-            minimumDistance = GetGuessDistance(EndAngle);
-            return EndAngle;
+            minimumDistance = GetGuessDistance(worldEndAngle);
+            return worldEndAngle;
         }
 
         minimumDistance = currentGuessDistance;
@@ -100,7 +122,7 @@ public class OrbitConicSection
 
         SDecimal GetGuessDistance(double point)
         {
-            DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
+            Vec2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(point);
             return (externalPoint - orbitalPosition).MagnitudeSquared();
         }
     }
@@ -116,7 +138,7 @@ public class OrbitConicSection
         if (Orbit == null) return;
         Camera camera = OrbitGame.Camera;
         KeplerOrbit orbit = Orbit.Value;
-        DVector2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
+        Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
         double closestOrbitPointTrueAnomaly = GetClosestOrbitPoint(
             orbit, mouseWorldPosition, out SDecimal closestOrbitDistanceSquared
         );
@@ -150,19 +172,19 @@ public class OrbitConicSection
         
         if (HoverPoint != null)
         {
-            if (HoverPoint.Value.ConicSection == this)
+            if (HoverPoint.Value.ConicPath == this)
             {
-                DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
-                DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
+                Vec2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(HoverPoint.Value.TrueAnomaly);
+                Vec2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, colour);
             }
         }
         if (SelectedPoint != null)
         {
-            if (SelectedPoint.Value.ConicSection == this)
+            if (SelectedPoint.Value.ConicPath == this)
             {
-                DVector2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
-                DVector2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
+                Vec2<SDecimal> orbitalPosition = orbit.GetOrbitPositionFromTrueAnomaly(SelectedPoint.Value.TrueAnomaly);
+                Vec2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, Color.Red);
             }
         }
@@ -174,7 +196,7 @@ public class OrbitConicSection
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         Body centralForce = orbit.Parent;
-        List<DVector2<SDecimal>> orbitPoints = new List<DVector2<SDecimal>>();
+        List<Vec2<SDecimal>> orbitPoints = new List<Vec2<SDecimal>>();
         
         // redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
@@ -198,7 +220,7 @@ public class OrbitConicSection
         {
             double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
             SDecimal dist = orbit.Equation(trueAngle);
-            orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist));
+            orbitPoints.Add(centralForce.Position + Vec2<SDecimal>.FromPolar(trueAngle, dist));
         }
 
         _onScreen = orbitPoints.Count != 0;
@@ -246,16 +268,12 @@ public class OrbitConicSection
                 });
                 return;
             }
-            minAngle = orbit.Periapsis + StartAngle;
-            maxAngle = orbit.Periapsis + EndAngle;
+            minAngle = StartAngle;
+            maxAngle = EndAngle;
         }
         
-        double drawnMinAngle = Math.Max(minAngle, orbit.Periapsis + StartAngle);
-        double drawnMaxAngle = Math.Min(maxAngle, orbit.Periapsis + EndAngle);
-        if (orbit.Body.Identifier == "Earth")
-        {
-            Console.WriteLine($"{drawnMinAngle} {drawnMaxAngle}");
-        }
+        double drawnMinAngle = Math.Max(minAngle, StartAngle);
+        double drawnMaxAngle = Math.Min(maxAngle, EndAngle);
 
         if (drawnMinAngle > drawnMaxAngle) return;
         DrawPartialEllipseOrbit(orbit, drawnMinAngle, drawnMaxAngle, colour);
@@ -266,7 +284,7 @@ public class OrbitConicSection
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
-        List<DVector2<SDecimal>> orbitPoints = new List<DVector2<SDecimal>>();
+        List<Vec2<SDecimal>> orbitPoints = new List<Vec2<SDecimal>>();
         
         SDecimal? parentSOIRadius = centralForce.OrbitPath.GetSphereOfInfluenceRadius();
         double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
@@ -275,7 +293,7 @@ public class OrbitConicSection
         {
             double trueAngle = Utils.WrapAngle(a + orbit.Periapsis);
             SDecimal dist = orbit.Equation(trueAngle);
-            DVector2<SDecimal> orbitPoint = centralForce.Position + DVector2<SDecimal>.FromPolar(trueAngle, dist);
+            Vec2<SDecimal> orbitPoint = centralForce.Position + Vec2<SDecimal>.FromPolar(trueAngle, dist);
             if (parentSOIRadius != null)
             {
                 if (dist > 0 && dist < parentSOIRadius)
@@ -294,8 +312,8 @@ public class OrbitConicSection
             double escapeAngle = Math.Acos((double)((parentSOIRadius / semiLatusRectum - 1) /
                                                     (orbit.Eccentricity * parentSOIRadius /
                                                      semiLatusRectum))) + Math.PI;
-            orbitPoints.Add(centralForce.Position + DVector2<SDecimal>.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
-            orbitPoints.Insert(0, centralForce.Position + DVector2<SDecimal>.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+            orbitPoints.Add(centralForce.Position + Vec2<SDecimal>.FromPolar(-escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
+            orbitPoints.Insert(0, centralForce.Position + Vec2<SDecimal>.FromPolar(escapeAngle + orbit.Periapsis, parentSOIRadius.Value));
         }
 
         orbitPoints.RemoveAll(x => SDecimal.IsInfinity(x.MagnitudeSquared()));

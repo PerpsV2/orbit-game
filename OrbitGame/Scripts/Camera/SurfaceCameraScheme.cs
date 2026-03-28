@@ -12,7 +12,7 @@ namespace OrbitGame;
 /// </summary>
 public class SurfaceCameraScheme : ICameraMovementScheme
 {
-    private DVector2<SDecimal> _localPosition;
+    private Vec2<SDecimal> _localPosition;
     private double _localAngle;
     private readonly KinematicObject _surface;
     private readonly KinematicObject _tracking;
@@ -28,14 +28,14 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void Focus()
     {
         _localAngle = 0;
-        _localPosition = DVector2<SDecimal>.Zero;
+        _localPosition = Vec2<SDecimal>.Zero;
     }
 
     public void MovePerpendicular(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        DVector2<SDecimal> camSurfaceVector = _localPosition + _tracking.Position - _surface.Position;
+        Vec2<SDecimal> camSurfaceVector = _localPosition + _tracking.Position - _surface.Position;
         double deltaAngle = (double)(distance / camSurfaceVector.Magnitude());
-        DVector2<SDecimal> newCamSurfacePosition = DVector2<SDecimal>.FromPolar(
+        Vec2<SDecimal> newCamSurfacePosition = Vec2<SDecimal>.FromPolar(
             camSurfaceVector.Direction() - deltaAngle, camSurfaceVector.Magnitude()
         );
         _localPosition = newCamSurfacePosition + _surface.Position - _tracking.Position;
@@ -43,7 +43,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
 
     public void MoveParallel(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += DVector2<SDecimal>.FromPolar(
+        _localPosition += Vec2<SDecimal>.FromPolar(
             (_surface.Position - _tracking.Position - _localPosition).Direction(), -distance
         );
     }
@@ -56,7 +56,7 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = _tracking.Position + _localPosition;
-        if (_surface.Position - _tracking.Position - _localPosition == DVector2<SDecimal>.Zero) spatialInfo.Angle = _localAngle;
+        if (_surface.Position - _tracking.Position - _localPosition == Vec2<SDecimal>.Zero) spatialInfo.Angle = _localAngle;
         else spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).Direction() 
                                  - Math.PI / 2 - _localAngle;
     }

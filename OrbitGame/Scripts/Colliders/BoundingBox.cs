@@ -13,7 +13,7 @@ public readonly record struct BoundingBox(
     SDecimal Top,
     SDecimal Bottom)
 {
-    public BoundingBox(DVector2<SDecimal> center, SDecimal width, SDecimal height) : 
+    public BoundingBox(Vec2<SDecimal> center, SDecimal width, SDecimal height) : 
         this(center.X - width / 2, center.X + width / 2, center.Y + height / 2, center.Y - height / 2)
     { }
 

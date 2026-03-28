@@ -33,7 +33,7 @@ public abstract class CompactCollider
         );
     }
     
-    public abstract PointCollision IntersectsWith(DVector2<SDecimal> point, SpatialInfo referenceSpatial);
+    public abstract PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo referenceSpatial);
     public PhysicsCollision? IntersectsWith(CompactCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial)
     {
         switch (collider)

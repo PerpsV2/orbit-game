@@ -104,7 +104,7 @@ public class OrbitGame : Game
     }
     
     public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
-    public static Camera Camera = new("Camera", new(DVector2<SDecimal>.Zero, 0),
+    public static Camera Camera = new("Camera", new(Vec2<SDecimal>.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -135,77 +135,77 @@ public class OrbitGame : Game
         Material planetMaterial = new Material(0.1f, 0.7f, 0.5f);
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMaterial);
         Planet sun = planetTemplate.CreateInstance(
-            "Sun", new(DVector2<SDecimal>.Zero), new SDecimal(1.989, 30), 
+            "Sun", new(Vec2<SDecimal>.Zero), new SDecimal(1.989, 30), 
             new SDecimal(6.98340, 8), Color.White, null
         );
         Planet mercury = planetTemplate.CreateInstance("Mercury",
-            new(new DVector2<SDecimal>(new SDecimal(-5.6940545, 10), new SDecimal(3.2977160, 9)),
-                new DVector2<SDecimal>(new SDecimal(-1.2946428, 4), new SDecimal(-4.6540563, 4))), 
+            new(new Vec2<SDecimal>(new SDecimal(-5.6940545, 10), new SDecimal(3.2977160, 9)),
+                new Vec2<SDecimal>(new SDecimal(-1.2946428, 4), new SDecimal(-4.6540563, 4))), 
             new SDecimal(3.285, 23), new SDecimal(2.4397, 6), new Color(140, 140, 140, 255), sun
         );
         Planet venus = planetTemplate.CreateInstance("Venus", 
-            new(new DVector2<SDecimal>(new SDecimal(8.2978939, 10), new SDecimal(6.9376114, 10)),
-                new DVector2<SDecimal>(new SDecimal(-2.2569107, 4), new SDecimal(2.6718186, 4))),
+            new(new Vec2<SDecimal>(new SDecimal(8.2978939, 10), new SDecimal(6.9376114, 10)),
+                new Vec2<SDecimal>(new SDecimal(-2.2569107, 4), new SDecimal(2.6718186, 4))),
             new SDecimal(4.867, 24), new SDecimal(6.0518, 6), new Color(230, 160, 40, 255), sun
         );
         Planet earth = planetTemplate.CreateInstance("Earth", 
-            new(new DVector2<SDecimal>(new SDecimal(-8.5613233, 8), new SDecimal(1.4688537, 11)),
-                new DVector2<SDecimal>(new SDecimal(-3.0223357, 4), new SDecimal(-1.8447646, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(-8.5613233, 8), new SDecimal(1.4688537, 11)),
+                new Vec2<SDecimal>(new SDecimal(-3.0223357, 4), new SDecimal(-1.8447646, 3))),
             new SDecimal(5.9722, 24), new SDecimal(6.378, 6), new Color(100, 200, 255, 255), sun
         );
         Planet moon = planetTemplate.CreateInstance("The Moon", 
-            new(new DVector2<SDecimal>(new SDecimal(-3.6413936, 8), new SDecimal(-1.7481022, 8)),
-                new DVector2<SDecimal>(new SDecimal( 4.2899598, 2), new SDecimal(-8.6413934, 2))),
+            new(new Vec2<SDecimal>(new SDecimal(-3.6413936, 8), new SDecimal(-1.7481022, 8)),
+                new Vec2<SDecimal>(new SDecimal( 4.2899598, 2), new SDecimal(-8.6413934, 2))),
             new SDecimal(7.349, 22), new SDecimal(1.737, 6), new Color(180, 180, 180, 255), earth
         );
         Planet mars = planetTemplate.CreateInstance("Mars", 
-            new(new DVector2<SDecimal>(new SDecimal(-6.4603691, 10), new SDecimal( 2.3127019, 11)),
-                new DVector2<SDecimal>(new SDecimal(-2.2420469, 4), new SDecimal(-4.6499686, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(-6.4603691, 10), new SDecimal( 2.3127019, 11)),
+                new Vec2<SDecimal>(new SDecimal(-2.2420469, 4), new SDecimal(-4.6499686, 3))),
             new SDecimal(6.39, 23), new SDecimal(3.3895, 6), new Color(230, 60, 50, 255), sun
         );
         Planet jupiter = planetTemplate.CreateInstance("Jupiter", 
-            new(new DVector2<SDecimal>(new SDecimal(1.6580000, 11), new SDecimal(7.4166230, 11)),
-                new DVector2<SDecimal>(new SDecimal(-1.2915655, 4), new SDecimal(3.4670152, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(1.6580000, 11), new SDecimal(7.4166230, 11)),
+                new Vec2<SDecimal>(new SDecimal(-1.2915655, 4), new SDecimal(3.4670152, 3))),
             new SDecimal(1.898, 27), new SDecimal(6.9911, 7), new Color(175, 125, 50, 255), sun
         );
         Planet io = planetTemplate.CreateInstance("Io", 
-            new(new DVector2<SDecimal>(new SDecimal(-2.4992437, 8), new SDecimal(-3.3952711, 8)),
-                new DVector2<SDecimal>(new SDecimal(1.3919142, 4), new SDecimal(-1.0326546, 4))),
+            new(new Vec2<SDecimal>(new SDecimal(-2.4992437, 8), new SDecimal(-3.3952711, 8)),
+                new Vec2<SDecimal>(new SDecimal(1.3919142, 4), new SDecimal(-1.0326546, 4))),
             new SDecimal(8.931938, 22), new SDecimal(1.8216, 6), new Color(195, 200, 40, 255), jupiter
         );
         Planet europa = planetTemplate.CreateInstance("Europa", 
-            new(new DVector2<SDecimal>(new SDecimal(6.6134371, 8), new SDecimal(8.2686051, 7)),
-                new DVector2<SDecimal>(new SDecimal(-1.6290520, 3), new SDecimal(1.3728682, 4))),
+            new(new Vec2<SDecimal>(new SDecimal(6.6134371, 8), new SDecimal(8.2686051, 7)),
+                new Vec2<SDecimal>(new SDecimal(-1.6290520, 3), new SDecimal(1.3728682, 4))),
             new SDecimal(4.79984, 22), new SDecimal(1.5608, 6), new Color(255, 200, 200, 255), jupiter
         );
         Planet ganymede = planetTemplate.CreateInstance("Ganymede", 
-            new(new DVector2<SDecimal>(new SDecimal(1.0221162, 9), new SDecimal(-3.1228698, 8)),
-                new DVector2<SDecimal>(new SDecimal(3.1804035, 3), new SDecimal(1.0413910, 4))),
+            new(new Vec2<SDecimal>(new SDecimal(1.0221162, 9), new SDecimal(-3.1228698, 8)),
+                new Vec2<SDecimal>(new SDecimal(3.1804035, 3), new SDecimal(1.0413910, 4))),
             new SDecimal(1.4819, 23), new SDecimal(2.6341, 6), new Color(105, 105, 105, 255), jupiter
         );
         Planet callisto = planetTemplate.CreateInstance("Callisto", 
-            new(new DVector2<SDecimal>(new SDecimal(1.7988510, 9), new SDecimal(-5.1363150, 8)),
-                new DVector2<SDecimal>(new SDecimal(2.2405056, 3), new SDecimal(7.9426031, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(1.7988510, 9), new SDecimal(-5.1363150, 8)),
+                new Vec2<SDecimal>(new SDecimal(2.2405056, 3), new SDecimal(7.9426031, 3))),
             new SDecimal(1.075938, 23), new SDecimal(2.4103, 6), new Color(130, 130, 95, 255), jupiter
         );
         Planet saturn = planetTemplate.CreateInstance("Saturn", 
-            new(new DVector2<SDecimal>(new SDecimal( 1.4146019, 12), new SDecimal(-2.6971440, 11)),
-                new DVector2<SDecimal>(new SDecimal( 1.2650097, 3), new SDecimal( 9.4749677, 3))),
+            new(new Vec2<SDecimal>(new SDecimal( 1.4146019, 12), new SDecimal(-2.6971440, 11)),
+                new Vec2<SDecimal>(new SDecimal( 1.2650097, 3), new SDecimal( 9.4749677, 3))),
             new SDecimal(5.683, 26), new SDecimal(5.8232, 7), new Color(150, 150, 80, 255), sun
         );
         Planet uranus = planetTemplate.CreateInstance("Uranus", 
-            new(new DVector2<SDecimal>(new SDecimal(1.6645067, 12), new SDecimal(2.4055482, 12)),
-                new DVector2<SDecimal>(new SDecimal(-5.6626764, 3), new SDecimal(3.5634117, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(1.6645067, 12), new SDecimal(2.4055482, 12)),
+                new Vec2<SDecimal>(new SDecimal(-5.6626764, 3), new SDecimal(3.5634117, 3))),
             new SDecimal(8.681, 25), new SDecimal(2.5362, 7), new Color(170, 200, 255, 255), sun
         );
         Planet neptune = planetTemplate.CreateInstance("Neptune", 
-            new(new DVector2<SDecimal>(new SDecimal(4.4699311, 12), new SDecimal(-9.8183016, 10)),
-                new DVector2<SDecimal>(new SDecimal(7.2829293, 1), new SDecimal(5.4729751, 3))),
+            new(new Vec2<SDecimal>(new SDecimal(4.4699311, 12), new SDecimal(-9.8183016, 10)),
+                new Vec2<SDecimal>(new SDecimal(7.2829293, 1), new SDecimal(5.4729751, 3))),
             new SDecimal(1.024, 26), new SDecimal(2.4622, 7), new Color(100, 120, 200, 255), sun
         );
         Planet halley = planetTemplate.CreateInstance("Halley", 
-            new(new DVector2<SDecimal>(new SDecimal(-2.9450469, 12), new SDecimal(4.0907881, 12)),
-                new DVector2<SDecimal>(new SDecimal(8.0919083, 2), new SDecimal(8.0919083, 2))),
+            new(new Vec2<SDecimal>(new SDecimal(-2.9450469, 12), new SDecimal(4.0907881, 12)),
+                new Vec2<SDecimal>(new SDecimal(8.0919083, 2), new SDecimal(8.0919083, 2))),
             new SDecimal(2.2, 14), new SDecimal(5.5, 3), new Color(200, 100, 200, 255), sun
         );
             
@@ -219,10 +219,10 @@ public class OrbitGame : Game
         ]), shipMaterial);
         for (int i = 0; i < 2; i++)
         {
-             DVector2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
+             Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
-                     new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
-                     DVector2<SDecimal>.Zero
+                     new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
+                     Vec2<SDecimal>.Zero
                  ), 1000, new Color(0, 255, 0, 255), earth);
              smokestack.DrawOrbitalPath = false;
         }
@@ -235,7 +235,7 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new DVector2<SDecimal>(2 * new SDecimal(6.378, 6), 10000), DVector2<SDecimal>.Zero, Math.PI / 2), 
+            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10000), new Vec2<SDecimal>(0, 8000), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -313,7 +313,7 @@ public class OrbitGame : Game
     {
         foreach (var ship in Ships)
             ship.GenerateOrbitPath(GameState.PhysicsTime);
-        SDecimal endTime = OrbitConicSection.SelectedPoint?.GetTimeAtPoint(GameState.PhysicsTime) ?? 0;
+        SDecimal endTime = ConicPath.SelectedPoint?.GetNextTime(GameState.PhysicsTime) ?? 0;
         if (endTime <= GameState.PhysicsTime) return;
         GameState.IsFastForward = true;
         SDecimal multiplier = new SDecimal((endTime - GameState.PhysicsTime).Exponent);
@@ -366,9 +366,12 @@ public class OrbitGame : Game
 
     private void CreateManeuverNode()
     {
-        Body? selectedPointBody = OrbitConicSection.SelectedPoint?.ConicSection.Orbit?.Body;
+        if (ConicPath.SelectedPoint == null) return;
+        KeplerOrbitPoint point = ConicPath.SelectedPoint.Value;
+        Body? selectedPointBody = point.ConicPath.Orbit?.Body;
         if (selectedPointBody is Ship ship)
         {
+            ship.OrbitPath.AddManeuverNode(point, new Vec2<SDecimal>(400, 100), GameState.PhysicsTime);
         }
     }
     
@@ -427,13 +430,13 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
         if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(-10000, 0), new DVector2<SDecimal>(-0.4, 0));
+            new Vec2<SDecimal>(-10000, 0), new Vec2<SDecimal>(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.D8)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(-100000, 0), new DVector2<SDecimal>(-0.4, 0));
+            new Vec2<SDecimal>(-100000, 0), new Vec2<SDecimal>(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(10000, 0), new DVector2<SDecimal>(-0.4, 0.1));
+            new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, 0.1));
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(
-            new DVector2<SDecimal>(10000, 0), new DVector2<SDecimal>(-0.4, -0.1));
+            new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, -0.1));
         
         _lastKeyboardState = keyboardState;
     }

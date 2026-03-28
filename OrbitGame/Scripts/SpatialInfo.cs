@@ -6,13 +6,13 @@ namespace OrbitGame;
 /// Struct containing positional information about an object and some of its derivatives.
 /// </summary>
 public struct SpatialInfo(
-    DVector2<SDecimal> position, DVector2<SDecimal> velocity, DVector2<SDecimal> acceleration, 
+    Vec2<SDecimal> position, Vec2<SDecimal> velocity, Vec2<SDecimal> acceleration, 
     double angle, double angularVelocity, double angularAcceleration) 
     : IEquatable<SpatialInfo>
 {
-    public DVector2<SDecimal> Position { get; set; } = position;
-    public DVector2<SDecimal> Velocity { get; set; } = velocity;
-    public DVector2<SDecimal> Acceleration { get; set; } = acceleration;
+    public Vec2<SDecimal> Position { get; set; } = position;
+    public Vec2<SDecimal> Velocity { get; set; } = velocity;
+    public Vec2<SDecimal> Acceleration { get; set; } = acceleration;
     private double _angle = Utils.WrapAngle(angle);
 
     public double Angle
@@ -24,14 +24,14 @@ public struct SpatialInfo(
     public double AngularVelocity { get; set; } = angularVelocity;
     public double AngularAcceleration { get; set; } = angularAcceleration;
 
-    public SpatialInfo(DVector2<SDecimal> position, DVector2<SDecimal> velocity, double angle = 0, double angularVelocity = 0)
-        : this(position, velocity, DVector2<SDecimal>.Zero, angle, angularVelocity, 0) { }
+    public SpatialInfo(Vec2<SDecimal> position, Vec2<SDecimal> velocity, double angle = 0, double angularVelocity = 0)
+        : this(position, velocity, Vec2<SDecimal>.Zero, angle, angularVelocity, 0) { }
     
-    public SpatialInfo(DVector2<SDecimal> position, double angle)
-        : this(position, DVector2<SDecimal>.Zero, angle) { }
+    public SpatialInfo(Vec2<SDecimal> position, double angle)
+        : this(position, Vec2<SDecimal>.Zero, angle) { }
     
-    public SpatialInfo(DVector2<SDecimal> position)
-        : this(position, DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero, 0, 0, 0) {}
+    public SpatialInfo(Vec2<SDecimal> position)
+        : this(position, Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero, 0, 0, 0) {}
 
     public static bool operator !=(SpatialInfo left, SpatialInfo right)
     {

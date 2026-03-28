@@ -15,7 +15,7 @@ public class CircularCollider : CompactCollider
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
         // TODO: fix bounding box inaccuracies
-        _defaultBoundingBox = new(DVector2<SDecimal>.Zero, Radius * 2.1, Radius * 2.1);
+        _defaultBoundingBox = new(Vec2<SDecimal>.Zero, Radius * 2.1, Radius * 2.1);
     }
     
     public override SDecimal CalculateInertia(SDecimal mass)
@@ -26,7 +26,7 @@ public class CircularCollider : CompactCollider
     protected override BoundingBox GetBoundingBox(double angle) =>
         _defaultBoundingBox;
 
-    public override PointCollision IntersectsWith(DVector2<SDecimal> point, SpatialInfo spatial) =>
+    public override PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial) =>
         new((point - spatial.Position).Magnitude() <= Radius && !IsEmpty());
 
     protected override PhysicsCollision? IntersectsWith(
@@ -35,14 +35,14 @@ public class CircularCollider : CompactCollider
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
-        DVector2<SDecimal> diffVector = incidentSpatial.Position - referenceSpatial.Position;
+        Vec2<SDecimal> diffVector = incidentSpatial.Position - referenceSpatial.Position;
         SDecimal distance = diffVector.Magnitude();
         if (distance == 0) return PhysicsCollision.CreateUnresolvable(referenceSpatial, incidentSpatial);
         if (distance <= Radius + collider.Radius)
         {
-            DVector2<SDecimal> dirVector = diffVector.Normalize();
-            DVector2<SDecimal> collisionPoint = dirVector * Radius;
-            DVector2<SDecimal> penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            Vec2<SDecimal> dirVector = diffVector.Normalize();
+            Vec2<SDecimal> collisionPoint = dirVector * Radius;
+            Vec2<SDecimal> penetrationVector = -dirVector * (Radius + collider.Radius - distance);
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], penetrationVector);
         }
 

@@ -49,18 +49,18 @@ public readonly record struct Matrix3X3<T> : IFormattable where T : IArbitraryPl
         return new Matrix3X3<T>(resultData);
     }
     
-    public static DVector2<T> operator *(Matrix3X3<T> matrix, DVector2<T> vector)
+    public static Vec2<T> operator *(Matrix3X3<T> matrix, Vec2<T> vector)
     {
         if (matrix.Data[6] != T.Zero || matrix.Data[7] != T.Zero || matrix.Data[8] != T.One)
             throw new ArithmeticException("Matrix3x3 must have identity Z-axis values when multiplying with Vector2");
-        return new DVector2<T>(
+        return new Vec2<T>(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2],
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]);
     }
 
-    public static DVector3<T> operator *(Matrix3X3<T> matrix, DVector3<T> vector)
+    public static Vec3<T> operator *(Matrix3X3<T> matrix, Vec3<T> vector)
     {
-        return new DVector3<T>(
+        return new Vec3<T>(
             matrix.Data[0] * vector.X + matrix.Data[1] * vector.Y + matrix.Data[2] * vector.Z,
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5] * vector.Z,
             matrix.Data[6] * vector.X + matrix.Data[7] * vector.Y + matrix.Data[8] * vector.Z
@@ -99,7 +99,7 @@ public readonly record struct Matrix3X3<T> : IFormattable where T : IArbitraryPl
         ]);
     }
 
-    public static Matrix3X3<T> Translation(DVector2<T> vector)
+    public static Matrix3X3<T> Translation(Vec2<T> vector)
         => Translation(vector.X, vector.Y);
     
     public static Matrix3X3<T> Rotation(double angle)
@@ -120,7 +120,7 @@ public readonly record struct Matrix3X3<T> : IFormattable where T : IArbitraryPl
         ]);
     }
     
-    public static Matrix3X3<T> Scale(DVector2<T> scale)
+    public static Matrix3X3<T> Scale(Vec2<T> scale)
         => Scale(scale.X, scale.Y);
     
     public static Matrix3X3<T> Scale(T scale)

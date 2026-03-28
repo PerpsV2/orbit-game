@@ -23,7 +23,7 @@ public class Camera_Tests
     private readonly (int width, int height) _testScreenSize = (1600, 900);
     private readonly Camera _testSquareCamera;
     private readonly Camera _testCamera;
-    private readonly SpatialInfo _testCameraSpatialInfo = new(new DVector2<SDecimal>(0, 10), Math.PI);
+    private readonly SpatialInfo _testCameraSpatialInfo = new(new Vec2<SDecimal>(0, 10), Math.PI);
     
     private readonly KinematicObject _testTrackingObject;
 
@@ -37,9 +37,9 @@ public class Camera_Tests
     {
         TestKinematicObject.TestTemplate testTemplate = new();
         _testTrackingObject = 
-            testTemplate.CreateTestInstance("Tracking Object", new(new DVector2<SDecimal>(10, 0), Math.PI / 2));
+            testTemplate.CreateTestInstance("Tracking Object", new(new Vec2<SDecimal>(10, 0), Math.PI / 2));
         KinematicObject testSurfaceObject = 
-            testTemplate.CreateTestInstance("Surface Object", new(DVector2<SDecimal>.Zero, 3 * Math.PI / 2));
+            testTemplate.CreateTestInstance("Surface Object", new(Vec2<SDecimal>.Zero, 3 * Math.PI / 2));
         
         _testTrackingCameraScheme = new TrackingCameraScheme(_testCameraSpatialInfo, _testTrackingObject);
         _testTrackingFixedCameraScheme = new TrackingFixedCameraScheme(_testCameraSpatialInfo, _testTrackingObject);
@@ -79,28 +79,28 @@ public class Camera_Tests
     [Fact]
     public void Camera_SD_ConvertToWorldCoordinatesMethod()
     {
-        Assert.Equal(new DVector2<SDecimal>(-8, 14.5),
-            _testCamera.SD_ConvertToWorldCoordinates(new DVector2<SDecimal>(1600, 900)));
-        Assert.Equal(new DVector2<SDecimal>(-5, 15), 
-            _testSquareCamera.SD_ConvertToWorldCoordinates(new DVector2<SDecimal>(1600, 900)));
+        Assert.Equal(new Vec2<SDecimal>(-8, 14.5),
+            _testCamera.SD_ConvertToWorldCoordinates(new Vec2<SDecimal>(1600, 900)));
+        Assert.Equal(new Vec2<SDecimal>(-5, 15), 
+            _testSquareCamera.SD_ConvertToWorldCoordinates(new Vec2<SDecimal>(1600, 900)));
     }
 
     [Fact]
     public void Camera_ConvertToWorldCoordinatesMethod()
     {
-        Assert.Equal(new DVector2<SDecimal>(-5, 5), _testSquareCamera.ConvertToWorldCoordinates(new Vector2(1600, 0)));
+        Assert.Equal(new Vec2<SDecimal>(-5, 5), _testSquareCamera.ConvertToWorldCoordinates(new Vector2(1600, 0)));
     }
 
     [Fact]
     public void Camera_SD_ConvertToScreenCoordinatesMethod()
     {
-        Assert.Equal(new DVector2<SDecimal>(1600, 900), _testCamera.SD_ConvertToScreenCoordinates(new DVector2<SDecimal>(-8, 14.5)));
+        Assert.Equal(new Vec2<SDecimal>(1600, 900), _testCamera.SD_ConvertToScreenCoordinates(new Vec2<SDecimal>(-8, 14.5)));
     }
 
     [Fact]
     public void Camera_ConvertToScreenCoordinatesMethod()
     {
-        Assert.Equal(new Vector2(1600, 0), _testSquareCamera.ConvertToScreenCoordinates(new DVector2<SDecimal>(-5, 5)));
+        Assert.Equal(new Vector2(1600, 0), _testSquareCamera.ConvertToScreenCoordinates(new Vec2<SDecimal>(-5, 5)));
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingCameraScheme;
         _testCamera.MoveParallel(10);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 0), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 0), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle);
     }
 
@@ -148,7 +148,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingCameraScheme;
         _testCamera.MovePerpendicular(10);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(-10, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(-10, 10), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle);
     }
     
@@ -158,7 +158,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingCameraScheme;
         _testCamera.RotateBy(Math.PI);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 10), _testCamera.Position);
         Assert.Equal(0, _testCamera.Angle);
     }
     
@@ -182,7 +182,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingFixedCameraScheme;
         _testCamera.MoveParallel(10);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 0), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 0), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle);
     }
 
@@ -192,7 +192,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingFixedCameraScheme;
         _testCamera.MovePerpendicular(10);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(-10, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(-10, 10), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle);
     }
     
@@ -202,7 +202,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testTrackingFixedCameraScheme;
         _testCamera.RotateBy(Math.PI);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 10), _testCamera.Position);
         Assert.Equal(0, _testCamera.Angle);
     }
     
@@ -226,12 +226,12 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testSurfaceCameraScheme;
         _testCamera.MoveParallel(10);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 20), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 20), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle);
         
         _testCamera.MoveParallel(-20);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 0), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 0), _testCamera.Position);
         Assert.Equal(Math.PI / 2, _testCamera.Angle);
     }
 
@@ -241,7 +241,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testSurfaceCameraScheme;
         _testCamera.MovePerpendicular(20 * Math.PI);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 10), _testCamera.Position);
         Assert.Equal(Math.PI, _testCamera.Angle, Assert.Epsilon);
     }
     
@@ -251,7 +251,7 @@ public class Camera_Tests
         _testCamera.MovementScheme = _testSurfaceCameraScheme;
         _testCamera.RotateBy(Math.PI);
         _testCamera.Update();
-        Assert.Equal(new DVector2<SDecimal>(0, 10), _testCamera.Position);
+        Assert.Equal(new Vec2<SDecimal>(0, 10), _testCamera.Position);
         Assert.Equal(0, _testCamera.Angle);
     }
     

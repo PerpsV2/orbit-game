@@ -53,44 +53,44 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
         PhysicsCollision c2 = (PhysicsCollision)collision2;
 
         if (c1.PenetrationVector.Magnitude() == 0) return;
-        DVector2<SDecimal> cNormal = -c1.PenetrationVector.Normalize();
+        Vec2<SDecimal> cNormal = -c1.PenetrationVector.Normalize();
         
         float restitution = (reference.Material.RestitutionCoefficient + reference.Material.RestitutionCoefficient) / 2;
         float staticFriction = (reference.Material.StaticFrictionCoefficient + reference.Material.StaticFrictionCoefficient) / 2;
         float dynamicFriction = (reference.Material.DynamicFrictionCoefficient + reference.Material.DynamicFrictionCoefficient) / 2;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
-        DVector2<SDecimal> cPr = DVector2<SDecimal>.Zero;
+        Vec2<SDecimal> cPr = Vec2<SDecimal>.Zero;
         foreach (var collisionPoint in c1.CollisionManifold)
             cPr = collisionPoint;
         
-        DVector2<SDecimal> cPi = DVector2<SDecimal>.Zero;
+        Vec2<SDecimal> cPi = Vec2<SDecimal>.Zero;
         foreach (var collisionPoint in c2.CollisionManifold)
             cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
-        DVector2<SDecimal> pVr = reference.Velocity - (DVector2<SDecimal>)
-            DVector3<SDecimal>.Cross(cPr, new(0, 0, reference.AngularVelocity));
-        DVector2<SDecimal> pVi = incident.Velocity - (DVector2<SDecimal>)
-            DVector3<SDecimal>.Cross(cPi, new(0, 0, incident.AngularVelocity));
-        DVector2<SDecimal> relV = pVi - pVr;
+        Vec2<SDecimal> pVr = reference.Velocity - (Vec2<SDecimal>)
+            Vec3<SDecimal>.Cross(cPr, new(0, 0, reference.AngularVelocity));
+        Vec2<SDecimal> pVi = incident.Velocity - (Vec2<SDecimal>)
+            Vec3<SDecimal>.Cross(cPi, new(0, 0, incident.AngularVelocity));
+        Vec2<SDecimal> relV = pVi - pVr;
 
         // calculate collision tangent pointing in the direction of movement
-        DVector2<SDecimal> cPerpendicularNormal = new DVector2<SDecimal>(-cNormal.Y, cNormal.X);
-        DVector2<SDecimal> cTangent = cPerpendicularNormal * 
-                                      (DVector2<SDecimal>.Dot(-relV, cPerpendicularNormal).Positive ? 1 : -1);
+        Vec2<SDecimal> cPerpendicularNormal = new Vec2<SDecimal>(-cNormal.Y, cNormal.X);
+        Vec2<SDecimal> cTangent = cPerpendicularNormal * 
+                                      (Vec2<SDecimal>.Dot(-relV, cPerpendicularNormal).Positive ? 1 : -1);
         
         // calculate the magnitude of impulse along the collision normal (j) and tangentially (jF)
-        SDecimal jV = -(1 + restitution) * DVector2<SDecimal>.Dot(relV, cNormal);
-        DVector3<SDecimal> m1 = DVector3<SDecimal>.Cross(DVector2<SDecimal>.Cross(cPr, cNormal) / referenceCollider.Inertia, cPr);
-        DVector3<SDecimal> m2 = DVector3<SDecimal>.Cross(DVector2<SDecimal>.Cross(cPi, cNormal) / incidentCollider.Inertia, cPi);
-        SDecimal j = jV / (DVector2<SDecimal>.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incident.Mass)) 
-                           + DVector3<SDecimal>.Dot(m1 + m2, cNormal));
+        SDecimal jV = -(1 + restitution) * Vec2<SDecimal>.Dot(relV, cNormal);
+        Vec3<SDecimal> m1 = Vec3<SDecimal>.Cross(Vec2<SDecimal>.Cross(cPr, cNormal) / referenceCollider.Inertia, cPr);
+        Vec3<SDecimal> m2 = Vec3<SDecimal>.Cross(Vec2<SDecimal>.Cross(cPi, cNormal) / incidentCollider.Inertia, cPi);
+        SDecimal j = jV / (Vec2<SDecimal>.Dot(cNormal, cNormal * (1 / reference.Mass + 1 / incident.Mass)) 
+                           + Vec3<SDecimal>.Dot(m1 + m2, cNormal));
         SDecimal jS = staticFriction * j;
         SDecimal jD = dynamicFriction * j;
-        DVector2<SDecimal> jF = DVector2<SDecimal>.Dot(relV, cTangent) == 0 || 
-                                DVector2<SDecimal>.Dot(relV * reference.Mass, cTangent) <= jS
-                ? cTangent * -DVector2<SDecimal>.Dot(relV * reference.Mass, cTangent) : cTangent * jD;
+        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relV, cTangent) == 0 || 
+                                Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) <= jS
+                ? cTangent * -Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) : cTangent * jD;
 
         // apply linear impulse
         if (!referenceCollider.Fixed)
@@ -107,9 +107,9 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
         
         // apply angular impulse
         if (!referenceCollider.Fixed) reference.AngularVelocity -= 
-            (double)(DVector2<SDecimal>.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
+            (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
         if (!incidentCollider.Fixed) incident.AngularVelocity += 
-            (double)(DVector2<SDecimal>.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
+            (double)(Vec2<SDecimal>.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
         // apply projection method to resolve intersection
         
         if (!referenceCollider.Fixed && !incidentCollider.Fixed)

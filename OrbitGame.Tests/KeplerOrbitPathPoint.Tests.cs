@@ -19,18 +19,18 @@ public class KeplerOrbitPathPoint_Tests
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
-            new SpatialInfo(DVector2<SDecimal>.Zero, DVector2<SDecimal>.Zero), 1, 0, Color.White, null);
+            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null);
         var circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 0), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 0), 0)
         ), 1, 0, Color.White, parent);
         var ellipticBody = _testPlanetTemplate.CreateInstance("Elliptic Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
         ), 1, 0, Color.White, parent);
         var hyperbolicBody = _testPlanetTemplate.CreateInstance("Hyperbolic Orbit Body", new SpatialInfo(
-            new DVector2<SDecimal>(0, 1),
-            new DVector2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
+            new Vec2<SDecimal>(0, 1),
+            new Vec2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
         ), 1, 0, Color.White, parent);
         
         circularBody.GenerateOrbitPath(_initialTime);
@@ -46,7 +46,7 @@ public class KeplerOrbitPathPoint_Tests
     public void KeplerOrbitPathPoint_GetTimeAtPoint()
     {
         //Assert.Equal(_initialTime + 3*Math.PI/2, _circularOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
-        Assert.Equal(_initialTime + 125 * Math.PI, _ellipticOrbitPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
-        Assert.Equal(_initialTime, _hyperbolicOrbitPoint.GetTimeAtPoint(_initialTime));
+        Assert.Equal(_initialTime + 125 * Math.PI, _ellipticOrbitPoint.GetNextTime(_initialTime), Assert.Epsilon);
+        Assert.Equal(_initialTime, _hyperbolicOrbitPoint.GetNextTime(_initialTime));
     }
 }

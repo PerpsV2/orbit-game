@@ -42,14 +42,14 @@ public class Camera : KinematicObject
 
     public SDecimal MaximumRadiusSquared;
     public SDecimal MaximumRadius => SDecimal.Sqrt(MaximumRadiusSquared);
-    public DVector2<SDecimal> TopLeft 
-        => Position + DVector2<SDecimal>.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
-    public DVector2<SDecimal> TopRight
-        => Position + DVector2<SDecimal>.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
-    public DVector2<SDecimal> BottomLeft 
-        => Position + DVector2<SDecimal>.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
-    public DVector2<SDecimal> BottomRight 
-        => Position + DVector2<SDecimal>.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
+    public Vec2<SDecimal> TopLeft 
+        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
+    public Vec2<SDecimal> TopRight
+        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
+    public Vec2<SDecimal> BottomLeft 
+        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
+    public Vec2<SDecimal> BottomRight 
+        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
 
     private Matrix3X3<SDecimal> _viewMatrix;
     private Matrix3X3<SDecimal> _inverseViewMatrix;
@@ -112,18 +112,18 @@ public class Camera : KinematicObject
                             Matrix3X3<SDecimal>.Scale(Width / _screenWidth, Height / _screenHeight);
     }
 
-    public DVector2<SDecimal> SD_ConvertToWorldCoordinates(DVector2<SDecimal> point)
+    public Vec2<SDecimal> SD_ConvertToWorldCoordinates(Vec2<SDecimal> point)
         => _inverseViewMatrix * point + Position;
 
-    public DVector2<SDecimal> ConvertToWorldCoordinates(Vector2 point)
+    public Vec2<SDecimal> ConvertToWorldCoordinates(Vector2 point)
         => SD_ConvertToWorldCoordinates(new(point.X, point.Y));
     
-    public DVector2<SDecimal> SD_ConvertToScreenCoordinates(DVector2<SDecimal> point)
+    public Vec2<SDecimal> SD_ConvertToScreenCoordinates(Vec2<SDecimal> point)
         => _viewMatrix * (point - Position);
     
-    public Vector2 ConvertToScreenCoordinates(DVector2<SDecimal> point)
+    public Vector2 ConvertToScreenCoordinates(Vec2<SDecimal> point)
     {
-        DVector2<SDecimal> transformedPoint = SD_ConvertToScreenCoordinates(point);
+        Vec2<SDecimal> transformedPoint = SD_ConvertToScreenCoordinates(point);
         return new((float)transformedPoint.X, (float)transformedPoint.Y);
     }
 

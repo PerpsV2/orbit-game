@@ -27,13 +27,13 @@ public abstract partial class Assert
         }
     }
     
-    public static void Equal<T>(DVector2<T> left, DVector2<T> right) where T : IArbitraryPlaceDecimal<T>
+    public static void Equal<T>(Vec2<T> left, Vec2<T> right) where T : IArbitraryPlaceDecimal<T>
     {
         Equal(left.X, right.X, T.FromDouble(Epsilon));
         Equal(left.Y, right.Y, T.FromDouble(Epsilon));
     }
     
-    public static void Equal<T>(DVector2<T> left, DVector2<T> right, double epsilon) where T : IArbitraryPlaceDecimal<T>
+    public static void Equal<T>(Vec2<T> left, Vec2<T> right, double epsilon) where T : IArbitraryPlaceDecimal<T>
     {
         Equal(left.X, right.X, T.FromDouble(epsilon));
         Equal(left.Y, right.Y, T.FromDouble(epsilon));
@@ -45,7 +45,7 @@ public abstract partial class Assert
         Equal(left.Y, right.Y, Epsilon);
     }
 
-    public static void Equal<T>(OrbitGame.DVector3<T> left, OrbitGame.DVector3<T> right) 
+    public static void Equal<T>(OrbitGame.Vec3<T> left, OrbitGame.Vec3<T> right) 
         where T : IArbitraryPlaceDecimal<T>
     {
         Equal(left.X, right.X, T.FromDouble(Epsilon));
@@ -63,7 +63,7 @@ public abstract partial class Assert
     /// <summary>
     /// Assert equality of two collision manifolds
     /// </summary>
-    public static void Equal<T>(HashSet<DVector2<T>> left, HashSet<DVector2<T>> right) 
+    public static void Equal<T>(HashSet<Vec2<T>> left, HashSet<Vec2<T>> right) 
         where T : IArbitraryPlaceDecimal<T>
     {
         Equal(left.Count, right.Count);

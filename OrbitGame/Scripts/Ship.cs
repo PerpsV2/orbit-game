@@ -13,7 +13,7 @@ public class Ship : Body, IGameDrawable
 {
     private readonly SDecimal _maximumRadius;
     
-    private DVector2<SDecimal> ArtificialAcceleration { get; set; }
+    private Vec2<SDecimal> ArtificialAcceleration { get; set; }
     
     public bool DrawOrbitalPath { get; set; }
     public bool MarkedForRemoval { get; set; }
@@ -37,7 +37,7 @@ public class Ship : Body, IGameDrawable
     protected override void Body_UpdateFrame(object? e, EventArgs args)
     {
         base.Body_UpdateFrame(e, args);
-        ArtificialAcceleration = DVector2<SDecimal>.Zero;
+        ArtificialAcceleration = Vec2<SDecimal>.Zero;
     }
 
     public void Draw()
@@ -69,17 +69,17 @@ public class Ship : Body, IGameDrawable
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, -5), iconAngle), 
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, 5), iconAngle), colour);
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle), 
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 5), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(10, 0), iconAngle), 
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 0), iconAngle), 
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(5, -8), iconAngle), 
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, -8), iconAngle), 
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
             graphicsDevice.DrawLine(
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(5, 8), iconAngle), 
-                screenPosition + (Vector2)DVector2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle), 
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
         }
     }
 
@@ -115,7 +115,7 @@ public class Ship : Body, IGameDrawable
         if (LandingState == null)
             throw new NullReferenceException("Ship is not landed");
         Landing landing = LandingState.Value;
-        Position = landing.Parent.Position + DVector2<SDecimal>.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
+        Position = landing.Parent.Position + Vec2<SDecimal>.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
         Velocity = landing.Parent.Velocity;
         Angle = landing.Parent.Angle + landing.RelativeAngle;
     }
@@ -130,17 +130,17 @@ public class Ship : Body, IGameDrawable
         LandingState = null;
     }
 
-    public void ApplyThrust(DVector2<SDecimal> thrust, DVector2<SDecimal> position)
+    public void ApplyThrust(Vec2<SDecimal> thrust, Vec2<SDecimal> position)
     {
-        thrust = DVector2<SDecimal>.RotatePoint(thrust, Angle);
-        position = DVector2<SDecimal>.RotatePoint(position, Angle);
-        SDecimal torque = DVector2<SDecimal>.Cross(thrust, position).Z;
+        thrust = Vec2<SDecimal>.RotatePoint(thrust, Angle);
+        position = Vec2<SDecimal>.RotatePoint(position, Angle);
+        SDecimal torque = Vec2<SDecimal>.Cross(thrust, position).Z;
         AngularAcceleration += (double)(torque / Mass);
         ArtificialAcceleration += thrust / Mass;
         DisturbLandingState();
     }
 
-    public override DVector2<SDecimal> CalculateNetAcceleration()
+    public override Vec2<SDecimal> CalculateNetAcceleration()
     {
         return base.CalculateNetAcceleration() + ArtificialAcceleration;
     }
@@ -153,7 +153,7 @@ public class Ship : Body, IGameDrawable
         private readonly SDecimal _maximumRadius;
         private readonly Material _material;
         
-        public ShipTemplate(DVector2<SDecimal>[] shipVertices, Material material)
+        public ShipTemplate(Vec2<SDecimal>[] shipVertices, Material material)
         {
             _material = material;
             _mesh = new PolyMesh(shipVertices);
