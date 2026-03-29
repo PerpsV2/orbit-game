@@ -43,7 +43,7 @@ public readonly record struct KeplerOrbit
     public double Eccentricity => _lazyEccentricity.Value;
     
     private readonly Lazy<OrbitEquation> _lazyEquation;
-    public OrbitEquation Equation => _lazyEquation.Value;
+    private OrbitEquation Equation => _lazyEquation.Value;
     
     /// <summary>
     /// Semi-major axis of the orbital conic section. Is always negative for hyperbolas.
@@ -309,9 +309,14 @@ public readonly record struct KeplerOrbit
         return trueAnomaly;
     }
     
+    public SDecimal GetDistanceFromTrueAnomaly(double trueAnomaly)
+    {
+        return Equation(trueAnomaly + Periapsis);
+    }
+    
     public Vec2<SDecimal> GetOrbitPositionFromTrueAnomaly(double trueAnomaly)
     {
-        SDecimal distance = Equation(trueAnomaly + Periapsis);
+        SDecimal distance = GetDistanceFromTrueAnomaly(trueAnomaly);
         return Vec2<SDecimal>.FromPolar(trueAnomaly + Periapsis, distance);
     }
 

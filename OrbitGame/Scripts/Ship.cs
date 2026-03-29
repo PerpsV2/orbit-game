@@ -45,12 +45,11 @@ public class Ship : Body, IGameDrawable
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
-        if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius * _maximumRadius > camera.MaximumRadiusSquared) 
-            return;
-        
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
         float screenDistance = camera.ConvertToScreenDistance(_maximumRadius);
         if (LandingState == null && DrawOrbitalPath) OrbitPath.Draw();
+        if ((Position - camera.Position).MagnitudeSquared() - 4 * _maximumRadius * _maximumRadius > camera.MaximumRadiusSquared) 
+            return;
         if (screenDistance > 1)
         {
             Vector2 scale = new((float)(Options.ScreenSize.height / camera.Height),

@@ -48,7 +48,7 @@ public class PatchedConicPath
     {
         ManeuverNodes.Add(new ManeuverNode(point, deltaV));
         int numManeuverNodes = ManeuverNodes.Count;
-        //point.ConicPath.EndAngle = point.TrueAnomaly;
+        point.ConicPath.EndAngle = point.TrueAnomaly;
         KeplerOrbit pointOrbit = point.ConicPath.Orbit ?? throw new NullReferenceException();
         SDecimal maneuverNodeTime = point.GetNextTime(currentTime);
         SpatialInfo nodeBodySpatialInfo = pointOrbit.GetSpatialInfoAtTime(maneuverNodeTime);
@@ -56,7 +56,7 @@ public class PatchedConicPath
         Conics[numManeuverNodes].Orbit = new KeplerOrbit(
             pointOrbit.Body, pointOrbit.Parent, nodeBodySpatialInfo, pointOrbit.Parent.SpatialInfo, currentTime
         );
-        //Conics[numManeuverNodes].StartAngle = point.TrueAnomaly;
-        
+        Conics[numManeuverNodes].StartAngle = point.TrueAnomaly;
+        Conics[numManeuverNodes].EndAngle = point.TrueAnomaly + Math.Tau;
     }
 }

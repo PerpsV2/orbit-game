@@ -12,21 +12,8 @@ public class ConicPath
     public PatchedConicPath Path { get; }
     public KeplerOrbit? Orbit { get; set; }
 
-    private double _startAngle;
-
-    public double StartAngle
-    {
-        get => _startAngle + (Orbit?.Periapsis ?? 0);
-        set => _startAngle = value;
-    }
-
-    private double _endAngle;
-
-    public double EndAngle
-    {
-        get => _endAngle + (Orbit?.Periapsis ?? 0);
-        set => _endAngle = value;
-    }
+    public double? StartAngle;
+    public double? EndAngle;
 
     private bool _onScreen;
 
@@ -40,13 +27,13 @@ public class ConicPath
     public ConicPath(
         PatchedConicPath patchedConicPath, 
         OrbitMesh mesh, Color colour, 
-        double startAngle = 0, double endAngle = Math.Tau)
+        double? startAngle = null, double? endAngle = null)
     {
         Path = patchedConicPath;
         _mesh = mesh;
         _colour = colour;
-        _startAngle = startAngle;
-        _endAngle = endAngle;
+        StartAngle = startAngle;
+        EndAngle = endAngle;
         
         MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
         MouseHandler.MouseDown += KeplerOrbitPath_MouseDown;
@@ -65,11 +52,16 @@ public class ConicPath
         externalPoint -= orbit.Parent.Position;
 
         double guessPoint = externalPoint.Direction() - orbit.Periapsis;
-        if (orbit.Equation(guessPoint + orbit.Periapsis) < 0) guessPoint += Math.PI; 
+        if (orbit.GetDistanceFromTrueAnomaly(guessPoint) < 0) guessPoint += Math.PI; 
         double learningRate = 0.1;
-
-        double worldStartAngle = StartAngle - orbit.Periapsis;
-        double worldEndAngle = EndAngle - orbit.Periapsis;
+        
+        double orbitStartAngle = 0;
+        double orbitEndAngle = Math.Tau;
+        if (StartAngle != null && EndAngle != null)
+        {
+            orbitStartAngle = StartAngle.Value - orbit.Periapsis;
+            orbitEndAngle = EndAngle.Value - orbit.Periapsis;
+        }
         
         SDecimal currentGuessDistance = GetGuessDistance(guessPoint);
         SDecimal lastGuessDistance = SDecimal.PosInfinity;
@@ -102,19 +94,19 @@ public class ConicPath
 
         guessPoint = Utils.WrapAngle(guessPoint);
         
-        if (guessPoint < worldStartAngle || guessPoint > worldEndAngle)
+        if (guessPoint < orbitStartAngle || guessPoint > orbitEndAngle)
         {
-            double startAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - worldStartAngle));
-            double endAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - worldEndAngle));
+            double startAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - orbitStartAngle));
+            double endAngleArc = Utils.WrapAngle(Math.Abs(guessPoint - orbitEndAngle));
 
             if (startAngleArc < endAngleArc)
             {
-                minimumDistance = GetGuessDistance(worldStartAngle);
-                return worldStartAngle;
+                minimumDistance = GetGuessDistance(orbitStartAngle);
+                return orbitStartAngle;
             }
 
-            minimumDistance = GetGuessDistance(worldEndAngle);
-            return worldEndAngle;
+            minimumDistance = GetGuessDistance(orbitEndAngle);
+            return orbitEndAngle;
         }
 
         minimumDistance = currentGuessDistance;
@@ -190,7 +182,7 @@ public class ConicPath
         }
     }
     
-    private void DrawPartialEllipseOrbit(KeplerOrbit orbit, double minAngle, double maxAngle, Color colour)
+    private void DrawPartialEllipseOrbit(KeplerOrbit orbit, double minTrueAnomaly, double maxTrueAnomaly, Color colour)
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
@@ -198,7 +190,7 @@ public class ConicPath
         Body centralForce = orbit.Parent;
         List<Vec2<SDecimal>> orbitPoints = new List<Vec2<SDecimal>>();
         
-        // redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
+        // function to redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
         {
             angle = Utils.WrapAngle(angle);
@@ -207,43 +199,54 @@ public class ConicPath
             return result;
         }
         
-        double exponent = Options.EllipsePointDistributionBiasStrength * 
+        double biasExponent = Options.EllipsePointDistributionBiasStrength * 
             Math.Pow(orbit.Eccentricity, 1 - orbit.Eccentricity) + 1;
             
-        // apply inverse ellipse bias function of camera angle limits
-        double unbiasedMinAngle = EllipseBiasFunction(minAngle - orbit.Periapsis, 1 / exponent);
-        double unbiasedMaxAngle = EllipseBiasFunction(maxAngle - orbit.Periapsis, 1 / exponent);
+        // apply inverse ellipse bias function on camera angle limits
+        double inverseBiasedMinTrueAnomaly = EllipseBiasFunction(minTrueAnomaly, 1 / biasExponent);
+        double inverseBiasedMaxTrueAnomaly = EllipseBiasFunction(maxTrueAnomaly, 1 / biasExponent);
         
         // sweep through angle range and re-apply bias function on each point then draw the orbit
-        for (double a = unbiasedMinAngle; a < unbiasedMaxAngle; 
-             a += (unbiasedMaxAngle - unbiasedMinAngle) / Options.OrbitResolutionNumPoints)
+        for (double a = inverseBiasedMinTrueAnomaly; a < inverseBiasedMaxTrueAnomaly; 
+             a += (inverseBiasedMaxTrueAnomaly - inverseBiasedMinTrueAnomaly) / Options.OrbitResolutionNumPoints)
         {
-            double trueAngle = EllipseBiasFunction(a, exponent) + orbit.Periapsis;
-            SDecimal dist = orbit.Equation(trueAngle);
-            orbitPoints.Add(centralForce.Position + Vec2<SDecimal>.FromPolar(trueAngle, dist));
+            double trueAnomaly = EllipseBiasFunction(a, biasExponent);
+            orbitPoints.Add(centralForce.Position + orbit.GetOrbitPositionFromTrueAnomaly(trueAnomaly));
         }
 
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
+        foreach (var t in orbitPoints) graphicsDevice.SD_DrawPoint(camera, t, colour);
     }
 
     private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
+        
+        double orbitStartAngle = 0;
+        double orbitEndAngle = Math.Tau;
+        if (StartAngle != null && EndAngle != null)
+        {
+            orbitStartAngle = StartAngle.Value;
+            orbitEndAngle = EndAngle.Value;
+        }
 
-        Utils.GetMinAngleRange(out double minAngle, out double maxAngle,
+        Utils.GetMinAngleRange(out double minTrueAnomaly, out double maxTrueAnomaly,
             (camera.TopRight - centralForce.Position).Direction(),
             (camera.TopLeft - centralForce.Position).Direction(),
             (camera.BottomLeft - centralForce.Position).Direction(),
             (camera.BottomRight - centralForce.Position).Direction()
         );
-        if (maxAngle < minAngle) maxAngle += Math.Tau;
-
-        if (maxAngle - minAngle > Options.OrbitApproximationZoomFraction * Math.PI)
+        // convert world angles to true anomaly
+        minTrueAnomaly -= orbit.Periapsis;
+        maxTrueAnomaly -= orbit.Periapsis;
+        if (maxTrueAnomaly < minTrueAnomaly) maxTrueAnomaly += Math.Tau;
+        
+        if (maxTrueAnomaly - minTrueAnomaly > Options.OrbitApproximationZoomFraction * Math.PI)
         {
-            if (Math.Abs(EndAngle - StartAngle) >= Math.Tau)
+            if (Math.Abs(orbitEndAngle - orbitStartAngle) >= Math.Tau)
             {
                 // draw the entire orbit as an ellipse
                 Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
@@ -268,12 +271,12 @@ public class ConicPath
                 });
                 return;
             }
-            minAngle = StartAngle;
-            maxAngle = EndAngle;
+            minTrueAnomaly = orbitStartAngle;
+            maxTrueAnomaly = orbitEndAngle;
         }
-        
-        double drawnMinAngle = Math.Max(minAngle, StartAngle);
-        double drawnMaxAngle = Math.Min(maxAngle, EndAngle);
+
+        double drawnMinAngle = Math.Max(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
+        double drawnMaxAngle = Math.Min(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
 
         if (drawnMinAngle > drawnMaxAngle) return;
         DrawPartialEllipseOrbit(orbit, drawnMinAngle, drawnMaxAngle, colour);
@@ -284,16 +287,38 @@ public class ConicPath
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
+        Utils.GetMinAngleRange(out double minTrueAnomaly, out double maxTrueAnomaly,
+            (camera.TopRight - centralForce.Position).Direction(),
+            (camera.TopLeft - centralForce.Position).Direction(),
+            (camera.BottomLeft - centralForce.Position).Direction(),
+            (camera.BottomRight - centralForce.Position).Direction()
+        );
+        // convert world angles to true anomaly
+        minTrueAnomaly -= orbit.Periapsis;
+        maxTrueAnomaly -= orbit.Periapsis;
+        if (maxTrueAnomaly < minTrueAnomaly) maxTrueAnomaly += Math.Tau;
+        
         List<Vec2<SDecimal>> orbitPoints = new List<Vec2<SDecimal>>();
         
         SDecimal? parentSOIRadius = centralForce.OrbitPath.GetSphereOfInfluenceRadius();
-        double asymptoteAngle = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
-        double objectAngle = Utils.WrapAngle((orbit.Body.Position - centralForce.Position).Direction());
-        for (double a = -asymptoteAngle; a < asymptoteAngle; a += 2 * asymptoteAngle / Options.OrbitResolutionNumPoints)
+        double asymptoteTrueAnomaly = Utils.WrapAngle(Math.Acos(-(1 / orbit.Eccentricity)));
+        double bodyTrueAnomaly = Utils.WrapAngle((orbit.Body.Position - centralForce.Position).Direction()) - orbit.Periapsis;
+
+        double sweepStart = -asymptoteTrueAnomaly;
+        double sweepEnd = asymptoteTrueAnomaly;
+        if (maxTrueAnomaly - minTrueAnomaly <= Options.OrbitApproximationZoomFraction * Math.PI)
         {
-            double trueAngle = Utils.WrapAngle(a + orbit.Periapsis);
-            SDecimal dist = orbit.Equation(trueAngle);
-            Vec2<SDecimal> orbitPoint = centralForce.Position + Vec2<SDecimal>.FromPolar(trueAngle, dist);
+            sweepStart = double.Max(minTrueAnomaly, -asymptoteTrueAnomaly);
+            sweepEnd = double.Min(maxTrueAnomaly, asymptoteTrueAnomaly);
+        }
+
+        double lastTrueAnomaly = Utils.WrapAngle(-asymptoteTrueAnomaly);
+        for (double a = sweepStart; a < sweepEnd; 
+             a += (sweepEnd - sweepStart) / Options.OrbitResolutionNumPoints)
+        {
+            double currentTrueAnomaly = Utils.WrapAngle(a);
+            SDecimal dist = orbit.GetDistanceFromTrueAnomaly(currentTrueAnomaly);
+            Vec2<SDecimal> orbitPoint = centralForce.Position + orbit.GetOrbitPositionFromTrueAnomaly(currentTrueAnomaly);
             if (parentSOIRadius != null)
             {
                 if (dist > 0 && dist < parentSOIRadius)
@@ -301,9 +326,12 @@ public class ConicPath
             }
             else if (dist > 0 && SDecimal.IsFinite(dist)) 
                 orbitPoints.Add(orbitPoint);
-            if (double.IsPositive(trueAngle - objectAngle) !=  
-                double.IsPositive(trueAngle + 2 * asymptoteAngle / Options.OrbitResolutionNumPoints - objectAngle))
-                orbitPoints.Add(centralForce.Position + orbit.GetOrbitPositionFromWorldAngle(objectAngle));
+
+            if (double.IsPositive(currentTrueAnomaly - bodyTrueAnomaly) !=
+                double.IsPositive(lastTrueAnomaly - bodyTrueAnomaly))
+                orbitPoints.Add(centralForce.Position + orbit.GetOrbitPositionFromTrueAnomaly(bodyTrueAnomaly));
+
+            lastTrueAnomaly = currentTrueAnomaly;
         }
 
         if (parentSOIRadius != null)
