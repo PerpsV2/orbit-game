@@ -271,7 +271,7 @@ public readonly record struct KeplerOrbit
         => meanAnomaly * Period / Math.Tau;
     
     private SDecimal CalculateTimeSincePeriapsisFromMeanAnomalyHyperbolic(double meanAnomaly)
-        => SDecimal.Sqrt(SDecimal.IntPow(-SemiMajorAxis, 3)) / (Parent.Mass * Constants.G) * meanAnomaly;
+        => SDecimal.Sqrt(SDecimal.IntPow(-SemiMajorAxis, 3) / (Parent.Mass * Constants.G)) * meanAnomaly;
 
     public SDecimal GetTimeSincePeriapsisFromTrueAnomaly(double trueAnomaly)
     {
@@ -305,7 +305,6 @@ public readonly record struct KeplerOrbit
             double eccentricAnomaly = CalculateEccentricFromMeanAnomalyHyperbolic(Eccentricity, meanAnomaly);
             trueAnomaly = CalculateTrueFromEccentricAnomalyHyperbolic(Eccentricity, eccentricAnomaly);
         }
-        
         if (!Prograde) trueAnomaly = Utils.WrapAngle(-trueAnomaly);
         return trueAnomaly;
     }

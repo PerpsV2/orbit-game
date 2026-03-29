@@ -235,7 +235,7 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10000), new Vec2<SDecimal>(0, 8000), Math.PI / 2), 
+            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10000), new Vec2<SDecimal>(0, -8000), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
