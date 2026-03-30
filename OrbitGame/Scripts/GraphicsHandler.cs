@@ -5,8 +5,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
-public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
+public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
 {
+    private GraphicsDevice GraphicsDevice => spriteBatch.GraphicsDevice;
+    
     public void DrawPoly(List<Vector2> points, Color colour)
     {
         if (points.Count < 3) return;
@@ -29,7 +31,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            graphicsDevice.DrawUserIndexedPrimitives(
+            GraphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3
             );
         }
@@ -48,7 +50,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            graphicsDevice.DrawUserIndexedPrimitives(
+            GraphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
             );
         }
@@ -86,7 +88,7 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            graphicsDevice.DrawUserIndexedPrimitives(
+            GraphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, 2
             );
         }
@@ -99,13 +101,22 @@ public class GraphicsHandler(GraphicsDevice graphicsDevice) : IGraphicsHandler
 
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters)
     {
-        mesh.TryGenerateBuffers(graphicsDevice);
-        mesh.Draw(graphicsDevice, transform, shaderParameters);
+        mesh.TryGenerateBuffers(GraphicsDevice);
+        mesh.Draw(GraphicsDevice, transform, shaderParameters);
     }
 
     public void DrawMesh(IMesh mesh, Vector2 scale, Vector2 position, Vector2 rotation, Color colour)
     {
-        mesh.TryGenerateBuffers(graphicsDevice);
-        
+        mesh.TryGenerateBuffers(GraphicsDevice);
+    }
+
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Color colour)
+    {
+        spriteBatch.DrawString(spriteFont, text, position, colour);
+    }
+
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Vector2 scale, float rotation, Color colour)
+    {
+        spriteBatch.DrawString(spriteFont, text, position, colour, rotation, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 }

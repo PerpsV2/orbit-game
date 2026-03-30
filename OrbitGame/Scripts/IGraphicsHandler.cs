@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -12,6 +13,7 @@ public interface IGraphicsHandler
     public void SD_DrawLineR(Camera camera, Vec2<SDecimal> start, Vec2<SDecimal> displacement, Color colour);
     public void DrawPoint(Vector2 position, Color colour);
     public void SD_DrawPoint(Camera camera, Vec2<SDecimal> position, Color colour);
-
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters);
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Color colour);
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Vector2 scale, float rotation, Color colour);
 }

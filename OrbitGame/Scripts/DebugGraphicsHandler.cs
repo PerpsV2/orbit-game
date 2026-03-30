@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -57,6 +58,16 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters)
     {
         DrawMeshCalls.Add(new DrawMeshCall(mesh, transform, shaderParameters));
+    }
+
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Color colour)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Vector2 scale, float rotation, Color colour)
+    {
+        throw new System.NotImplementedException();
     }
 
     public void ResetCalls()

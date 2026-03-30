@@ -103,7 +103,6 @@ public class OrbitGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
-        Graphics = new GraphicsHandler(_graphics.GraphicsDevice);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }
@@ -118,7 +117,7 @@ public class OrbitGame : Game
     private Planet[] Planets => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Planet>().ToArray();
     private Ship[] Ships => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Ship>().ToArray();
 
-    private SpriteFont _font;
+    public static SpriteFont DefaultFont;
     private readonly Random _rnd = new();
 
     public static event UpdateEventHandler? UpdateFrame;
@@ -131,7 +130,7 @@ public class OrbitGame : Game
 
     protected override void Initialize()
     {
-        Graphics = new GraphicsHandler(_graphics.GraphicsDevice);
+        Graphics = new GraphicsHandler(_spriteBatch);
         
         Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
         
@@ -222,7 +221,7 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 3; i++)
         {
              Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
@@ -240,7 +239,7 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(0, 2 * new SDecimal(6.378, 6)), new Vec2<SDecimal>(-8000, 0), Math.PI / 2), 
+            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 0), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -288,6 +287,7 @@ public class OrbitGame : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        Graphics = new GraphicsHandler(_spriteBatch);
         Matrix projection = Matrix.CreateOrthographicOffCenter(
             0, Options.ScreenSize.width, Options.ScreenSize.height, 0, 0, 1
         );
@@ -304,7 +304,7 @@ public class OrbitGame : Game
             effect.Parameters["Projection"].SetValue(projection);
         }*/
         
-        _font = Content.Load<SpriteFont>("fonts/defaultFont");
+        DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
     }
 
     private void TrackBody(int index)
@@ -516,21 +516,21 @@ public class OrbitGame : Game
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
         if (Options.DisplayFPS)
-            _spriteBatch.DrawString(_font, GameState.FramesPerSecond.ToString(), Vector2.Zero, Color.White);
+            _spriteBatch.DrawString(DefaultFont, GameState.FramesPerSecond.ToString(), Vector2.Zero, Color.White);
         
         try
         {
-            _spriteBatch.DrawString(_font, "Current date: " + new DateTime(2024, 12, 25)
+            _spriteBatch.DrawString(DefaultFont, "Current date: " + new DateTime(2024, 12, 25)
                     .AddSeconds((double)GameState.PhysicsTime),
                 new Vector2(0, 30), Color.White);
         }
         catch (ArgumentOutOfRangeException)
         {
-            _spriteBatch.DrawString(_font, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
+            _spriteBatch.DrawString(DefaultFont, "Current date: >10000y A.D.", new Vector2(0, 30), Color.White);
         }
         
-        _spriteBatch.DrawString(_font, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
-        _spriteBatch.DrawString(_font, GameState.IsFastForward.ToString(), new Vector2(0, 90), Color.White);
+        _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
+        _spriteBatch.DrawString(DefaultFont, GameState.IsFastForward.ToString(), new Vector2(0, 90), Color.White);
 
         foreach (var ship in Ships) ship.Draw();
         foreach (var planet in Planets) planet.Draw();

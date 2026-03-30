@@ -58,9 +58,14 @@ public class PatchedConicPath
         KeplerOrbit newTrajectory = maneuverNode.GenerateAppliedKeplerOrbit(currentTime);
         
         int numManeuverNodes = ManeuverNodes.Count;
-        //point.ConicPath.EndAngle = point.TrueAnomaly;
+        point.ConicPath.EndAngle = point.TrueAnomaly;
         Conics[numManeuverNodes].Orbit = newTrajectory;
-        //Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+        Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+    }
+
+    public void AddSOIChange()
+    {
+        
     }
     
     private void PatchedConicPath_UpdateFrame(object? sender, UpdateEventArgs e)

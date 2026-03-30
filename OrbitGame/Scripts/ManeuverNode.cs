@@ -67,10 +67,13 @@ public class ManeuverNode : IGameDrawable
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
-        graphicsDevice.SD_DrawPoint(camera, _point.GetWorldPosition(), 
-            this == SelectedNode ? Color.Purple : Color.Chartreuse);
-        graphicsDevice.DrawLineR(camera.ConvertToScreenCoordinates(_point.GetWorldPosition()), 
-            (Vector2)_velocity.Normalize() * 20, Color.Chartreuse);
+        Color nodeColour = this == SelectedNode ? Color.Chartreuse : Color.GreenYellow;
+        graphicsDevice.SD_DrawPoint(camera, _point.GetWorldPosition(), nodeColour);
+        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(_point.GetWorldPosition());
+        Vector2 nodeHandleScreenOffset = (Vector2)_velocity.Normalize() * float.Log10((float)_velocity.Magnitude()) * 10;
+        graphicsDevice.DrawLineR(nodeScreenPosition, nodeHandleScreenOffset, nodeColour);
+        graphicsDevice.DrawText(OrbitGame.DefaultFont, ((double)_velocity.Magnitude()).ToString("N0"),
+            nodeScreenPosition + nodeHandleScreenOffset, new Vector2(0.5f), 0, nodeColour);
     }
 
     public void DrawCollider()
