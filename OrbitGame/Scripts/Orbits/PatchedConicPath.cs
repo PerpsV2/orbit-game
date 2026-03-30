@@ -16,8 +16,10 @@ public class PatchedConicPath
         {
             Conics[i] = new ConicPath(this, mesh, colour);
         }
+
+        OrbitGame.UpdateFrame += PatchedConicPath_UpdateFrame;
     }
-    
+
     public void Draw()
     {
         foreach (var orbitPath in Conics)
@@ -56,8 +58,17 @@ public class PatchedConicPath
         KeplerOrbit newTrajectory = maneuverNode.GenerateAppliedKeplerOrbit(currentTime);
         
         int numManeuverNodes = ManeuverNodes.Count;
-        point.ConicPath.EndAngle = point.TrueAnomaly;
+        //point.ConicPath.EndAngle = point.TrueAnomaly;
         Conics[numManeuverNodes].Orbit = newTrajectory;
-        Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+        //Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+    }
+    
+    private void PatchedConicPath_UpdateFrame(object? sender, UpdateEventArgs e)
+    {
+        for (int i = 0; i < ManeuverNodes.Count; ++i)
+        {
+            KeplerOrbit newTrajectory = ManeuverNodes[i].GenerateAppliedKeplerOrbit(e.PhysicsTime);
+            Conics[i + 1].Orbit = newTrajectory;
+        }
     }
 }

@@ -10,7 +10,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace OrbitGame;
 
-public delegate void UpdateEventHandler(object? sender, EventArgs e);
+public delegate void UpdateEventHandler(object? sender, UpdateEventArgs e);
+
+public class UpdateEventArgs(SDecimal physicsTime) : EventArgs
+{
+    public SDecimal PhysicsTime = physicsTime;
+}
 
 public static class Effects
 {
@@ -443,7 +448,7 @@ public class OrbitGame : Game
 
     protected override void Update(GameTime gameTime)
     {
-        UpdateFrame?.Invoke(this, EventArgs.Empty);
+        UpdateFrame?.Invoke(this, new UpdateEventArgs(GameState.PhysicsTime));
         
         InterpolationHandler<SDecimal>.UpdateInterpolationValues();
         

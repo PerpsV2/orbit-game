@@ -3,11 +3,53 @@ using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
-public class ManeuverNode(KeplerOrbitPoint point, Vec2<SDecimal> velocity) : IGameDrawable
+public class ManeuverNode : IGameDrawable
 {
-    private readonly KeplerOrbitPoint _point = point;
-    private readonly Vec2<SDecimal> _velocity = velocity;
+    private readonly KeplerOrbitPoint _point;
+    private Vec2<SDecimal> _velocity;
+
+    public static ManeuverNode? SelectedNode;
+    private static SDecimal? _minMouseDistanceToNode = SDecimal.PosInfinity; 
+    
     public double TrueAnomaly => _point.TrueAnomaly;
+
+    public ManeuverNode(KeplerOrbitPoint point, Vec2<SDecimal> velocity)
+    {
+        _point = point;
+        _velocity = velocity;
+        
+        MouseHandler.MouseClickDown += ManeuverNode_MouseClickDown;
+        MouseHandler.MouseDown += ManeuverNode_MouseDown;
+        OrbitGame.UpdateFrame += ManeuverNode_UpdateFrame;
+    }
+
+    private void ManeuverNode_UpdateFrame(object? sender, EventArgs e)
+    {
+        _minMouseDistanceToNode = SDecimal.PosInfinity;
+    }
+
+    private void ManeuverNode_MouseDown(object? sender, MouseEventArgs e)
+    {
+        if (this != SelectedNode) return;
+        Camera camera = OrbitGame.Camera;
+        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(_point.GetWorldPosition());
+        Vector2 mouseDisplacement = e.Position - nodeScreenPosition;
+        _velocity += new Vec2<SDecimal>(mouseDisplacement.X, mouseDisplacement.Y);
+    }
+
+    private void ManeuverNode_MouseClickDown(object? sender, MouseEventArgs e)
+    {
+        Camera camera = OrbitGame.Camera;
+        Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
+        SDecimal mouseDistanceSquared = (_point.GetWorldPosition() - mouseWorldPosition).MagnitudeSquared();
+
+        if (mouseDistanceSquared < _minMouseDistanceToNode)
+        {
+            _minMouseDistanceToNode = mouseDistanceSquared;
+            float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(SDecimal.Sqrt(mouseDistanceSquared));
+            SelectedNode = screenMouseDistanceToOrbit < 10 ? this : null;
+        }
+    }
 
     public KeplerOrbit GenerateAppliedKeplerOrbit(SDecimal currentTime)
     {
@@ -24,8 +66,9 @@ public class ManeuverNode(KeplerOrbitPoint point, Vec2<SDecimal> velocity) : IGa
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
-        
-        graphicsDevice.SD_DrawPoint(camera, _point.GetWorldPosition(), Color.Chartreuse);
+
+        graphicsDevice.SD_DrawPoint(camera, _point.GetWorldPosition(), 
+            this == SelectedNode ? Color.Purple : Color.Chartreuse);
         graphicsDevice.DrawLineR(camera.ConvertToScreenCoordinates(_point.GetWorldPosition()), 
             (Vector2)_velocity.Normalize() * 20, Color.Chartreuse);
     }

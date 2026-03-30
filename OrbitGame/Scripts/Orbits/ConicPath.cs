@@ -47,8 +47,15 @@ public class ConicPath
     /// <param name="externalPoint">Point which may not lie on the orbit in world space</param>
     /// <param name="minimumDistance">Distance between the external point and the parabola</param>
     /// <returns>The true anomaly of the closest point on the orbit</returns>
-    private double GetClosestOrbitPoint(KeplerOrbit orbit, Vec2<SDecimal> externalPoint, out SDecimal minimumDistance)
+    private double GetClosestOrbitPoint(Vec2<SDecimal> externalPoint, out SDecimal minimumDistance)
     {
+        if (Orbit == null)
+        {
+            minimumDistance = SDecimal.PosInfinity;
+            return 0;
+        }
+        KeplerOrbit orbit = Orbit.Value;
+        
         externalPoint -= orbit.Parent.Position;
 
         double guessPoint = externalPoint.Direction() - orbit.Periapsis;
@@ -127,12 +134,10 @@ public class ConicPath
     private void KeplerOrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
         if (!_onScreen) return;
-        if (Orbit == null) return;
         Camera camera = OrbitGame.Camera;
-        KeplerOrbit orbit = Orbit.Value;
         Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
         double closestOrbitPointTrueAnomaly = GetClosestOrbitPoint(
-            orbit, mouseWorldPosition, out SDecimal closestOrbitDistanceSquared
+            mouseWorldPosition, out SDecimal closestOrbitDistanceSquared
         );
         
         if (closestOrbitDistanceSquared < _minMouseDistanceToOrbit)
@@ -270,14 +275,14 @@ public class ConicPath
                 });
                 return;
             }
-            minTrueAnomaly = orbitStartAngle;
-            maxTrueAnomaly = orbitEndAngle;
+            //minTrueAnomaly = orbitStartAngle;
+            //maxTrueAnomaly = orbitEndAngle;
         }
 
-        double drawnMinAngle = Utils.GetCounterClockwiseAngle(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
-        double drawnMaxAngle = Utils.GetClockwiseAngle(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
-
-        DrawPartialEllipseOrbit(orbit, drawnMinAngle, drawnMaxAngle, colour);
+        //double drawnMinAngle = Utils.GetCounterClockwiseAngle(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
+        //double drawnMaxAngle = Utils.GetClockwiseAngle(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
+        
+        DrawPartialEllipseOrbit(orbit, minTrueAnomaly, maxTrueAnomaly, colour);
     }
 
     private void DrawHyperbolaOrbit(KeplerOrbit orbit, Body centralForce, Color colour)
