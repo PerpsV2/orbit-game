@@ -217,7 +217,6 @@ public class ConicPath
         _onScreen = orbitPoints.Count != 0;
         for (int i = 0; i < orbitPoints.Count - 1; ++i)
             graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
-        foreach (var t in orbitPoints) graphicsDevice.SD_DrawPoint(camera, t, colour);
     }
 
     private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
@@ -275,10 +274,9 @@ public class ConicPath
             maxTrueAnomaly = orbitEndAngle;
         }
 
-        double drawnMinAngle = Math.Max(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
-        double drawnMaxAngle = Math.Min(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
+        double drawnMinAngle = Utils.GetCounterClockwiseAngle(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
+        double drawnMaxAngle = Utils.GetClockwiseAngle(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
 
-        if (drawnMinAngle > drawnMaxAngle) return;
         DrawPartialEllipseOrbit(orbit, drawnMinAngle, drawnMaxAngle, colour);
     }
 

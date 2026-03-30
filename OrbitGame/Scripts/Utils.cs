@@ -96,6 +96,16 @@ public static class Utils
         for (double angle = start; angle <= end; angle += step)
             action(WrapAngle(angle));
     }
+
+    public static double GetClockwiseAngle(double left, double right)
+    {
+        return WrapAngle(WrapAngle(right) - WrapAngle(left)) < Math.PI ? left : right;
+    }
+    
+    public static double GetCounterClockwiseAngle(double left, double right)
+    {
+        return WrapAngle(WrapAngle(right) - WrapAngle(left)) >= Math.PI ? left : right;
+    }
     
     public static double DecimalSqrt(double x, double epsilon = 0.0)
     {

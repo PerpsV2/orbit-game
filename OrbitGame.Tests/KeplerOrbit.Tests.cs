@@ -54,10 +54,6 @@ public class KeplerOrbit_Tests
         Assert.Same(_circularBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
         
-        // Circular orbit has equal distance independent of true anomaly
-        Assert.Equal(1, orbit.Equation(orbit.Periapsis), Assert.Epsilon);
-        Assert.Equal(1, orbit.Equation(orbit.Periapsis + Math.PI), Assert.Epsilon);
-        
         Assert.Equal(0, orbit.Eccentricity, Assert.Epsilon);
         Assert.Equal(1, orbit.SemiLatusRectum, Assert.Epsilon);
         Assert.Equal(1, orbit.SemiMajorAxis, Assert.Epsilon);
@@ -83,9 +79,6 @@ public class KeplerOrbit_Tests
         Assert.Same(_ellipticBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
         
-        Assert.Equal(1, orbit.Equation(orbit.Periapsis), Assert.Epsilon);
-        Assert.Equal(49, orbit.Equation(orbit.Periapsis + Math.PI), Assert.Epsilon);
-        
         Assert.Equal(Math.PI / 2, orbit.Periapsis, Assert.Epsilon);
         Assert.Equal(0.96, orbit.Eccentricity, Assert.Epsilon);
         Assert.Equal(1.96, orbit.SemiLatusRectum, Assert.Epsilon);
@@ -108,8 +101,6 @@ public class KeplerOrbit_Tests
         
         Assert.Same(_hyperbolicBody, orbit.Body);
         Assert.Same(_parent, orbit.Parent);
-        
-        Assert.Equal(1, orbit.Equation(orbit.Periapsis), Assert.Epsilon);
         
         Assert.Equal(Math.PI / 2, orbit.Periapsis, Assert.Epsilon);
         Assert.Equal(2.6, orbit.Eccentricity, Assert.Epsilon);

@@ -23,4 +23,10 @@ public readonly record struct KeplerOrbitPoint(ConicPath ConicPath, double TrueA
         }
         return currentTime + pointTimeSincePeriapsis - currentTimeSincePeriapsis;
     }
+
+    public Vec2<SDecimal> GetWorldPosition()
+    {
+        return ConicPath.Orbit?.Parent.Position + ConicPath.Orbit?.GetOrbitPositionFromTrueAnomaly(TrueAnomaly) ?? 
+               throw new NullReferenceException("KeplerOrbitPoint has no orbit");
+    }
 }

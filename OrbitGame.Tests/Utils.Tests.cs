@@ -93,6 +93,32 @@ public class Utils_Tests
     }
 
     [Fact]
+    public void Utils_GetClockwiseAngleMethod()
+    {
+        double deg45 = Math.PI / 4;
+        double deg90 = 2 * Math.PI / 4;
+        double deg225 = 5 * Math.PI / 4;
+        double deg315 = 7 * Math.PI / 4;
+
+        Assert.Equal(deg315, Utils.GetClockwiseAngle(deg45, deg315));
+        Assert.Equal(deg45, Utils.GetClockwiseAngle(deg45, deg90));
+        Assert.Equal(deg225, Utils.GetClockwiseAngle(deg45, deg225));
+    }
+
+    [Fact]
+    public void Utils_GetMaxAngleMethod()
+    {
+        double deg45 = Math.PI / 4;
+        double deg90 = 2 * Math.PI / 4;
+        double deg225 = 5 * Math.PI / 4;
+        double deg315 = 7 * Math.PI / 4;
+
+        Assert.Equal(deg45, Utils.GetCounterClockwiseAngle(deg45, deg315));
+        Assert.Equal(deg90, Utils.GetCounterClockwiseAngle(deg45, deg90));
+        Assert.Equal(deg45, Utils.GetCounterClockwiseAngle(deg45, deg225));
+    }
+
+    [Fact]
     public void Utils_AngleInRangeMethod()
     {
         double minAngle = 7 * Math.PI / 4;
@@ -116,13 +142,6 @@ public class Utils_Tests
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(2, 5), new(0, 3)));
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(2, 5)));
         Assert.Equal(0, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(0, 3)));
-    }
-
-    [Fact]
-    public void Utils_LogEnumerableMethod()
-    {
-        Utils.LogEnumerable(_testConvexHull);
-        throw new NotImplementedException();
     }
     
     [Fact]

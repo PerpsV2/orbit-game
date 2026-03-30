@@ -347,4 +347,9 @@ public readonly record struct KeplerOrbit
             velocity: Parent.Velocity + orbitalVelocity
         );
     }
+
+    public double GetTrueAnomalyFromWorldPosition(Vec2<SDecimal> getWorldPosition)
+    {
+        return (getWorldPosition - Parent.Position).Direction() - Periapsis;
+    }
 }
