@@ -11,7 +11,13 @@ namespace OrbitGame;
 /// </summary>
 public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 {
+    /// <summary>
+    /// Number of default sig-figs when printing an SDecimal.
+    /// </summary>
     private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
+    /// <summary>
+    /// Tolerance to use when comparing equality between two SDecimals.
+    /// </summary>
     private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
 
     private double _mantissa;
@@ -56,6 +62,10 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static SDecimal MultiplicativeIdentity { get; } = 1;
     public static SDecimal PositiveInfinity { get; } = new(true);
     public static SDecimal NegativeInfinity { get; } = new(false);
+    /// <summary>
+    /// Represents an SDecimal which is equivalent to double.Epsilon
+    /// </summary>
+    public static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
 
     /// <summary>
     /// Create an SDecimal using a mantissa and a power of ten.
@@ -91,12 +101,23 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     {
         _infinite = true;
     }
-    
+
     public static SDecimal FromDouble(double value, int exponent = 0)
-        => new(value, exponent);
+    {
+        if (double.IsPositiveInfinity(value)) return PositiveInfinity;
+        if (double.IsNegativeInfinity(value)) return NegativeInfinity;
+        if (double.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN into an SDecimal");
+        return new(value, exponent);
+    }
 
     public static double ToDouble(SDecimal value)
-        => value.Mantissa * Math.Pow(10, value.Exponent);
+    {
+        if (IsPositiveInfinity(value)) return double.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return double.NegativeInfinity;
+        if (Abs(value) < double.Epsilon) return 0;
+        if (Abs(value) > double.MaxValue) throw new OverflowException("SDecimal is outside of the range of a double");
+        return value.Mantissa * Math.Pow(10, value.Exponent);
+    } 
 
     /// <summary>
     /// Sets the largest non-zero digit of the mantissa to be in the ones place.
@@ -227,7 +248,6 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     
     public static SDecimal Square(SDecimal value)
         => value * value;
-
 
     public static SDecimal IntPow(SDecimal value, int amount)
     {
@@ -428,18 +448,18 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static explicit operator PDecimal(SDecimal value)
         => value.Map<PDecimal>();
     
-    public static bool IsZero(SDecimal value)
+    static bool INumberBase<SDecimal>.IsZero(SDecimal value)
         => value is { _infinite: false, Mantissa: 0 };
     
     [Obsolete("IsPositive method is obsolete. Use Positive property instead.")]
-    public static bool IsPositive(SDecimal value)
-        => IsZero(value) || value.Positive;
+    static bool INumberBase<SDecimal>.IsPositive(SDecimal value)
+        => (value == 0) || value.Positive;
     
     [Obsolete("IsNegative method is obsolete. Use Negative property instead.")]
-    public static bool IsNegative(SDecimal value)
+    static bool INumberBase<SDecimal>.IsNegative(SDecimal value)
         => value.Negative;
-    
-    public static bool IsFinite(SDecimal value)
+
+    static bool INumberBase<SDecimal>.IsFinite(SDecimal value)
         => !value._infinite;
     
     public static bool IsRealNumber(SDecimal value)
@@ -591,14 +611,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     {
         throw new NotImplementedException();
     }
-    
+
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out SDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
-        out SDecimal result)
     {
         throw new NotImplementedException();
     }
@@ -609,6 +623,12 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     }
     
     public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
+        out SDecimal result)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
         out SDecimal result)
     {
         throw new NotImplementedException();

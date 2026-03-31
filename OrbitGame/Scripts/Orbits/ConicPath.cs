@@ -327,7 +327,8 @@ public class ConicPath
                 if (dist > 0 && dist < parentSOIRadius)
                     orbitPoints.Add(orbitPoint);
             }
-            else if (dist > 0 && SDecimal.IsFinite(dist)) 
+            // TODO: this
+            else if (dist > 0 /*&& SDecimal.IsFinite(dist)*/) 
                 orbitPoints.Add(orbitPoint);
 
             if (double.IsPositive(currentTrueAnomaly - bodyTrueAnomaly) !=
