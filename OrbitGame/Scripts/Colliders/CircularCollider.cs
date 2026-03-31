@@ -3,29 +3,29 @@ using System;
 namespace OrbitGame;
 
 /// <summary>
-/// In-game CompactCollider with only a radius.
+/// Game collider with only a radius.
 /// </summary>
 public class CircularCollider : CompactCollider
 {
-    public readonly SDecimal Radius;
-    private readonly BoundingBox _defaultBoundingBox;
+    /// <summary>
+    /// Radius of the collider.
+    /// </summary>
+    public SDecimal Radius { get; }
+    private readonly BoundingBox _boundingBox;
 
     public CircularCollider(SDecimal radius)
     {
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
-        // TODO: fix bounding box inaccuracies
-        _defaultBoundingBox = new(Vec2<SDecimal>.Zero, Radius * 2.1, Radius * 2.1);
+        _boundingBox = new(Vec2<SDecimal>.Zero, Radius * 2, Radius * 2);
     }
     
     public override SDecimal CalculateInertia(SDecimal mass)
-    {
-        return Inertia = mass * Radius * Radius / 2;
-    }
+        => Inertia = mass * Radius * Radius / 2;
 
     protected override BoundingBox GetBoundingBox(double angle) =>
-        _defaultBoundingBox;
-
+        _boundingBox;
+    
     public override PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial) =>
         new((point - spatial.Position).Magnitude() <= Radius && !IsEmpty());
 

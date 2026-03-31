@@ -7,27 +7,26 @@ using Microsoft.Xna.Framework.Graphics;
 namespace OrbitGame;
 
 /// <summary>
-/// In-game CompactCollider with a set of points that form a convex hull.
+/// Game collider with a convex hull defining its bounds.
 /// </summary>
 public class ConvexCollider : CompactCollider
 {
-    private readonly BoundingBox _defaultBoundingBox;
     private readonly Vec2<SDecimal>[] _points;
+    private readonly BoundingBox _boundingBox;
 
     public ConvexCollider(Vec2<SDecimal>[] points)
     {
         _points = points;
+        // Compute the minimum bounding box which guarantees all points are contained within.
         SDecimal maxRadius = _points.Select(x => x.Magnitude()).Max();
-        _defaultBoundingBox = new BoundingBox(Vec2<SDecimal>.Zero, maxRadius * 2, maxRadius * 2);
+        _boundingBox = new BoundingBox(Vec2<SDecimal>.Zero, maxRadius * 2, maxRadius * 2);
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)
-    {
-        return Inertia = Utils.CalculateConvexInertia(_points, mass);
-    }
+        => Inertia = Utils.CalculateConvexInertia(_points, mass);
 
     protected override BoundingBox GetBoundingBox(double angle)
-        => _defaultBoundingBox;
+        => _boundingBox;
 
     public override PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial)
     {
@@ -160,7 +159,7 @@ public class ConvexCollider : CompactCollider
 
     public override bool IsEmpty()
     {
+        // TODO: Implement IsEmpty for convex colliders.
         return false;
-        throw new NotImplementedException();
     }
 }
