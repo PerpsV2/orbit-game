@@ -47,7 +47,10 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     {
         Vec2<SDecimal> camSurfaceVector = _localPosition + _tracking.Position - _surface.Position;
         double deltaAngle = (double)(distance / camSurfaceVector.Magnitude());
-        Vec2<SDecimal> newCamSurfacePosition = Vec2<SDecimal>.FromPolar(
+        // handle case where the camera is at the same position as the surface object
+        Vec2<SDecimal> newCamSurfacePosition;
+        if (camSurfaceVector == Vec2<SDecimal>.Zero) newCamSurfacePosition = Vec2<SDecimal>.Zero;
+        else newCamSurfacePosition = Vec2<SDecimal>.FromPolar(
             camSurfaceVector.Direction() - deltaAngle, camSurfaceVector.Magnitude()
         );
         _localPosition = newCamSurfacePosition + _surface.Position - _tracking.Position;
@@ -55,9 +58,10 @@ public class SurfaceCameraScheme : ICameraMovementScheme
 
     public void MoveParallel(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += Vec2<SDecimal>.FromPolar(
-            (_surface.Position - _tracking.Position - _localPosition).Direction(), -distance
-        );
+        // handle case where the camera is at the same position as the surface object
+        Vec2<SDecimal> camSurfaceVector = _surface.Position - _tracking.Position - _localPosition; 
+        if (camSurfaceVector == Vec2<SDecimal>.Zero) return;
+        _localPosition += Vec2<SDecimal>.FromPolar(camSurfaceVector.Direction(), -distance);
     }
 
     public void RotateBy(double angle, ref SpatialInfo spatialInfo)
@@ -68,8 +72,9 @@ public class SurfaceCameraScheme : ICameraMovementScheme
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = _tracking.Position + _localPosition;
-        if (_surface.Position - _tracking.Position - _localPosition == Vec2<SDecimal>.Zero) spatialInfo.Angle = _localAngle;
-        else spatialInfo.Angle = -(_surface.Position - _tracking.Position - _localPosition).Direction() 
-                                 - Math.PI / 2 - _localAngle;
+        // handle case where the camera is at the same position as the surface object
+        Vec2<SDecimal> camSurfaceVector = _surface.Position - _tracking.Position - _localPosition;
+        if (camSurfaceVector == Vec2<SDecimal>.Zero) spatialInfo.Angle = _localAngle;
+        else spatialInfo.Angle = -camSurfaceVector.Direction() - Math.PI / 2 - _localAngle;
     }
 }
