@@ -18,7 +18,7 @@ public class ConvexCollider_Tests
     }
 
     [Fact]
-    public void ConvexCollider_IsEmptymethod()
+    public void ConvexCollider_IsEmptyMethod()
     {
         Assert.True(_testEmptyPointCollider.IsEmpty());
         Assert.True(_testEmptyLineCollider.IsEmpty());

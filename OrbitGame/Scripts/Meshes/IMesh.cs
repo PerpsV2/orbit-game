@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace OrbitGame;
 
 /// <summary>
-/// Interface for the graphical portion of objects (meshes).
+/// Graphical portion of a game object.
 /// </summary>
 public interface IMesh
 {
@@ -25,6 +25,6 @@ public interface IMesh
     /// </summary>
     /// <param name="graphicsDevice">Graphics device to be drawn on.</param>
     /// <param name="transform">Transform to be applied to the mesh.</param>
-    /// <param name="shaderParameters">Collection of KeyValuePairs with the parameter name as the key.</param>
+    /// <param name="shaderParameters">Dictionary with a shader parameter name as a key and its value as a value.</param>
     public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters);
 }
