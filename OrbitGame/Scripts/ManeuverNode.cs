@@ -9,7 +9,7 @@ public class ManeuverNode : IGameDrawable
     private Vec2<SDecimal> _velocity;
 
     public static ManeuverNode? SelectedNode;
-    private static SDecimal? _minMouseDistanceToNode = SDecimal.PosInfinity; 
+    private static SDecimal? _minMouseDistanceToNode = SDecimal.PositiveInfinity; 
     
     public double TrueAnomaly => _point.TrueAnomaly;
 
@@ -25,7 +25,7 @@ public class ManeuverNode : IGameDrawable
 
     private void ManeuverNode_UpdateFrame(object? sender, EventArgs e)
     {
-        _minMouseDistanceToNode = SDecimal.PosInfinity;
+        _minMouseDistanceToNode = SDecimal.PositiveInfinity;
     }
 
     private void ManeuverNode_MouseDown(object? sender, MouseEventArgs e)

@@ -101,7 +101,7 @@ public class ConvexCollider : CompactCollider
             .Select(x => Vec2<SDecimal>.RotatePoint(x, incidentSpatial.Angle))
             .Select(x => x + incidentSpatial.Position - referenceSpatial.Position).ToArray();
         
-        SDecimal minPenetrationDistance = SDecimal.PosInfinity;
+        SDecimal minPenetrationDistance = SDecimal.PositiveInfinity;
         Vec2<SDecimal> minPenetrationVector = Vec2<SDecimal>.Zero;
 
         Vec2<SDecimal>[] referenceEdges = new Vec2<SDecimal>[referencePoints.Length];

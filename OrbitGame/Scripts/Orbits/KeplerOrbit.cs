@@ -162,7 +162,7 @@ public readonly record struct KeplerOrbit
             case <= 0: 
             case > 0 and < 1: return
                 Math.Tau * SDecimal.Sqrt(SDecimal.IntPow(SemiMajorAxis, 3) / Constants.G / Parent.Mass);
-            case >= 1: return SDecimal.PosInfinity;
+            case >= 1: return SDecimal.PositiveInfinity;
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }
@@ -173,7 +173,7 @@ public readonly record struct KeplerOrbit
         {
             case <= 0:
             case > 0 and < 1: return SemiMajorAxis * Math.Pow((double)(Body.Mass / Parent.Mass), 2f / 5f);
-            case >= 1: return SDecimal.PosInfinity;
+            case >= 1: return SDecimal.PositiveInfinity;
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }

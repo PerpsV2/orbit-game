@@ -7,8 +7,24 @@ using System.Text.RegularExpressions;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Represents a number in scientific notation which has both arbitrary precision and place value.
+/// </summary>
 public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 {
+    /// <summary>
+    /// Minimum exponent for a PDecimal to avoid infinitely precise decimals from occuring due to division.
+    /// </summary>
+    private const int MinExponent = -50;
+    /// <summary>
+    /// Number of extra decimals of precision produced by a division operation.
+    /// </summary>
+    private const int DivisionDecimals = 15;
+    /// <summary>
+    /// Number of extra decimals of precision produced by a square root operation.
+    /// </summary>
+    private const int SqrtDecimals = 20;
+    
     private BigInteger _mantissa;
     public BigInteger Mantissa
     {
@@ -44,14 +60,19 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 
     public static int Radix { get; } = 10;
 
-    public static PDecimal One { get; } = new(1, 0, false);
     public static PDecimal Zero { get; } = new(0, 0, false);
+    public static PDecimal One { get; } = new(1, 0, false);
     public static PDecimal AdditiveIdentity { get; } = new(0, 0, false);
     public static PDecimal MultiplicativeIdentity { get; } = new(1, 0, false);
-    public static PDecimal PosInfinity { get; } = new(1, 0, true);
-    public static PDecimal NegInfinity { get; } = new(-1, 0, true);
-    private static int MinExponent { get; } = -50;
+    public static PDecimal PositiveInfinity { get; } = new(1, 0, true);
+    public static PDecimal NegativeInfinity { get; } = new(-1, 0, true);
 
+    /// <summary>
+    /// Create a PDecimal with an integer mantissa, an exponent, and an infinite flag.
+    /// </summary>
+    /// <param name="mantissa">Integer mantissa.</param>
+    /// <param name="exponent">Power of ten exponent.</param>
+    /// <param name="infinite">Whether the number should be infinite or not.</param>
     private PDecimal(BigInteger mantissa, int exponent, bool infinite)
     {
         _infinite = infinite;
@@ -66,33 +87,26 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         Normalize();
     }
 
+    /// <summary>
+    /// Create a PDecimal with a double mantissa and a power of ten.
+    /// </summary>
+    /// <param name="mantissa">Mantissa (does not need to be normalized).</param>
+    /// <param name="exponent">Power of ten.</param>
     public PDecimal(double mantissa, int exponent)
     {
         this = FromDouble(mantissa, exponent);
     }
     
+    /// <summary>
+    /// Create a PDecimal with a power of ten.
+    /// </summary>
+    /// <param name="exponent">Power of ten.</param>
     public PDecimal(int exponent)
     {
         _infinite = false;
         _mantissa = 1;
         _exponent = exponent;
         Normalize();
-    }
-    
-    public static PDecimal FromDouble(float value, int exponent)
-    {
-        if (value == 0) return Zero;
-        if (float.IsPositiveInfinity(value)) return new PDecimal(1, 0, true);
-        if (float.IsNegativeInfinity(value)) return new PDecimal(-1, 0, true);
-        if (float.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN float to scientific decimal");
-            
-        while (Math.Abs(value) < 1e+7)
-        {
-            value *= 10;
-            exponent--;
-        }
-        
-        return new PDecimal((long)value, exponent, false);
     }
     
     public static PDecimal FromDouble(double value, int exponent)
@@ -117,9 +131,13 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return result * Math.Pow(10, value.Exponent);
     }
     
+    /// <summary>
+    /// Removes any trailing zeroes from the 
+    /// </summary>
+    /// <exception cref="ArithmeticException">Attempted to normalize infinite PDecimal</exception>
     private void Normalize()
     {
-        if (_infinite) throw new ArithmeticException("Cannot normalize infinite scientific decimal");
+        if (_infinite) throw new ArithmeticException("Cannot normalize infinite PDecimal");
         
         if (Mantissa == 0)
         {
@@ -127,11 +145,6 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             return;
         }
         if (Exponent < MinExponent) IncreaseExponent(MinExponent);
-        if (Mantissa == 0)
-        {
-            Exponent = 0;
-            return;
-        }
 
         while (true) {
             BigInteger quotient = BigInteger.DivRem(Mantissa, 10, out BigInteger remainder);
@@ -140,33 +153,65 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             Exponent++;
         }
     }
+    
+    /// <summary>
+    /// Increase the exponent while truncating excess mantissa digits.
+    /// </summary>
+    /// <param name="exponent">Exponent to increase to.</param>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to increase the exponent of an infinite scientific decimal.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Attempted to increase exponent to a number less than the current exponent.
+    /// </exception>
+    private void IncreaseExponent(int exponent)
+    {
+        if (_infinite) throw new ArithmeticException("Cannot increase exponent of an infinite PDecimal");
+        if (Mantissa == 0) return;
+        
+        if (exponent <= Exponent) throw new ArgumentOutOfRangeException();
+        Mantissa /= BigInteger.Pow(10, exponent - Exponent);
+        Exponent = exponent;
+    }
 
+    /// <summary>
+    /// Decrease the exponent while maintaining the value of the number.
+    /// </summary>
+    /// <param name="exponent">Exponent to decrease to.</param>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to decrease the exponent of an infinite scientific decimal.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Attempted to decrease exponent to a number greater than the current exponent.
+    /// </exception>
     private void DecreaseExponent(int exponent)
     {
         if (_infinite) throw new ArithmeticException("Cannot decrease exponent of infinite scientific decimal");
         if (Mantissa == 0) return;
         
-        if (exponent >= Exponent) return;
+        if (exponent >= Exponent) throw new ArgumentOutOfRangeException();
         Mantissa *= BigInteger.Pow(10, Exponent - exponent);
         Exponent = exponent;
     }
-
-    private void IncreaseExponent(int exponent)
-    {
-        if (_infinite) throw new ArithmeticException("Cannot increase exponent of infinite scientific decimal");
-        if (Mantissa == 0) return;
-        
-        if (exponent <= Exponent) return;
-        Mantissa /= BigInteger.Pow(10, exponent - Exponent);
-        Exponent = exponent;
-    }
     
+    /// <summary>
+    /// Negate a number.
+    /// </summary>
+    /// <param name="value">Value to negate.</param>
+    /// <returns>The negated value.</returns>
     private static PDecimal Negate(PDecimal value)
     {
         value._mantissa *= -1;
         return value;
     }
 
+    /// <summary>
+    /// Add two numbers together.
+    /// </summary>
+    /// <param name="left">Left number.</param>
+    /// <param name="right">Right number.</param>
+    /// <returns>The sum of the left and right numbers.</returns>
+    /// <exception cref="ArithmeticException">Attempted to add opposite signed infinite PDecimals.</exception>
     private static PDecimal Add(PDecimal left, PDecimal right)
     {
         if (left._infinite && right._infinite)
@@ -184,6 +229,12 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return new(left.Mantissa + right.Mantissa, left.Exponent, false);
     }
 
+    /// <summary>
+    /// Multiply two numbers together.
+    /// </summary>
+    /// <param name="left">Left number.</param>
+    /// <param name="right">Right number.</param>
+    /// <returns>The product of the left and right numbers.</returns>
     private static PDecimal Multiply(PDecimal left, PDecimal right)
     {
         if (left == 0 || right == 0) return 0;
@@ -192,17 +243,27 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             bool infiniteSign = (left.Positive && right.Positive) || (left.Negative && right.Negative);
             return new(infiniteSign ? 1 : -1, 0, true);
         }
+
         return new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent, false);
     }
 
-    private const int DivisionDecimals = 15;
+    /// <summary>
+    /// Divide a PDecimal by another PDecimal.
+    /// </summary>
+    /// <param name="dividend">The dividend.</param>
+    /// <param name="divisor">The divisor.</param>
+    /// <returns>The dividend divided by the divisor</returns>
+    /// <exception cref="ArithmeticException">
+    /// Infinite SDecimal was divided by another SDecimal or zero was divided by zero
+    /// </exception>
     private static PDecimal Divide(PDecimal dividend, PDecimal divisor)
     {
-        if (divisor._mantissa == 0 && dividend._mantissa == 0) throw new ArithmeticException("Cannot divide zero by zero");
+        if (divisor._mantissa == 0 && dividend._mantissa == 0) 
+            throw new ArithmeticException("Cannot divide zero by zero");
         if (divisor._mantissa == 0) return new(dividend.Positive ? 1 : -1, 0, true);
         if (dividend._mantissa == 0) return dividend;
         if (dividend._infinite && divisor._infinite) 
-            throw new ArithmeticException("Cannot divide two infinite scientific decimals");
+            throw new ArithmeticException("Cannot divide an infinite PDecimal by another infinite PDecimal");
         if (dividend._infinite) return dividend * divisor;
         if (divisor._infinite) return 0;
         
@@ -212,29 +273,94 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return new(resultMantissa, resultExponent, false);
     }
 
+    /// <summary>
+    /// Calculates the modulo between two values.
+    /// </summary>
+    /// <param name="value">Value to mod.</param>
+    /// <param name="mod">Modulo amount.</param>
+    /// <returns>Returns the remainder of the value divided by the mod.</returns>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to modulate a value by zero or attempted to modulate an infinite PDecimal
+    /// </exception>
+    /// // TODO: Change modulo to calculate remainder instead of modulo as C# usually does.
     private static PDecimal Modulo(PDecimal value, PDecimal mod)
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
-        if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite scientific decimal");
+        if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
         if (mod._infinite) return value;
         return value - mod * Floor(value / mod);
     }
+    
+    public static PDecimal Square(PDecimal value)
+        => value * value;
 
-    public static PDecimal Floor(PDecimal value)
+    public static PDecimal IntPow(PDecimal value, int amount)
     {
-        if (value._infinite || IsInteger(value)) return value;
-        if (value.Negative) return -Ceiling(-value);
-        value.IncreaseExponent(0);
-        return value;
+        PDecimal result = One;
+        for (uint i = 0; i < amount; ++i)
+            result *= value;
+        return result;
+    }
+    
+    public static PDecimal Sqrt(PDecimal value)
+    {
+        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
+        if (value._infinite) return value;
+        if (value._mantissa == 0) return Zero;
+        int digits = (int)Math.Floor(BigInteger.Log10(value._mantissa));
+        value.DecreaseExponent(value._exponent - digits - SqrtDecimals);
+        if (value._exponent % 2 != 0) value.DecreaseExponent(value._exponent + (value._exponent < 0 ? -1 : 1));
+
+        BigInteger lastGuess;
+        BigInteger bestGuess = value._mantissa >> 1;
+        do
+        {
+            lastGuess = bestGuess;
+            bestGuess = (lastGuess + value._mantissa / lastGuess) >> 1;
+        } while (BigInteger.Abs(bestGuess - lastGuess) > 1);
+
+        return new PDecimal(bestGuess, value._exponent / 2, false);
+    }
+    
+    public static double Atan2(PDecimal y, PDecimal x)
+    {
+        return Math.Atan2((double)y, (double)x);
     }
 
-    public static PDecimal Ceiling(PDecimal value)
+    public static double Cos(PDecimal value)
     {
-        if (value._infinite || IsInteger(value)) return value;
-        if (value.Negative) return -Floor(-value);
-        return Floor(value) + 1;
+        throw new NotImplementedException();
     }
 
+    public static double Sin(PDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static double Tan(PDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static PDecimal Abs(PDecimal value)
+        => new(BigInteger.Abs(value._mantissa), value._exponent, value._infinite);
+
+    public static PDecimal Min(PDecimal value, params PDecimal[] values)
+    {
+        PDecimal result = value;
+        foreach (var n in values)
+            if (n < result) result = n;
+        return result;
+    }
+    
+    public static PDecimal Max(PDecimal value, params PDecimal[] values)
+    {
+        PDecimal result = value;
+        foreach (var n in values)
+            if (n > result) result = n;
+        return result;
+    }
+    
     public static PDecimal Round(PDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
         if (value._infinite || IsInteger(value)) return value;
@@ -254,62 +380,20 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             default: throw new ArgumentException("Invalid midpoint rounding mode");
         }
     }
-    
-    public static PDecimal Abs(PDecimal value)
-        => new(BigInteger.Abs(value._mantissa), value._exponent, value._infinite);
-    
-    public static PDecimal Square(PDecimal value)
-        => value * value;
 
-    public static PDecimal IntPow(PDecimal value, uint amount)
+    public static PDecimal Floor(PDecimal value)
     {
-        PDecimal result = One;
-        for (uint i = 0; i < amount; ++i)
-            result *= value;
-        return result;
+        if (value._infinite || IsInteger(value)) return value;
+        if (value.Negative) return -Ceiling(-value);
+        value.IncreaseExponent(0);
+        return value;
     }
 
-    private const int SqrtDecimals = 20;
-    
-    public static PDecimal Sqrt(PDecimal value)
+    public static PDecimal Ceiling(PDecimal value)
     {
-        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative ScientificDecimal");
-        if (value._infinite) return value;
-        if (value._mantissa == 0) return Zero;
-        int digits = (int)Math.Floor(BigInteger.Log10(value._mantissa));
-        value.DecreaseExponent(value._exponent + digits - SqrtDecimals);
-        if (value._exponent % 2 != 0) value.DecreaseExponent(value._exponent + (value._exponent < 0 ? -1 : 1));
-
-        BigInteger lastGuess;
-        BigInteger bestGuess = value._mantissa >> 1;
-        do
-        {
-            lastGuess = bestGuess;
-            bestGuess = (lastGuess + value._mantissa / lastGuess) >> 1;
-        } while (BigInteger.Abs(bestGuess - lastGuess) > 1);
-
-        return new PDecimal(bestGuess, value._exponent / 2, false);
-    }
-
-    public static double Atan2(PDecimal y, PDecimal x)
-    {
-        return Math.Atan2((double)y, (double)x);
-    }
-
-    public static PDecimal Min(PDecimal value, params PDecimal[] values)
-    {
-        PDecimal result = value;
-        foreach (var n in values)
-            if (n < result) result = n;
-        return result;
-    }
-    
-    public static PDecimal Max(PDecimal value, params PDecimal[] values)
-    {
-        PDecimal result = value;
-        foreach (var n in values)
-            if (n > result) result = n;
-        return result;
+        if (value._infinite || IsInteger(value)) return value;
+        if (value.Negative) return -Floor(-value);
+        return Floor(value) + 1;
     }
 
     [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
@@ -341,8 +425,8 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (other is SDecimal)
         {
             SDecimal sDecimal;
-            if (IsPositiveInfinity(value)) sDecimal = SDecimal.PosInfinity;
-            else if (IsNegativeInfinity(value)) sDecimal = SDecimal.NegInfinity;
+            if (IsPositiveInfinity(value)) sDecimal = SDecimal.PositiveInfinity;
+            else if (IsNegativeInfinity(value)) sDecimal = SDecimal.NegativeInfinity;
             else
             {
                 if (BigInteger.Abs(value.Mantissa) > long.MaxValue)
@@ -418,6 +502,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     public static bool operator <=(PDecimal left, PDecimal right)
         => left < right || left == right;
     
+    // to PDecimal
     public static implicit operator PDecimal(int value)
         => new(value, 0);
     
@@ -433,6 +518,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     public static implicit operator PDecimal(double value)
         => FromDouble(value, 0);
 
+    // from PDecimal
     public static explicit operator int(PDecimal value)
     {
         PDecimal result = value.Positive ? Floor(value) : Ceiling(value);
@@ -473,6 +559,18 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     [Obsolete("IsNegative method is obsolete. Use Negative property instead.")]
     public static bool IsNegative(PDecimal value)
         => value.Negative;
+    
+    public static bool IsFinite(PDecimal value)
+        => !value._infinite;
+    
+    public static bool IsRealNumber(PDecimal value)
+        => true;
+
+    public static bool IsImaginaryNumber(PDecimal value)
+        => false;
+    
+    public static bool IsComplexNumber(PDecimal value)
+        => false;
 
     public static bool IsInteger(PDecimal value)
         => value is { _infinite: false, _exponent: >= 0 };
@@ -483,14 +581,17 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     public static bool IsOddInteger(PDecimal value)
         => IsInteger(value) && value % 2 == One;
     
-    public static bool IsRealNumber(PDecimal value)
-        => true;
-
-    public static bool IsImaginaryNumber(PDecimal value)
-        => false;
+    public static bool IsNaN(PDecimal value)
+        => value._infinite;
     
-    public static bool IsComplexNumber(PDecimal value)
-        => false;
+    public static bool IsInfinity(PDecimal value)
+        => value._infinite;
+    
+    public static bool IsPositiveInfinity(PDecimal value)
+        => value is { Positive: true, _infinite: true };
+    
+    public static bool IsNegativeInfinity(PDecimal value)
+        => value is { Negative: true, _infinite: true };
     
     public static bool IsCanonical(PDecimal value)
     {
@@ -504,21 +605,6 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 
     public static bool IsSubnormal(PDecimal value)
         => false;
-    
-    public static bool IsFinite(PDecimal value)
-        => !value._infinite;
-    
-    public static bool IsInfinity(PDecimal value)
-        => value._infinite;
-    
-    public static bool IsPositiveInfinity(PDecimal value)
-        => value is { Positive: true, _infinite: true };
-    
-    public static bool IsNegativeInfinity(PDecimal value)
-        => value is { Negative: true, _infinite: true };
-    
-    public static bool IsNaN(PDecimal value)
-        => value._infinite;
 
     public override string ToString()
         => ToString("G");

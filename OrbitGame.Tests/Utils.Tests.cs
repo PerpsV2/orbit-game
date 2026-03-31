@@ -28,14 +28,14 @@ public class Utils_Tests
         int clampedInt = Utils.Clamp(-10, -20, 30);
         double clampedDouble = Utils.Clamp(-30, 20, 30);
         PDecimal clampedPDecimal = Utils.Clamp(
-            PDecimal.NegInfinity, 
-            PDecimal.NegInfinity, 
+            PDecimal.NegativeInfinity, 
+            PDecimal.NegativeInfinity, 
             30
             );
         
         Assert.Equal(-10, clampedInt);
         Assert.Equal(20, clampedDouble);
-        Assert.Equal(PDecimal.NegInfinity, clampedPDecimal);
+        Assert.Equal(PDecimal.NegativeInfinity, clampedPDecimal);
     }
 
     [Fact]

@@ -52,7 +52,7 @@ public static class Utils
         => a - b * Math.Floor(a / b);
     
     public static SDecimal UnsignedMod(SDecimal a, SDecimal b)
-        => a - b * (a / b).Floor();
+        => a - b * SDecimal.Floor(a / b);
     
     public static PDecimal UnsignedMod(PDecimal a, PDecimal b)
         => a - b * PDecimal.Floor(a / b);

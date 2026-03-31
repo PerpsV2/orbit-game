@@ -7,29 +7,12 @@ using System.Text.RegularExpressions;
 namespace OrbitGame;
 
 /// <summary>
-/// Number with decimal precision but arbitrary place value.
+/// Represents a number in scientific notation with double precision and arbitrary place value.
 /// </summary>
 public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 {
     private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
     private const double ComparisonTolerance = Options.ScientificComparisonTolerance;
-
-    public static SDecimal Zero => 0;
-    public static SDecimal One => 1;
-    public static SDecimal AdditiveIdentity => 0;
-    public static SDecimal MultiplicativeIdentity => 1;
-    public static int Radix => 10;
-
-    /// <summary>
-    /// Represents a number that approaches positive infinity.
-    /// </summary>
-    public static SDecimal PosInfinity { get; } = new(true, true);
-    /// <summary>
-    /// Represents a number that approaches negative infinity.
-    /// </summary>
-    public static SDecimal NegInfinity { get; } = new(true, false);
-    
-    private readonly bool _infinite = false;
 
     private double _mantissa;
     public double Mantissa
@@ -61,14 +44,24 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         }
     }
     
+    private readonly bool _infinite = false;
     public readonly bool Positive => double.IsPositive(_mantissa);
     public readonly bool Negative => double.IsNegative(_mantissa);
+    
+    public static int Radix { get; } = 10;
+    
+    public static SDecimal Zero { get; } = 0;
+    public static SDecimal One { get; } = 1;
+    public static SDecimal AdditiveIdentity { get; } = 0;
+    public static SDecimal MultiplicativeIdentity { get; } = 1;
+    public static SDecimal PositiveInfinity { get; } = new(true);
+    public static SDecimal NegativeInfinity { get; } = new(false);
 
     /// <summary>
-    /// Create a ScientificDecimal using a mantissa and an exponent of ten.
+    /// Create an SDecimal using a mantissa and a power of ten.
     /// </summary>
-    /// <param name="mantissa">Mantissa (does not need to be normalized)</param>
-    /// <param name="exponent">Exponent of ten</param>
+    /// <param name="mantissa">Mantissa (does not need to be normalized).</param>
+    /// <param name="exponent">Power of ten.</param>
     public SDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
@@ -77,35 +70,42 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     }
 
     /// <summary>
-    /// Create a ScientificDecimal using an exponent of ten.
+    /// Create an SDecimal using a power of ten.
     /// </summary>
-    /// <param name="exponent">Exponent of ten</param>
+    /// <param name="exponent">Power of ten.</param>
     public SDecimal(int exponent)
         : this(1, exponent) {}
 
+    /// <summary>
+    /// Create an SDecimal with a value of zero.
+    /// </summary>
     public SDecimal()
         : this(0, 0) {}
 
-    private SDecimal(bool infinite, bool positive)
+    /// <summary>
+    /// Create an infinite SDecimal.
+    /// </summary>
+    /// <param name="positive">Sign of the infinite SDecimal</param>
+    private SDecimal(bool positive)
         : this(positive ? 1 : -1, 0)
     {
-        _infinite = infinite;
+        _infinite = true;
     }
     
     public static SDecimal FromDouble(double value, int exponent = 0)
-    {
-        return new(value, exponent);
-    }
+        => new(value, exponent);
 
     public static double ToDouble(SDecimal value)
         => value.Mantissa * Math.Pow(10, value.Exponent);
 
     /// <summary>
-    /// Sets the largest non-zero digit of the mantissa to be in the ones place
+    /// Sets the largest non-zero digit of the mantissa to be in the ones place.
     /// </summary>
+    /// <returns>The normalized SDecimal.</returns>
+    /// <exception cref="ArithmeticException">Attempted to normalize infinite SDecimal</exception>
     private SDecimal Normalize()
     {
-        if (_infinite) throw new ArithmeticException("Cannot normalize infinite ScientificDecimal");
+        if (_infinite) throw new ArithmeticException("Cannot normalize infinite SDecimal");
         
         if (Mantissa == 0)
         {
@@ -131,8 +131,15 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     /// <summary>
     /// Increase the exponent without modifying the actual value of the number
     /// </summary>
+    /// <param name="exponent">Exponent to increase to.</param>
+    /// <returns>The value with an increased exponent.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Attempted to increase exponent to a number less than the current exponent.
+    /// </exception>
     private SDecimal IncreaseExponent(int exponent)
     {
+        if (_infinite) throw new ArithmeticException("Cannot increase exponent of an infinite SDecimal");
+        
         int exponentDifference = exponent - Exponent;
         if (exponentDifference < 0) throw new ArgumentOutOfRangeException();
         if (exponentDifference == 0) return this;
@@ -142,12 +149,19 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return this;
     }
     
+    /// <summary>
+    /// Add two numbers together.
+    /// </summary>
+    /// <param name="left">Left number.</param>
+    /// <param name="right">Right number.</param>
+    /// <returns>The sum of the left and right numbers.</returns>
+    /// <exception cref="ArithmeticException">Attempted to add opposite signed infinite SDecimals.</exception>
     private static SDecimal Add(SDecimal left, SDecimal right)
     {
         if (left._infinite && right._infinite)
         {
             if (left.Positive == right.Positive) return left;
-            throw new ArithmeticException("Cannot add opposite signed infinite ScientificDecimals");
+            throw new ArithmeticException("Cannot add opposite signed infinite SDecimals");
         }
         if (left._infinite) return left;
         if (right._infinite) return right;
@@ -158,31 +172,56 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return new SDecimal(left.Mantissa + right.Mantissa, left.Exponent);
     }
 
+    /// <summary>
+    /// Multiply two numbers together.
+    /// </summary>
+    /// <param name="left">Left number.</param>
+    /// <param name="right">Right number.</param>
+    /// <returns>The product of the left and right numbers.</returns>
     private static SDecimal Multiply(SDecimal left, SDecimal right)
     {
         if (left == 0 || right == 0) return 0;
-        if (left._infinite || right._infinite) return new(true, 
-            (left.Positive && right.Positive) || (left.Negative && right.Negative));
+        if (left._infinite || right._infinite) 
+            return new((left.Positive && right.Positive) || (left.Negative && right.Negative));
         return new SDecimal(left.Mantissa * right.Mantissa, 
             left.Exponent + right.Exponent).Normalize();
     }
 
+    /// <summary>
+    /// Divide an SDecimal by another SDecimal
+    /// </summary>
+    /// <param name="dividend">The dividend.</param>
+    /// <param name="divisor">The divisor.</param>
+    /// <returns>The dividend divided by the divisor</returns>
+    /// <exception cref="ArithmeticException">
+    /// Infinite SDecimal was divided by another SDecimal or zero was divided by zero
+    /// </exception>
     private static SDecimal Divide(SDecimal dividend, SDecimal divisor)
     {
         if (divisor == 0 && dividend == 0) throw new ArithmeticException("Cannot divide zero by zero");
-        if (divisor == 0) return PosInfinity * (dividend.Positive ? 1 : -1);
+        if (divisor == 0) return PositiveInfinity * (dividend.Positive ? 1 : -1);
         if (dividend._infinite && divisor._infinite) 
-            throw new ArithmeticException("Cannot divide an infinite ScientificDecimal by another infinite ScientificDecimal");
+            throw new ArithmeticException("Cannot divide an infinite SDecimal by another infinite SDecimal");
         if (dividend._infinite) return dividend * divisor;
         if (divisor._infinite) return 0;
         return new SDecimal(dividend.Mantissa / divisor.Mantissa, 
             dividend.Exponent - divisor.Exponent).Normalize();
     }
 
+    /// <summary>
+    /// Calculates the modulo between two values.
+    /// </summary>
+    /// <param name="value">Value to mod.</param>
+    /// <param name="mod">Modulo amount.</param>
+    /// <returns>Returns the remainder of the value divided by the mod.</returns>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to modulate a value by zero or attempted to modulate an infinite SDecimal
+    /// </exception>
+    // TODO: Change modulo to calculate remainder instead of modulo as C# usually does.
     private static SDecimal Modulo(SDecimal value, SDecimal mod)
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
-        if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite ScientificDecimal");
+        if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate an infinite SDecimal");
         return value - mod * Math.Floor((double)(value / mod));
     }
     
@@ -190,7 +229,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => value * value;
 
 
-    public static SDecimal IntPow(SDecimal value, uint amount)
+    public static SDecimal IntPow(SDecimal value, int amount)
     {
         SDecimal result = 1;
         for (uint i = 0; i < amount; ++i)
@@ -212,9 +251,24 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return Math.Atan2((double)y, (double)x);
     }
 
+    public static double Cos(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static double Sin(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static double Tan(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
     public static SDecimal Abs(SDecimal value)
     {
-        if (value._infinite) return new SDecimal(true, true);
+        if (value._infinite) return new SDecimal(true);
         return new (Math.Abs(value.Mantissa), value.Exponent);
     }
 
@@ -233,7 +287,30 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
             if (n > result) result = n;
         return result;
     }
-    
+
+    public static SDecimal Round(SDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
+    {
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (value.Mantissa == 0) return value;
+        if (value.Exponent < -1) return 0;
+        if (value.Exponent == -1) return new(double.Round(value.Mantissa * 0.1), 0);
+        return new(double.Round(value.Mantissa, Math.Clamp(value.Exponent, 0, 15)), value.Exponent);
+    }
+
+    public static SDecimal Floor(SDecimal value)
+    {
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (value.Mantissa == 0) return value;
+        SDecimal roundDiff = value - Round(value);
+        if (roundDiff < 0) return value - 1 - roundDiff;
+        return value - roundDiff;
+    }
+
+    public static SDecimal Ceiling(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+
     [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
     public static SDecimal MinMagnitude(SDecimal x, SDecimal y)
         => Min(x, y);
@@ -250,29 +327,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     public static SDecimal Clamp(SDecimal value, SDecimal min, SDecimal max)
     {
-        if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
+        if (max < min) throw new ArgumentException("ScientificDecimal clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
-    }
-
-    /// <summary>
-    /// Rounds to the nearest integer value.
-    /// </summary>
-    public SDecimal Round()
-    {
-        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
-        if (Mantissa == 0) return this;
-        if (Exponent < -1) return 0;
-        if (Exponent == -1) return new(double.Round(Mantissa * 0.1), 0);
-        return new(double.Round(Mantissa, Math.Clamp(Exponent, 0, 15)), Exponent);
-    }
-    
-    public SDecimal Floor()
-    {
-        if (_infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
-        if (Mantissa == 0) return this;
-        SDecimal roundDiff = this - Round();
-        if (roundDiff < 0) return this - 1 - roundDiff;
-        return this - roundDiff;
     }
     
     public TOther Map<TOther>() where TOther : new()
@@ -282,8 +338,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (other is PDecimal)
         {
             PDecimal pDecimal;
-            if (IsPositiveInfinity(value)) pDecimal = PDecimal.PosInfinity;
-            else if (IsNegativeInfinity(value)) pDecimal = PDecimal.NegInfinity;
+            if (IsPositiveInfinity(value)) pDecimal = PDecimal.PositiveInfinity;
+            else if (IsNegativeInfinity(value)) pDecimal = PDecimal.NegativeInfinity;
             else pDecimal = new PDecimal(value.Mantissa, value.Exponent);
             if (pDecimal is TOther result) return result;
         }
@@ -295,15 +351,13 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         
         throw new InvalidCastException();
     }
-    
-    #region Operators
 
     public static SDecimal operator +(SDecimal value) 
         => value;
 
     public static SDecimal operator -(SDecimal value)
     {
-        if (value._infinite) return new(true, value.Negative);
+        if (value._infinite) return new(value.Negative);
         return new(-value.Mantissa, value.Exponent);
     } 
     public static SDecimal operator +(SDecimal left, SDecimal right) 
@@ -344,12 +398,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => left < right || left == right;
     public static bool operator >=(SDecimal left, SDecimal right)
         => left > right || left == right;
-    
-    #endregion
-    
-    #region Casts
 
-    // to scientific decimal
+    // to SDecimal
     public static implicit operator SDecimal(int value) 
         => new(value, 0);
 
@@ -359,7 +409,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static implicit operator SDecimal(float value) 
         => new(value, 0);
 
-    // from scientific decimal
+    // from SDecimal
     public static explicit operator double(SDecimal value)
         => ToDouble(value);
     
@@ -377,8 +427,6 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     public static explicit operator PDecimal(SDecimal value)
         => value.Map<PDecimal>();
-    
-    #endregion
     
     public static bool IsZero(SDecimal value)
         => value is { _infinite: false, Mantissa: 0 };
@@ -406,11 +454,11 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static bool IsInteger(SDecimal value)
         => !value._infinite && double.IsInteger((double)value);
 
-    public static bool IsOddInteger(SDecimal value)
-        => !value._infinite && double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
-
     public static bool IsEvenInteger(SDecimal value)
         => !value._infinite && double.Abs((double)value % 2) <= ComparisonTolerance;
+    
+    public static bool IsOddInteger(SDecimal value)
+        => !value._infinite && double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
 
     public static bool IsNaN(SDecimal value)
         => IsInfinity(value) || double.IsNaN(value.Mantissa);
@@ -418,11 +466,11 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static bool IsInfinity(SDecimal value)
         => value._infinite;
 
-    public static bool IsNegativeInfinity(SDecimal value)
-        => value.Negative && IsInfinity(value);
-
     public static bool IsPositiveInfinity(SDecimal value)
         => value.Positive && IsInfinity(value);
+    
+    public static bool IsNegativeInfinity(SDecimal value)
+        => value.Negative && IsInfinity(value);
     
     public static bool IsCanonical(SDecimal value)
         => value.Mantissa is >= 0 and < 10;

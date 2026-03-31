@@ -109,7 +109,7 @@ public class KeplerOrbit_Tests
         Assert.Equal(1.5, orbit.SemiMinorAxis, Assert.Epsilon);
         Assert.Equal(false, orbit.Prograde);
         
-        Assert.Equal(SDecimal.PosInfinity, orbit.Period, Assert.Epsilon);
+        Assert.Equal(SDecimal.PositiveInfinity, orbit.Period, Assert.Epsilon);
         Assert.Equal(0, orbit.InitialTimeSincePeriapsis);
     }
 

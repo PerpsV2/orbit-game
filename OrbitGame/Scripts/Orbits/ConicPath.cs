@@ -19,7 +19,7 @@ public class ConicPath
 
     public static KeplerOrbitPoint? HoverPoint;
     public static KeplerOrbitPoint? SelectedPoint;
-    private static SDecimal _minMouseDistanceToOrbit = SDecimal.PosInfinity;
+    private static SDecimal _minMouseDistanceToOrbit = SDecimal.PositiveInfinity;
 
     private readonly OrbitMesh _mesh;
     private readonly Color _colour;
@@ -51,7 +51,7 @@ public class ConicPath
     {
         if (Orbit == null)
         {
-            minimumDistance = SDecimal.PosInfinity;
+            minimumDistance = SDecimal.PositiveInfinity;
             return 0;
         }
         KeplerOrbit orbit = Orbit.Value;
@@ -71,7 +71,7 @@ public class ConicPath
         }
         
         SDecimal currentGuessDistance = GetGuessDistance(guessPoint);
-        SDecimal lastGuessDistance = SDecimal.PosInfinity;
+        SDecimal lastGuessDistance = SDecimal.PositiveInfinity;
 
         int iterations = 0;
 
@@ -128,7 +128,7 @@ public class ConicPath
 
     private static void KeplerOrbitPath_UpdateFrame(object? sender, EventArgs e)
     {
-        _minMouseDistanceToOrbit = SDecimal.PosInfinity;
+        _minMouseDistanceToOrbit = SDecimal.PositiveInfinity;
     }
     
     private void KeplerOrbitPath_MouseHover(object? sender, MouseEventArgs e)

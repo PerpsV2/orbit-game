@@ -12,8 +12,7 @@ public readonly record struct KeplerOrbitPoint(ConicPath ConicPath, double TrueA
         if (ConicPath.Orbit == null) throw new NullReferenceException("KeplerOrbitPoint has no orbit");
         KeplerOrbit orbit = ConicPath.Orbit.Value;
         SDecimal pointTimeSincePeriapsis = orbit.GetTimeSincePeriapsisFromTrueAnomaly(TrueAnomaly);
-        Console.WriteLine(pointTimeSincePeriapsis.ToString());
-        SDecimal lastPeriapsisTime = orbit.Period * (currentTime / orbit.Period).Floor();
+        SDecimal lastPeriapsisTime = orbit.Period * SDecimal.Floor(currentTime / orbit.Period);
         SDecimal currentTimeSincePeriapsis = currentTime + orbit.InitialTimeSincePeriapsis - lastPeriapsisTime;
         if (orbit.Eccentricity < 1)
         {
