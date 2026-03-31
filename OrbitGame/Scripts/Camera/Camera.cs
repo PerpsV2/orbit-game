@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
 /// <summary>
-/// Represents a in-game object camera which provides conversions from world-space to screen-space.
+/// Represents an in-game object camera which provides conversions from world-space to screen-space.
 /// </summary>
 public class Camera : KinematicObject
 {
@@ -95,28 +91,57 @@ public class Camera : KinematicObject
             new TrackingCameraScheme(spatialInfo, null))
     { }
 
+    /// <summary>
+    /// Focus the camera on a selected object.
+    /// </summary>
     public void Focus() 
         => MovementScheme.Focus();
+    
+    /// <summary>
+    /// Move the camera perpendicular to its facing.
+    /// </summary>
+    /// <param name="distance">Distance to move.</param>
     public void MovePerpendicular(SDecimal distance) 
         => MovementScheme.MovePerpendicular(distance, ref SpatialInfo);
+    
+    /// <summary>
+    /// Move the camera parallel to its facing.
+    /// </summary>
+    /// <param name="distance">Distance to move.</param>
     public void MoveParallel(SDecimal distance)
         => MovementScheme.MoveParallel(distance, ref SpatialInfo);
+    
+    /// <summary>
+    /// Rotate the camera relative to its default heading.
+    /// </summary>
+    /// <param name="angle">Amount to rotate by (radians).</param>
     public void RotateBy(double angle)
         => MovementScheme.RotateBy(angle, ref SpatialInfo);
 
+    /// <summary>
+    /// Updates the camera's state.
+    /// </summary>
     public void Update()
     {
         SpatialInfo prevSpatialInfo = SpatialInfo;
         MovementScheme.Update(ref SpatialInfo);
+        // if the camera has moved, update the view matrices.
         if (prevSpatialInfo != SpatialInfo) UpdateViewMatrix();
     }
 
+    /// <summary>
+    /// Scale the bounds of the camera by a scale factor.
+    /// </summary>
+    /// <param name="scale">Scale factor to use.</param>
     public void ScaleZoom(SDecimal scale)
     {
         Width *= scale;
         Height *= scale;
     }
     
+    /// <summary>
+    /// Update the view matrix and inverse view matrix.
+    /// </summary>
     private void UpdateViewMatrix()
     {
         _viewMatrix = Matrix3X3<SDecimal>.Scale(_screenWidth / Width, _screenHeight / Height) *
@@ -129,15 +154,35 @@ public class Camera : KinematicObject
                             Matrix3X3<SDecimal>.Scale(Width / _screenWidth, Height / _screenHeight);
     }
 
+    /// <summary>
+    /// Convert from a point in screen space into a point in world space.
+    /// </summary>
+    /// <param name="point">Screen point to be converted as a SDecimal Vec2.</param>
+    /// <returns>Point in world space.</returns>
     public Vec2<SDecimal> SD_ConvertToWorldCoordinates(Vec2<SDecimal> point)
         => _inverseViewMatrix * point + Position;
 
+    /// <summary>
+    /// Convert from a point in screen space into a point in world space.
+    /// </summary>
+    /// <param name="point">Screen point to be converted as a Xna Vector2.</param>
+    /// <returns>Point in world space.</returns>
     public Vec2<SDecimal> ConvertToWorldCoordinates(Vector2 point)
         => SD_ConvertToWorldCoordinates(new(point.X, point.Y));
     
+    /// <summary>
+    /// Convert from a point in world space into a point in screen space.
+    /// </summary>
+    /// <param name="point">World point to be converted.</param>
+    /// <returns>Point in screen space as a SDecimal Vec2.</returns>
     public Vec2<SDecimal> SD_ConvertToScreenCoordinates(Vec2<SDecimal> point)
         => _viewMatrix * (point - Position);
     
+    /// <summary>
+    /// Convert from a point in world space into a point in screen space.
+    /// </summary>
+    /// <param name="point">World point to be converted.</param>
+    /// <returns>Point in screen space as a Xna Vector2.</returns>
     public Vector2 ConvertToScreenCoordinates(Vec2<SDecimal> point)
     {
         Vec2<SDecimal> transformedPoint = SD_ConvertToScreenCoordinates(point);
@@ -150,8 +195,8 @@ public class Camera : KinematicObject
     /// <param name="distance">World space distance to be converted.</param>
     /// <param name="xAxis">
     /// Axis to use as a scale factor between world space and screen space.
-    /// true - x-axis
-    /// false - y-axis
+    /// <para>true - x-axis</para>
+    /// <para>false - y-axis</para>
     /// </param>
     /// <returns>Distance in screen space as an SDecimal.</returns>
     public SDecimal SD_ConvertToScreenDistance(SDecimal distance, bool xAxis = true)
@@ -166,8 +211,8 @@ public class Camera : KinematicObject
     /// <param name="distance">World space distance to be converted.</param>
     /// <param name="xAxis">
     /// Axis to use as a scale factor between world space and screen space.
-    /// true - x-axis
-    /// false - y-axis
+    /// <para>true - x-axis</para>
+    /// <para>false - y-axis</para>
     /// </param>
     /// <returns>Distance in screen space as a float.</returns>
     public float ConvertToScreenDistance(SDecimal distance, bool xAxis = true)

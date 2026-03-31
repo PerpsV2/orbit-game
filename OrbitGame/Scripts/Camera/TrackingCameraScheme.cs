@@ -4,15 +4,24 @@ namespace OrbitGame;
 
 /// <summary>
 /// Camera movement scheme where:
-/// - The rotation of the camera is independent to any game objects.
-/// - The position of the camera has its origin at a tracking object.
-/// - Focus moves the camera to a tracking object.
+/// <para> - The rotation of the camera is independent to any game objects.</para>
+/// <para> - The position of the camera has its origin at a tracking object.</para>
+/// <para> - Focus moves the camera to a tracking object.</para>
+/// If the tracking object is null, the camera's position is relative to the world origin.
 /// </summary>
 public class TrackingCameraScheme : ICameraMovementScheme
 {
+    /// <summary>
+    /// Position of the camera relative to a tracking object.
+    /// </summary>
     private Vec2<SDecimal> _localPosition;
     private readonly KinematicObject? _tracking;
 
+    /// <summary>
+    /// Create a TrackingCameraScheme from an existing camera SpatialInfo.
+    /// </summary>
+    /// <param name="cameraSpatialInfo">Existing camera SpatialInfo.</param>
+    /// <param name="tracking">Tracking object.</param>
     public TrackingCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;

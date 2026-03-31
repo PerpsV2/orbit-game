@@ -5,18 +5,30 @@ namespace OrbitGame;
 
 /// <summary>
 /// Camera movement scheme where:
-/// - The default rotation of the camera is always pointed away from a surface object.
-/// - Perpendicular movement maintains the same altitude from a surface object.
-/// - Parallel movement alters only the altitude from a surface object.
-/// - Focus moves the camera to a tracking object.
+/// <para> - The default rotation of the camera is always pointed away from a surface object.</para>
+/// <para> - Perpendicular movement maintains the same altitude from a surface object.</para>
+/// <para> - Parallel movement alters only the altitude from a surface object.</para>
+/// <para> - Focus moves the camera to a tracking object.</para>
 /// </summary>
 public class SurfaceCameraScheme : ICameraMovementScheme
 {
+    /// <summary>
+    /// Position of the camera relative to a tracking object.
+    /// </summary>
     private Vec2<SDecimal> _localPosition;
+    /// <summary>
+    /// Angle of the camera relative to the normal vector of the surface object.
+    /// </summary>
     private double _localAngle;
     private readonly KinematicObject _surface;
     private readonly KinematicObject _tracking;
     
+    /// <summary>
+    /// Create a SurfaceCameraScheme from an existing camera SpatialInfo.
+    /// </summary>
+    /// <param name="cameraSpatialInfo">Existing camera SpatialInfo.</param>
+    /// <param name="surface">Surface object.</param>
+    /// <param name="tracking">Tracking object.</param>
     public SurfaceCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject surface, KinematicObject tracking)
     {
         _surface = surface;

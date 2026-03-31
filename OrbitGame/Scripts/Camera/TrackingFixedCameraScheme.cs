@@ -4,16 +4,28 @@ namespace OrbitGame;
 
 /// <summary>
 /// Camera movement scheme where:
-/// - The rotation of the camera is by default the rotation of a tracking object.
-/// - The position of the camera has its origin at a tracking object.
-/// - Focus moves the camera to a tracking object.
+/// <para> - The rotation of the camera is by default the rotation of a tracking object.</para>
+/// <para> - The position of the camera has its origin at a tracking object.</para>
+/// <para> - Focus moves the camera to a tracking object.</para>
+/// If the tracking object is null, the camera's position and angle is relative to the world origin.
 /// </summary>
 public class TrackingFixedCameraScheme : ICameraMovementScheme
 {
+    /// <summary>
+    /// Position of the camera relative to a tracking object.
+    /// </summary>
     private Vec2<SDecimal> _localPosition;
+    /// <summary>
+    /// Angle of the camera relative to a tracking object.
+    /// </summary>
     private double _localAngle;
     private readonly KinematicObject? _tracking;
 
+    /// <summary>
+    /// Create a TrackingFixedCameraScheme from an existing camera SpatialInfo.
+    /// </summary>
+    /// <param name="cameraSpatialInfo">Existing camera SpatialInfo.</param>
+    /// <param name="tracking">Tracking object.</param>
     public TrackingFixedCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;
