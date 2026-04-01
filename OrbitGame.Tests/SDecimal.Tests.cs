@@ -36,8 +36,8 @@ public class SDecimal_Tests
         Assert.Throws<ArithmeticException>(() => positiveInfiniteSDecimal.Mantissa);
         Assert.Throws<ArithmeticException>(() => positiveInfiniteSDecimal.Exponent);
         
-        Assert.Equal(true, positiveInfiniteSDecimal.Positive);
-        Assert.Equal(false, positiveInfiniteSDecimal.Negative);
+        Assert.True(positiveInfiniteSDecimal.Positive);
+        Assert.False(positiveInfiniteSDecimal.Negative);
 
         Assert.Equal(0, SDecimal.Zero);
         Assert.Equal(1, SDecimal.One);

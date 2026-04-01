@@ -109,12 +109,12 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         Normalize();
     }
     
-    public static PDecimal FromDouble(double value, int exponent)
+    public static PDecimal FromDouble(double value, int exponent = 0)
     {
         if (value == 0) return Zero;
         if (double.IsPositiveInfinity(value)) return new PDecimal(1, 0, true);
         if (double.IsNegativeInfinity(value)) return new PDecimal(-1, 0, true);
-        if (double.IsNaN(value)) throw new ArithmeticException("Cannot convert NaN double to scientific decimal");
+        if (double.IsNaN(value)) throw new ArgumentException("Cannot convert NaN double to scientific decimal");
         
         while (Math.Abs(value) < 1e+16)
         {
@@ -127,6 +127,8 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 
     public static double ToDouble(PDecimal value)
     {
+        if (IsPositiveInfinity(value)) return double.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return double.NegativeInfinity;
         double result = (double)value.Mantissa;
         return result * Math.Pow(10, value.Exponent);
     }
@@ -257,11 +259,12 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// </summary>
     /// <param name="dividend">The dividend.</param>
     /// <param name="divisor">The divisor.</param>
+    /// <param name="divisionDecimals">Number of extra decimal places to compute.</param>
     /// <returns>The dividend divided by the divisor</returns>
     /// <exception cref="ArithmeticException">
     /// Infinite SDecimal was divided by another SDecimal or zero was divided by zero
     /// </exception>
-    private static PDecimal Divide(PDecimal dividend, PDecimal divisor)
+    private static PDecimal Divide(PDecimal dividend, PDecimal divisor, int divisionDecimals)
     {
         if (divisor._mantissa == 0 && dividend._mantissa == 0) 
             throw new ArithmeticException("Cannot divide zero by zero");
@@ -272,28 +275,28 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (dividend._infinite) return dividend * divisor;
         if (divisor._infinite) return 0;
         
-        int precisionPlaces = (int)Math.Floor(BigInteger.Log10(BigInteger.Abs(divisor.Mantissa))) + DivisionDecimals;
+        int precisionPlaces = (int)Math.Floor(BigInteger.Log10(BigInteger.Abs(divisor.Mantissa))) + divisionDecimals;
         BigInteger resultMantissa = dividend._mantissa * BigInteger.Pow(10, precisionPlaces) / divisor._mantissa;
         int resultExponent = dividend._exponent - divisor._exponent - precisionPlaces;
         return new(resultMantissa, resultExponent, false);
     }
 
     /// <summary>
-    /// Calculates the modulo between two values.
+    /// Calculates the remainder between two values.
     /// </summary>
-    /// <param name="value">Value to mod.</param>
-    /// <param name="mod">Modulo amount.</param>
-    /// <returns>Returns the remainder of the value divided by the mod.</returns>
+    /// <param name="dividend">Dividend.</param>
+    /// <param name="divisor">Divisor.</param>
+    /// <returns>Returns the remainder of the dividend divided by the divisor.</returns>
     /// <exception cref="ArithmeticException">
-    /// Attempted to modulate a value by zero or attempted to modulate an infinite PDecimal
+    /// Attempted to calculate the remainder of a division by zero or a division involving infinity
     /// </exception>
     /// // TODO: Change modulo to calculate remainder instead of modulo as C# usually does.
-    private static PDecimal Modulo(PDecimal value, PDecimal mod)
+    private static PDecimal Remainder(PDecimal dividend, PDecimal divisor)
     {
-        if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
-        if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
-        if (mod._infinite) return value;
-        return value - mod * Floor(value / mod);
+        if (divisor == 0) throw new ArithmeticException("Cannot modulate a value by zero");
+        if (dividend._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
+        if (divisor._infinite) throw new ArithmeticException("Cannot modulate by an infinite PDecimal");
+        return dividend - divisor * Floor(Divide(dividend, divisor, dividend.Exponent));
     }
     
     public static PDecimal Square(PDecimal value)
@@ -474,10 +477,10 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         => Multiply(left, right);
     
     public static PDecimal operator /(PDecimal left, PDecimal right)
-        => Divide(left, right);
+        => Divide(left, right, DivisionDecimals);
 
     public static PDecimal operator %(PDecimal left, PDecimal right)
-        => Modulo(left, right);
+        => Remainder(left, right);
 
     public static bool operator ==(PDecimal left, PDecimal right)
         => Equals(left, right);
