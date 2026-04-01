@@ -36,6 +36,7 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// <param name="value">Value to convert.</param>
     /// <param name="exponent">Power of ten exponent to multiply the value by.</param>
     /// <returns>An arbitrary place decimal with an equivalent value as the double.</returns>
+    /// <exception cref="ArgumentException">Attempted to convert NaN into an arbitrary place decimal.</exception>
     public static abstract TSelf FromDouble(double value, int exponent = 0);
     
     /// <summary>
@@ -43,7 +44,15 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>A double with an equivalent value as the arbitrary place decimal.</returns>
+    /// <exception cref="OverflowException">Arbitrary place decimal is outside the range of a double.</exception>
     public static abstract double ToDouble(TSelf value);
+    
+    /// <summary>
+    /// Converts an arbitrary place decimal into a double while clamping within the double's range to avoid overflow.
+    /// </summary>
+    /// <param name="value">Value to convert.</param>
+    /// <returns>A double with an equivalent value as the arbitrary place decimal or double.Min/MaxValue.</returns>
+    public static abstract double ToDoubleSafe(TSelf value);
     
     /// <summary>
     /// Method to map from one TSelf to another type of arbitrary place decimal

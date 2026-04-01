@@ -130,6 +130,11 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         double result = (double)value.Mantissa;
         return result * Math.Pow(10, value.Exponent);
     }
+
+    public static double ToDoubleSafe(PDecimal value)
+    {
+        return 0;
+    }
     
     /// <summary>
     /// Removes any trailing zeroes from the 
