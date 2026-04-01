@@ -455,43 +455,107 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_IsIntegerMethod()
     {
+        Assert.True(SDecimal.IsInteger(new SDecimal(1, 0)));
+        Assert.True(SDecimal.IsInteger(new SDecimal(-1, 0)));
+        Assert.True(SDecimal.IsInteger(new SDecimal(1000)));
         
+        Assert.False(SDecimal.IsInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsInteger(SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_IsEvenIntegerMethod()
     {
-        
+        Assert.False(SDecimal.IsEvenInteger(new SDecimal(1, 0)));
+        Assert.True(SDecimal.IsEvenInteger(new SDecimal(2, 0)));
+
+        Assert.False(SDecimal.IsEvenInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsEvenInteger(SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_IsOddIntegerMethod()
     {
-        
+        Assert.True(SDecimal.IsOddInteger(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsOddInteger(new SDecimal(2, 0)));
+
+        Assert.False(SDecimal.IsOddInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsOddInteger(SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_IsInfinityMethod()
     {
-        
+        Assert.True(SDecimal.IsInfinity(SDecimal.PositiveInfinity));
+        Assert.True(SDecimal.IsInfinity(SDecimal.NegativeInfinity));
+        Assert.False(SDecimal.IsInfinity(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsInfinity(new SDecimal(1000)));
     }
 
     [Fact]
     public void SDecimal_IsPositiveInfinityMethod()
     {
-        
+        Assert.True(SDecimal.IsPositiveInfinity(SDecimal.PositiveInfinity));
+        Assert.False(SDecimal.IsPositiveInfinity(SDecimal.NegativeInfinity));
+        Assert.False(SDecimal.IsPositiveInfinity(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsPositiveInfinity(new SDecimal(1000)));
     }
 
     [Fact]
     public void SDecimal_IsNegativeInfinityMethod()
     {
-        
+        Assert.False(SDecimal.IsNegativeInfinity(SDecimal.PositiveInfinity));
+        Assert.True(SDecimal.IsNegativeInfinity(SDecimal.NegativeInfinity));
+        Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(-1, 0)));
+        Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(-1, 1000)));
     }
 
     [Fact]
     public void SDecimal_ToStringMethod()
     {
+        SDecimal posInteger = new SDecimal(1, 0);
+        SDecimal posRational = new SDecimal(1, -1);
+        SDecimal posInfinity = SDecimal.PositiveInfinity;
+        SDecimal largePosNumber = new SDecimal(1000);
+        SDecimal smallPosNumber = new SDecimal(-1000);
+        SDecimal precisePosNumber = new SDecimal(1.23456789, 2);
         
+        void SDecimal_ToStringGeneralMethod()
+        {
+            Assert.Equal("1.0000e+0", posInteger.ToString());
+            Assert.Equal("1.0000e-1", posRational.ToString());
+            Assert.Equal("-1.0000e-1", (-posRational).ToString());
+            Assert.Equal("PositiveInfinity", posInfinity.ToString());
+            Assert.Equal("NegativeInfinity", (-posInfinity).ToString());
+            Assert.Equal("1.0000e+1000", largePosNumber.ToString());
+            Assert.Equal("1.0000e-1000", smallPosNumber.ToString());
+            Assert.Equal("1.2346e+2", precisePosNumber.ToString());
+            
+            Assert.Equal("1e+2", precisePosNumber.ToString("G1"));
+            Assert.Equal("1.2e+2", precisePosNumber.ToString("G2"));
+            Assert.Equal("1.23456789000000e+2", precisePosNumber.ToString("G15"));
+            Assert.Throws<FormatException>(() => precisePosNumber.ToString("G0"));
+        }
+        
+        void SDecimal_ToStringStandardMethod()
+        {
+            Assert.Equal("1.0000", posInteger.ToString("S"));
+            Assert.Equal("0.10000", posRational.ToString("S"));
+            Assert.Equal("-0.10000", (-posRational).ToString("S"));
+            Assert.Equal("PositiveInfinity", posInfinity.ToString("S"));
+            Assert.Equal("NegativeInfinity", (-posInfinity).ToString("S"));
+            Assert.Equal("1" + new string('0', 1000), largePosNumber.ToString("S"));
+            Assert.Equal("0." + new string('0', 999) + "10000", smallPosNumber.ToString("S"));
+            Assert.Equal("123.46", precisePosNumber.ToString("S"));
+            
+            Assert.Equal("100", precisePosNumber.ToString("S1"));
+            Assert.Equal("120", precisePosNumber.ToString("S2"));
+            Assert.Equal("123.456789000000", precisePosNumber.ToString("S15"));
+            Assert.Throws<FormatException>(() => precisePosNumber.ToString("S0"));
+        }
+        
+        SDecimal_ToStringGeneralMethod();
+        SDecimal_ToStringStandardMethod();
     }
 
     [Fact]

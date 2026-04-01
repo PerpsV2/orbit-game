@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 
@@ -529,13 +530,13 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => false;
     
     public static bool IsInteger(SDecimal value)
-        => !value._infinite && double.IsInteger((double)value);
+        => !value._infinite && double.IsInteger(ToDoubleSafe(value));
 
     public static bool IsEvenInteger(SDecimal value)
-        => !value._infinite && double.Abs((double)value % 2) <= ComparisonTolerance;
+        => !value._infinite && double.Abs(ToDoubleSafe(value) % 2) <= ComparisonTolerance;
     
     public static bool IsOddInteger(SDecimal value)
-        => !value._infinite && double.Abs((double)value % 2 - 1) <= ComparisonTolerance;
+        => !value._infinite && double.Abs(ToDoubleSafe(value) % 2 - 1) <= ComparisonTolerance;
 
     static bool INumberBase<SDecimal>.IsNaN(SDecimal value)
         => value._infinite || double.IsNaN(value.Mantissa);
@@ -577,9 +578,6 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
 
-    private string ToStringStandardDecimal()
-        => ToStringStandardDecimal("S" + DefaultPrintPrecision);
-
     private string ToStringStandardDecimal(string format)
     {
         if (IsPositiveInfinity(this)) return "PositiveInfinity";
@@ -596,14 +594,20 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         }
         
         string mantissaString = Mantissa.ToString("N" + (sigFigs - 1));
+        // strip the negative sign and re-add at the end
         if (Negative) mantissaString = mantissaString.Substring(1);
         int mantissaDecimalIndex = mantissaString.IndexOf('.');
+        if (mantissaDecimalIndex < 0)
+        {
+            mantissaString += '.';
+            mantissaDecimalIndex = mantissaString.IndexOf('.');
+        }
         int resultDecimalIndex = mantissaDecimalIndex + Exponent;
         string result = mantissaString.Substring(0, mantissaDecimalIndex) + 
                         mantissaString.Substring(mantissaDecimalIndex + 1);
         string resultDecimalInsert = ".";
         
-        if (resultDecimalIndex < 0)
+        if (resultDecimalIndex <= 0)
         {
             result = result.PadLeft(result.Length + Math.Abs(resultDecimalIndex), '0');
             resultDecimalIndex = 0;
@@ -624,8 +628,14 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     private string ToStringGeneral()
         => ToStringPrecision("P" + DefaultPrintPrecision);
     
+    private string ToStringStandardDecimal()
+        => ToStringStandardDecimal("S" + DefaultPrintPrecision);
+    
     public override string ToString()
         => ToStringGeneral();
+
+    public string ToString(string? format)
+        => ToString(format, CultureInfo.InvariantCulture);
 
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
@@ -636,9 +646,9 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         {
             case "G": return ToStringGeneral(); // general format
             case "S": return ToStringStandardDecimal(); // standard decimal format
-            case var f when new Regex(@"S\d*").IsMatch(f): 
+            case var f when new Regex(@"S[1-9]\d*").IsMatch(f): 
                 return ToStringStandardDecimal(f); // standard decimal format with precision
-            case var f when new Regex(@"S\d+").IsMatch(f): 
+            case var f when new Regex(@"G[1-9]\d*").IsMatch(f): 
                 return ToStringPrecision(f); // custom precision format
             default: throw new FormatException($"The format '{format}' is not supported.");
         }
