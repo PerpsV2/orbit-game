@@ -152,6 +152,13 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             return;
         }
         if (Exponent < MinExponent) IncreaseExponent(MinExponent);
+        
+        // check for zero again after increasing exponent
+        if (Mantissa == 0)
+        {
+            Exponent = 0;
+            return;
+        }
 
         while (true) {
             BigInteger quotient = BigInteger.DivRem(Mantissa, 10, out BigInteger remainder);
@@ -290,13 +297,23 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// <exception cref="ArithmeticException">
     /// Attempted to calculate the remainder of a division by zero or a division involving infinity
     /// </exception>
-    /// // TODO: Change modulo to calculate remainder instead of modulo as C# usually does.
     private static PDecimal Remainder(PDecimal dividend, PDecimal divisor)
     {
         if (divisor == 0) throw new ArithmeticException("Cannot modulate a value by zero");
         if (dividend._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
         if (divisor._infinite) throw new ArithmeticException("Cannot modulate by an infinite PDecimal");
-        return dividend - divisor * Floor(Divide(dividend, divisor, dividend.Exponent));
+        PDecimal quotient = Divide(dividend, divisor, dividend.Exponent);
+        // truncate the quotient
+        return dividend - divisor * (quotient > 0 ? Floor(quotient): Ceiling(quotient));
+    }
+
+    public static PDecimal Mod(PDecimal value, PDecimal mod)
+    {
+        if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
+        if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
+        if (mod._infinite) throw new ArithmeticException("Cannot modulate by an infinite PDecimal");
+        PDecimal quotient = Divide(value, mod, value.Exponent);
+        return value - mod * Floor(quotient);
     }
     
     public static PDecimal Square(PDecimal value)

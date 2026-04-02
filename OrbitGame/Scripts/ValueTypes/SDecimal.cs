@@ -256,16 +256,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
             throw new ArithmeticException("Cannot calculate the remainder of infinity");
         return dividend - divisor * Math.Truncate((double)(dividend / divisor));
     }
-
-    /// <summary>
-    /// Calculates the modulo between two values.
-    /// </summary>
-    /// <param name="value">Value to modulate.</param>
-    /// <param name="mod">Mod value.</param>
-    /// <returns>The modulo of the value by the mod value.</returns>
-    /// <exception cref="ArithmeticException">
-    /// Attempted to modulate by zero or attempted to modulate infinity or by infinity.
-    /// </exception>
+    
     public static SDecimal Mod(SDecimal value, SDecimal mod)
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate by zero");

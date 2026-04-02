@@ -62,6 +62,17 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     public TOther Map<TOther>() where TOther : new();
 
     /// <summary>
+    /// Calculates the modulo between two values.
+    /// </summary>
+    /// <param name="value">Value to modulate.</param>
+    /// <param name="mod">Mod.</param>
+    /// <returns>The modulus of the value by the mod.</returns>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to modulate by zero or attempted to modulate infinity or by infinity.
+    /// </exception>
+    public static abstract TSelf Mod(TSelf value, TSelf mod);
+    
+    /// <summary>
     /// Calculate the square of an arbitrary place decimal
     /// </summary>
     /// <param name="value">Value to calculate the square of.</param>
