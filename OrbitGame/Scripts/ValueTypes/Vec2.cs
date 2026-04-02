@@ -125,7 +125,7 @@ public readonly struct Vec2<T>(T x, T y) : IEquatable<Vec2<T>>, IFormattable
         => new (value.X, value.Y, T.Zero);
     
     public static explicit operator Vector2(Vec2<T> value)
-        => new ((float)T.ToDouble(value.X), (float)T.ToDouble(value.Y));
+        => new ((float)T.ConvertToDouble(value.X), (float)T.ConvertToDouble(value.Y));
     
     #endregion
     

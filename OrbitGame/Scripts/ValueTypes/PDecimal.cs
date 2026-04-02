@@ -125,17 +125,31 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return new PDecimal((long)value, exponent, false);
     }
 
-    public static double ToDouble(PDecimal value)
+    public static double ConvertToDouble(PDecimal value)
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
+        int mantissaDigits = (int)Math.Floor(BigInteger.Log10(value.Mantissa));
+        if (mantissaDigits > 300) value.IncreaseExponent(value.Exponent + mantissaDigits - 300);
         double result = (double)value.Mantissa;
+        if (double.IsInfinity(Math.Pow(10, value.Exponent)))
+            throw new OverflowException("PDecimal is outside of thte range of double");
         return result * Math.Pow(10, value.Exponent);
     }
 
-    public static double ToDoubleSafe(PDecimal value)
+    public static double ConvertToDoubleSaturating(PDecimal value)
     {
-        return 0;
+        if (IsPositiveInfinity(value)) return double.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return double.NegativeInfinity;
+        int mantissaDigits = (int)Math.Floor(BigInteger.Log10(value.Mantissa));
+        if (mantissaDigits > 300) value.IncreaseExponent(value.Exponent + mantissaDigits - 300);
+        double result = (double)value.Mantissa;
+        if (double.IsInfinity(Math.Pow(10, value.Exponent)))
+        {
+            if (value.Positive) return double.MaxValue;
+            return double.MinValue;
+        }
+        return result * Math.Pow(10, value.Exponent);
     }
     
     /// <summary>
@@ -322,8 +336,12 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     public static PDecimal IntPow(PDecimal value, int amount)
     {
         PDecimal result = One;
-        for (uint i = 0; i < amount; ++i)
-            result *= value;
+        if (amount > 0)
+            for (int i = 0; i < amount; ++i)
+                result *= value;
+        if (amount < 0)
+            for (int i = 0; i < -amount; ++i)
+                result /= value;
         return result;
     }
     
@@ -566,10 +584,10 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     }
 
     public static explicit operator float(PDecimal value)
-        => (float)ToDouble(value);
+        => (float)ConvertToDouble(value);
     
     public static explicit operator double(PDecimal value)
-        => ToDouble(value);
+        => ConvertToDouble(value);
 
     public static explicit operator SDecimal(PDecimal value)
         => value.Map<SDecimal>();

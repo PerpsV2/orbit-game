@@ -111,7 +111,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return new(value, exponent);
     }
 
-    public static double ToDouble(SDecimal value)
+    public static double ConvertToDouble(SDecimal value)
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
@@ -120,7 +120,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
-    public static double ToDoubleSafe(SDecimal value)
+    public static double ConvertToDoubleSaturating(SDecimal value)
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
@@ -280,7 +280,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     /// <returns>The base raised to the exponent.</returns>
     public static SDecimal IntPow(SDecimal value, int amount)
     {
-        SDecimal result = 1;
+        SDecimal result = One;
         if (amount > 0)
             for (int i = 0; i < amount; ++i)
                 result *= value;
@@ -313,7 +313,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     /// <exception cref="ArithmeticException">Attempted to calculate the atan2 of 0, 0</exception>
     public static double Atan2(SDecimal y, SDecimal x)
     {
-        double quotient = ToDoubleSafe(y / x);
+        double quotient = ConvertToDoubleSaturating(y / x);
         if (x > 0) return Math.Atan(quotient);
         if (x < 0 && y >= 0) return Math.Atan(quotient) + Math.PI;
         if (x < 0 && y < 0) return Math.Atan(quotient) - Math.PI;
@@ -480,19 +480,19 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     // from SDecimal
     public static explicit operator double(SDecimal value)
-        => ToDouble(value);
+        => ConvertToDouble(value);
     
     public static explicit operator float(SDecimal value)
         => Convert.ToSingle((double)value);
     
     public static explicit operator int(SDecimal value)
-        => (int)ToDouble(value);
+        => (int)ConvertToDouble(value);
     
     public static explicit operator uint(SDecimal value)
-        => (uint)ToDouble(value);
+        => (uint)ConvertToDouble(value);
     
     public static explicit operator long (SDecimal value)
-        => (long)ToDouble(value);
+        => (long)ConvertToDouble(value);
 
     public static explicit operator PDecimal(SDecimal value)
         => value.Map<PDecimal>();
@@ -521,13 +521,13 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => false;
     
     public static bool IsInteger(SDecimal value)
-        => !value._infinite && double.IsInteger(ToDoubleSafe(value));
+        => !value._infinite && double.IsInteger(ConvertToDoubleSaturating(value));
 
     public static bool IsEvenInteger(SDecimal value)
-        => !value._infinite && double.Abs(ToDoubleSafe(value) % 2) <= ComparisonTolerance;
+        => !value._infinite && double.Abs(ConvertToDoubleSaturating(value) % 2) <= ComparisonTolerance;
     
     public static bool IsOddInteger(SDecimal value)
-        => !value._infinite && double.Abs(ToDoubleSafe(value) % 2 - 1) <= ComparisonTolerance;
+        => !value._infinite && double.Abs(ConvertToDoubleSaturating(value) % 2 - 1) <= ComparisonTolerance;
 
     static bool INumberBase<SDecimal>.IsNaN(SDecimal value)
         => value._infinite || double.IsNaN(value.Mantissa);

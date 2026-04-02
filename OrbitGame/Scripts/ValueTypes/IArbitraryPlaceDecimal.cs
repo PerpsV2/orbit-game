@@ -45,14 +45,14 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// <param name="value">Value to convert.</param>
     /// <returns>A double with an equivalent value as the arbitrary place decimal.</returns>
     /// <exception cref="OverflowException">Arbitrary place decimal is outside the range of a double.</exception>
-    public static abstract double ToDouble(TSelf value);
+    public static abstract double ConvertToDouble(TSelf value);
     
     /// <summary>
     /// Converts an arbitrary place decimal into a double while clamping within the double's range to avoid overflow.
     /// </summary>
     /// <param name="value">Value to convert.</param>
     /// <returns>A double with an equivalent value as the arbitrary place decimal or double.Min/MaxValue.</returns>
-    public static abstract double ToDoubleSafe(TSelf value);
+    public static abstract double ConvertToDoubleSaturating(TSelf value);
     
     /// <summary>
     /// Method to map from one TSelf to another type of arbitrary place decimal

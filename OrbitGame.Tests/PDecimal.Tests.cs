@@ -6,8 +6,8 @@ public class PDecimal_Tests
     
     public PDecimal_Tests()
     {
-        for (int i = 0; i < 1000; ++i)
-            _highPrecisionPDecimal += new PDecimal(1, -i);
+        for (int i = 0; i < 350; ++i)
+            _highPrecisionPDecimal += new PDecimal(1, 300 - i);
     }
     
     [Fact]
@@ -67,16 +67,16 @@ public class PDecimal_Tests
         PDecimal posPDecimal = new PDecimal(1, 5);
         PDecimal negPDecimal = new PDecimal(-1, -5);
 
-        Assert.Equal(100000, PDecimal.ToDouble(posPDecimal));
-        Assert.Equal(-0.00001, PDecimal.ToDouble(negPDecimal));
-        Assert.Equal(1.111_111_111_111_111_111, PDecimal.ToDouble(_highPrecisionPDecimal));
+        Assert.Equal(100000, PDecimal.ConvertToDouble(posPDecimal));
+        Assert.Equal(-0.00001, PDecimal.ConvertToDouble(negPDecimal));
+        Assert.Equal(1.111_111_111_111_111*Math.Pow(10, 300), PDecimal.ConvertToDouble(_highPrecisionPDecimal));
         
-        Assert.Equal(double.PositiveInfinity, PDecimal.ToDouble(PDecimal.PositiveInfinity));
-        Assert.Equal(double.NegativeInfinity, PDecimal.ToDouble(PDecimal.NegativeInfinity));
+        Assert.Equal(double.PositiveInfinity, PDecimal.ConvertToDouble(PDecimal.PositiveInfinity));
+        Assert.Equal(double.NegativeInfinity, PDecimal.ConvertToDouble(PDecimal.NegativeInfinity));
         
-        Assert.Throws<OverflowException>(() => PDecimal.ToDouble(new PDecimal(1000)));
+        Assert.Throws<OverflowException>(() => PDecimal.ConvertToDouble(new PDecimal(1000)));
         
-        Assert.Equal(0, PDecimal.ToDouble(new PDecimal(-1000)));
+        Assert.Equal(0, PDecimal.ConvertToDouble(new PDecimal(-1000)));
     }
 
     [Fact]
@@ -85,16 +85,16 @@ public class PDecimal_Tests
         PDecimal posPDecimal = new PDecimal(1, 5);
         PDecimal negPDecimal = new PDecimal(-1, -5);
 
-        Assert.Equal(100000, PDecimal.ToDoubleSafe(posPDecimal));
-        Assert.Equal(-0.00001, PDecimal.ToDoubleSafe(negPDecimal));
+        Assert.Equal(100000, PDecimal.ConvertToDoubleSaturating(posPDecimal));
+        Assert.Equal(-0.00001, PDecimal.ConvertToDoubleSaturating(negPDecimal));
         
-        Assert.Equal(double.PositiveInfinity, PDecimal.ToDoubleSafe(PDecimal.PositiveInfinity));
-        Assert.Equal(double.NegativeInfinity, PDecimal.ToDoubleSafe(PDecimal.NegativeInfinity));
+        Assert.Equal(double.PositiveInfinity, PDecimal.ConvertToDoubleSaturating(PDecimal.PositiveInfinity));
+        Assert.Equal(double.NegativeInfinity, PDecimal.ConvertToDoubleSaturating(PDecimal.NegativeInfinity));
         
-        Assert.Equal(double.MaxValue, PDecimal.ToDoubleSafe(new PDecimal(1000)));
-        Assert.Equal(double.MinValue, PDecimal.ToDoubleSafe(new PDecimal(-1, 1000)));
+        Assert.Equal(double.MaxValue, PDecimal.ConvertToDoubleSaturating(new PDecimal(1000)));
+        Assert.Equal(double.MinValue, PDecimal.ConvertToDoubleSaturating(new PDecimal(-1, 1000)));
         
-        Assert.Equal(0, PDecimal.ToDoubleSafe(new PDecimal(-1000)));
+        Assert.Equal(0, PDecimal.ConvertToDoubleSaturating(new PDecimal(-1000)));
     }
 
     [Fact]
@@ -155,8 +155,9 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_ModuloOperator()
     {
-        Assert.Equal(1, new PDecimal(1000) % new PDecimal(3, 0));
-        Assert.Equal(-1, new PDecimal(-1, 1000) % new PDecimal(3, 0));
+        Assert.Equal(1, new PDecimal(1000) % 3);
+        Assert.Equal(-1, new PDecimal(-1, 1000) % 3);
+        
         Assert.Throws<ArithmeticException>(() => new PDecimal(1000) % PDecimal.PositiveInfinity);
         Assert.Throws<ArithmeticException>(() => PDecimal.PositiveInfinity % new PDecimal(1000));
         Assert.Throws<ArithmeticException>(() => new PDecimal(1000) % 0);
@@ -165,24 +166,36 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_ModuloMethod()
     {
+        Assert.Equal(1, PDecimal.Mod(new PDecimal(1000), 3));
+        Assert.Equal(2, PDecimal.Mod(new PDecimal(-100, 0), 3));
     }
 
     [Fact]
     public void PDecimal_SquareMethod()
     {
-        
+        Assert.Equal(16, PDecimal.Square(4));
+        Assert.Equal(16, PDecimal.Square(-4));
+        Assert.Equal(new PDecimal(2000), PDecimal.Square(new PDecimal(1000)));
+        Assert.Equal(PDecimal.PositiveInfinity, PDecimal.Square(PDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void PDecimal_IntPowMethod()
     {
-        
+        Assert.Equal(16, PDecimal.IntPow(4, 2));
+        Assert.Equal(1d/16, PDecimal.IntPow(4, -2));
+        Assert.Equal(0, PDecimal.IntPow(PDecimal.PositiveInfinity, -1));
+        Assert.Equal(1, PDecimal.IntPow(PDecimal.NegativeInfinity, 0));
     }
 
     [Fact]
     public void PDecimal_SqrtMethod()
     {
-        
+        Assert.Equal(4, PDecimal.Sqrt(new PDecimal(16, 0)));
+        Assert.Equal(10, PDecimal.Sqrt(new PDecimal(100, 0)));
+        Assert.Equal(new PDecimal(500), PDecimal.Sqrt(new PDecimal(1000)));
+        Assert.Equal(PDecimal.PositiveInfinity, PDecimal.Sqrt(PDecimal.PositiveInfinity));
+        Assert.Throws<ArithmeticException>(() => PDecimal.Sqrt(PDecimal.NegativeInfinity));
     }
 
     [Fact]

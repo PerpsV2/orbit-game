@@ -64,12 +64,12 @@ public class SDecimal_Tests
         SDecimal posSDecimal = new SDecimal(1, 5);
         SDecimal negSDecimal = new SDecimal(-1, -5);
         
-        Assert.Equal(100000, SDecimal.ToDouble(posSDecimal));
-        Assert.Equal(-0.00001, SDecimal.ToDouble(negSDecimal));
-        Assert.Equal(double.PositiveInfinity, SDecimal.ToDouble(SDecimal.PositiveInfinity));
-        Assert.Equal(double.NegativeInfinity, SDecimal.ToDouble(SDecimal.NegativeInfinity));
-        Assert.Throws<OverflowException>(() => SDecimal.ToDouble(new SDecimal(1000)));
-        Assert.Equal(0, SDecimal.ToDouble(new SDecimal(-1000)));
+        Assert.Equal(100000, SDecimal.ConvertToDouble(posSDecimal));
+        Assert.Equal(-0.00001, SDecimal.ConvertToDouble(negSDecimal));
+        Assert.Equal(double.PositiveInfinity, SDecimal.ConvertToDouble(SDecimal.PositiveInfinity));
+        Assert.Equal(double.NegativeInfinity, SDecimal.ConvertToDouble(SDecimal.NegativeInfinity));
+        Assert.Throws<OverflowException>(() => SDecimal.ConvertToDouble(new SDecimal(1000)));
+        Assert.Equal(0, SDecimal.ConvertToDouble(new SDecimal(-1000)));
     }
 
     [Fact]
@@ -78,13 +78,13 @@ public class SDecimal_Tests
         SDecimal posSDecimal = new SDecimal(1, 5);
         SDecimal negSDecimal = new SDecimal(-1, -5);
         
-        Assert.Equal(100000, SDecimal.ToDoubleSafe(posSDecimal));
-        Assert.Equal(-0.00001, SDecimal.ToDoubleSafe(negSDecimal));
-        Assert.Equal(double.PositiveInfinity, SDecimal.ToDoubleSafe(SDecimal.PositiveInfinity));
-        Assert.Equal(double.NegativeInfinity, SDecimal.ToDoubleSafe(SDecimal.NegativeInfinity));
-        Assert.Equal(double.MaxValue, SDecimal.ToDoubleSafe(new SDecimal(1000)));
-        Assert.Equal(double.MinValue, SDecimal.ToDoubleSafe(new SDecimal(-1, 1000)));
-        Assert.Equal(0, SDecimal.ToDouble(new SDecimal(-1000)));
+        Assert.Equal(100000, SDecimal.ConvertToDoubleSaturating(posSDecimal));
+        Assert.Equal(-0.00001, SDecimal.ConvertToDoubleSaturating(negSDecimal));
+        Assert.Equal(double.PositiveInfinity, SDecimal.ConvertToDoubleSaturating(SDecimal.PositiveInfinity));
+        Assert.Equal(double.NegativeInfinity, SDecimal.ConvertToDoubleSaturating(SDecimal.NegativeInfinity));
+        Assert.Equal(double.MaxValue, SDecimal.ConvertToDoubleSaturating(new SDecimal(1000)));
+        Assert.Equal(double.MinValue, SDecimal.ConvertToDoubleSaturating(new SDecimal(-1, 1000)));
+        Assert.Equal(0, SDecimal.ConvertToDouble(new SDecimal(-1000)));
     }
 
     [Fact]
