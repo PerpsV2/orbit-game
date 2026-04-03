@@ -90,11 +90,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_AddOperator()
     {
-        Assert.Equal(7, new SDecimal(3, 0) + new SDecimal(4, 0));
-        Assert.Equal(-1, new SDecimal(3, 0) + new SDecimal(-4, 0));
-        Assert.Equal(100001, new SDecimal(5) + new SDecimal(0));
-        Assert.Equal(SDecimal.PositiveInfinity, new SDecimal(5, 0) + SDecimal.PositiveInfinity);
-        Assert.Equal(SDecimal.NegativeInfinity, new SDecimal(5, 0) + SDecimal.NegativeInfinity);
+        Assert.Equal(7, (SDecimal)3 + 4);
+        Assert.Equal(100001, new SDecimal(5) + 1);
+        Assert.Equal(SDecimal.PositiveInfinity, 1 + SDecimal.PositiveInfinity);
+        Assert.Equal(SDecimal.NegativeInfinity, 1 + SDecimal.NegativeInfinity);
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.PositiveInfinity + SDecimal.PositiveInfinity);
         Assert.Equal(SDecimal.NegativeInfinity, SDecimal.NegativeInfinity + SDecimal.NegativeInfinity);
         Assert.Throws<ArithmeticException>(() => SDecimal.PositiveInfinity + SDecimal.NegativeInfinity);
@@ -103,20 +102,19 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_SubtractOperator()
     {
-        Assert.Equal(-1, new SDecimal(3, 0) - new SDecimal(4, 0));
-        Assert.Equal(7, new SDecimal(3, 0) - new SDecimal(-4, 0));
-        Assert.Equal(99999, new SDecimal(5) - new SDecimal(0));
-        Assert.Equal(SDecimal.NegativeInfinity, new SDecimal(5, 0) - SDecimal.PositiveInfinity);
-        Assert.Equal(SDecimal.PositiveInfinity, new SDecimal(5, 0) - SDecimal.NegativeInfinity);
+        Assert.Equal(-1, (SDecimal)3 - 4);
+        Assert.Equal(99999, new SDecimal(5) - 1);
+        Assert.Equal(SDecimal.NegativeInfinity, 1 - SDecimal.PositiveInfinity);
+        Assert.Equal(SDecimal.PositiveInfinity, 1 - SDecimal.NegativeInfinity);
         Assert.Throws<ArithmeticException>(() => SDecimal.PositiveInfinity - SDecimal.PositiveInfinity);
     }
 
     [Fact]
     public void SDecimal_MultiplyOperator()
     {
-        Assert.Equal(12, new SDecimal(3, 0) * new SDecimal(4, 0));
-        Assert.Equal(-12, new SDecimal(3, 0) * new SDecimal(-4, 0));
-        Assert.Equal(new SDecimal(2, 1000), new SDecimal(1000) * new SDecimal(2, 0));
+        Assert.Equal(12, (SDecimal)3 * 4);
+        Assert.Equal(-12, (SDecimal)3 * -4);
+        Assert.Equal(new SDecimal(2, 1000), new SDecimal(1000) * 2);
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.NegativeInfinity * SDecimal.NegativeInfinity);
         Assert.Equal(0, SDecimal.PositiveInfinity * 0);
     }
@@ -124,43 +122,43 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_DivideOperator()
     {
-        Assert.Equal(3, new SDecimal(12, 0) / new SDecimal(4, 0));
-        Assert.Equal(-4, new SDecimal(12, 0) / new SDecimal(-3, 0));
-        Assert.Equal(new SDecimal(5, 999), new SDecimal(1000) / new SDecimal(2, 0));
-        Assert.Equal(SDecimal.PositiveInfinity, new SDecimal(1, 0) / new SDecimal());
-        Assert.Equal(SDecimal.NegativeInfinity, new SDecimal(-1, 0) / new SDecimal());
+        Assert.Equal(3, (SDecimal)12 / 4);
+        Assert.Equal(-4, (SDecimal)12 / -3);
+        Assert.Equal(new SDecimal(5, 999), new SDecimal(1000) / 2);
+        Assert.Equal(SDecimal.PositiveInfinity, 1 / new SDecimal());
+        Assert.Equal(SDecimal.NegativeInfinity, -1 / new SDecimal());
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.PositiveInfinity / new SDecimal(1000));
-        Assert.Equal(SDecimal.NegativeInfinity, SDecimal.PositiveInfinity / new SDecimal(-1, 0));
+        Assert.Equal(SDecimal.NegativeInfinity, SDecimal.PositiveInfinity / -1);
         Assert.Equal(0, new SDecimal(1000) / SDecimal.PositiveInfinity);
         Assert.Throws<ArithmeticException>(() => SDecimal.PositiveInfinity / SDecimal.PositiveInfinity);
-        Assert.Throws<ArithmeticException>(() => new SDecimal() / new SDecimal());
+        Assert.Throws<DivideByZeroException>(() => new SDecimal() / new SDecimal());
     }
 
     [Fact]
     public void SDecimal_ModuloOperator()
     {
-        Assert.Equal(1, new SDecimal(100, 0) % new SDecimal(3, 0));
-        Assert.Equal(-1, new SDecimal(-100, 0) % new SDecimal(3, 0));
-        Assert.Throws<ArithmeticException>(() => new SDecimal(100, 0) % new SDecimal());
-        Assert.Throws<ArithmeticException>(() => SDecimal.PositiveInfinity % new SDecimal(3, 0));
+        Assert.Equal(1, (SDecimal)100 % 3);
+        Assert.Equal(-1, (SDecimal)(-100) % 3);
+        Assert.Throws<ArithmeticException>(() => new SDecimal(100, 0) % 0);
+        Assert.Throws<ArithmeticException>(() => SDecimal.PositiveInfinity % 3);
         Assert.Throws<ArithmeticException>(() => new SDecimal(100, 0) % SDecimal.PositiveInfinity);
     }
 
     [Fact]
     public void SDecimal_ModuloMethod()
     {
-        Assert.Equal(1, SDecimal.Mod(new SDecimal(100, 0), new SDecimal(3, 0)));
-        Assert.Equal(2, SDecimal.Mod(new SDecimal(-100, 0), new SDecimal(3, 0)));
-        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(new SDecimal(100, 0), new SDecimal()));
-        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(SDecimal.PositiveInfinity, new SDecimal(3, 0)));
-        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(new SDecimal(100, 0), SDecimal.PositiveInfinity));
+        Assert.Equal(1, SDecimal.Mod(100, 3));
+        Assert.Equal(2, SDecimal.Mod(-100, 3));
+        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(100, 0));
+        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(SDecimal.PositiveInfinity, 3));
+        Assert.Throws<ArithmeticException>(() => SDecimal.Mod(100, SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_SquareMethod()
     {
-        Assert.Equal(16, SDecimal.Square(new SDecimal(4, 0)));
-        Assert.Equal(16, SDecimal.Square(new SDecimal(-4, 0)));
+        Assert.Equal(16, SDecimal.Square(4));
+        Assert.Equal(16, SDecimal.Square(-4));
         Assert.Equal(new SDecimal(2000), SDecimal.Square(new SDecimal(1000)));
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Square(SDecimal.PositiveInfinity));
     }
@@ -168,8 +166,8 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_IntPowMethod()
     {
-        Assert.Equal(16, SDecimal.IntPow(new SDecimal(4, 0), 2));
-        Assert.Equal(1d/16, SDecimal.IntPow(new SDecimal(4, 0), -2));
+        Assert.Equal(16, SDecimal.IntPow(4, 2));
+        Assert.Equal(1d/16, SDecimal.IntPow(4, -2));
         Assert.Equal(0, SDecimal.IntPow(SDecimal.PositiveInfinity, -1));
         Assert.Equal(1, SDecimal.IntPow(SDecimal.NegativeInfinity, 0));
     }
@@ -177,8 +175,8 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_SqrtMethod()
     {
-        Assert.Equal(4, SDecimal.Sqrt(new SDecimal(16, 0)));
-        Assert.Equal(10, SDecimal.Sqrt(new SDecimal(100, 0)));
+        Assert.Equal(4, SDecimal.Sqrt(16));
+        Assert.Equal(10, SDecimal.Sqrt(100));
         Assert.Equal(new SDecimal(500), SDecimal.Sqrt(new SDecimal(1000)));
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Sqrt(SDecimal.PositiveInfinity));
         Assert.Throws<ArithmeticException>(() => SDecimal.Sqrt(SDecimal.NegativeInfinity));
@@ -187,90 +185,94 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_Atan2Method()
     {
-        Assert.Equal(Math.PI / 4, SDecimal.Atan2(new SDecimal(0), new SDecimal(0)));
-        Assert.Equal(-Math.PI / 4, SDecimal.Atan2(-new SDecimal(0), new SDecimal(0)));
-        Assert.Equal(3 * Math.PI / 4, SDecimal.Atan2(new SDecimal(0), -new SDecimal(0)));
-        Assert.Equal(-3 * Math.PI / 4, SDecimal.Atan2(-new SDecimal(0), -new SDecimal(0)));
-        Assert.Equal(Math.PI / 2, SDecimal.Atan2(new SDecimal(0), new SDecimal()));
-        Assert.Equal(-Math.PI / 2, SDecimal.Atan2(-new SDecimal(0), new SDecimal()));
-        Assert.Throws<ArithmeticException>(() => SDecimal.Atan2(new SDecimal(), new SDecimal()));
+        Assert.Equal(Math.PI / 4, SDecimal.Atan2(1, 1));
+        Assert.Equal(-Math.PI / 4, SDecimal.Atan2(-1, 1));
+        Assert.Equal(3 * Math.PI / 4, SDecimal.Atan2(1, -1));
+        Assert.Equal(-3 * Math.PI / 4, SDecimal.Atan2(-1, -1));
+        Assert.Equal(Math.PI / 2, SDecimal.Atan2(1, 0));
+        Assert.Equal(-Math.PI / 2, SDecimal.Atan2(-1, 0));
+        Assert.Throws<DivideByZeroException>(() => SDecimal.Atan2(0, 0));
     }
 
     [Fact]
     public void SDecimal_CosMethod()
     {
-        Assert.Equal(1, SDecimal.Cos(new SDecimal()));
-        Assert.Equal(0, SDecimal.Cos(new SDecimal(Math.PI / 2, 0)), Assert.Epsilon);
-        Assert.Equal(-1, SDecimal.Cos(new SDecimal(Math.PI, 0)), Assert.Epsilon);
-        Assert.Equal(0, SDecimal.Cos(new SDecimal(3 * Math.PI / 2, 0)), Assert.Epsilon);
+        Assert.Equal(1, SDecimal.Cos(0));
+        Assert.Equal(0, SDecimal.Cos(Math.PI / 2), Assert.Epsilon);
+        Assert.Equal(-1, SDecimal.Cos(Math.PI), Assert.Epsilon);
+        Assert.Equal(0, SDecimal.Cos(3 * Math.PI / 2), Assert.Epsilon);
+        Assert.Equal(0, SDecimal.Cos(-Math.PI / 2), Assert.Epsilon);
         Assert.Equal(1, SDecimal.Cos(new SDecimal(Math.Tau, 10)), Assert.Epsilon);
     }
 
     [Fact]
     public void SDecimal_SinMethod()
     {
-        Assert.Equal(0, SDecimal.Sin(new SDecimal()));
-        Assert.Equal(1, SDecimal.Sin(new SDecimal(Math.PI / 2, 0)), Assert.Epsilon);
-        Assert.Equal(0, SDecimal.Sin(new SDecimal(Math.PI, 0)), Assert.Epsilon);
-        Assert.Equal(-1, SDecimal.Sin(new SDecimal(3 * Math.PI / 2, 0)), Assert.Epsilon);
+        Assert.Equal(0, SDecimal.Sin(0));
+        Assert.Equal(1, SDecimal.Sin(Math.PI / 2), Assert.Epsilon);
+        Assert.Equal(0, SDecimal.Sin(Math.PI), Assert.Epsilon);
+        Assert.Equal(-1, SDecimal.Sin(3 * Math.PI / 2), Assert.Epsilon);
+        Assert.Equal(-1, SDecimal.Sin(-Math.PI / 2), Assert.Epsilon);
         Assert.Equal(0, SDecimal.Sin(new SDecimal(Math.Tau, 10)), Assert.Epsilon);
     }
 
     [Fact]
     public void SDecimal_TanMethod()
     {
-        Assert.Equal(0, SDecimal.Tan(new SDecimal()));
-        Assert.Equal(Math.Sqrt(3), SDecimal.Tan(new SDecimal(Math.PI / 3, 0)), Assert.Epsilon);
+        Assert.Equal(0, SDecimal.Tan(0));
+        Assert.Equal(Math.Sqrt(3), SDecimal.Tan(Math.PI / 3), Assert.Epsilon);
+        Assert.Equal(-Math.Sqrt(3), SDecimal.Tan(-Math.PI / 3), Assert.Epsilon);
         Assert.Equal(0, SDecimal.Tan(new SDecimal(Math.PI, 10)), Assert.Epsilon);
     }
 
     [Fact]
     public void SDecimal_AbsMethod()
     {
-        Assert.Equal(1, SDecimal.Abs(new SDecimal(1, 0)));
-        Assert.Equal(1, SDecimal.Abs(new SDecimal(-1, 0)));
+        Assert.Equal(1, SDecimal.Abs(1));
+        Assert.Equal(1, SDecimal.Abs(-1));
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Abs(SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_MinMethod()
     {
-        Assert.Equal(-1, SDecimal.Min(new SDecimal(1, 0), new SDecimal(-1, 0)));
-        Assert.Equal(1, SDecimal.Min(new SDecimal(1, 0), SDecimal.PositiveInfinity));
-        Assert.Equal(SDecimal.NegativeInfinity, SDecimal.Min(new SDecimal(1, 0), SDecimal.NegativeInfinity));
+        Assert.Equal(-1, SDecimal.Min(1, -1));
+        Assert.Equal(1, SDecimal.Min(1, SDecimal.PositiveInfinity));
+        Assert.Equal(SDecimal.NegativeInfinity, SDecimal.Min(1, SDecimal.NegativeInfinity));
         Assert.Equal(SDecimal.NegativeInfinity, SDecimal.Min(SDecimal.PositiveInfinity, SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_MaxMethod()
     {
-        Assert.Equal(1, SDecimal.Max(new SDecimal(1, 0), new SDecimal(-1, 0)));
-        Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Max(new SDecimal(1, 0), SDecimal.PositiveInfinity));
-        Assert.Equal(1, SDecimal.Max(new SDecimal(1, 0), SDecimal.NegativeInfinity));
+        Assert.Equal(1, SDecimal.Max(1, -1));
+        Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Max(1, SDecimal.PositiveInfinity));
+        Assert.Equal(1, SDecimal.Max(1, SDecimal.NegativeInfinity));
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Max(SDecimal.PositiveInfinity, SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_RoundMethod()
     {
-        Assert.Equal(0, SDecimal.Round(new SDecimal()));
-        Assert.Equal(0, SDecimal.Round(new SDecimal(1, -1)));
-        Assert.Equal(0, SDecimal.Round(new SDecimal(-1, -1)));
-        Assert.Equal(1, SDecimal.Round(new SDecimal(1, 0)));
+        Assert.Equal(0, SDecimal.Round(0));
+        Assert.Equal(0, SDecimal.Round(0.1));
+        Assert.Equal(0, SDecimal.Round(-0.1));
+        Assert.Equal(1, SDecimal.Round(1));
         
-        Assert.Equal(0, SDecimal.Round(new SDecimal(5, -1), MidpointRounding.ToZero));
-        Assert.Equal(0, SDecimal.Round(new SDecimal(-5, -1), MidpointRounding.ToZero));
+        Assert.Equal(0, SDecimal.Round(0.5, MidpointRounding.ToZero));
+        Assert.Equal(0, SDecimal.Round(-0.5, MidpointRounding.ToZero));
         
-        Assert.Equal(1, SDecimal.Round(new SDecimal(5, -1), MidpointRounding.AwayFromZero));
-        Assert.Equal(-1, SDecimal.Round(new SDecimal(-5, -1), MidpointRounding.AwayFromZero));
+        Assert.Equal(1, SDecimal.Round(0.5, MidpointRounding.AwayFromZero));
+        Assert.Equal(-1, SDecimal.Round(-0.5, MidpointRounding.AwayFromZero));
         
-        Assert.Equal(0, SDecimal.Round(new SDecimal(5, -1), MidpointRounding.ToNegativeInfinity));
-        Assert.Equal(-1, SDecimal.Round(new SDecimal(-5, -1), MidpointRounding.ToNegativeInfinity));
+        Assert.Equal(0, SDecimal.Round(0.5, MidpointRounding.ToNegativeInfinity));
+        Assert.Equal(-1, SDecimal.Round(-0.5, MidpointRounding.ToNegativeInfinity));
         
-        Assert.Equal(1, SDecimal.Round(new SDecimal(5, -1), MidpointRounding.ToPositiveInfinity));
-        Assert.Equal(0, SDecimal.Round(new SDecimal(-5, -1), MidpointRounding.ToPositiveInfinity));
+        Assert.Equal(1, SDecimal.Round(0.5, MidpointRounding.ToPositiveInfinity));
+        Assert.Equal(0, SDecimal.Round(-0.5, MidpointRounding.ToPositiveInfinity));
         
-        Assert.Equal(2, SDecimal.Round(new SDecimal(2.5, 0)));
+        Assert.Equal(2, SDecimal.Round(2.5));
+        Assert.Equal(2, SDecimal.Round(1.5));
         
         Assert.Throws<ArithmeticException>(() => SDecimal.Round(SDecimal.PositiveInfinity));
     }
@@ -278,10 +280,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_FloorMethod()
     {
-        Assert.Equal(0, SDecimal.Floor(new SDecimal(0.9, 0)));
-        Assert.Equal(1, SDecimal.Floor(new SDecimal(1.1, 0)));
-        Assert.Equal(-1, SDecimal.Floor(new SDecimal(-0.1, 0)));
-        Assert.Equal(10000, SDecimal.Floor(new SDecimal(10000.9, 0)));
+        Assert.Equal(0, SDecimal.Floor(0.9));
+        Assert.Equal(1, SDecimal.Floor(1.1));
+        Assert.Equal(-1, SDecimal.Floor(-0.1));
+        Assert.Equal(10000, SDecimal.Floor(10000.9));
         
         Assert.Throws<ArithmeticException>(() => SDecimal.Floor(SDecimal.PositiveInfinity));
     }
@@ -289,10 +291,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_CeilingMethod()
     {
-        Assert.Equal(1, SDecimal.Ceiling(new SDecimal(0.9, 0)));
-        Assert.Equal(2, SDecimal.Ceiling(new SDecimal(1.1, 0)));
-        Assert.Equal(0, SDecimal.Ceiling(new SDecimal(-0.9, 0)));
-        Assert.Equal(10001, SDecimal.Ceiling(new SDecimal(10000.1, 0)));
+        Assert.Equal(1, SDecimal.Ceiling(0.9));
+        Assert.Equal(2, SDecimal.Ceiling(1.1));
+        Assert.Equal(0, SDecimal.Ceiling(-0.9));
+        Assert.Equal(10001, SDecimal.Ceiling(10000.1));
         
         Assert.Throws<ArithmeticException>(() => SDecimal.Ceiling(SDecimal.PositiveInfinity));
     }
@@ -300,26 +302,26 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_MinMagnitudeNumberMethod()
     {
-        Assert.Equal(-1, SDecimal.MinMagnitudeNumber(new SDecimal(1, 0), new SDecimal(-1, 0)));
-        Assert.Equal(1, SDecimal.MinMagnitudeNumber(new SDecimal(1, 0), SDecimal.NegativeInfinity));
+        Assert.Equal(-1, SDecimal.MinMagnitudeNumber(1, -1));
+        Assert.Equal(1, SDecimal.MinMagnitudeNumber(1, SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_MaxMagnitudeNumberMethod()
     {
-        Assert.Equal(1, SDecimal.MaxMagnitudeNumber(new SDecimal(1, 0), new SDecimal(-1, 0)));
-        Assert.Equal(1, SDecimal.MaxMagnitudeNumber(new SDecimal(1, 0), SDecimal.PositiveInfinity));
+        Assert.Equal(1, SDecimal.MaxMagnitudeNumber(1, -1));
+        Assert.Equal(1, SDecimal.MaxMagnitudeNumber(1, SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_ClampMethod()
     {
-        Assert.Equal(-1, SDecimal.Clamp(new SDecimal(-5, 0), new SDecimal(-1, 0), new SDecimal(1, 0)));
-        Assert.Equal(-1, SDecimal.Clamp(SDecimal.NegativeInfinity, new SDecimal(-1, 0), new SDecimal(1, 0)));
+        Assert.Equal(-1, SDecimal.Clamp(-5, -1, 1));
+        Assert.Equal(-1, SDecimal.Clamp(SDecimal.NegativeInfinity, -1, 1));
         Assert.Equal(SDecimal.PositiveInfinity,
-            SDecimal.Clamp(SDecimal.PositiveInfinity, new SDecimal(-1, 0), SDecimal.PositiveInfinity)
+            SDecimal.Clamp(SDecimal.PositiveInfinity, -1, SDecimal.PositiveInfinity)
         );
-        Assert.Throws<ArgumentException>(() => SDecimal.Clamp(new SDecimal(), new SDecimal(1, 0), new SDecimal(-1, 0)));
+        Assert.Throws<ArgumentException>(() => SDecimal.Clamp(0, 1, -1));
     }
 
     [Fact]
@@ -344,43 +346,45 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_GreaterThanOperator()
     {
-        Assert.True(new SDecimal(1, 0) > new SDecimal(-1, 0));
-        Assert.True(new SDecimal(1, 0) > SDecimal.NegativeInfinity);
+        Assert.True((SDecimal)1 > -1);
+        Assert.True(1 > SDecimal.NegativeInfinity);
         Assert.True(SDecimal.PositiveInfinity > SDecimal.NegativeInfinity);
         Assert.True(SDecimal.PositiveInfinity > new SDecimal(1000));
-        Assert.True(new SDecimal(1000) > new SDecimal());
+        Assert.True(new SDecimal(1000) > 0);
+        Assert.False((SDecimal)1 > 1);
     }
 
     [Fact]
     public void SDecimal_GreaterThanOrEqualToOperator()
     {
-        Assert.True(new SDecimal(1, 0) >= new SDecimal(-1, 0));
-        Assert.True(new SDecimal(1, 0) >= SDecimal.NegativeInfinity);
+        Assert.True((SDecimal)1 >= -1);
+        Assert.True(1 >= SDecimal.NegativeInfinity);
         Assert.True(SDecimal.PositiveInfinity >= SDecimal.NegativeInfinity);
         Assert.True(SDecimal.PositiveInfinity >= new SDecimal(1000));
-        Assert.True(new SDecimal(1000) >= new SDecimal());
-        Assert.True(1 >= new SDecimal(1, 0));
+        Assert.True(new SDecimal(1000) >= 0);
+        Assert.True((SDecimal)1 >= 1);
     }
 
     [Fact]
     public void SDecimal_LessThanOperator()
     {
-        Assert.False(new SDecimal(1, 0) < new SDecimal(-1, 0));
-        Assert.False(new SDecimal(1, 0) < SDecimal.NegativeInfinity);
+        Assert.False((SDecimal)1 < -1);
+        Assert.False(1 < SDecimal.NegativeInfinity);
         Assert.False(SDecimal.PositiveInfinity < SDecimal.NegativeInfinity);
         Assert.False(SDecimal.PositiveInfinity < new SDecimal(1000));
-        Assert.False(new SDecimal(1000) < new SDecimal());
+        Assert.False(new SDecimal(1000) < 0);
+        Assert.False((SDecimal)1 < 1);
     }
 
     [Fact]
     public void SDecimal_LessThanOrEqualToOperator()
     {
-        Assert.False(new SDecimal(1, 0) <= new SDecimal(-1, 0));
-        Assert.False(new SDecimal(1, 0) <= SDecimal.NegativeInfinity);
+        Assert.False((SDecimal) 1 <= -1);
+        Assert.False(1 <= SDecimal.NegativeInfinity);
         Assert.False(SDecimal.PositiveInfinity <= SDecimal.NegativeInfinity);
         Assert.False(SDecimal.PositiveInfinity <= new SDecimal(1000));
-        Assert.False(new SDecimal(1000) <= new SDecimal());
-        Assert.True(1 <= new SDecimal(1, 0));
+        Assert.False(new SDecimal(1000) <= 0);
+        Assert.True((SDecimal)1 <= 1);
     }
 
     [Fact]
@@ -440,7 +444,7 @@ public class SDecimal_Tests
     {
         Assert.Equal(0u, (uint)new SDecimal(2.5, -1));
         Assert.Equal(1u, (uint)new SDecimal(1.5, 0));
-        Assert.Equal(0u, (uint)new SDecimal(-100, 0));
+        Assert.Equal(0u, (uint)new SDecimal(-1, 0));
         Assert.Throws<OverflowException>(() => (uint)new SDecimal(1000));
     }
 
@@ -455,31 +459,31 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_IsIntegerMethod()
     {
-        Assert.True(SDecimal.IsInteger(new SDecimal(1, 0)));
-        Assert.True(SDecimal.IsInteger(new SDecimal(-1, 0)));
+        Assert.True(SDecimal.IsInteger(1));
+        Assert.True(SDecimal.IsInteger(-1));
         Assert.True(SDecimal.IsInteger(new SDecimal(1000)));
         
-        Assert.False(SDecimal.IsInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsInteger(0.1));
         Assert.False(SDecimal.IsInteger(SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_IsEvenIntegerMethod()
     {
-        Assert.False(SDecimal.IsEvenInteger(new SDecimal(1, 0)));
-        Assert.True(SDecimal.IsEvenInteger(new SDecimal(2, 0)));
+        Assert.False(SDecimal.IsEvenInteger(1));
+        Assert.True(SDecimal.IsEvenInteger(2));
 
-        Assert.False(SDecimal.IsEvenInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsEvenInteger(0.1));
         Assert.False(SDecimal.IsEvenInteger(SDecimal.PositiveInfinity));
     }
 
     [Fact]
     public void SDecimal_IsOddIntegerMethod()
     {
-        Assert.True(SDecimal.IsOddInteger(new SDecimal(1, 0)));
-        Assert.False(SDecimal.IsOddInteger(new SDecimal(2, 0)));
+        Assert.True(SDecimal.IsOddInteger(1));
+        Assert.False(SDecimal.IsOddInteger(2));
 
-        Assert.False(SDecimal.IsOddInteger(new SDecimal(1, -1)));
+        Assert.False(SDecimal.IsOddInteger(0.1));
         Assert.False(SDecimal.IsOddInteger(SDecimal.PositiveInfinity));
     }
 
@@ -488,7 +492,7 @@ public class SDecimal_Tests
     {
         Assert.True(SDecimal.IsInfinity(SDecimal.PositiveInfinity));
         Assert.True(SDecimal.IsInfinity(SDecimal.NegativeInfinity));
-        Assert.False(SDecimal.IsInfinity(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsInfinity(1));
         Assert.False(SDecimal.IsInfinity(new SDecimal(1000)));
     }
 
@@ -497,7 +501,7 @@ public class SDecimal_Tests
     {
         Assert.True(SDecimal.IsPositiveInfinity(SDecimal.PositiveInfinity));
         Assert.False(SDecimal.IsPositiveInfinity(SDecimal.NegativeInfinity));
-        Assert.False(SDecimal.IsPositiveInfinity(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsPositiveInfinity(1));
         Assert.False(SDecimal.IsPositiveInfinity(new SDecimal(1000)));
     }
 
@@ -506,7 +510,7 @@ public class SDecimal_Tests
     {
         Assert.False(SDecimal.IsNegativeInfinity(SDecimal.PositiveInfinity));
         Assert.True(SDecimal.IsNegativeInfinity(SDecimal.NegativeInfinity));
-        Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(-1, 0)));
+        Assert.False(SDecimal.IsNegativeInfinity(-1));
         Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(-1, 1000)));
     }
 

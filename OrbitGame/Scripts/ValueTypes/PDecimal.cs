@@ -282,13 +282,16 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// <param name="divisor">The divisor.</param>
     /// <param name="divisionDecimals">Number of extra decimal places to compute.</param>
     /// <returns>The dividend divided by the divisor</returns>
+    /// <exception cref="DivideByZeroException">
+    /// Attempted to divide zero by zero.
+    /// </exception>
     /// <exception cref="ArithmeticException">
-    /// Infinite SDecimal was divided by another SDecimal or zero was divided by zero
+    /// Infinite PDecimal was divided by another PDecimal.
     /// </exception>
     private static PDecimal Divide(PDecimal dividend, PDecimal divisor, int divisionDecimals)
     {
         if (divisor._mantissa == 0 && dividend._mantissa == 0) 
-            throw new ArithmeticException("Cannot divide zero by zero");
+            throw new DivideByZeroException("Cannot divide zero by zero");
         if (divisor._mantissa == 0) return new(dividend.Positive ? 1 : -1, 0, true);
         if (dividend._mantissa == 0) return dividend;
         if (dividend._infinite && divisor._infinite) 
@@ -316,7 +319,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (divisor == 0) throw new ArithmeticException("Cannot modulate a value by zero");
         if (dividend._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
         if (divisor._infinite) throw new ArithmeticException("Cannot modulate by an infinite PDecimal");
-        PDecimal quotient = Divide(dividend, divisor, dividend.Exponent);
+        PDecimal quotient = Divide(dividend, divisor, (int)BigInteger.Log10(dividend.Mantissa) + dividend.Exponent + 1);
         // truncate the quotient
         return dividend - divisor * (quotient > 0 ? Floor(quotient): Ceiling(quotient));
     }
@@ -326,7 +329,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (mod == 0) throw new ArithmeticException("Cannot modulate a value by zero");
         if (value._infinite) throw new ArithmeticException("Cannot modulate an infinite PDecimal");
         if (mod._infinite) throw new ArithmeticException("Cannot modulate by an infinite PDecimal");
-        PDecimal quotient = Divide(value, mod, value.Exponent);
+        PDecimal quotient = Divide(value, mod, (int)BigInteger.Log10(value.Mantissa) + value.Exponent + 1);
         return value - mod * Floor(quotient);
     }
     
@@ -367,27 +370,27 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     
     public static double Atan2(PDecimal y, PDecimal x)
     {
-        return Math.Atan2((double)y, (double)x);
+        double quotient = ConvertToDoubleSaturating(y / x);
+        if (x > 0) return Math.Atan(quotient);
+        if (x < 0 && y >= 0) return Math.Atan(quotient) + Math.PI;
+        if (x < 0 && y < 0) return Math.Atan(quotient) - Math.PI;
+        if (x == 0 & y > 0) return Math.PI / 2;
+        if (x == 0 & y < 0) return -Math.PI / 2;
+        throw new DivideByZeroException("Cannot calculate atan2 of 0 / 0");
     }
-
+    
     public static double Cos(PDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-
+        => Math.Cos((double)(value % Math.Tau));
+    
     public static double Sin(PDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-
+        => Math.Sin((double)(value % Math.Tau));
+    
     public static double Tan(PDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => Math.Tan((double)(value % Math.PI));
     
     public static PDecimal Abs(PDecimal value)
         => new(BigInteger.Abs(value._mantissa), value._exponent, value._infinite);
-
+    
     public static PDecimal Min(PDecimal value, params PDecimal[] values)
     {
         PDecimal result = value;
@@ -406,7 +409,8 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     
     public static PDecimal Round(PDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        if (value._infinite || IsInteger(value)) return value;
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite PDecimal");
+        if (IsInteger(value)) return value;
         PDecimal floor = Floor(value);
         PDecimal ceiling = Ceiling(value);
         PDecimal floorDist = Abs(floor - value);
@@ -426,15 +430,18 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 
     public static PDecimal Floor(PDecimal value)
     {
-        if (value._infinite || IsInteger(value)) return value;
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite PDecimal");
+        if (IsInteger(value)) return value;
         if (value.Negative) return -Ceiling(-value);
         value.IncreaseExponent(0);
+        value.Normalize();
         return value;
     }
 
     public static PDecimal Ceiling(PDecimal value)
     {
-        if (value._infinite || IsInteger(value)) return value;
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite PDecimal");
+        if (IsInteger(value)) return value;
         if (value.Negative) return -Floor(-value);
         return Floor(value) + 1;
     }
@@ -457,7 +464,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         PDecimal min, 
         PDecimal max)
     {
-        if (max < min) throw new ArithmeticException("ScientificDecimal clamp maximum cannot be less than the minimum");
+        if (max < min) throw new ArgumentException("ScientificDecimal clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
     }
     

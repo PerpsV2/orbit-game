@@ -225,12 +225,15 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     /// <param name="dividend">The dividend.</param>
     /// <param name="divisor">The divisor.</param>
     /// <returns>The dividend divided by the divisor</returns>
+    /// <exception cref="DivideByZeroException">
+    /// Attempted to divide zero by zero
+    /// </exception>
     /// <exception cref="ArithmeticException">
-    /// Infinite SDecimal was divided by another SDecimal or zero was divided by zero
+    /// Infinite SDecimal was divided by another SDecimal
     /// </exception>
     private static SDecimal Divide(SDecimal dividend, SDecimal divisor)
     {
-        if (divisor == 0 && dividend == 0) throw new ArithmeticException("Cannot divide zero by zero");
+        if (divisor == 0 && dividend == 0) throw new DivideByZeroException("Cannot divide zero by zero");
         if (divisor == 0) return PositiveInfinity * (dividend.Positive ? 1 : -1);
         if (dividend._infinite && divisor._infinite) 
             throw new ArithmeticException("Cannot divide an infinite SDecimal by another infinite SDecimal");
@@ -303,14 +306,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
         return new SDecimal(Utils.DecimalSqrt(value.Mantissa), value.Exponent / 2);
     }
-
-    /// <summary>
-    /// Returns the atan2 of two numbers.
-    /// </summary>
-    /// <param name="y">Y-value.</param>
-    /// <param name="x">X-value.</param>
-    /// <returns>Quadrant corrected value of atan(y / x).</returns>
-    /// <exception cref="ArithmeticException">Attempted to calculate the atan2 of 0, 0</exception>
+    
     public static double Atan2(SDecimal y, SDecimal x)
     {
         double quotient = ConvertToDoubleSaturating(y / x);
@@ -319,7 +315,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         if (x < 0 && y < 0) return Math.Atan(quotient) - Math.PI;
         if (x == 0 & y > 0) return Math.PI / 2;
         if (x == 0 & y < 0) return -Math.PI / 2;
-        throw new ArithmeticException("Cannot calculate atan2 of 0, 0");
+        throw new DivideByZeroException("Cannot calculate atan2 of 0 / 0");
     }
 
     public static double Cos(SDecimal value)
@@ -355,7 +351,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     public static SDecimal Round(SDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
         if (value.Mantissa == 0) return value;
         if (value.Exponent < -1) return 0;
         if (value.Exponent == -1) return new(double.Round(value.Mantissa * 0.1, mode), 0);
@@ -364,7 +360,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     public static SDecimal Floor(SDecimal value)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
         if (value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff < 0) return value - 1 - roundDiff;
@@ -373,7 +369,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
 
     public static SDecimal Ceiling(SDecimal value)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite ScientificDecimal");
+        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
         if (value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff > 0) return value + 1 - roundDiff;

@@ -100,6 +100,7 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// <param name="y">Y-value for the atan2 function.</param>
     /// <param name="x">X-value for the atan2 function.</param>
     /// <returns>Arctangent angle in radians.</returns>
+    /// /// <exception cref="DivideByZeroException">Attempted to calculate the atan2 of 0 / 0</exception>
     public static abstract double Atan2(TSelf y, TSelf x);
 
     /// <summary>
@@ -145,6 +146,9 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// <param name="value">Value to round.</param>
     /// <param name="mode">Rounding mode for midpoint decimals.</param>
     /// <returns>Value rounded to the nearest integer.</returns>
+    /// <exception cref="ArithmeticException">
+    /// Attempted to round an infinite arbitrary place decimal
+    /// </exception>
     public static abstract TSelf Round(TSelf value, MidpointRounding mode);
 
     /// <summary>
@@ -152,6 +156,9 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// </summary>
     /// <param name="value">Value to floor.</param>
     /// <returns>Value rounded down to an integer.</returns>
+    /// /// <exception cref="ArithmeticException">
+    /// Attempted to floor an infinite arbitrary place decimal
+    /// </exception>
     public static abstract TSelf Floor(TSelf value);
     
     /// <summary>
@@ -159,5 +166,8 @@ public interface IArbitraryPlaceDecimal<TSelf> : INumber<TSelf>
     /// </summary>
     /// <param name="value">Value to ceiling.</param>
     /// <returns>Value rounded up to an integer.</returns>
+    /// /// <exception cref="ArithmeticException">
+    /// Attempted to ceil an infinite arbitrary place decimal
+    /// </exception>
     public static abstract TSelf Ceiling(TSelf value);
 }
