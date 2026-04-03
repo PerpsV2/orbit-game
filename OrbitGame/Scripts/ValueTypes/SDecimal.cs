@@ -546,7 +546,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     static bool INumberBase<SDecimal>.IsSubnormal(SDecimal value)
         => double.IsSubnormal(value.Mantissa);
     
-    private string ToStringPrecision(string format)
+    private string ToStringGeneral(string format)
     {
         if (IsPositiveInfinity(this)) return "PositiveInfinity";
         if (IsNegativeInfinity(this)) return "NegativeInfinity";
@@ -565,7 +565,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
 
-    private string ToStringStandardDecimal(string format)
+    private string ToStringNumber(string format)
     {
         if (IsPositiveInfinity(this)) return "PositiveInfinity";
         if (IsNegativeInfinity(this)) return "NegativeInfinity";
@@ -613,18 +613,15 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     }
 
     private string ToStringGeneral()
-        => ToStringPrecision("P" + DefaultPrintPrecision);
+        => ToStringGeneral("G" + DefaultPrintPrecision);
     
-    private string ToStringStandardDecimal()
-        => ToStringStandardDecimal("S" + DefaultPrintPrecision);
+    private string ToStringNumber()
+        => ToStringNumber("N" + DefaultPrintPrecision);
     
     public override string ToString()
         => ToStringGeneral();
 
-    public string ToString(string? format)
-        => ToString(format, CultureInfo.InvariantCulture);
-
-    public string ToString(string? format, IFormatProvider? formatProvider)
+    public string ToString(string? format, IFormatProvider? formatProvider = null)
     {
         if (string.IsNullOrEmpty(format))
             format = "G";
@@ -632,90 +629,85 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         switch (format.ToUpperInvariant())
         {
             case "G": return ToStringGeneral(); // general format
-            case "S": return ToStringStandardDecimal(); // standard decimal format
-            case var f when new Regex(@"S[1-9]\d*").IsMatch(f): 
-                return ToStringStandardDecimal(f); // standard decimal format with precision
             case var f when new Regex(@"G[1-9]\d*").IsMatch(f): 
-                return ToStringPrecision(f); // custom precision format
+                return ToStringGeneral(f); // custom precision format
+            case "N": return ToStringNumber(); // standard decimal format
+            case var f when new Regex(@"N[1-9]\d*").IsMatch(f): 
+                return ToStringNumber(f); // standard decimal format with precision
             default: throw new FormatException($"The format '{format}' is not supported.");
         }
     }
     
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, 
+        IFormatProvider? provider = null)
     {
         throw new NotImplementedException();
     }
     
-    public static SDecimal Parse(string s, IFormatProvider? provider)
+    public static SDecimal Parse(string s, IFormatProvider? provider = null)
     {
         throw new NotImplementedException();
     }
     
-    public static SDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
+    public static SDecimal Parse(string s, NumberStyles style, IFormatProvider? provider = null)
+        => Parse(s, provider);
+
+    public static SDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider = null)
+        => Parse(s.ToString(), provider);
     
-    public static SDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static SDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
+    public static SDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider = null)
+        => Parse(s.ToString(), provider);
 
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
+    
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
+        out SDecimal result)
+        => TryParse(s, provider, out result);
 
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SDecimal result)
-    {
-        throw new NotImplementedException();
-    }
+        => TryParse(s.ToString(), provider, out result);
     
     public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
         out SDecimal result)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
-        out SDecimal result)
-    {
-        throw new NotImplementedException();
-    }
+        => TryParse(s.ToString(), provider, out result);
 
     static bool INumberBase<SDecimal>.TryConvertFromChecked<TOther>(TOther value, out SDecimal result)
     {
-        throw new NotImplementedException();
+        result = new();
+        return false;
     }
 
     static bool INumberBase<SDecimal>.TryConvertFromSaturating<TOther>(TOther value, out SDecimal result) 
     {
-        throw new NotImplementedException();
+        result = new();
+        return false;
     }
 
-    static bool INumberBase<SDecimal>.TryConvertFromTruncating<TOther>(TOther value, out SDecimal result) 
+    static bool INumberBase<SDecimal>.TryConvertFromTruncating<TOther>(TOther value, out SDecimal result)
     {
-        throw new NotImplementedException();
+        result = new();
+        return false;
     }
 
-    static bool INumberBase<SDecimal>.TryConvertToChecked<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) 
+    static bool INumberBase<SDecimal>.TryConvertToChecked<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result)
     {
-        throw new NotImplementedException();
+        result = default;
+        return false;
     }
 
     static bool INumberBase<SDecimal>.TryConvertToSaturating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) 
     {
-        throw new NotImplementedException();
+        result = default;
+        return false;
     }
 
     static bool INumberBase<SDecimal>.TryConvertToTruncating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) 
     {
-        throw new NotImplementedException();
+        result = default;
+        return false;
     }
     
     public int CompareTo(object? obj)

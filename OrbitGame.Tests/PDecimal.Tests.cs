@@ -431,7 +431,7 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_FromFloatCast()
     {
-        Assert.Equal(new PDecimal(1, -1), 0.1f);
+        Assert.Equal(new PDecimal(1, 0), 1);
         Assert.Equal(PDecimal.PositiveInfinity, float.PositiveInfinity);
         Assert.Equal(PDecimal.NegativeInfinity, float.NegativeInfinity);
         Assert.Throws<ArgumentException>(() => (PDecimal)float.NaN);
@@ -440,7 +440,7 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_FromDoubleCast()
     {
-        Assert.Equal(new PDecimal(1, -1), 1);
+        Assert.Equal(new PDecimal(1, -1), 0.1);
         Assert.Equal(PDecimal.PositiveInfinity, double.PositiveInfinity);
         Assert.Equal(PDecimal.NegativeInfinity, double.NegativeInfinity);
         Assert.Throws<ArgumentException>(() => (PDecimal)double.NaN);
@@ -451,6 +451,8 @@ public class PDecimal_Tests
     {
         Assert.Equal(0, (int)new PDecimal(1, -1));
         Assert.Equal(0, (int)new PDecimal(9, -1));
+        Assert.Equal(1, (int)new PDecimal(1, 0));
+        Assert.Equal(-1, (int)new PDecimal(-1, 0));
         Assert.Throws<OverflowException>(() => (int)new PDecimal(1000));
     }
 
@@ -459,6 +461,7 @@ public class PDecimal_Tests
     {
         Assert.Equal(0u, (uint)new PDecimal(1, -1));
         Assert.Equal(0u, (uint)new PDecimal(9, -1));
+        Assert.Equal(1u, (uint)new PDecimal(1, 0));
         Assert.Throws<OverflowException>(() => (uint)new PDecimal(-1, 0));
         Assert.Throws<OverflowException>(() => (uint)new PDecimal(1000));
     }
@@ -534,23 +537,65 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_IsPositiveInfinityMethod()
     {
-        Assert.True(PDecimal.IsInfinity(PDecimal.PositiveInfinity));
-        Assert.False(PDecimal.IsInfinity(PDecimal.NegativeInfinity));
-        Assert.False(PDecimal.IsInfinity(new PDecimal(1000)));
+        Assert.True(PDecimal.IsPositiveInfinity(PDecimal.PositiveInfinity));
+        Assert.False(PDecimal.IsPositiveInfinity(PDecimal.NegativeInfinity));
+        Assert.False(PDecimal.IsPositiveInfinity(new PDecimal(1000)));
     }
 
     [Fact]
     public void PDecimal_IsNegativeInfinityMethod()
     {
-        Assert.False(PDecimal.IsInfinity(PDecimal.PositiveInfinity));
-        Assert.True(PDecimal.IsInfinity(PDecimal.NegativeInfinity));
-        Assert.False(PDecimal.IsInfinity(new PDecimal(1000)));
+        Assert.False(PDecimal.IsNegativeInfinity(PDecimal.PositiveInfinity));
+        Assert.True(PDecimal.IsNegativeInfinity(PDecimal.NegativeInfinity));
+        Assert.False(PDecimal.IsNegativeInfinity(new PDecimal(1000)));
     }
 
     [Fact]
     public void PDecimal_ToStringMethod()
     {
+        PDecimal posInteger = new PDecimal(1, 0);
+        PDecimal posRational = new PDecimal(1, -1);
+        PDecimal posInfinity = PDecimal.PositiveInfinity;
+        PDecimal largePosNumber = new PDecimal(1000);
+        PDecimal smallPosNumber = new PDecimal(-10);
+        PDecimal precisePosNumber = new PDecimal(1.23456789, 2);
         
+        void PDecimal_ToStringGeneralMethod()
+        {
+            Assert.Equal("1.0000e+0", posInteger.ToString());
+            Assert.Equal("1.0000e-1", posRational.ToString());
+            Assert.Equal("-1.0000e-1", (-posRational).ToString());
+            Assert.Equal("PositiveInfinity", posInfinity.ToString());
+            Assert.Equal("NegativeInfinity", (-posInfinity).ToString());
+            Assert.Equal("1.0000e+1000", largePosNumber.ToString());
+            Assert.Equal("1.0000e-10", smallPosNumber.ToString());
+            Assert.Equal("1.2346e+2", precisePosNumber.ToString());
+            
+            Assert.Equal("1e+2", precisePosNumber.ToString("G1"));
+            Assert.Equal("1.2e+2", precisePosNumber.ToString("G2"));
+            Assert.Equal("1.23456789000000e+2", precisePosNumber.ToString("G15"));
+            Assert.Throws<FormatException>(() => precisePosNumber.ToString("G0"));
+        }
+
+        void PDecimal_ToStringNumberMethod()
+        {
+            Assert.Equal("1.0000", posInteger.ToString("N"));
+            Assert.Equal("0.10000", posRational.ToString("N"));
+            Assert.Equal("-0.10000", (-posRational).ToString("N"));
+            Assert.Equal("PositiveInfinity", posInfinity.ToString("N"));
+            Assert.Equal("NegativeInfinity", (-posInfinity).ToString("N"));
+            Assert.Equal("1" + new string('0', 1000), largePosNumber.ToString("N"));
+            Assert.Equal("0." + new string('0', 9) + "10000", smallPosNumber.ToString("N"));
+            Assert.Equal("123.46", precisePosNumber.ToString("N"));
+            
+            Assert.Equal("100", precisePosNumber.ToString("N1"));
+            Assert.Equal("120", precisePosNumber.ToString("N2"));
+            Assert.Equal("123.456789000000", precisePosNumber.ToString("N15"));
+            Assert.Throws<FormatException>(() => precisePosNumber.ToString("N0"));
+        }
+        
+        PDecimal_ToStringGeneralMethod();
+        PDecimal_ToStringNumberMethod();
     }
 
     [Fact]

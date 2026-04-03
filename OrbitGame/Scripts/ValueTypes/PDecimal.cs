@@ -13,6 +13,10 @@ namespace OrbitGame;
 public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 {
     /// <summary>
+    /// Number of default sig-figs when printing an SDecimal.
+    /// </summary>
+    private const int DefaultPrintPrecision = Options.ScientificPrintPrecision;
+    /// <summary>
     /// Minimum exponent for a PDecimal to avoid infinitely precise decimals from occuring due to division.
     /// </summary>
     private const int MinExponent = -50;
@@ -563,23 +567,23 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         => new(value, 0);
 
     public static implicit operator PDecimal(float value)
-        => FromDouble(value, 0);
+        => FromDouble(value);
 
     public static implicit operator PDecimal(double value)
-        => FromDouble(value, 0);
+        => FromDouble(value);
 
     // from PDecimal
     public static explicit operator int(PDecimal value)
     {
         PDecimal result = value.Positive ? Floor(value) : Ceiling(value);
-        result.DecreaseExponent(0);
+        if (value.Exponent > 0) result.DecreaseExponent(0);
         return (int)result.Mantissa;
     }
     
     public static explicit operator uint(PDecimal value)
     {
-        PDecimal result = Floor(value);
-        result.DecreaseExponent(0);
+        PDecimal result = value.Positive ? Floor(value) : Ceiling(value);
+        if (value.Exponent > 0) result.DecreaseExponent(0);
         return (uint)result.Mantissa;
     }
     
@@ -656,8 +660,82 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     public static bool IsSubnormal(PDecimal value)
         => false;
 
+    private string ToStringGeneral(string format)
+    {
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+        
+        // convert mantissa to exponent form and remove the negative
+        string mantissaString = (Negative ? -Mantissa : Mantissa).ToString("E" + (sigFigs - 1)).TrimStart('0');
+        // remove the exponent part
+        int eIndex = mantissaString.IndexOf('E');
+        if (eIndex != -1) mantissaString = mantissaString.Substring(0, eIndex);
+        // remove the decimal and add trailing zeroes
+        mantissaString = mantissaString.Replace(".", "").PadRight(sigFigs, '0');
+        // re-add the decimal
+        if (sigFigs != 1) mantissaString = mantissaString.Insert(1, ".");
+        // crop the mantissa string within the number of sigfigs
+        if (mantissaString.Length > sigFigs) mantissaString = mantissaString.Substring(0, sigFigs + 1);
+        // re-add the negative and re-add the exponent portion but corrected
+        int mantissaDigits = (int)Math.Floor(BigInteger.Log10(BigInteger.Abs(Mantissa)));
+        return (Negative ? "-" : "") + mantissaString + "e" + (Exponent + mantissaDigits).ToString("+0;-#");
+    }
+
+    private string ToStringNumber(string format)
+    {
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+        
+        // convert mantissa to exponent form and remove the negative
+        string result = (Negative ? -Mantissa : Mantissa).ToString("E" + (sigFigs - 1)).TrimStart('0');
+        // remove the exponent part
+        int eIndex = result.IndexOf('E');
+        if (eIndex != -1) result = result.Substring(0, eIndex);
+        result = result.Replace(".", "").PadRight(sigFigs, '0');
+        int mantissaDigits = (int)Math.Floor(BigInteger.Log10(BigInteger.Abs(Mantissa)));
+        if (mantissaDigits + Exponent >= 0)
+        {
+            result = mantissaDigits + Exponent >= result.Length - 1 ? 
+                result.PadRight(mantissaDigits + Exponent + 1, '0') : 
+                result.Insert(mantissaDigits + Exponent + 1, ".");
+        }
+        if (mantissaDigits + Exponent < 0)
+        {
+            result = result.PadLeft(-(mantissaDigits + Exponent) + sigFigs, '0').Insert(1, ".");
+        }
+
+        if (Negative) result = "-" + result;
+        return result;
+    }
+
+    private string ToStringGeneral()
+        => ToStringGeneral("G" + DefaultPrintPrecision);
+    
+    private string ToStringNumber()
+        => ToStringNumber("N" + DefaultPrintPrecision);
+
     public override string ToString()
-        => ToString("G");
+        => ToStringGeneral();
     
     public string ToString(string? format, IFormatProvider? formatProvider = null)
     {
@@ -665,14 +743,13 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
 
         switch (format)
         {
-            case "G":
-                return Mantissa + "e" + Exponent.ToString("+0;-0");
-            case "N":
-                if (_infinite && Positive) return "Positive Infinity";
-                if (_infinite && Negative) return "Negative Infinity";
-                return ((double)this).ToString("N10");
-            default:
-                throw new FormatException();
+            case "G": return ToStringGeneral(); // general format
+            case var f when new Regex(@"G[1-9]\d*").IsMatch(f): 
+                return ToStringGeneral(f); // custom precision format
+            case "N": return ToStringNumber(); // standard decimal format
+            case var f when new Regex(@"N[1-9]\d*").IsMatch(f): 
+                return ToStringNumber(f); // standard decimal format with precision
+            default: throw new FormatException($"The format '{format}' is not supported.");
         }
     }
     

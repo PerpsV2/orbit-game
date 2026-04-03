@@ -541,25 +541,25 @@ public class SDecimal_Tests
             Assert.Throws<FormatException>(() => precisePosNumber.ToString("G0"));
         }
         
-        void SDecimal_ToStringStandardMethod()
+        void SDecimal_ToStringNumberMethod()
         {
-            Assert.Equal("1.0000", posInteger.ToString("S"));
-            Assert.Equal("0.10000", posRational.ToString("S"));
-            Assert.Equal("-0.10000", (-posRational).ToString("S"));
-            Assert.Equal("PositiveInfinity", posInfinity.ToString("S"));
-            Assert.Equal("NegativeInfinity", (-posInfinity).ToString("S"));
-            Assert.Equal("1" + new string('0', 1000), largePosNumber.ToString("S"));
-            Assert.Equal("0." + new string('0', 999) + "10000", smallPosNumber.ToString("S"));
-            Assert.Equal("123.46", precisePosNumber.ToString("S"));
+            Assert.Equal("1.0000", posInteger.ToString("N"));
+            Assert.Equal("0.10000", posRational.ToString("N"));
+            Assert.Equal("-0.10000", (-posRational).ToString("N"));
+            Assert.Equal("PositiveInfinity", posInfinity.ToString("N"));
+            Assert.Equal("NegativeInfinity", (-posInfinity).ToString("N"));
+            Assert.Equal("1" + new string('0', 1000), largePosNumber.ToString("N"));
+            Assert.Equal("0." + new string('0', 999) + "10000", smallPosNumber.ToString("N"));
+            Assert.Equal("123.46", precisePosNumber.ToString("N"));
             
-            Assert.Equal("100", precisePosNumber.ToString("S1"));
-            Assert.Equal("120", precisePosNumber.ToString("S2"));
-            Assert.Equal("123.456789000000", precisePosNumber.ToString("S15"));
-            Assert.Throws<FormatException>(() => precisePosNumber.ToString("S0"));
+            Assert.Equal("100", precisePosNumber.ToString("N1"));
+            Assert.Equal("120", precisePosNumber.ToString("N2"));
+            Assert.Equal("123.456789000000", precisePosNumber.ToString("N15"));
+            Assert.Throws<FormatException>(() => precisePosNumber.ToString("N0"));
         }
         
         SDecimal_ToStringGeneralMethod();
-        SDecimal_ToStringStandardMethod();
+        SDecimal_ToStringNumberMethod();
     }
 
     [Fact]
