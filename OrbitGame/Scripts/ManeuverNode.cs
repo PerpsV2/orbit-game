@@ -5,17 +5,17 @@ namespace OrbitGame;
 
 public class ManeuverNode : IGameDrawable
 {
-    private readonly KeplerOrbitPoint _point;
+    public readonly KeplerOrbitPoint Point;
     private Vec2<SDecimal> _velocity;
 
     public static ManeuverNode? SelectedNode;
     private static SDecimal? _minMouseDistanceToNode = SDecimal.PositiveInfinity; 
     
-    public double TrueAnomaly => _point.TrueAnomaly;
+    public double TrueAnomaly => Point.TrueAnomaly;
 
     public ManeuverNode(KeplerOrbitPoint point, Vec2<SDecimal> velocity)
     {
-        _point = point;
+        Point = point;
         _velocity = velocity;
         
         MouseHandler.MouseClickDown += ManeuverNode_MouseClickDown;
@@ -32,7 +32,7 @@ public class ManeuverNode : IGameDrawable
     {
         if (this != SelectedNode) return;
         Camera camera = OrbitGame.Camera;
-        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(_point.GetWorldPosition());
+        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(Point.GetWorldPosition());
         Vector2 mouseDisplacement = e.Position - nodeScreenPosition;
         _velocity += new Vec2<SDecimal>(mouseDisplacement.X, mouseDisplacement.Y);
     }
@@ -41,7 +41,7 @@ public class ManeuverNode : IGameDrawable
     {
         Camera camera = OrbitGame.Camera;
         Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
-        SDecimal mouseDistanceSquared = (_point.GetWorldPosition() - mouseWorldPosition).MagnitudeSquared();
+        SDecimal mouseDistanceSquared = (Point.GetWorldPosition() - mouseWorldPosition).MagnitudeSquared();
 
         if (mouseDistanceSquared < _minMouseDistanceToNode)
         {
@@ -53,8 +53,8 @@ public class ManeuverNode : IGameDrawable
 
     public KeplerOrbit GenerateAppliedKeplerOrbit(SDecimal currentTime)
     {
-        KeplerOrbit orbit = _point.ConicPath.Orbit ?? throw new NullReferenceException("ManeuverNode has no orbit");
-        SDecimal maneuverNodeTime = _point.GetNextTime(currentTime);
+        KeplerOrbit orbit = Point.ConicPath.Orbit ?? throw new NullReferenceException("ManeuverNode has no orbit");
+        SDecimal maneuverNodeTime = Point.GetNextTime(currentTime);
         SpatialInfo nodeSpatialInfo = orbit.GetSpatialInfoAtTime(maneuverNodeTime);
         nodeSpatialInfo.Velocity += _velocity;
         return new KeplerOrbit(
@@ -68,8 +68,8 @@ public class ManeuverNode : IGameDrawable
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
         Color nodeColour = this == SelectedNode ? Color.Chartreuse : Color.GreenYellow;
-        graphicsDevice.SD_DrawPoint(camera, _point.GetWorldPosition(), nodeColour);
-        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(_point.GetWorldPosition());
+        graphicsDevice.SD_DrawPoint(camera, Point.GetWorldPosition(), nodeColour);
+        Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(Point.GetWorldPosition());
         Vector2 nodeHandleScreenOffset = (Vector2)_velocity.Normalize() * float.Log10((float)_velocity.Magnitude()) * 10;
         graphicsDevice.DrawLineR(nodeScreenPosition, nodeHandleScreenOffset, nodeColour);
         graphicsDevice.DrawText(OrbitGame.DefaultFont, ((double)_velocity.Magnitude()).ToString("N0"),

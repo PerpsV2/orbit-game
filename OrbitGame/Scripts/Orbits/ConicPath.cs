@@ -198,7 +198,6 @@ public class ConicPath
         // function to redistribute angles between 0 and tau to be biased towards pi (argument of apoapsis)
         double EllipseBiasFunction(double angle, double exponent)
         {
-            angle = Utils.WrapAngle(angle);
             double result = Math.PI - Math.PI * Math.Pow(1 - angle / Math.PI, exponent);
             if (angle > Math.PI) result = Math.PI + Math.PI * Math.Pow(angle / Math.PI - 1, exponent);
             return result;
@@ -228,61 +227,43 @@ public class ConicPath
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
-        
-        double orbitStartAngle = 0;
-        double orbitEndAngle = Math.Tau;
-        if (StartAngle != null && EndAngle != null)
-        {
-            orbitStartAngle = StartAngle.Value;
-            orbitEndAngle = EndAngle.Value;
-        }
 
-        Utils.GetMinAngleRange(out double minTrueAnomaly, out double maxTrueAnomaly,
-            (camera.TopRight - centralForce.Position).Direction(),
-            (camera.TopLeft - centralForce.Position).Direction(),
-            (camera.BottomLeft - centralForce.Position).Direction(),
-            (camera.BottomRight - centralForce.Position).Direction()
-        );
-        // convert world angles to true anomaly
-        minTrueAnomaly -= orbit.Periapsis;
-        maxTrueAnomaly -= orbit.Periapsis;
-        if (maxTrueAnomaly < minTrueAnomaly) maxTrueAnomaly += Math.Tau;
-        
-        if (maxTrueAnomaly - minTrueAnomaly > Options.OrbitApproximationZoomFraction * Math.PI)
+        if (orbit.Eccentricity < 0)
         {
-            if (Math.Abs(orbitEndAngle - orbitStartAngle) >= Math.Tau)
+            // draw the entire orbit as an ellipse
+            Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
+            float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
+            float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
+
+            if (screenMajorRadius < 1)
             {
-                // draw the entire orbit as an ellipse
-                Vector2 screenPosition = camera.ConvertToScreenCoordinates(orbit.Center + centralForce.Position);
-                float screenMajorRadius = camera.ConvertToScreenDistance(orbit.SemiMajorAxis);
-                float screenMinorRadius = camera.ConvertToScreenDistance(orbit.SemiMinorAxis);
-
-                if (screenMajorRadius < 1)
-                {
-                    _onScreen = false;
-                    return;
-                }
-
-                _onScreen = true;
-
-                Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
-                                   Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
-                                   Matrix.CreateScale(new Vector3(1, -1, 0)) *
-                                   Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
-                graphicsDevice.DrawMesh(orbitMesh, transform, new()
-                {
-                    { "Colour", colour.ToVector4() }
-                });
+                _onScreen = false;
                 return;
             }
-            //minTrueAnomaly = orbitStartAngle;
-            //maxTrueAnomaly = orbitEndAngle;
-        }
 
-        //double drawnMinAngle = Utils.GetCounterClockwiseAngle(Utils.WrapAngle(minTrueAnomaly), orbitStartAngle);
-        //double drawnMaxAngle = Utils.GetClockwiseAngle(Utils.WrapAngle(maxTrueAnomaly), orbitEndAngle);
-        
-        DrawPartialEllipseOrbit(orbit, minTrueAnomaly, maxTrueAnomaly, colour);
+            _onScreen = true;
+
+            Matrix transform = Matrix.CreateScale(new Vector3(screenMajorRadius, screenMinorRadius, 1)) *
+                               Matrix.CreateRotationZ((float)(orbit.Periapsis + camera.Angle)) *
+                               Matrix.CreateScale(new Vector3(1, -1, 0)) *
+                               Matrix.CreateTranslation(new Vector3(screenPosition.X, screenPosition.Y, 0));
+            graphicsDevice.DrawMesh(orbitMesh, transform, new()
+            {
+                { "Colour", colour.ToVector4() }
+            });
+        }
+        else
+        {
+            double minTrueAnomaly = 0;
+            double maxTrueAnomaly = Math.Tau;
+            if (StartAngle is not null && EndAngle is not null)
+            {
+                minTrueAnomaly = StartAngle.Value;
+                maxTrueAnomaly = EndAngle.Value;
+            }
+            if (minTrueAnomaly > maxTrueAnomaly) (minTrueAnomaly, maxTrueAnomaly) = (maxTrueAnomaly, minTrueAnomaly);
+            DrawPartialEllipseOrbit(orbit, minTrueAnomaly, maxTrueAnomaly, colour);
+        }
     }
 
     private void DrawHyperbolaOrbit(KeplerOrbit orbit, Body centralForce, Color colour)
@@ -370,7 +351,7 @@ public class ConicPath
         // draw circular and elliptical orbits
         if (orbit.Eccentricity < 1) DrawEllipseOrbit(_mesh, orbit, centralForce, _colour);
         // draw parabolic and hyperbolic orbits
-        else DrawHyperbolaOrbit(orbit, centralForce, _colour);
+        //else DrawHyperbolaOrbit(orbit, centralForce, _colour);
         DrawSelectedOrbitPoint(orbit, _colour);
     }
 

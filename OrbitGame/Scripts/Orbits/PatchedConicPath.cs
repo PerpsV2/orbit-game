@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
@@ -58,9 +59,9 @@ public class PatchedConicPath
         KeplerOrbit newTrajectory = maneuverNode.GenerateAppliedKeplerOrbit(currentTime);
         
         int numManeuverNodes = ManeuverNodes.Count;
-        //point.ConicPath.EndAngle = point.TrueAnomaly;
+        point.ConicPath.EndAngle = point.TrueAnomaly;
         Conics[numManeuverNodes].Orbit = newTrajectory;
-        //Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+        Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
     }
 
     public void AddSOIChange()
@@ -74,6 +75,8 @@ public class PatchedConicPath
         {
             KeplerOrbit newTrajectory = ManeuverNodes[i].GenerateAppliedKeplerOrbit(e.PhysicsTime);
             Conics[i + 1].Orbit = newTrajectory;
+            Conics[i].EndAngle = ManeuverNodes[i].TrueAnomaly;
+            Conics[i + 1].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(ManeuverNodes[i].Point.GetWorldPosition());
         }
     }
 }

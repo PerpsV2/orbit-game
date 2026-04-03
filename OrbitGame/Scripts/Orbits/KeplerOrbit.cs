@@ -350,6 +350,6 @@ public readonly record struct KeplerOrbit
 
     public double GetTrueAnomalyFromWorldPosition(Vec2<SDecimal> getWorldPosition)
     {
-        return (getWorldPosition - Parent.Position).Direction() - Periapsis;
+        return Utils.WrapAngle((getWorldPosition - Parent.Position).Direction() - Periapsis);
     }
 }
