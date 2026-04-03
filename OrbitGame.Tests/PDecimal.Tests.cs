@@ -348,7 +348,11 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_MapMethod()
     {
+        Assert.Equal(new SDecimal(1.1, 0), new PDecimal(1.1, 0).Map<SDecimal>());
         Assert.Equal(new SDecimal(1000), new PDecimal(1000).Map<SDecimal>());
+        Assert.Equal(new SDecimal(-50), new PDecimal(-50).Map<SDecimal>());
+        Assert.Equal(SDecimal.PositiveInfinity, PDecimal.PositiveInfinity.Map<SDecimal>());
+        Assert.Equal(SDecimal.NegativeInfinity, PDecimal.NegativeInfinity.Map<SDecimal>());
         Assert.Equal(new PDecimal(1000), new PDecimal(1000).Map<PDecimal>());
     }
 
@@ -431,7 +435,7 @@ public class PDecimal_Tests
     [Fact]
     public void PDecimal_FromFloatCast()
     {
-        Assert.Equal(new PDecimal(1, 0), 1);
+        Assert.Equal(new PDecimal(1, -1), 0.1f, 1e-7);
         Assert.Equal(PDecimal.PositiveInfinity, float.PositiveInfinity);
         Assert.Equal(PDecimal.NegativeInfinity, float.NegativeInfinity);
         Assert.Throws<ArgumentException>(() => (PDecimal)float.NaN);

@@ -8,6 +8,7 @@ public class ConvexCollider_Tests
     private readonly ConvexCollider _testEmptyPointCollider = new([Vec2<SDecimal>.Zero]);
     private readonly ConvexCollider _testEmptyLineCollider = new([Vec2<SDecimal>.Zero, new Vec2<SDecimal>(5, 0)]);
     private readonly ConvexCollider _testCollider = new([new(1, 2), new(1, -2), new(-1, -2), new(-1, 2)]);
+    private readonly CircularCollider _testEmptyCircularCollider = new(0);
     private readonly CircularCollider _testCircularCollider = new(1);
     private readonly SDecimal _testMass = 10;
 
@@ -54,7 +55,7 @@ public class ConvexCollider_Tests
         PhysicsCollision? notTouchingIntersection =
             _testCollider.IntersectsWith(_testCircularCollider, originSpatialInfo, notTouchingSpatialInfo);
 
-        Assert.Null(_testCollider.IntersectsWith(_testEmptyPointCollider, originSpatialInfo, originSpatialInfo));
+        Assert.Null(_testCollider.IntersectsWith(_testEmptyCircularCollider, originSpatialInfo, originSpatialInfo));
         Assert.NotNull(_testCollider.IntersectsWith(_testCircularCollider, originSpatialInfo, originSpatialInfo));
         
         if (!overlappingIntersection.HasValue) { Assert.Fail("Null collision"); return; }

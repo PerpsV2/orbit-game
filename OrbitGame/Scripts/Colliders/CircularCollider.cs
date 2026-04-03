@@ -13,6 +13,11 @@ public class CircularCollider : CompactCollider
     public SDecimal Radius { get; }
     private readonly BoundingBox _boundingBox;
 
+    /// <summary>
+    /// Creates a circular collider from a radius.
+    /// </summary>
+    /// <param name="radius">The radius of the circular collider.</param>
+    /// <exception cref="ArgumentException">Radius is less than zero</exception>
     public CircularCollider(SDecimal radius)
     {
         if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");

@@ -36,13 +36,6 @@ public class Vec2_Tests
         Assert.Equal(new Vec3<SDecimal>(0, 0, 25), Vec2<SDecimal>.Cross(_testHorizontalVector, _testVerticalVector));
         Assert.Equal(new Vec3<SDecimal>(0, 0, 0), Vec2<SDecimal>.Cross(_testHorizontalVector, _testHorizontalVector));
     }
-
-    [Fact]
-    public void Vec2_MagnitudeMethod()
-    {
-        Assert.Equal(5, _testPythagoreanVector.Magnitude());
-        Assert.Equal(5, _testHorizontalVector.Magnitude());
-    }
     
     [Fact]
     public void Vec2_MagnitudeSquaredMethod()
@@ -50,13 +43,12 @@ public class Vec2_Tests
         Assert.Equal(25, _testPythagoreanVector.MagnitudeSquared());
         Assert.Equal(25, _testHorizontalVector.MagnitudeSquared());
     }
-
+    
     [Fact]
-    public void Vec2_NormalizeMethod()
+    public void Vec2_MagnitudeMethod()
     {
-        Assert.Equal(new Vec2<SDecimal>(1, 0), _testHorizontalVector.Normalize());
-        Assert.Equal(new Vec2<SDecimal>(0, 1), _testVerticalVector.Normalize());
-        Assert.Throws<ArithmeticException>(() => _testZeroVector.Normalize());
+        Assert.Equal(5, _testPythagoreanVector.Magnitude());
+        Assert.Equal(5, _testHorizontalVector.Magnitude());
     }
     
     [Fact]
@@ -71,6 +63,25 @@ public class Vec2_Tests
             new Vec2<SDecimal>(Math.Cos(-_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
         Assert.Equal(Math.Tau - _testReferenceAngle, 
             new Vec2<SDecimal>(Math.Cos(_testReferenceAngle), Math.Sin(-_testReferenceAngle)).Direction());
+        
+        Assert.Equal(3 * Math.PI / 4, Vec2<SDecimal>.Direction(_testHorizontalVector, _testVerticalVector));
+        Assert.Equal(7 * Math.PI / 4, Vec2<SDecimal>.Direction(_testVerticalVector, _testHorizontalVector));
+    }
+    
+    [Fact]
+    public void Vec2_NormalizeMethod()
+    {
+        Assert.Equal(new Vec2<SDecimal>(1, 0), _testHorizontalVector.Normalize());
+        Assert.Equal(new Vec2<SDecimal>(0, 1), _testVerticalVector.Normalize());
+        Assert.Throws<DivideByZeroException>(() => _testZeroVector.Normalize());
+    }
+    
+    [Fact]
+    public void Vec3_MapMethod()
+    {
+        Assert.Equal(new Vec2<PDecimal>(5, 0), _testHorizontalVector.Map<PDecimal>());
+        Assert.Equal(new Vec2<PDecimal>(0, 5), _testVerticalVector.Map<PDecimal>());
+        Assert.Equal(_testHorizontalVector, _testHorizontalVector.Map<SDecimal>());
     }
 
     [Fact]
@@ -104,10 +115,26 @@ public class Vec2_Tests
         Assert.Equal(new Vec2<SDecimal>(1, 0), _testHorizontalVector / _testScalar);
         Assert.Throws<DivideByZeroException>(() => _testHorizontalVector / 0);
     }
+    
+    [Fact]
+    public void Vec2_EqualityOperator()
+    {
+        Assert.True(_testHorizontalVector == new Vec2<SDecimal>(5, 0));
+        Assert.False(_testHorizontalVector == _testVerticalVector);
+    }
+    
+    [Fact]
+    public void Vec2_InequalityOperator()
+    {
+        Assert.False(_testHorizontalVector != new Vec2<SDecimal>(5, 0));
+        Assert.True(_testHorizontalVector != _testVerticalVector);
+    }
 
     [Fact]
     public void Vec2_ToString()
     {
         Assert.Equal("<5.0000e+0, 0.0000e+0>", _testHorizontalVector.ToString());
+        Assert.Equal("<5e+0, 0e+0>", _testHorizontalVector.ToString("G1"));
+        Assert.Equal("<5, 0>", _testHorizontalVector.ToString("N1"));
     }
 }

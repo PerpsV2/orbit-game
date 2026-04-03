@@ -13,6 +13,9 @@ public class CircularCollider_Tests
     [Fact]
     public void CircularCollider_Constructor()
     {
+        CircularCollider collider = new CircularCollider(1);
+        
+        Assert.Equal(1, collider.Radius);
         Assert.Throws<ArgumentException>(() => new CircularCollider(-1));
     }
     

@@ -327,7 +327,11 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_MapMethod()
     {
+        Assert.Equal(new PDecimal(1.1, 0), new SDecimal(1.1, 0).Map<PDecimal>());
         Assert.Equal(new PDecimal(1000), new SDecimal(1000).Map<PDecimal>());
+        Assert.Equal(new PDecimal(-1000), new SDecimal(-1000).Map<PDecimal>());
+        Assert.Equal(PDecimal.PositiveInfinity, SDecimal.PositiveInfinity.Map<PDecimal>());
+        Assert.Equal(PDecimal.NegativeInfinity, SDecimal.NegativeInfinity.Map<PDecimal>());
         Assert.Equal(new SDecimal(1000), new SDecimal(1000).Map<SDecimal>());
     }
 
@@ -397,7 +401,7 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_FromDoubleCast()
     {
-        Assert.Equal(new SDecimal(2.5, -1), 0.25);
+        Assert.Equal(new SDecimal(1, -1), 0.1);
         Assert.Equal(SDecimal.PositiveInfinity, double.PositiveInfinity);
         Assert.Equal(SDecimal.NegativeInfinity, double.NegativeInfinity);
         Assert.Equal(SDecimal.DoubleEpsilon, double.Epsilon);
@@ -407,7 +411,7 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_FromFloatCast()
     {
-        Assert.Equal(new SDecimal(2.5, -1), 0.25f);
+        Assert.Equal(new SDecimal(1, -1), 0.1f, 1e-7);
         Assert.Equal(SDecimal.PositiveInfinity, float.PositiveInfinity);
         Assert.Equal(SDecimal.NegativeInfinity, float.NegativeInfinity);
         Assert.Throws<ArgumentException>(() => (SDecimal)float.NaN);
@@ -416,7 +420,7 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_ToDoubleCast()
     {
-        Assert.Equal(0.25, (double)new SDecimal(2.5, -1));
+        Assert.Equal(0.1, (double)new SDecimal(1, -1));
         Assert.Equal(double.PositiveInfinity, (double)SDecimal.PositiveInfinity);
         Assert.Equal(double.NegativeInfinity, (double)SDecimal.NegativeInfinity);
         Assert.Throws<OverflowException>(() => (double)new SDecimal(1000));
@@ -425,7 +429,7 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_ToFloatCast()
     {
-        Assert.Equal(0.25f, (float)new SDecimal(2.5, -1));
+        Assert.Equal(0.1f, (float)new SDecimal(1, -1));
         Assert.Equal(float.PositiveInfinity, (float)SDecimal.PositiveInfinity);
         Assert.Equal(float.NegativeInfinity, (float)SDecimal.NegativeInfinity);
         Assert.Throws<OverflowException>(() => (float)new SDecimal(1000));
@@ -434,15 +438,15 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_ToIntCast()
     {
-        Assert.Equal(0, (int)new SDecimal(2.5, -1));
-        Assert.Equal(0, (int)new SDecimal(7.5, -1));
+        Assert.Equal(0, (int)new SDecimal(1, -1));
+        Assert.Equal(0, (int)new SDecimal(9, -1));
         Assert.Throws<OverflowException>(() => (int)new SDecimal(1000));
     }
 
     [Fact]
     public void SDecimal_ToUIntCast()
     {
-        Assert.Equal(0u, (uint)new SDecimal(2.5, -1));
+        Assert.Equal(0u, (uint)new SDecimal(1, -1));
         Assert.Equal(1u, (uint)new SDecimal(1.5, 0));
         Assert.Equal(0u, (uint)new SDecimal(-1, 0));
         Assert.Throws<OverflowException>(() => (uint)new SDecimal(1000));
@@ -451,8 +455,8 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_ToLongCast()
     {
-        Assert.Equal(0, (int)new SDecimal(2.5, -1));
-        Assert.Equal(0, (int)new SDecimal(7.5, -1));
+        Assert.Equal(0, (int)new SDecimal(1, -1));
+        Assert.Equal(0, (int)new SDecimal(9, -1));
         Assert.Throws<OverflowException>(() => (int)new SDecimal(1000));
     }
 
@@ -552,6 +556,7 @@ public class SDecimal_Tests
             Assert.Equal("0." + new string('0', 999) + "10000", smallPosNumber.ToString("N"));
             Assert.Equal("123.46", precisePosNumber.ToString("N"));
             
+            Assert.Equal("1", posInteger.ToString("N1"));
             Assert.Equal("100", precisePosNumber.ToString("N1"));
             Assert.Equal("120", precisePosNumber.ToString("N2"));
             Assert.Equal("123.456789000000", precisePosNumber.ToString("N15"));

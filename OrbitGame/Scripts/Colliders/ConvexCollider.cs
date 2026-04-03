@@ -11,6 +11,10 @@ public class ConvexCollider : CompactCollider
     private readonly Vec2<SDecimal>[] _points;
     private readonly BoundingBox _boundingBox;
 
+    /// <summary>
+    /// Creates a convex collider from a convex hull.
+    /// </summary>
+    /// <param name="points">Convex hull of the collider.</param>
     public ConvexCollider(Vec2<SDecimal>[] points)
     {
         _points = points;
@@ -20,7 +24,7 @@ public class ConvexCollider : CompactCollider
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)
-        => Inertia = Utils.CalculateConvexInertia(_points, mass);
+        => Inertia = Utils.GetConvexHullInertia(_points, mass);
 
     protected override BoundingBox GetBoundingBox(double angle)
         => _boundingBox;
@@ -88,7 +92,7 @@ public class ConvexCollider : CompactCollider
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
         return null;
     }
-
+    
     protected override PhysicsCollision? IntersectsWith(
         ConvexCollider collider, 
         SpatialInfo referenceSpatial, 
@@ -96,6 +100,7 @@ public class ConvexCollider : CompactCollider
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
+        // adjust points to spatial infos
         Vec2<SDecimal>[] referencePoints = _points.Select(x => Vec2<SDecimal>.RotatePoint(x, referenceSpatial.Angle)).ToArray();
         Vec2<SDecimal>[] incidentPoints = collider._points
             .Select(x => Vec2<SDecimal>.RotatePoint(x, incidentSpatial.Angle))
@@ -104,6 +109,7 @@ public class ConvexCollider : CompactCollider
         SDecimal minPenetrationDistance = SDecimal.PositiveInfinity;
         Vec2<SDecimal> minPenetrationVector = Vec2<SDecimal>.Zero;
 
+        // set up edges to apply separating axis theorem for
         Vec2<SDecimal>[] referenceEdges = new Vec2<SDecimal>[referencePoints.Length];
         for (int i = 0; i < referenceEdges.Length; i++)
             referenceEdges[i] = referencePoints[(i + 1) % referencePoints.Length] - referencePoints[i];
@@ -113,6 +119,7 @@ public class ConvexCollider : CompactCollider
 
         foreach (var edge in referenceEdges.Concat(incidentEdges))
         {
+            // apply separating axis theorem projection
             double edgeAngle = edge.Direction();
             SDecimal[] projectedReferencePoints = referencePoints
                 .Select(x => Vec2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
@@ -121,9 +128,10 @@ public class ConvexCollider : CompactCollider
                 .Select(x => Vec2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
             (SDecimal min, SDecimal max) incidentRange = (projectedIncidentPoints.Min(), projectedIncidentPoints.Max());
             
-            // check for SAT projection intersection
+            // check for intersections
             if (referenceRange.min <= incidentRange.max && incidentRange.min <= referenceRange.max)
             {
+                // calculate the penetration distance and update the min penetration distance
                 SDecimal forwardsPenetrationDistance = referenceRange.max - incidentRange.min;
                 SDecimal backwardsPenetrationDistance = incidentRange.max - incidentRange.min;
                 SDecimal penetrationDistance =
@@ -139,24 +147,23 @@ public class ConvexCollider : CompactCollider
                     );
                 }
             }
+            
             // no intersection, therefore no collision
             else return null;
         }
         
-        // determine collision point
-        double collisionNormalAngle = 0;
-        if (minPenetrationVector.MagnitudeSquared() > 0) 
-            collisionNormalAngle = minPenetrationVector.Direction();
-        var indexedColliderPoints = referencePoints.Index();
-        var collisionPoint = indexedColliderPoints
-            .MinBy(x => Vec2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X).Item;
+        // pick the furthest vertex along the collision normal
+        double collisionNormalAngle = minPenetrationVector.Direction();
+        var indexedReferencePoints = referencePoints.Index();
+        var indexedIncidentPoints = incidentPoints.Index();
+        var significantReferenceVertex = indexedReferencePoints
+            .MinBy(x => Vec2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X);
+        var significantIncidentVertex = indexedIncidentPoints
+            .MaxBy(x => Vec2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X);
         
-        return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
+        return new PhysicsCollision(referenceSpatial, incidentSpatial, [significantReferenceVertex.Item], minPenetrationVector);
     }
 
     public override bool IsEmpty()
-    {
-        // TODO: Implement IsEmpty for convex colliders.
-        return false;
-    }
+        => Utils.GetConvexHullArea(_points) == 0;
 }

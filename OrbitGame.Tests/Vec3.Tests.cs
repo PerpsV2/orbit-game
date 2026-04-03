@@ -37,10 +37,10 @@ public class Vec3_Tests
     }
     
     [Fact]
-    public void Vec3_DirectionVectorMethod()
+    public void Vec3_DirectionMethod()
     {
         Assert.Equal(new Vec3<SDecimal>(Math.Cos(Math.PI / 4), 0, -Math.Sin(Math.PI / 4)),
-            Vec3<SDecimal>.DirectionVector(_testZVector, _testXVector));
+            Vec3<SDecimal>.Direction(_testZVector, _testXVector));
     }
 
     [Fact]
@@ -48,6 +48,15 @@ public class Vec3_Tests
     {
         Assert.Equal(new Vec3<SDecimal>(1, 0, 0), _testXVector.Normalize());
         Assert.Throws<DivideByZeroException>(() => _testZeroVector.Normalize());
+    }
+
+    [Fact]
+    public void Vec3_MapMethod()
+    {
+        Assert.Equal(new Vec3<PDecimal>(5, 0, 0), _testXVector.Map<PDecimal>());
+        Assert.Equal(new Vec3<PDecimal>(0, 5, 0), _testYVector.Map<PDecimal>());
+        Assert.Equal(new Vec3<PDecimal>(0, 0, 5), _testZVector.Map<PDecimal>());
+        Assert.Equal(_testXVector, _testXVector.Map<SDecimal>());
     }
 
     [Fact]
@@ -81,14 +90,14 @@ public class Vec3_Tests
     }
     
     [Fact]
-    public void Vec3_EqualsOperator()
+    public void Vec3_EqualityOperator()
     {
         Assert.True(_testXVector == new Vec3<SDecimal>(5, 0, 0));
         Assert.False(_testXVector == _testYVector);
     }
     
     [Fact]
-    public void Vec3_UnequalsOperator()
+    public void Vec3_InequalityOperator()
     {
         Assert.False(_testXVector != new Vec3<SDecimal>(5, 0, 0));
         Assert.True(_testXVector != _testYVector);
@@ -98,5 +107,7 @@ public class Vec3_Tests
     public void Vec3_ToStringMethod()
     {
         Assert.Equal("<5.0000e+0, 0.0000e+0, 0.0000e+0>", _testXVector.ToString());
+        Assert.Equal("<5e+0, 0e+0, 0e+0>", _testXVector.ToString("G1"));
+        Assert.Equal("<5, 0, 0>", _testXVector.ToString("N1"));
     }
 }

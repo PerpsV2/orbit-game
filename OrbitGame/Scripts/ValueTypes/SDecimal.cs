@@ -601,7 +601,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
             resultDecimalInsert = "0.";
         }
         
-        if (resultDecimalIndex > result.Length)
+        if (resultDecimalIndex >= result.Length)
         {
             result = result.PadRight(resultDecimalIndex, '0');
             resultDecimalInsert = "";

@@ -51,11 +51,8 @@ public static class Utils
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
     
-    public static SDecimal UnsignedMod(SDecimal a, SDecimal b)
-        => a - b * SDecimal.Floor(a / b);
-    
-    public static PDecimal UnsignedMod(PDecimal a, PDecimal b)
-        => a - b * PDecimal.Floor(a / b);
+    public static T UnsignedMod<T>(T a, T b) where T : IArbitraryPlaceDecimal<T>
+        => a - b * T.Floor(a / b);
 
     public static double WrapAngle(double angle)
         => UnsignedMod(angle, Math.Tau);
@@ -122,38 +119,67 @@ public static class Utils
         return current;
     }
 
+    public static SDecimal GetConvexHullArea(Vec2<SDecimal>[] points)
+    {
+        if (points.Length < 3) return 0;
+        var triangles = TriangulateConvex(points);
+        return triangles.Aggregate(new SDecimal(0),
+            (a, t) => a + CalculateTriangleArea(t.a, t.b, t.c));
+    }
+    
     public static SDecimal CalculateTriangleArea(Vec2<SDecimal> a, Vec2<SDecimal> b, Vec2<SDecimal> c)
     {
         return SDecimal.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
     }
-    
-    public static SDecimal CalculateConvexInertia(Vec2<SDecimal>[] points, SDecimal mass)
+
+    public static SDecimal CalculateTriangleInertia(Vec2<SDecimal> a, Vec2<SDecimal> b, Vec2<SDecimal> c, SDecimal mass)
+    {
+        return mass * (
+            Vec2<SDecimal>.Dot(a, a) + Vec2<SDecimal>.Dot(b, b) + Vec2<SDecimal>.Dot(c, c) +
+            Vec2<SDecimal>.Dot(a, b) + Vec2<SDecimal>.Dot(b, c) + Vec2<SDecimal>.Dot(c, a)
+        ) / 6;
+    }
+
+    public static SDecimal GetConvexHullInertia(Vec2<SDecimal>[] points, SDecimal totalMass)
     {
         var triangles = TriangulateConvex(points);
-        SDecimal totalArea = triangles.Aggregate(new SDecimal(0),
-            (a, t) => a + CalculateTriangleArea(t.a, t.b, t.c));
-        
+
+        SDecimal totalArea = GetConvexHullArea(points);
+
         SDecimal[] masses = new SDecimal[triangles.Length];
-        Vec2<SDecimal>[] centroids = new Vec2<SDecimal>[triangles.Length];
         SDecimal[] inertias = new SDecimal[triangles.Length];
+        Vec2<SDecimal>[] centroids = new Vec2<SDecimal>[triangles.Length];
+
         for (int i = 0; i < triangles.Length; ++i)
         {
             Vec2<SDecimal> a = triangles[i].a;
             Vec2<SDecimal> b = triangles[i].b;
             Vec2<SDecimal> c = triangles[i].c;
-            
-            masses[i] = mass / totalArea * CalculateTriangleArea(a, b, c);
+
+            masses[i] = totalMass * CalculateTriangleArea(a, b, c) / totalArea;
             centroids[i] = (a + b + c) / 3;
-            inertias[i] = masses[i] * (Vec2<SDecimal>.Dot(a, a) + Vec2<SDecimal>.Dot(b, b) + Vec2<SDecimal>.Dot(c, c) +
-                                       Vec2<SDecimal>.Dot(c, c) + Vec2<SDecimal>.Dot(a, b) + Vec2<SDecimal>.Dot(b, c) + 
-                                       Vec2<SDecimal>.Dot(c, a))/ 6;
+            inertias[i] = CalculateTriangleInertia(a, b, c, masses[i]);
         }
 
-        SDecimal totalInertia = 0;
+        Vec2<SDecimal> totalCentroid = new();
         for (int i = 0; i < triangles.Length; ++i)
-            totalInertia += inertias[i] + masses[i] * (SDecimal.Square(centroids[i].X) + 
-                                                       SDecimal.Square(centroids[i].Y));
-        
+        {
+            totalCentroid += new Vec2<SDecimal>(
+                masses[i] * centroids[i].X,
+                masses[i] * centroids[i].Y
+            );
+        }
+
+        totalCentroid /= totalMass;
+
+        SDecimal[] centroidDistancesSquared = new SDecimal[triangles.Length];
+        for (int i = 0; i < triangles.Length; ++i)
+            centroidDistancesSquared[i] = (totalCentroid - centroids[i]).MagnitudeSquared();
+
+        SDecimal totalInertia = new();
+        for (int i = 0; i < triangles.Length; ++i)
+            totalInertia += inertias[i] + masses[i] * centroidDistancesSquared[i];
+
         return totalInertia;
     }
     
