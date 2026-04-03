@@ -3,7 +3,7 @@ using Xunit;
 
 namespace OrbitGame.Tests;
 
-public class SD_Vector2_Tests
+public class Vec2_Tests
 {
     private readonly double _testAngle = Math.PI;
     private readonly double _testMagnitude = 5;
@@ -15,14 +15,14 @@ public class SD_Vector2_Tests
     private readonly double _testReferenceAngle = Math.PI / 2;
     
     [Fact]
-    public void Vector2_FromPolarMethod()
+    public void Vec2_FromPolarMethod()
     {
         Assert.Equal(new Vec2<SDecimal>(-5, 0), Vec2<SDecimal>.FromPolar(_testAngle, _testMagnitude));
         Assert.Equal(new Vec2<SDecimal>(5, 0), Vec2<SDecimal>.FromPolar(_testAngle, -_testMagnitude));
     }
     
     [Fact]
-    public void Vector2_DotMethod()
+    public void Vec2_DotMethod()
     {
         Assert.Equal(0, Vec2<SDecimal>.Dot(_testHorizontalVector, _testVerticalVector));
         Assert.Equal(25, Vec2<SDecimal>.Dot(_testHorizontalVector, _testHorizontalVector));
@@ -30,7 +30,7 @@ public class SD_Vector2_Tests
     }
 
     [Fact]
-    public void Vector2_CrossMethod()
+    public void Vec2_CrossMethod()
     {
         Assert.Equal(new Vec3<SDecimal>(0, 0, -25), Vec2<SDecimal>.Cross(_testVerticalVector, _testHorizontalVector));
         Assert.Equal(new Vec3<SDecimal>(0, 0, 25), Vec2<SDecimal>.Cross(_testHorizontalVector, _testVerticalVector));
@@ -38,21 +38,21 @@ public class SD_Vector2_Tests
     }
 
     [Fact]
-    public void Vector2_MagnitudeMethod()
+    public void Vec2_MagnitudeMethod()
     {
         Assert.Equal(5, _testPythagoreanVector.Magnitude());
         Assert.Equal(5, _testHorizontalVector.Magnitude());
     }
     
     [Fact]
-    public void Vector2_MagnitudeSquaredMethod()
+    public void Vec2_MagnitudeSquaredMethod()
     {
         Assert.Equal(25, _testPythagoreanVector.MagnitudeSquared());
         Assert.Equal(25, _testHorizontalVector.MagnitudeSquared());
     }
 
     [Fact]
-    public void Vector2_NormalizeMethod()
+    public void Vec2_NormalizeMethod()
     {
         Assert.Equal(new Vec2<SDecimal>(1, 0), _testHorizontalVector.Normalize());
         Assert.Equal(new Vec2<SDecimal>(0, 1), _testVerticalVector.Normalize());
@@ -60,7 +60,7 @@ public class SD_Vector2_Tests
     }
     
     [Fact]
-    public void Vector2_DirectionMethod()
+    public void Vec2_DirectionMethod()
     {
         Assert.Throws<DivideByZeroException>(() => Vec2<SDecimal>.Zero.Direction());
         Assert.Equal(_testReferenceAngle,
@@ -74,39 +74,39 @@ public class SD_Vector2_Tests
     }
 
     [Fact]
-    public void Vector2_NegativeOperator()
+    public void Vec2_NegativeOperator()
     {
         Assert.Equal(new Vec2<SDecimal>(-5, 0), -_testHorizontalVector);
         Assert.Equal(new Vec2<SDecimal>(5, 0), - -_testHorizontalVector);
     }
 
     [Fact]
-    public void Vector2_AdditionOperator()
+    public void Vec2_AdditionOperator()
     {
         Assert.Equal(new Vec2<SDecimal>(5, 5), _testHorizontalVector + _testVerticalVector);
     }
 
     [Fact]
-    public void Vector2_SubtractionOperator()
+    public void Vec2_SubtractionOperator()
     {
         Assert.Equal(new Vec2<SDecimal>(5, -5), _testHorizontalVector - _testVerticalVector);
     }
 
     [Fact]
-    public void Vector2_ScalarMultiplicationOperator()
+    public void Vec2_ScalarMultiplicationOperator()
     {
         Assert.Equal(new Vec2<SDecimal>(25, 0), _testHorizontalVector * _testScalar);
     }
 
     [Fact]
-    public void Vector2_ScalarDivisionOperator()
+    public void Vec2_ScalarDivisionOperator()
     {
         Assert.Equal(new Vec2<SDecimal>(1, 0), _testHorizontalVector / _testScalar);
-        Assert.Throws<ArithmeticException>(() => _testHorizontalVector / 0);
+        Assert.Throws<DivideByZeroException>(() => _testHorizontalVector / 0);
     }
 
     [Fact]
-    public void Vector2_ToString()
+    public void Vec2_ToString()
     {
         Assert.Equal("<5.0000e+0, 0.0000e+0>", _testHorizontalVector.ToString());
     }
