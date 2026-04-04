@@ -46,7 +46,6 @@ public class ConicPath
     /// <summary>
     /// Returns the point on the orbit with the minimum Euclidean distance to a chosen point.
     /// </summary>
-    /// <param name="orbit">Keplerian orbit</param>
     /// <param name="externalPoint">Point which may not lie on the orbit in world space</param>
     /// <param name="minimumDistance">Distance between the external point and the parabola</param>
     /// <returns>The true anomaly of the closest point on the orbit</returns>
@@ -349,7 +348,6 @@ public class ConicPath
         }
         _onScreen = true;
         KeplerOrbit orbit = Orbit.Value;
-        Body centralForce = orbit.Parent;
 
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphics = OrbitGame.Graphics;
@@ -357,12 +355,28 @@ public class ConicPath
         Color colour = _colour;
         float semiLatusRectum = camera.ConvertToScreenDistance(orbit.SemiLatusRectum.Map<SDecimal>());
         Vector2 centerCoords = camera.ConvertToScreenCoordinates(orbit.Parent.Position);
+
+        float startAnomaly;
+        float endAnomaly;
+        if (StartAngle is null || EndAngle is null)
+        {
+            startAnomaly = 0;
+            endAnomaly = (float)Math.Tau;
+        }
+        else
+        {
+            startAnomaly = (float)StartAngle;
+            endAnomaly = (float)EndAngle;
+        }
+        
         graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object> {
             { "Colour", colour.ToVector4() },
             { "Eccentricity", (float)orbit.Eccentricity },
             { "SemiLatusRectum", semiLatusRectum },
             { "ArgumentOfPeriapsis", (float)(orbit.Periapsis + camera.Angle + Math.PI / 2) },
             { "Center", centerCoords },
+            { "StartAnomaly", startAnomaly },
+            { "EndAnomaly", endAnomaly },
             { "TexelSize", new Vector2(0.5f, 0.5f) }
         });
         
