@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace OrbitGame;
 
@@ -21,6 +22,8 @@ public class ConicPath
     public static KeplerOrbitPoint? SelectedPoint;
     private static SDecimal _minMouseDistanceToOrbit = SDecimal.PositiveInfinity;
 
+    private static ScreenMesh _orbitMesh = new();
+    
     private readonly OrbitMesh _mesh;
     private readonly Color _colour;
 
@@ -219,8 +222,7 @@ public class ConicPath
         }
 
         _onScreen = orbitPoints.Count != 0;
-        for (int i = 0; i < orbitPoints.Count - 1; ++i)
-            graphicsDevice.SD_DrawLine(camera, orbitPoints[i], orbitPoints[i + 1], colour);
+        graphicsDevice.SD_DrawPath(camera, orbitPoints, colour);
     }
 
     private void DrawEllipseOrbit(OrbitMesh orbitMesh, KeplerOrbit orbit, Body centralForce, Color colour)
@@ -345,16 +347,29 @@ public class ConicPath
             _onScreen = false;
             return;
         }
+        _onScreen = true;
         KeplerOrbit orbit = Orbit.Value;
         Body centralForce = orbit.Parent;
+
+        Camera camera = OrbitGame.Camera;
+        IGraphicsHandler graphics = OrbitGame.Graphics;
+
+        Color colour = _colour;
+        float semiLatusRectum = camera.ConvertToScreenDistance(orbit.SemiLatusRectum.Map<SDecimal>());
+        Vector2 centerCoords = camera.ConvertToScreenCoordinates(orbit.Parent.Position);
+        graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object> {
+            { "Colour", colour.ToVector4() },
+            { "Eccentricity", (float)orbit.Eccentricity },
+            { "SemiLatusRectum", semiLatusRectum },
+            { "ArgumentOfPeriapsis", (float)(orbit.Periapsis + camera.Angle + Math.PI / 2) },
+            { "Center", centerCoords },
+            { "TexelSize", new Vector2(0.5f, 0.5f) }
+        });
         
-        // draw circular and elliptical orbits
+        /*// draw circular and elliptical orbits
         if (orbit.Eccentricity < 1) DrawEllipseOrbit(_mesh, orbit, centralForce, _colour);
         // draw parabolic and hyperbolic orbits
-        //else DrawHyperbolaOrbit(orbit, centralForce, _colour);
+        //else DrawHyperbolaOrbit(orbit, centralForce, _colour);*/
         DrawSelectedOrbitPoint(orbit, _colour);
     }
-
-    public void DrawCollider()
-        => Draw();
 }

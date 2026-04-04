@@ -65,7 +65,7 @@ public static class Options
     /// <summary>
     /// Number of points that should be drawn to represent a partial orbit.
     /// </summary>
-    public const uint OrbitResolutionNumPoints = 100;
+    public const int OrbitResolutionNumPoints = 100;
     /// <summary>
     /// Number of points that should be drawn to represent a full elliptic orbit.
     /// </summary>

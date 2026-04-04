@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
@@ -24,9 +25,7 @@ public class PatchedConicPath
     public void Draw()
     {
         foreach (var orbitPath in Conics)
-        {
             orbitPath.Draw();
-        }
 
         foreach (var maneuverNode in ManeuverNodes)
         {

@@ -7,6 +7,8 @@ namespace OrbitGame;
 public interface IGraphicsHandler
 {
     public void DrawPoly(List<Vector2> points, Color colour);
+    public void DrawPath(IEnumerable<Vector2> points, Color colour);
+    public void SD_DrawPath(Camera camera, IEnumerable<Vec2<SDecimal>> points, Color colour);
     public void DrawLine(Vector2 start, Vector2 end, Color colour);
     public void DrawLineR(Vector2 start, Vector2 displacement, Color colour);
     public void SD_DrawLine(Camera camera, Vec2<SDecimal> start, Vec2<SDecimal> end, Color colour);

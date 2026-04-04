@@ -19,7 +19,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// <summary>
     /// Minimum exponent for a PDecimal to avoid infinitely precise decimals from occuring due to division.
     /// </summary>
-    private const int MinExponent = -50;
+    private const int MinExponent = -20;
     /// <summary>
     /// Number of extra decimals of precision produced by a division operation.
     /// </summary>
@@ -27,7 +27,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// <summary>
     /// Number of extra decimals of precision produced by a square root operation.
     /// </summary>
-    private const int SqrtDecimals = 20;
+    private const int SqrtDecimals = 15;
     
     private BigInteger _mantissa;
     public BigInteger Mantissa
@@ -472,7 +472,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         return value < min ? min : value > max ? max : value;
     }
     
-    public TOther Map<TOther>() where TOther : new()
+    public readonly TOther Map<TOther>() where TOther : new()
     {
         PDecimal value = this;
         TOther other = new TOther();
@@ -484,9 +484,11 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
             else
             {
                 if (BigInteger.Abs(value.Mantissa) > long.MaxValue)
-                    value.IncreaseExponent(value.Exponent +
-                                           ((int)Math.Floor(BigInteger.Log10(BigInteger.Abs(value.Mantissa))) - 17)
+                {
+                    value.IncreaseExponent(
+                        value.Exponent + ((int)Math.Floor(BigInteger.Log10(BigInteger.Abs(value.Mantissa))) - 17)
                     );
+                }
 
                 sDecimal = new SDecimal((long)value.Mantissa, value.Exponent);
             }

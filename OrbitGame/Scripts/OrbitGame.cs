@@ -21,6 +21,7 @@ public static class Effects
 {
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
+    public static Effect? OrbitEffect;
 }
 
 public class OrbitGame : Game
@@ -239,7 +240,7 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 6000), Math.PI / 2), 
+            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, -8000), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -284,6 +285,8 @@ public class OrbitGame : Game
         base.Initialize();
     }
 
+    private ScreenMesh _screenMesh;
+
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -295,6 +298,11 @@ public class OrbitGame : Game
         Effects.DefaultEffect.Parameters["Projection"].SetValue(projection);
         Effects.CircleEffect = Content.Load<Effect>("effects/circleEffect");
         Effects.CircleEffect.Parameters["Projection"].SetValue(projection);
+        Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
+        Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
+            
+        _screenMesh = new ScreenMesh();
+        _screenMesh.GenerateBuffers(GraphicsDevice);
         
         /*PropertyInfo[] effects = typeof(Effects).GetProperties();
         foreach (var property in effects)
@@ -513,7 +521,7 @@ public class OrbitGame : Game
 
         GraphicsDevice.Clear(Options.BackgroundColour);
 
-        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
 
         if (Options.DisplayFPS)
             _spriteBatch.DrawString(DefaultFont, GameState.FramesPerSecond.ToString(), Vector2.Zero, Color.White);
@@ -534,7 +542,7 @@ public class OrbitGame : Game
 
         foreach (var ship in Ships) ship.Draw();
         foreach (var planet in Planets) planet.Draw();
-        
+
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();
         

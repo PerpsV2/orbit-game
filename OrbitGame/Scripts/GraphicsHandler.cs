@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -36,6 +37,31 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             );
         }
     }
+
+    public void DrawPath(IEnumerable<Vector2> points, Color colour)
+    {
+        VertexPositionColor[] vertices = points.Select(x => new VertexPositionColor(new Vector3(x.X, x.Y, 0), Color.White)).ToArray();
+        int[] indices = new int[vertices.Length * 2];
+        for (int i = 0; i < vertices.Length - 1; ++i)
+        {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        }
+        
+        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        effect.Parameters["World"].SetValue(Matrix.Identity);
+        effect.Parameters["Colour"].SetValue(colour.ToVector4());
+        foreach (var pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            GraphicsDevice.DrawUserIndexedPrimitives(
+                PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, vertices.Length - 1
+            );
+        }
+    }
+
+    public void SD_DrawPath(Camera camera, IEnumerable<Vec2<SDecimal>> points, Color colour)
+        => DrawPath(points.Select(camera.ConvertToScreenCoordinates).ToArray(), colour);
 
     public void DrawLine(Vector2 start, Vector2 end, Color colour)
     {

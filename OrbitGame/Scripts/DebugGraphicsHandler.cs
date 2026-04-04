@@ -25,6 +25,16 @@ public class DebugGraphicsHandler : IGraphicsHandler
         DrawPolyCalls.Add(new DrawPolyCall(points, colour));
     }
 
+    public void DrawPath(IEnumerable<Vector2> points, Color colour)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void SD_DrawPath(Camera camera, IEnumerable<Vec2<SDecimal>> points, Color colour)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public void DrawLine(Vector2 start, Vector2 end, Color colour)
     {
         DrawLineCalls.Add(new DrawLineCall(start, end, colour));

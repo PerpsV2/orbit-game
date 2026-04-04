@@ -63,10 +63,19 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     public static SDecimal MultiplicativeIdentity { get; } = 1;
     public static SDecimal PositiveInfinity { get; } = new(true);
     public static SDecimal NegativeInfinity { get; } = new(false);
+    
     /// <summary>
     /// Represents an SDecimal which is equivalent to double.Epsilon
     /// </summary>
     public static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
+    /// <summary>
+    /// Represents an SDecimal which is equivalent to double.MaxValue
+    /// </summary>
+    public static SDecimal DoubleMaxValue { get; } = new(double.MaxValue, 0);
+    /// <summary>
+    /// Represents an SDecimal which is equivalent to double.MinValue
+    /// </summary>
+    public static SDecimal DoubleMinValue { get; } = new(double.MinValue, 0);
 
     /// <summary>
     /// Create an SDecimal using a mantissa and a power of ten.
@@ -115,8 +124,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
-        if (Abs(value) < double.Epsilon) return 0;
-        if (Abs(value) > double.MaxValue) throw new OverflowException("SDecimal is outside of the range of a double");
+        if (Abs(value) < DoubleEpsilon) return 0;
+        if (Abs(value) > DoubleMaxValue) throw new OverflowException("SDecimal is outside of the range of a double");
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
@@ -124,9 +133,9 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
-        if (Abs(value) < double.Epsilon) return 0;
-        if (value > double.MaxValue) return double.MaxValue;
-        if (value < double.MinValue) return double.MinValue;
+        if (Abs(value) < DoubleEpsilon) return 0;
+        if (value > DoubleMaxValue) return double.MaxValue;
+        if (value < DoubleMinValue) return double.MinValue;
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
@@ -396,7 +405,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         return value < min ? min : value > max ? max : value;
     }
     
-    public TOther Map<TOther>() where TOther : new()
+    public readonly TOther Map<TOther>() where TOther : new()
     {
         SDecimal value = this;
         TOther other = new TOther();
