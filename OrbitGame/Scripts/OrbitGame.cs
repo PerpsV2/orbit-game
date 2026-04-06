@@ -222,7 +222,7 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 10; i++)
         {
              Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
@@ -231,6 +231,15 @@ public class OrbitGame : Game
                  ), 1000, new Color(0, 255, 0, 255), earth);
              smokestack.DrawOrbitalPath = true;
              smokestack.MouseDetectionEnabled = false;
+        }for (int i = 0; i < 10; i++)
+        {
+            Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
+            Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i + 10, new(
+                new Vec2<SDecimal>(-2 * new SDecimal(6.378, 6), 0) + randomPosition,
+                new Vec2<SDecimal>(_rnd.Next(0, 0), _rnd.Next(2000, 7000))
+            ), 1000, new Color(0, 255, 0, 255), earth);
+            smokestack.DrawOrbitalPath = true;
+            smokestack.MouseDetectionEnabled = false;
         }
         
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([

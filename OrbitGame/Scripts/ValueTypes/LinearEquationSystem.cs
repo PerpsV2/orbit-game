@@ -3,16 +3,17 @@ using System.Numerics;
 
 namespace OrbitGame;
 
-public class LinearEquationSystem<T>(int numVariables)
+public class LinearEquationSystem<T>(int numVariables, int numEquations)
     where T : INumber<T>
 {
-    private readonly int _numVariables = numVariables;
-    private readonly T[,] _coefficients = new T[numVariables, numVariables];
-    private readonly T[] _constants = new T[numVariables];
+    private int _numEquations = numEquations;
+    private int _numVariables = numVariables;
+    private T[,] _coefficients = new T[numEquations, numVariables];
+    private T[] _constants = new T[numEquations];
 
     public void SetCoefficient(int index, T value)
     {
-        if (index >= _numVariables * _numVariables || index < 0)
+        if (index >= _numVariables * _numEquations || index < 0)
             throw new IndexOutOfRangeException("Coefficient index out of the range of system of linear equations");
 
         var indices = int.DivRem(index, _numVariables);
@@ -21,7 +22,7 @@ public class LinearEquationSystem<T>(int numVariables)
 
     public void SetConstant(int index, T value)
     {
-        if (index >= _numVariables || index < 0) 
+        if (index >= _numEquations || index < 0) 
             throw new IndexOutOfRangeException("Constant index out of the range of system of linear equations");
 
         _constants[index] = value;
@@ -53,13 +54,13 @@ public class LinearEquationSystem<T>(int numVariables)
         _constants[modifyingRowIndex] += scale * _constants[scaleRowIndex];
     }
 
-    private void ConvertToReducedEchelonForm()
+    public void ConvertToReducedEchelonForm()
     {
         int highestAvailableRow = 0;
         for (int currentCol = 0; currentCol < _numVariables; ++currentCol)
         {
             bool nonZeroContainingColumn = false;
-            for (int row = highestAvailableRow; row < _numVariables; ++row)
+            for (int row = highestAvailableRow; row < _numEquations; ++row)
             {
                 T coefficient = _coefficients[row, currentCol];
                 if (coefficient != T.Zero)
@@ -74,16 +75,49 @@ public class LinearEquationSystem<T>(int numVariables)
 
             if (!nonZeroContainingColumn) continue;
 
-            for (int row = highestAvailableRow; row < _numVariables; ++row)
+            for (int row = highestAvailableRow; row < _numEquations; ++row)
             {
                 T coefficient = _coefficients[row, currentCol];
-                RowAdd(row, highestAvailableRow - 1, -coefficient);
+                if (currentCol == _numVariables - 1) RowAdd(row, highestAvailableRow - 1, -coefficient + T.One);
+                else RowAdd(row, highestAvailableRow - 1, -coefficient);
             }
         }
     }
-    
-    public T[] Solve()
+
+    public T[,] GetTranspose()
     {
+        T[,] transpose = new T[_coefficients.GetLength(1), _coefficients.GetLength(0)];
+        for (int i = 0; i < _coefficients.GetLength(0); ++i)
+            for (int j = 0; j < _coefficients.GetLength(1); ++j)
+                transpose[j, i] = _coefficients[i, j];
+
+        return transpose;
+    }
+
+    public void Normalize()
+    {
+        T[,] transpose = GetTranspose();
+        
+        T[,] resultCoefficients = new T[_numVariables, _numVariables];
+        for (int i = 0; i < _numVariables; ++i)
+            for (int j = 0; j < _numVariables; ++j)
+                for (int k = 0; k < _numEquations; ++k)
+                    resultCoefficients[i, j] += transpose[i, k] * _coefficients[k, j];
+
+        T[] resultConstants = new T[_numVariables];
+        for (int i = 0; i < _numVariables; ++i)
+            for (int j = 0; j < _numEquations; ++j)
+                resultConstants[i] += transpose[i, j] * _constants[j];
+        
+        _coefficients = resultCoefficients;
+        _constants = resultConstants;
+        
+        _numEquations = _numVariables;
+    }
+    
+    public T[] Solve(bool normalize = false)
+    {
+        if (normalize) Normalize();
         ConvertToReducedEchelonForm();
         T[] result = new T[_numVariables];
 

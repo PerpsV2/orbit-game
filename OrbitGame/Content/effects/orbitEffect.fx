@@ -24,6 +24,7 @@ float C2;
 float C3;
 float C4;
 float C5;
+float C6;
 
 float StartAnomaly;
 float EndAnomaly;
@@ -90,15 +91,15 @@ float WithinConic2(float2 coords) {
            C2 * coords.x * coords.y + 
            C3 * coords.y * coords.y +
            C4 * coords.x + 
-           C5 * coords.y <= 1;
+           C5 * coords.y + C6 <= 0;
 }
 
 float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
     float2 rightTexel = input.TexCoords - Focus + float2(TexelSize.x, 0);
-    float2 topTexel = input.TexCoords - Focus + float2(0, TexelSize.y);
-    float2 leftTexel = input.TexCoords - Focus + float2(-TexelSize.x, 0);
-    float2 bottomTexel = input.TexCoords - Focus + float2(0, -TexelSize.y);
+    float2 topTexel = input.TexCoords - Focus  + float2(0, TexelSize.y);
+    float2 leftTexel = input.TexCoords - Focus  + float2(-TexelSize.x, 0);
+    float2 bottomTexel = input.TexCoords - Focus  + float2(0, -TexelSize.y);
     
     if (WithinConic2(rightTexel) && WithinConic2(topTexel) && WithinConic2(leftTexel) && WithinConic2(bottomTexel))
         return float4(0, 0, 0, 0);

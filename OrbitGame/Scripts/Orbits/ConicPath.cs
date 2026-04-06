@@ -192,76 +192,6 @@ public class ConicPath
         }
     }
 
-    private void DrawZoomedOutConic(KeplerOrbit orbit)
-    {
-        Camera camera = OrbitGame.Camera;
-        IGraphicsHandler graphics = OrbitGame.Graphics;
-
-        Color colour = _colour;
-        
-        graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object> {
-            { "Colour", colour.ToVector4() },
-            { "Focus", camera.ConvertToScreenCoordinates(orbit.Parent.Position) },
-            { "TexelSize", new Vector2(0.5f, 0.5f) }
-        });
-        
-        //float semiLatusRectum = camera.ConvertToScreenDistance(orbit.SemiLatusRectum.Map<SDecimal>());
-        //double argumentOfPeriapsis = orbit.Periapsis + camera.Angle;
-        /*Vector2 focusCoords = camera.ConvertToScreenCoordinates(orbit.Parent.Position);
-        Vector2 oppositeFocusCoords = camera.ConvertToScreenCoordinates(orbit.Parent.Position +
-                                                                        orbit.GetOrbitPositionFromTrueAnomaly(0) +
-                                                                        orbit.GetOrbitPositionFromTrueAnomaly(Math.PI));
-
-        if (focusCoords.Length() > oppositeFocusCoords.Length())
-        {
-            focusCoords = oppositeFocusCoords;
-            argumentOfPeriapsis -= Math.PI;
-        }*/
-        
-        /*float startAnomaly;
-        float endAnomaly;
-        if (StartAngle is null || EndAngle is null)
-        {
-            startAnomaly = 0;
-            endAnomaly = (float)Math.Tau;
-        }
-        else
-        {
-            startAnomaly = (float)StartAngle;
-            endAnomaly = (float)EndAngle;
-        }
-        
-        graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object> {
-            { "Colour", colour.ToVector4() },
-            { "ArgumentOfPeriapsis", (float)-argumentOfPeriapsis },
-            { "Center", camera.ConvertToScreenCoordinates(orbit.Parent.Position + orbit.Center) },
-            { "MajorAxis", camera.ConvertToScreenDistance(orbit.SemiMajorAxis) },
-            { "MinorAxis", camera.ConvertToScreenDistance(orbit.SemiMinorAxis) },
-            { "StartAnomaly", startAnomaly },
-            { "EndAnomaly", endAnomaly },
-            { "TexelSize", new Vector2(0.5f, 0.5f) }
-        });*/
-        
-        /*graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object> {
-            { "Colour", colour.ToVector4() },
-            { "Eccentricity", (float)orbit.Eccentricity },
-            { "SemiLatusRectum", semiLatusRectum },
-            { "ArgumentOfPeriapsis", (float)argumentOfPeriapsis },
-            { "Focus", focusCoords },
-            { "StartAnomaly", startAnomaly },
-            { "EndAnomaly", endAnomaly },
-            { "TexelSize", new Vector2(0.5f, 0.5f) }
-        });*/
-    }
-
-    private void DrawZoomedInConic(KeplerOrbit orbit)
-    {
-        
-    }
-
-    /// <summary>
-    /// Draws a conical section orbit of an object around a parent using the Laplace-Runge-Lenz vector.
-    /// </summary>
     public void Draw()
     {
         if (Orbit == null)
@@ -275,7 +205,7 @@ public class ConicPath
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphics = OrbitGame.Graphics;
         
-        Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
+        /*Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
             (camera.TopRight - orbit.Parent.Position).Direction(),
             (camera.TopLeft - orbit.Parent.Position).Direction(),
             (camera.BottomLeft - orbit.Parent.Position).Direction(),
@@ -284,25 +214,32 @@ public class ConicPath
         if (minAngle > maxAngle) maxAngle += Math.Tau;
         
         List<double> samplePointAngles = [];
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 5, angle => { samplePointAngles.Add(angle); });
+        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 5, (_, angle) => { samplePointAngles.Add(angle); }, true);
         List<Vector2> screenPoints = samplePointAngles
             .Select(x => camera.ConvertToScreenCoordinates(orbit.GetOrbitPositionFromWorldAngle(x) + orbit.Parent.Position))
             .ToList();
+        screenPoints.Insert(0, camera.ConvertToScreenCoordinates(orbit.Body.Position));
 
         if (screenPoints.Count < 5)
         {
             _onScreen = false;
             return;
         }
+        
+        if (screenPoints[1].Length() > 10000)
+        {
+            _onScreen = false;
+            return;
+        }
 
-        if (screenPoints[0].Length() > 10000 || (screenPoints[0] - screenPoints[1]).Length() < 1)
+        if (screenPoints.All(x => (x - screenPoints[0]).Length() < 5))
         {
             _onScreen = false;
             return;
         }
         
-        LinearEquationSystem<float> linearSystem = new LinearEquationSystem<float>(5);
-        for (int i = 0; i < 5; i++)
+        LinearEquationSystem<float> linearSystem = new LinearEquationSystem<float>(5, 5);
+        for (int i = 0; i < 5; ++i)
         {
             Vector2 point = screenPoints[i];
             linearSystem.SetCoefficient(i * 5 + 0, point.X * point.X);
@@ -312,21 +249,42 @@ public class ConicPath
             linearSystem.SetCoefficient(i * 5 + 4, point.Y);
             linearSystem.SetConstant(i, 1);
         }
-        float[] conicCoefficients = linearSystem.Solve();
 
+        float[] conicCoefficients = linearSystem.Solve();*/
+        
+        float[] conicCoefficients = new float[6];
+        double e = orbit.Eccentricity;
+        double e2 = e * e;
+        double p = Math.Tau - orbit.Periapsis;
+        double l = camera.ConvertToScreenDistance(orbit.SemiLatusRectum);
+        Vector2 fVec = camera.ConvertToScreenCoordinates(orbit.Parent.Position);
+        double fX = fVec.X;
+        double fY = fVec.Y;
+        double cosP = Math.Cos(p);
+        double sinP = Math.Sin(p);
+        conicCoefficients[0] = (float)(1 - e2 * cosP * cosP);
+        conicCoefficients[1] = -(float)(2 * e2 * cosP * sinP);
+        conicCoefficients[2] = (float)(1 - e2 * sinP * sinP);
+        conicCoefficients[3] = -2 * (float)(fX * (1 - e2 * cosP * cosP) - fY / 2 * e2 * Math.Sin(2 * p) - e * l * cosP);
+        conicCoefficients[4] = -2 * (float)(fY * (1 - e2 * sinP * sinP) - fX / 2 * e2 * Math.Sin(2 * p) - e * l * sinP);
+        conicCoefficients[5] = (float)(fX * fX * (1 - e2 * cosP * cosP) + fY * fY * (1 - e2 * sinP * sinP) - 
+                                       fX * fY * e2 * Math.Sin(2 * p) - 
+                                       2 * e * l * (fX * cosP + fY * sinP) - l * l);
+        
         Color colour = _colour;
         graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "Colour", colour.ToVector4() },
-            { "Focus", Vector2.Zero },
+            { "Focus", Vector2.Zero},
             { "C1", conicCoefficients[0] },
             { "C2", conicCoefficients[1] },
             { "C3", conicCoefficients[2] },
             { "C4", conicCoefficients[3] },
             { "C5", conicCoefficients[4] },
+            { "C6", conicCoefficients[5] },
             { "TexelSize", new Vector2(0.5f, 0.5f) }
         });
-        
+
         //if (camera.MaximumRadiusSquared > SDecimal.Square(orbit.GetDistanceFromTrueAnomaly(0)))
         //DrawZoomedOutConic(orbit);
         //else DrawZoomedInConic(orbit);

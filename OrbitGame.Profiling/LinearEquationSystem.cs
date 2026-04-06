@@ -5,10 +5,10 @@ namespace OrbitGame.Profiling;
 public class LinearEquationSystem<T>(int numVariables, int numEquations)
     where T : INumber<T>
 {
-    private readonly int _numEquations = numEquations;
-    private readonly int _numVariables = numVariables;
-    private readonly T[,] _coefficients = new T[numEquations, numVariables];
-    private readonly T[] _constants = new T[numEquations];
+    private int _numEquations = numEquations;
+    private int _numVariables = numVariables;
+    private T[,] _coefficients = new T[numEquations, numVariables];
+    private T[] _constants = new T[numEquations];
 
     public void SetCoefficient(int index, T value)
     {
@@ -77,27 +77,50 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
             for (int row = highestAvailableRow; row < _numEquations; ++row)
             {
                 T coefficient = _coefficients[row, currentCol];
-                RowAdd(row, highestAvailableRow - 1, -coefficient);
+                if (currentCol == _numVariables - 1) RowAdd(row, highestAvailableRow - 1, -coefficient + T.One);
+                else RowAdd(row, highestAvailableRow - 1, -coefficient);
             }
         }
+    }
+
+    public T[,] GetTranspose()
+    {
+        T[,] transpose = new T[_coefficients.GetLength(1), _coefficients.GetLength(0)];
+        for (int i = 0; i < _coefficients.GetLength(0); ++i)
+            for (int j = 0; j < _coefficients.GetLength(1); ++j)
+                transpose[j, i] = _coefficients[i, j];
+
+        return transpose;
+    }
+
+    public void Normalize()
+    {
+        T[,] transpose = GetTranspose();
+        
+        T[,] resultCoefficients = new T[_numVariables, _numVariables];
+        for (int i = 0; i < _numVariables; ++i)
+            for (int j = 0; j < _numVariables; ++j)
+                for (int k = 0; k < _numEquations; ++k)
+                    resultCoefficients[i, j] += transpose[i, k] * _coefficients[k, j];
+
+        T[] resultConstants = new T[_numVariables];
+        for (int i = 0; i < _numVariables; ++i)
+            for (int j = 0; j < _numEquations; ++j)
+                resultConstants[i] += transpose[i, j] * _constants[j];
+        
+        _coefficients = resultCoefficients;
+        _constants = resultConstants;
+        
+        _numEquations = _numVariables;
     }
     
     public T[] Solve()
     {
+        Normalize();
         ConvertToReducedEchelonForm();
         T[] result = new T[_numVariables];
 
-        T samples = T.Zero;
-        for (int i = _numEquations - 1; i >= _numVariables - 1; --i)
-        {
-            if (i != _numVariables - 1)
-                result[_numVariables - 1] += _constants[_numVariables - 1] + _constants[i];
-            else result[_numVariables - 1] += _constants[i];
-            ++samples;
-        }
-        result[_numVariables - 1] /= samples;
-
-        for (int i = _numVariables - 2; i >= 0; --i)
+        for (int i = _numVariables - 1; i >= 0; --i)
         {
             result[i] = _constants[i];
             for (int j = _numVariables - 1; j > i; --j)

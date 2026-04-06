@@ -87,11 +87,16 @@ public static class Utils
         }
     }
 
-    public static void IterateAngleRange(double start, double end, double step, Action<double> action)
+    public static void IterateAngleRange(double start, double end, double step, Action<int, double> action, 
+        bool extraIteration = false)
     {
         if (start > end) end += Math.Tau;
-        for (double angle = start; angle <= end; angle += step)
-            action(WrapAngle(angle));
+        int i = 0;
+        for (double angle = start; angle <= end + step * (extraIteration ? 1 : 0); angle += step)
+        {
+            action(i, WrapAngle(angle));
+            ++i;
+        }
     }
 
     public static double GetClockwiseAngle(double left, double right)
