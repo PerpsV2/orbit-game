@@ -61,8 +61,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     private Vec2<SDecimal> CalculateGravitationalAcceleration(Body attractor)
     {
-        double angle = Vec2<SDecimal>.Direction(Position, attractor.Position);
-        Vec2<SDecimal> direction = Vec2<SDecimal>.FromPolar(angle);
+        Vec2<SDecimal> direction = (attractor.Position - Position).Normalize();
         SDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
         return direction * magnitude;
     }
@@ -73,10 +72,13 @@ public abstract class Body : KinematicObject
     private Vec2<SDecimal> CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
     {
         Vec2<SDecimal> result = Vec2<SDecimal>.Zero;
-        return attractors
-            .Where(x => x != this)
-            .Aggregate(result, (sum, next) => 
-                sum + CalculateGravitationalAcceleration(next));
+        foreach (var attractor in attractors)
+        {
+            if (attractor == this) continue;
+            result += CalculateGravitationalAcceleration(attractor);
+        }
+
+        return result;
     }
     
     /// <summary>
@@ -84,7 +86,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual Vec2<SDecimal> CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(KinematicObjectTemplate.AllInstances.Values.OfType<Body>());
+        return CalculateNetGravitationalAcceleration(KinematicObjectTemplate.AllInstances.Values.OfType<Planet>());
     }
     
     /// <summary>

@@ -13,10 +13,17 @@ matrix Projection;
 matrix World;
 
 float4 Colour;
+
+float ArgumentOfPeriapsis;
 float Eccentricity;
 float SemiLatusRectum;
-float ArgumentOfPeriapsis;
-float2 Center;
+float2 Focus;
+
+float C1;
+float C2;
+float C3;
+float C4;
+float C5;
 
 float StartAnomaly;
 float EndAnomaly;
@@ -60,8 +67,8 @@ bool WithinConic(float2 texCoords)
 
 float4 DefaultPS(VertexShaderOutput input) : COLOR
 {
-    float2 centerRelativeCoords = input.TexCoords - Center + TexelSize / 2;
-
+    float2 centerRelativeCoords = input.TexCoords - Focus + TexelSize / 2;
+    
     float trueAnomaly = Mod((atan2(centerRelativeCoords.x, centerRelativeCoords.y) - ArgumentOfPeriapsis), TAU);
     if (trueAnomaly < StartAnomaly || trueAnomaly > EndAnomaly) return float4(0, 0, 0, 0);
 
@@ -70,36 +77,34 @@ float4 DefaultPS(VertexShaderOutput input) : COLOR
     float2 leftTexel = centerRelativeCoords + float2(-TexelSize.x, 0);
     float2 bottomTexel = centerRelativeCoords + float2(0, -TexelSize.y);
     
-    if (WithinConic(rightTexel) && WithinConic(topTexel) && WithinConic(leftTexel) && WithinConic(bottomTexel)) {
+    if (WithinConic(rightTexel) && WithinConic(topTexel) && WithinConic(leftTexel) && WithinConic(bottomTexel))
         return float4(0, 0, 0, 0);
-    }
-    if (!WithinConic(rightTexel) && !WithinConic(topTexel) && !WithinConic(leftTexel) && !WithinConic(bottomTexel)) {
+    if (!WithinConic(rightTexel) && !WithinConic(topTexel) && !WithinConic(leftTexel) && !WithinConic(bottomTexel))
         return float4(0, 0, 0, 0);
-    }
+
     return Colour;
 }
 
-float4 DottedPS(VertexShaderOutput input) : COLOR
+float WithinConic2(float2 coords) {
+    return C1 * coords.x * coords.x +
+           C2 * coords.x * coords.y + 
+           C3 * coords.y * coords.y +
+           C4 * coords.x + 
+           C5 * coords.y <= 1;
+}
+
+float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
-    float2 centerRelativeCoords = input.TexCoords - Center + TexelSize / 2;
-
-    if (Mod(centerRelativeCoords.x, 10) >= 5 && Mod(centerRelativeCoords.y, 10) >= 5) return float4(0, 0, 0, 0);
-    if (Mod(centerRelativeCoords.x + 10, 10) >= 5 && Mod(centerRelativeCoords.y + 10, 10) >= 5) return float4(0, 0, 0, 0);
-
-    float trueAnomaly = Mod((atan2(centerRelativeCoords.x, centerRelativeCoords.y) - ArgumentOfPeriapsis), TAU);
-    if (trueAnomaly < StartAnomaly || trueAnomaly > EndAnomaly) return float4(0, 0, 0, 0);
-
-    float2 rightTexel = centerRelativeCoords + float2(TexelSize.x, 0);
-    float2 topTexel = centerRelativeCoords + float2(0, TexelSize.y);
-    float2 leftTexel = centerRelativeCoords + float2(-TexelSize.x, 0);
-    float2 bottomTexel = centerRelativeCoords + float2(0, -TexelSize.y);
+    float2 rightTexel = input.TexCoords - Focus + float2(TexelSize.x, 0);
+    float2 topTexel = input.TexCoords - Focus + float2(0, TexelSize.y);
+    float2 leftTexel = input.TexCoords - Focus + float2(-TexelSize.x, 0);
+    float2 bottomTexel = input.TexCoords - Focus + float2(0, -TexelSize.y);
     
-    if (WithinConic(rightTexel) && WithinConic(topTexel) && WithinConic(leftTexel) && WithinConic(bottomTexel)) {
+    if (WithinConic2(rightTexel) && WithinConic2(topTexel) && WithinConic2(leftTexel) && WithinConic2(bottomTexel))
         return float4(0, 0, 0, 0);
-    }
-    if (!WithinConic(rightTexel) && !WithinConic(topTexel) && !WithinConic(leftTexel) && !WithinConic(bottomTexel)) {
+    if (!WithinConic2(rightTexel) && !WithinConic2(topTexel) && !WithinConic2(leftTexel) && !WithinConic2(bottomTexel))
         return float4(0, 0, 0, 0);
-    }
+
     return Colour;
 }
 
@@ -112,9 +117,9 @@ technique BasicOrbitDrawing
     }
 };
 
-technique DottedOrbitDrawing {
+technique EllipseTrajectoryDrawing {
     pass P0 {
         VertexShader = compile VS_SHADERMODEL MainVS();
-        PixelShader = compile PS_SHADERMODEL DottedPS();
+        PixelShader = compile PS_SHADERMODEL EllipsePS();
     }
 }

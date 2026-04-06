@@ -11,6 +11,18 @@ public class PatchedConicPath
     private List<ManeuverNode> ManeuverNodes { get; } = [];
     public ConicPath[] Conics { get; }
 
+    private bool _mouseDetectionEnabled;
+    public bool MouseDetectionEnabled
+    {
+        get => _mouseDetectionEnabled;
+        set
+        {
+            _mouseDetectionEnabled = value;
+            foreach (var conic in Conics)
+                conic.MouseDetectionEnabled = value;
+        }
+    }
+
     public PatchedConicPath(OrbitMesh mesh, Color colour)
     {
         Conics = new ConicPath[Options.PatchedConicDetail];

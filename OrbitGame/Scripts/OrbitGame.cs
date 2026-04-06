@@ -222,14 +222,15 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 500; i++)
         {
              Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
                      new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
-                     Vec2<SDecimal>.Zero
+                     new Vec2<SDecimal>(_rnd.Next(0, 0), _rnd.Next(2000, 7000))
                  ), 1000, new Color(0, 255, 0, 255), earth);
-             smokestack.DrawOrbitalPath = false;
+             smokestack.DrawOrbitalPath = true;
+             smokestack.MouseDetectionEnabled = false;
         }
         
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
@@ -240,7 +241,7 @@ public class OrbitGame : Game
             new(-0.75, 1.25)
         ]), shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, -8000), Math.PI / 2), 
+            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 1000), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -485,7 +486,7 @@ public class OrbitGame : Game
                     tasks.Add(Task.Run(() =>
                     {
                         ship.UpdatePosition_Integrator(GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
-                            ship.CalculateNetAcceleration);
+                            ship.CalculateNetAcceleration); 
                         ship.GenerateOrbitPath(GameState.PhysicsTime);
                     }));
                 }
@@ -500,7 +501,7 @@ public class OrbitGame : Game
 
             Task.WaitAll(tasks.ToArray());
             
-            _collisionHandler.ResolveCollisions();
+            //_collisionHandler.ResolveCollisions();
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)

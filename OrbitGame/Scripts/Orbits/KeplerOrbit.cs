@@ -28,12 +28,12 @@ public readonly record struct KeplerOrbit
     private readonly SpatialInfo _initialParentSpatialInfo;
     private readonly SpatialInfo _initialOrbitalSpatialInfo;
     
-    private PDecimal PBodyMass => (PDecimal)Body.Mass;
-    private PDecimal PParentMass => (PDecimal) Parent.Mass;
+    private SDecimal PBodyMass => (SDecimal)Body.Mass;
+    private SDecimal PParentMass => (SDecimal) Parent.Mass;
     
     // ----- Orbital Parameters ----- 
-    public readonly Vec2<PDecimal> LRLVector;
-    public readonly PDecimal SemiLatusRectum;
+    public readonly Vec2<SDecimal> LRLVector;
+    public readonly SDecimal SemiLatusRectum;
     public readonly bool Prograde;
     
     private readonly Lazy<double> _lazyPeriapsis;
@@ -83,19 +83,19 @@ public readonly record struct KeplerOrbit
             bodySpatialInfo.Velocity - parentSpatialInfo.Velocity
         );
 
-        Vec2<PDecimal> orbitalPosition = (bodySpatialInfo.Position - parentSpatialInfo.Position).Map<PDecimal>();
-        Vec2<PDecimal> orbitalVelocity = (bodySpatialInfo.Velocity - parentSpatialInfo.Velocity).Map<PDecimal>();
-        PDecimal pObjectMass = (PDecimal)body.Mass;
-        PDecimal pParentMass = (PDecimal)parent.Mass;
+        Vec2<SDecimal> orbitalPosition = (bodySpatialInfo.Position - parentSpatialInfo.Position).Map<SDecimal>();
+        Vec2<SDecimal> orbitalVelocity = (bodySpatialInfo.Velocity - parentSpatialInfo.Velocity).Map<SDecimal>();
+        SDecimal pObjectMass = (SDecimal)body.Mass;
+        SDecimal pParentMass = (SDecimal)parent.Mass;
         
-        Vec2<PDecimal> momentum = orbitalVelocity * pObjectMass;
-        Vec3<PDecimal> angularMomentum = Vec2<PDecimal>.Cross(orbitalPosition, momentum);
-        Vec2<PDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
-        PDecimal forceStrength = pObjectMass * pParentMass * Constants.GPrecise;
+        Vec2<SDecimal> momentum = orbitalVelocity * pObjectMass;
+        Vec3<SDecimal> angularMomentum = Vec2<SDecimal>.Cross(orbitalPosition, momentum);
+        Vec2<SDecimal> orbitalDirectionVector = orbitalPosition.Normalize();
+        SDecimal forceStrength = pObjectMass * pParentMass * Constants.G;
         Prograde = Math.Acos(angularMomentum.Z.Positive ? 1 : -1) == 0;
-        LRLVector = (Vec2<PDecimal>)Vec3<PDecimal>.Cross(momentum, angularMomentum) - 
+        LRLVector = (Vec2<SDecimal>)Vec3<SDecimal>.Cross(momentum, angularMomentum) - 
                     orbitalDirectionVector * pObjectMass * forceStrength;
-        SemiLatusRectum = PDecimal.Square(angularMomentum.Magnitude()) / pObjectMass / forceStrength;
+        SemiLatusRectum = SDecimal.Square(angularMomentum.Magnitude()) / pObjectMass / forceStrength;
         
         // initialize lazy fields
         _lazyEccentricity = new(LazyInitializeEccentricity);
@@ -120,16 +120,16 @@ public readonly record struct KeplerOrbit
     { }
 
     private double LazyInitializePeriapsis()
-        => LRLVector != Vec2<PDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
+        => LRLVector != Vec2<SDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
 
     private double LazyInitializeEccentricity()
-        => (double)(LRLVector.Magnitude() / PDecimal.Abs(PBodyMass * PBodyMass * PParentMass * Constants.GPrecise));
+        => (double)(LRLVector.Magnitude() / SDecimal.Abs(PBodyMass * PBodyMass * PParentMass * Constants.G));
     
     private OrbitEquation LazyInitializeEquation()
     {
         double periapsis = Periapsis;
         double eccentricity = Eccentricity;
-        PDecimal semiLatusRectum = SemiLatusRectum;
+        SDecimal semiLatusRectum = SemiLatusRectum;
         return angle => (SDecimal)(semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis)));
     }
 

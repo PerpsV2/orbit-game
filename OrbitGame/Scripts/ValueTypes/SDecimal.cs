@@ -318,7 +318,7 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     
     public static double Atan2(SDecimal y, SDecimal x)
     {
-        double quotient = ConvertToDoubleSaturating(y / x);
+        double quotient = ConvertToDouble(y / x);
         if (x > 0) return Math.Atan(quotient);
         if (x < 0 && y >= 0) return Math.Atan(quotient) + Math.PI;
         if (x < 0 && y < 0) return Math.Atan(quotient) - Math.PI;

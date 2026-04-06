@@ -54,7 +54,9 @@ public class ScreenMesh : IMesh
         effect.Parameters["World"].SetValue(transform);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
-
+        
+        effect.CurrentTechnique = effect.Techniques["EllipseTrajectoryDrawing"];
+        
         foreach (var pass in effect.CurrentTechnique.Passes)
         {
             pass.Apply();

@@ -115,7 +115,7 @@ public readonly struct Vec2<T>(T x, T y) : IEquatable<Vec2<T>>, IFormattable
     {
         if (this == Zero)
             throw new DivideByZeroException("Cannot normalize zero vector");
-        return FromPolar(Direction());
+        return this / Magnitude();
     }
 
     /// <summary>

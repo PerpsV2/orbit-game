@@ -55,7 +55,7 @@ public static class Options
     public const uint EccentricAnomalyApproximationMaxIterations = 5;
 
     public const int PatchedConicDetail = 150;
-    public const uint IntegratorIterationAmount = 10;
+    public const uint IntegratorIterationAmount = 3;
     public const float MinimumShipCrashSpeed = 50f;
     /// <summary>
     /// Maximum time warp adjusted speed until an object is no longer resting
