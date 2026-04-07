@@ -454,14 +454,9 @@ public class OrbitGame : Game
             new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, 0.1));
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(
             new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, -0.1));
-
-        if (keyboardState.IsKeyDown(Keys.O)) Angle += 0.01f;
-        if (keyboardState.IsKeyDown(Keys.P)) Angle -= 0.01f;
         
         _lastKeyboardState = keyboardState;
     }
-
-    public static float Angle;
 
     protected override void Update(GameTime gameTime)
     {

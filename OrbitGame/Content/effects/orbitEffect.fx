@@ -14,10 +14,8 @@ matrix World;
 
 float4 Colour;
 
-float ArgumentOfPeriapsis;
 float Eccentricity;
-float SemiLatusRectum;
-float2 Focus;
+float2 Center;
 
 float C1;
 float C2;
@@ -26,10 +24,10 @@ float C4;
 float C5;
 float C6;
 
-float HyperbolaSymmetryAngle;
+float ConicSymmetryAngle;
 
-float StartAnomaly;
-float EndAnomaly;
+//float StartAnomaly;
+//float EndAnomaly;
 
 float2 TexelSize;
 
@@ -59,32 +57,8 @@ float Mod(float x, float y) {
     return x - y * floor(x / y);
 }
 
-bool WithinConic(float2 texCoords) 
-{
-    float angle = atan2(texCoords.x, texCoords.y);
-    float trueAnomaly = angle - ArgumentOfPeriapsis;
-    float conicDistance = SemiLatusRectum / (1 + Eccentricity * cos(trueAnomaly));
-    if (conicDistance < 0) return true;
-    return length(texCoords) < conicDistance;
-}
-
 float4 DefaultPS(VertexShaderOutput input) : COLOR
 {
-    float2 centerRelativeCoords = input.TexCoords - Focus + TexelSize / 2;
-    
-    float trueAnomaly = Mod((atan2(centerRelativeCoords.x, centerRelativeCoords.y) - ArgumentOfPeriapsis), TAU);
-    if (trueAnomaly < StartAnomaly || trueAnomaly > EndAnomaly) return float4(0, 0, 0, 0);
-
-    float2 rightTexel = centerRelativeCoords + float2(TexelSize.x, 0);
-    float2 topTexel = centerRelativeCoords + float2(0, TexelSize.y);
-    float2 leftTexel = centerRelativeCoords + float2(-TexelSize.x, 0);
-    float2 bottomTexel = centerRelativeCoords + float2(0, -TexelSize.y);
-    
-    if (WithinConic(rightTexel) && WithinConic(topTexel) && WithinConic(leftTexel) && WithinConic(bottomTexel))
-        return float4(0, 0, 0, 0);
-    if (!WithinConic(rightTexel) && !WithinConic(topTexel) && !WithinConic(leftTexel) && !WithinConic(bottomTexel))
-        return float4(0, 0, 0, 0);
-
     return Colour;
 }
 
@@ -98,17 +72,15 @@ float WithinConic2(float2 coords) {
 }
 
 bool WithinAngle(float2 coords) {
-    float modAngle = Mod(HyperbolaSymmetryAngle, TAU);
+    float modAngle = Mod(ConicSymmetryAngle, TAU);
     if (modAngle < TAU / 4 || modAngle > 3 * TAU / 4) return coords.y > tan(modAngle) * coords.x;
     else return coords.y < tan(modAngle) * coords.x;
 }
 
 float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
-    float2 focusCoords = input.TexCoords - Focus;
-    if (WithinAngle(focusCoords)) return float4(0, 0, 0, 0);
-    //float anomaly = Mod(atan2(focusCoords.y, focusCoords.x) - ArgumentOfPeriapsis, TAU);
-    //if (anomaly < StartAnomaly || anomaly > EndAnomaly) return float4(0, 0, 0, 0);
+    float2 focusCoords = input.TexCoords - Center;
+    if (WithinAngle(focusCoords) && Eccentricity > 1) return float4(0, 0, 0, 0);
 
     float2 rightTexel = input.TexCoords + float2(TexelSize.x, 0);
     float2 topTexel = input.TexCoords + float2(0, TexelSize.y);

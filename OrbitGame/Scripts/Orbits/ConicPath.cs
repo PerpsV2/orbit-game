@@ -251,12 +251,13 @@ public class ConicPath
         }*/
         
         Color colour = _colour;
+        
         graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "Colour", colour.ToVector4() },
-            { "Focus", camera.ConvertToScreenCoordinates(orbit.Center) },
-            { "ArgumentOfPeriapsis", (float)orbit.Periapsis },
-            { "HyperbolaSymmetryAngle", (float)OrbitGame.Angle },
+            { "Center", camera.ConvertToScreenCoordinates(orbit.Center + orbit.Parent.Position) },
+            { "Eccentricity", (float)orbit.Eccentricity },
+            { "ConicSymmetryAngle", (float)(orbit.Periapsis - Math.PI / 2) },
             { "C1", conicCoefficients[0] },
             { "C2", conicCoefficients[1] },
             { "C3", conicCoefficients[2] },
