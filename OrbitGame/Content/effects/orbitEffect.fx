@@ -16,6 +16,7 @@ float4 Colour;
 
 float Eccentricity;
 float2 Center;
+float2 Focus;
 
 float C1;
 float C2;
@@ -25,9 +26,8 @@ float C5;
 float C6;
 
 float ConicSymmetryAngle;
-
-//float StartAnomaly;
-//float EndAnomaly;
+float StartAngle;
+float EndAngle;
 
 float2 TexelSize;
 
@@ -79,8 +79,11 @@ bool WithinLineOfSymmetry(float2 coords) {
 
 float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
-    float2 focusCoords = input.TexCoords - Center;
-    if (WithinLineOfSymmetry(focusCoords) && Eccentricity > 1) return float4(0, 0, 0, 0);
+    float2 centerCoords = input.TexCoords - Center;
+    if (WithinLineOfSymmetry(centerCoords) && Eccentricity > 1) return float4(0, 0, 0, 0);
+    float2 focusCoords = input.TexCoords - Focus;
+    float texelAngle = Mod(atan2(focusCoords.y, focusCoords.x), TAU);
+    if (texelAngle < StartAngle || texelAngle > EndAngle) return float4(0, 0, 0, 0);
 
     float2 rightTexel = input.TexCoords + float2(TexelSize.x, 0);
     float2 topTexel = input.TexCoords + float2(0, TexelSize.y);

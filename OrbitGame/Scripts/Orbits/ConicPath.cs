@@ -241,15 +241,24 @@ public class ConicPath
             return;
         }*/
 
-        float startAnomaly = 0;
-        float endAnomaly = (float)Math.Tau;
+        float drawnStartAngle = (float)0;
+        float drawnEndAngle = (float)Math.Tau;
         
+        if (StartAngle is not null && EndAngle is not null)
+        {
+            drawnStartAngle = (float)Utils.WrapAngle(StartAngle.Value - orbit.Periapsis);
+            drawnEndAngle = (float)Utils.WrapAngle(EndAngle.Value - orbit.Periapsis);
+        }
+        
+        if (drawnStartAngle > drawnEndAngle) (drawnStartAngle, drawnEndAngle) = (drawnEndAngle, drawnStartAngle);
+
         Color colour = _colour;
         
         graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "Colour", colour.ToVector4() },
             { "Center", camera.ConvertToScreenCoordinates(orbit.Center + orbit.Parent.Position) },
+            { "Focus", camera.ConvertToScreenCoordinates(orbit.Parent.Position) },
             { "Eccentricity", (float)orbit.Eccentricity },
             { "ConicSymmetryAngle", (float)(orbit.Periapsis - Math.PI / 2) },
             { "C1", conicCoefficients[0] },
@@ -258,6 +267,8 @@ public class ConicPath
             { "C4", conicCoefficients[3] },
             { "C5", conicCoefficients[4] },
             { "C6", conicCoefficients[5] },
+            { "StartAngle", drawnStartAngle },
+            { "EndAngle", drawnEndAngle },
             { "TexelSize", new Vector2(0.5f, 0.5f) }
         });
 
