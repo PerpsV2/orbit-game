@@ -62,7 +62,7 @@ float4 DefaultPS(VertexShaderOutput input) : COLOR
     return Colour;
 }
 
-float WithinConic2(float2 coords) {
+float WithinConic(float2 coords) {
     return C1 * coords.x * coords.x +
            C2 * coords.x * coords.y + 
            C3 * coords.y * coords.y +
@@ -71,7 +71,7 @@ float WithinConic2(float2 coords) {
            C6 <= 0;
 }
 
-bool WithinAngle(float2 coords) {
+bool WithinLineOfSymmetry(float2 coords) {
     float modAngle = Mod(ConicSymmetryAngle, TAU);
     if (modAngle < TAU / 4 || modAngle > 3 * TAU / 4) return coords.y > tan(modAngle) * coords.x;
     else return coords.y < tan(modAngle) * coords.x;
@@ -80,16 +80,16 @@ bool WithinAngle(float2 coords) {
 float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
     float2 focusCoords = input.TexCoords - Center;
-    if (WithinAngle(focusCoords) && Eccentricity > 1) return float4(0, 0, 0, 0);
+    if (WithinLineOfSymmetry(focusCoords) && Eccentricity > 1) return float4(0, 0, 0, 0);
 
     float2 rightTexel = input.TexCoords + float2(TexelSize.x, 0);
     float2 topTexel = input.TexCoords + float2(0, TexelSize.y);
     float2 leftTexel = input.TexCoords + float2(-TexelSize.x, 0);
     float2 bottomTexel = input.TexCoords + float2(0, -TexelSize.y);
     
-    if (WithinConic2(rightTexel) && WithinConic2(topTexel) && WithinConic2(leftTexel) && WithinConic2(bottomTexel))
+    if (WithinConic(rightTexel) && WithinConic(topTexel) && WithinConic(leftTexel) && WithinConic(bottomTexel))
         return float4(0, 0, 0, 0);
-    if (!WithinConic2(rightTexel) && !WithinConic2(topTexel) && !WithinConic2(leftTexel) && !WithinConic2(bottomTexel))
+    if (!WithinConic(rightTexel) && !WithinConic(topTexel) && !WithinConic(leftTexel) && !WithinConic(bottomTexel))
         return float4(0, 0, 0, 0);
 
     return Colour;
@@ -100,13 +100,6 @@ technique BasicOrbitDrawing
     pass P0
     {
         VertexShader = compile VS_SHADERMODEL MainVS();
-        PixelShader = compile PS_SHADERMODEL DefaultPS();
+                PixelShader = compile PS_SHADERMODEL EllipsePS();
     }
 };
-
-technique EllipseTrajectoryDrawing {
-    pass P0 {
-        VertexShader = compile VS_SHADERMODEL MainVS();
-        PixelShader = compile PS_SHADERMODEL EllipsePS();
-    }
-}

@@ -243,12 +243,6 @@ public class ConicPath
 
         float startAnomaly = 0;
         float endAnomaly = (float)Math.Tau;
-
-        /*if (orbit.Eccentricity > 1)
-        {
-            endAnomaly = (float)Utils.WrapAngle(Math.Acos(-1 / orbit.Eccentricity));
-            startAnomaly = (float)Math.Tau;
-        }*/
         
         Color colour = _colour;
         
