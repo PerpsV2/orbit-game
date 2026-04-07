@@ -26,6 +26,8 @@ float C4;
 float C5;
 float C6;
 
+float HyperbolaSymmetryAngle;
+
 float StartAnomaly;
 float EndAnomaly;
 
@@ -91,15 +93,27 @@ float WithinConic2(float2 coords) {
            C2 * coords.x * coords.y + 
            C3 * coords.y * coords.y +
            C4 * coords.x + 
-           C5 * coords.y + C6 <= 0;
+           C5 * coords.y + 
+           C6 <= 0;
+}
+
+bool WithinAngle(float2 coords) {
+    float modAngle = Mod(HyperbolaSymmetryAngle, TAU);
+    if (modAngle < TAU / 4 || modAngle > 3 * TAU / 4) return coords.y > tan(modAngle) * coords.x;
+    else return coords.y < tan(modAngle) * coords.x;
 }
 
 float4 EllipsePS(VertexShaderOutput input) : COLOR
 {
-    float2 rightTexel = input.TexCoords - Focus + float2(TexelSize.x, 0);
-    float2 topTexel = input.TexCoords - Focus  + float2(0, TexelSize.y);
-    float2 leftTexel = input.TexCoords - Focus  + float2(-TexelSize.x, 0);
-    float2 bottomTexel = input.TexCoords - Focus  + float2(0, -TexelSize.y);
+    float2 focusCoords = input.TexCoords - Focus;
+    if (WithinAngle(focusCoords)) return float4(0, 0, 0, 0);
+    //float anomaly = Mod(atan2(focusCoords.y, focusCoords.x) - ArgumentOfPeriapsis, TAU);
+    //if (anomaly < StartAnomaly || anomaly > EndAnomaly) return float4(0, 0, 0, 0);
+
+    float2 rightTexel = input.TexCoords + float2(TexelSize.x, 0);
+    float2 topTexel = input.TexCoords + float2(0, TexelSize.y);
+    float2 leftTexel = input.TexCoords + float2(-TexelSize.x, 0);
+    float2 bottomTexel = input.TexCoords + float2(0, -TexelSize.y);
     
     if (WithinConic2(rightTexel) && WithinConic2(topTexel) && WithinConic2(leftTexel) && WithinConic2(bottomTexel))
         return float4(0, 0, 0, 0);

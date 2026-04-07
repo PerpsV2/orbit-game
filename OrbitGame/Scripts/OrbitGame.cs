@@ -222,24 +222,18 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 30; i++)
         {
-             Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
-             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, new(
-                     new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 0) + randomPosition,
-                     new Vec2<SDecimal>(_rnd.Next(0, 0), _rnd.Next(2000, 7000))
-                 ), 1000, new Color(0, 255, 0, 255), earth);
+             double randomAngle = _rnd.NextDouble() * Math.Tau;
+             int randomDirection = _rnd.Next(0, 1) * 2 - 1;
+             SDecimal randomAltitude = (_rnd.NextDouble() * 50 + 40) * new SDecimal(6.378, 6);
+             SDecimal randomSpeed = SDecimal.Sqrt(earth.Mass * Constants.G / randomAltitude);
+             Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
+                 new(Vec2<SDecimal>.FromPolar(randomAngle, randomAltitude), 
+                     Vec2<SDecimal>.FromPolar(randomAngle + 1 * Math.PI / 2, randomSpeed + _rnd.Next(-50, 50))), 
+                 1000, new Color(0, 255, 0, 255), earth);
              smokestack.DrawOrbitalPath = true;
              smokestack.MouseDetectionEnabled = false;
-        }for (int i = 0; i < 10; i++)
-        {
-            Vec2<SDecimal> randomPosition = new(_rnd.Next(-50, 50), _rnd.Next(-50, 50));
-            Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i + 10, new(
-                new Vec2<SDecimal>(-2 * new SDecimal(6.378, 6), 0) + randomPosition,
-                new Vec2<SDecimal>(_rnd.Next(0, 0), _rnd.Next(2000, 7000))
-            ), 1000, new Color(0, 255, 0, 255), earth);
-            smokestack.DrawOrbitalPath = true;
-            smokestack.MouseDetectionEnabled = false;
         }
         
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
@@ -394,7 +388,7 @@ public class OrbitGame : Game
         Body? selectedPointBody = point.ConicPath.Orbit?.Body;
         if (selectedPointBody is Ship ship)
         {
-            ship.OrbitPath.AddManeuverNode(point, new Vec2<SDecimal>(400, 100), GameState.PhysicsTime);
+            ship.OrbitPath.AddManeuverNode(point, new Vec2<SDecimal>(0, 0), GameState.PhysicsTime);
         }
     }
     
@@ -460,9 +454,14 @@ public class OrbitGame : Game
             new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, 0.1));
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(
             new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, -0.1));
+
+        if (keyboardState.IsKeyDown(Keys.O)) Angle += 0.01f;
+        if (keyboardState.IsKeyDown(Keys.P)) Angle -= 0.01f;
         
         _lastKeyboardState = keyboardState;
     }
+
+    public static float Angle;
 
     protected override void Update(GameTime gameTime)
     {

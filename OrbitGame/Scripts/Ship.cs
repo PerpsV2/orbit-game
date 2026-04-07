@@ -16,7 +16,7 @@ public class Ship : Body, IGameDrawable
     private Vec2<SDecimal> ArtificialAcceleration { get; set; }
     
     public bool DrawOrbitalPath { get; set; }
-    private bool _mouseDetectionEnabled;
+    private bool _mouseDetectionEnabled = true;
 
     public bool MouseDetectionEnabled
     {
@@ -27,6 +27,7 @@ public class Ship : Body, IGameDrawable
             OrbitPath.MouseDetectionEnabled = value;
         }
     }
+    
     public bool MarkedForRemoval { get; set; }
     
     public Landing? LandingState { get; private set; }

@@ -19,7 +19,7 @@ public class ConicPath
     public double? EndAngle;
 
     private bool _onScreen;
-    public bool MouseDetectionEnabled;
+    public bool MouseDetectionEnabled = true;
 
     public static KeplerOrbitPoint? HoverPoint;
     public static KeplerOrbitPoint? SelectedPoint;
@@ -205,61 +205,14 @@ public class ConicPath
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphics = OrbitGame.Graphics;
         
-        /*Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
-            (camera.TopRight - orbit.Parent.Position).Direction(),
-            (camera.TopLeft - orbit.Parent.Position).Direction(),
-            (camera.BottomLeft - orbit.Parent.Position).Direction(),
-            (camera.BottomRight - orbit.Parent.Position).Direction());
-
-        if (minAngle > maxAngle) maxAngle += Math.Tau;
-        
-        List<double> samplePointAngles = [];
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 5, (_, angle) => { samplePointAngles.Add(angle); }, true);
-        List<Vector2> screenPoints = samplePointAngles
-            .Select(x => camera.ConvertToScreenCoordinates(orbit.GetOrbitPositionFromWorldAngle(x) + orbit.Parent.Position))
-            .ToList();
-        screenPoints.Insert(0, camera.ConvertToScreenCoordinates(orbit.Body.Position));
-
-        if (screenPoints.Count < 5)
-        {
-            _onScreen = false;
-            return;
-        }
-        
-        if (screenPoints[1].Length() > 10000)
-        {
-            _onScreen = false;
-            return;
-        }
-
-        if (screenPoints.All(x => (x - screenPoints[0]).Length() < 5))
-        {
-            _onScreen = false;
-            return;
-        }
-        
-        LinearEquationSystem<float> linearSystem = new LinearEquationSystem<float>(5, 5);
-        for (int i = 0; i < 5; ++i)
-        {
-            Vector2 point = screenPoints[i];
-            linearSystem.SetCoefficient(i * 5 + 0, point.X * point.X);
-            linearSystem.SetCoefficient(i * 5 + 1, point.X * point.Y);
-            linearSystem.SetCoefficient(i * 5 + 2, point.Y * point.Y);
-            linearSystem.SetCoefficient(i * 5 + 3, point.X);
-            linearSystem.SetCoefficient(i * 5 + 4, point.Y);
-            linearSystem.SetConstant(i, 1);
-        }
-
-        float[] conicCoefficients = linearSystem.Solve();*/
-        
         float[] conicCoefficients = new float[6];
         double e = orbit.Eccentricity;
         double e2 = e * e;
         double p = Math.Tau - orbit.Periapsis;
         double l = camera.ConvertToScreenDistance(orbit.SemiLatusRectum);
-        Vector2 fVec = camera.ConvertToScreenCoordinates(orbit.Parent.Position);
-        double fX = fVec.X;
-        double fY = fVec.Y;
+        Vec2<SDecimal> fVec = camera.SD_ConvertToScreenCoordinates(orbit.Parent.Position);
+        SDecimal fX = fVec.X;
+        SDecimal fY = fVec.Y;
         double cosP = Math.Cos(p);
         double sinP = Math.Sin(p);
         conicCoefficients[0] = (float)(1 - e2 * cosP * cosP);
@@ -267,15 +220,43 @@ public class ConicPath
         conicCoefficients[2] = (float)(1 - e2 * sinP * sinP);
         conicCoefficients[3] = -2 * (float)(fX * (1 - e2 * cosP * cosP) - fY / 2 * e2 * Math.Sin(2 * p) - e * l * cosP);
         conicCoefficients[4] = -2 * (float)(fY * (1 - e2 * sinP * sinP) - fX / 2 * e2 * Math.Sin(2 * p) - e * l * sinP);
-        conicCoefficients[5] = (float)(fX * fX * (1 - e2 * cosP * cosP) + fY * fY * (1 - e2 * sinP * sinP) - 
+        conicCoefficients[5] = (float)(fX * fX * (1 - e2 * cosP * cosP) + 
+                                       fY * fY * (1 - e2 * sinP * sinP) - 
                                        fX * fY * e2 * Math.Sin(2 * p) - 
                                        2 * e * l * (fX * cosP + fY * sinP) - l * l);
+
+        /*if (conicCoefficients.Any(x => x > 1000000))
+        {
+            Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
+                (camera.TopRight - orbit.Parent.Position).Direction(),
+                (camera.TopLeft - orbit.Parent.Position).Direction(),
+                (camera.BottomLeft - orbit.Parent.Position).Direction(),
+                (camera.BottomRight - orbit.Parent.Position).Direction());
+
+            if (minAngle > maxAngle) maxAngle += Math.Tau;
+            
+            Vector2 start = camera.ConvertToScreenCoordinates(orbit.GetOrbitPositionFromWorldAngle(minAngle) + orbit.Parent.Position);
+            Vector2 end = camera.ConvertToScreenCoordinates(orbit.GetOrbitPositionFromWorldAngle(maxAngle) + orbit.Parent.Position);
+            graphics.DrawLine(start, end, _colour);
+            return;
+        }*/
+
+        float startAnomaly = 0;
+        float endAnomaly = (float)Math.Tau;
+
+        /*if (orbit.Eccentricity > 1)
+        {
+            endAnomaly = (float)Utils.WrapAngle(Math.Acos(-1 / orbit.Eccentricity));
+            startAnomaly = (float)Math.Tau;
+        }*/
         
         Color colour = _colour;
         graphics.DrawMesh(_orbitMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "Colour", colour.ToVector4() },
-            { "Focus", Vector2.Zero},
+            { "Focus", camera.ConvertToScreenCoordinates(orbit.Center) },
+            { "ArgumentOfPeriapsis", (float)orbit.Periapsis },
+            { "HyperbolaSymmetryAngle", (float)OrbitGame.Angle },
             { "C1", conicCoefficients[0] },
             { "C2", conicCoefficients[1] },
             { "C3", conicCoefficients[2] },
@@ -285,9 +266,6 @@ public class ConicPath
             { "TexelSize", new Vector2(0.5f, 0.5f) }
         });
 
-        //if (camera.MaximumRadiusSquared > SDecimal.Square(orbit.GetDistanceFromTrueAnomaly(0)))
-        //DrawZoomedOutConic(orbit);
-        //else DrawZoomedInConic(orbit);
         DrawSelectedOrbitPoint(orbit, _colour);
     }
 }

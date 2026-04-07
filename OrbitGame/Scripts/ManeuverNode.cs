@@ -70,6 +70,7 @@ public class ManeuverNode : IGameDrawable
         Color nodeColour = this == SelectedNode ? Color.Chartreuse : Color.GreenYellow;
         graphicsDevice.SD_DrawPoint(camera, Point.GetWorldPosition(), nodeColour);
         Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(Point.GetWorldPosition());
+        if (_velocity == Vec2<SDecimal>.Zero) return;
         Vector2 nodeHandleScreenOffset = (Vector2)_velocity.Normalize() * float.Log10((float)_velocity.Magnitude()) * 10;
         graphicsDevice.DrawLineR(nodeScreenPosition, nodeHandleScreenOffset, nodeColour);
         graphicsDevice.DrawText(OrbitGame.DefaultFont, ((double)_velocity.Magnitude()).ToString("N0"),

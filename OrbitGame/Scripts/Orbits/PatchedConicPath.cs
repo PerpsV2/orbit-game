@@ -11,7 +11,7 @@ public class PatchedConicPath
     private List<ManeuverNode> ManeuverNodes { get; } = [];
     public ConicPath[] Conics { get; }
 
-    private bool _mouseDetectionEnabled;
+    private bool _mouseDetectionEnabled = true;
     public bool MouseDetectionEnabled
     {
         get => _mouseDetectionEnabled;

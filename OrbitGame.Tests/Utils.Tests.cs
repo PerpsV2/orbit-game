@@ -83,12 +83,12 @@ public class Utils_Tests
         
         List<double> iteratedAngles = new List<double>();
         
-        Utils.IterateAngleRange(deg315, deg45, deg45, angle => iteratedAngles.Add(angle));
+        Utils.IterateAngleRange(deg315, deg45, deg45, (_, angle) => iteratedAngles.Add(angle));
         Assert.Equal([7*Math.PI/4, 0, Math.PI/4], iteratedAngles);
         
         iteratedAngles.Clear();
         
-        Utils.IterateAngleRange(deg45, deg315, deg45, angle => iteratedAngles.Add(angle));
+        Utils.IterateAngleRange(deg45, deg315, deg45, (_, angle) => iteratedAngles.Add(angle));
         Assert.Equal([Math.PI/4, Math.PI/2, 3*Math.PI/4, Math.PI, 5*Math.PI/4, 3*Math.PI/2, 7*Math.PI/4], iteratedAngles);
     }
 
