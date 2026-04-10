@@ -222,7 +222,7 @@ public class OrbitGame : Game
             new(-5, 0),
             new(-0.3, 0.5)
         ]), shipMaterial);
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 2; i++)
         {
              double randomAngle = _rnd.NextDouble() * Math.Tau;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -283,7 +283,7 @@ public class OrbitGame : Game
         _collisionHandler = new CollisionHandler(Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => 
                 CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)},
-            {(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision}
+            //{(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision}
         });
 
         base.Initialize();
