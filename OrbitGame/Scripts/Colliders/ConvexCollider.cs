@@ -8,7 +8,7 @@ namespace OrbitGame;
 /// </summary>
 public class ConvexCollider : CompactCollider
 {
-    private readonly Vec2<SDecimal>[] _points;
+    private readonly ConvexHull<SDecimal> _convexHull;
     private readonly BoundingBox _boundingBox;
 
     /// <summary>
@@ -17,14 +17,14 @@ public class ConvexCollider : CompactCollider
     /// <param name="points">Convex hull of the collider.</param>
     public ConvexCollider(Vec2<SDecimal>[] points)
     {
-        _points = points;
+        _convexHull = new(points);
         // Compute the minimum bounding box which guarantees all points are contained within.
-        SDecimal maxRadius = _points.Select(x => x.Magnitude()).Max();
+        SDecimal maxRadius = _convexHull.Points.Select(x => x.Magnitude()).Max();
         _boundingBox = new BoundingBox(Vec2<SDecimal>.Zero, maxRadius * 2, maxRadius * 2);
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)
-        => Inertia = Utils.GetConvexHullInertia(_points, mass);
+        => Inertia = _convexHull.CalculateInertia(mass);
 
     protected override BoundingBox GetBoundingBox(double angle)
         => _boundingBox;
@@ -49,10 +49,10 @@ public class ConvexCollider : CompactCollider
         
         // edge case (literally)
         // TODO: fix cases where one object is fully within the other
-        for (int i = 0; i < _points.Length; ++i)
+        for (int i = 0; i < _convexHull.Points.Length; ++i)
         {
-            Vec2<SDecimal> currentVertex = _points[i];
-            Vec2<SDecimal> nextVertex = _points[(i + 1) % _points.Length];
+            Vec2<SDecimal> currentVertex = _convexHull.Points[i];
+            Vec2<SDecimal> nextVertex = _convexHull.Points[(i + 1) % _convexHull.Points.Length];
             double edgeAngle = Vec2<SDecimal>.Direction(currentVertex, nextVertex);
             
             SDecimal edgeUpperBound = Vec2<SDecimal>.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
@@ -81,7 +81,7 @@ public class ConvexCollider : CompactCollider
         // vertex case
         // sort vertices by distance to relative circular center
         minPenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> closestVertex = _points.MinBy(v => (v - relativeCenter).Magnitude());
+        Vec2<SDecimal> closestVertex = _convexHull.Points.MinBy(v => (v - relativeCenter).Magnitude());
         Vec2<SDecimal> diffVector = closestVertex - relativeCenter;
         if (diffVector.Magnitude() <= collider.Radius) {
             collisionPoint = Matrix3X3<SDecimal>.Rotation(referenceSpatial.Angle) * closestVertex;
@@ -101,8 +101,8 @@ public class ConvexCollider : CompactCollider
         if (IsEmpty() || collider.IsEmpty()) return null;
 
         // adjust points to spatial infos
-        Vec2<SDecimal>[] referencePoints = _points.Select(x => Vec2<SDecimal>.RotatePoint(x, referenceSpatial.Angle)).ToArray();
-        Vec2<SDecimal>[] incidentPoints = collider._points
+        Vec2<SDecimal>[] referencePoints = _convexHull.Points.Select(x => Vec2<SDecimal>.RotatePoint(x, referenceSpatial.Angle)).ToArray();
+        Vec2<SDecimal>[] incidentPoints = collider._convexHull.Points
             .Select(x => Vec2<SDecimal>.RotatePoint(x, incidentSpatial.Angle))
             .Select(x => x + incidentSpatial.Position - referenceSpatial.Position).ToArray();
         
@@ -165,5 +165,5 @@ public class ConvexCollider : CompactCollider
     }
 
     public override bool IsEmpty()
-        => Utils.GetConvexHullArea(_points) == 0;
+        => _convexHull.CalculateArea() == 0;
 }

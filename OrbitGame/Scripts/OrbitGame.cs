@@ -215,13 +215,13 @@ public class OrbitGame : Game
         );
             
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
-        Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
-            new(0.4, 0.4),
-            new(0.4, -0.3),
-            new(-0.2, -0.5),
-            new(-5, 0),
-            new(-0.3, 0.5)
-        ]), shipMaterial);
+        Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate([
+            new Vec2<SDecimal>(0.4, 0.4),
+            new Vec2<SDecimal>(0.4, -0.3),
+            new Vec2<SDecimal>(-0.2, -0.5),
+            new Vec2<SDecimal>(-5, 0),
+            new Vec2<SDecimal>(-0.3, 0.5)
+        ], shipMaterial);
         for (int i = 0; i < 30; i++)
         {
              double randomAngle = _rnd.NextDouble() * Math.Tau;
@@ -236,13 +236,13 @@ public class OrbitGame : Game
              smokestack.MouseDetectionEnabled = false;
         }
         
-        Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate(Utils.CenterConvex([
-            new(1, 1),
-            new(1, -0.75),
-            new(-0.5, -1.25),
-            new(-1, 0),
-            new(-0.75, 1.25)
-        ]), shipMaterial);
+        Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate([
+            new Vec2<SDecimal>(1, 1),
+            new Vec2<SDecimal>(1, -0.75),
+            new Vec2<SDecimal>(-0.5, -1.25),
+            new Vec2<SDecimal>(-1, 0),
+            new Vec2<SDecimal>(-0.75, 1.25)
+        ], shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
             new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 1000), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
