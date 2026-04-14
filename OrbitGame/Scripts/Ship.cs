@@ -161,10 +161,10 @@ public class Ship : Body, IGameDrawable
         private readonly IMesh _mesh;
         private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();
-        private readonly SDecimal _maximumRadius;
+        private readonly double _maximumRadius;
         private readonly Material _material;
         
-        public ShipTemplate(Vec2<SDecimal>[] shipVertices, Material material)
+        public ShipTemplate(DoubleVec2[] shipVertices, Material material)
         {
             _material = material;
             _mesh = new PolyMesh(shipVertices);

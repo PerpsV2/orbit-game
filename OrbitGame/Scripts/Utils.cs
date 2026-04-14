@@ -9,14 +9,13 @@ namespace OrbitGame;
 
 public static class Constants
 {
+    public static double ComparisonTolerance { get; } = 1e-32;
     public static SDecimal G { get; private set; } = new(6.6743, -11);
-    public static PDecimal GPrecise { get; private set; }= new(6.6743, -11);
 
     public static void SetGravitationalConstant<T>(IArbitraryPlaceDecimal<T> value) 
         where T : IArbitraryPlaceDecimal<T>, new()
     {
         G = value.Map<SDecimal>();
-        GPrecise = value.Map<PDecimal>();
     }
 }
 
@@ -124,18 +123,16 @@ public static class Utils
         return current;
     }
     
-    public static T CalculateTriangleArea<T>(Vec2<T> a, Vec2<T> b, Vec2<T> c)
-        where T : IArbitraryPlaceDecimal<T>
+    public static double CalculateTriangleArea(DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)
     {
-        return T.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / T.FromDouble(2);
+        return double.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
     }
 
-    public static T CalculateTriangleInertia<T>(Vec2<T> a, Vec2<T> b, Vec2<T> c, T mass)
-        where T : IArbitraryPlaceDecimal<T>
+    public static SDecimal CalculateTriangleInertia(DoubleVec2 a, DoubleVec2 b, DoubleVec2 c, SDecimal mass)
     {
         return mass * (
-            Vec2<T>.Dot(a, a) + Vec2<T>.Dot(b, b) + Vec2<T>.Dot(c, c) +
-            Vec2<T>.Dot(a, b) + Vec2<T>.Dot(b, c) + Vec2<T>.Dot(c, a)
-        ) / T.FromDouble(6);
+            DoubleVec2.Dot(a, a) + DoubleVec2.Dot(b, b) + DoubleVec2.Dot(c, c) +
+            DoubleVec2.Dot(a, b) + DoubleVec2.Dot(b, c) + DoubleVec2.Dot(c, a)
+        ) / 6;
     }
 }

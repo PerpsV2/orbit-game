@@ -137,7 +137,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (mantissaDigits > 300) value.IncreaseExponent(value.Exponent + mantissaDigits - 300);
         double result = (double)value.Mantissa;
         if (double.IsInfinity(Math.Pow(10, value.Exponent)))
-            throw new OverflowException("PDecimal is outside of thte range of double");
+            throw new OverflowException("PDecimal is outside of the range of double");
         return result * Math.Pow(10, value.Exponent);
     }
 

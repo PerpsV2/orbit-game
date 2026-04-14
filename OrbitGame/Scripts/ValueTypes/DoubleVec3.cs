@@ -1,0 +1,85 @@
+using System;
+
+namespace OrbitGame;
+
+public readonly struct DoubleVec3(double x, double y, double z) : IEquatable<DoubleVec3>
+{
+    public static DoubleVec3 Zero = new(0, 0, 0);
+    
+    public double X { get; } = x;
+    public double Y { get; } = y;
+    public double Z { get; } = z;
+    
+    public static double Dot(DoubleVec3 left, DoubleVec3 right)
+        => left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+    
+    public static DoubleVec3 Cross(DoubleVec3 left, DoubleVec3 right)
+        => new(
+            left.Y * right.Z - left.Z * right.Y, 
+            left.Z * right.X - left.X * right.Z, 
+            left.X * right.Y - left.Y * right.X
+        );
+    
+    public double MagnitudeSquared()
+        => X * X + Y * Y + Z * Z;
+    
+    public double Magnitude()
+        => Math.Sqrt(MagnitudeSquared());
+
+    public static DoubleVec3 Direction(DoubleVec3 start, DoubleVec3 end)
+    {
+        DoubleVec3 difference = end - start;
+        return difference.Normalize();
+    }
+    
+    public DoubleVec3 Normalize()
+        => new DoubleVec3(X, Y, Z) / Magnitude();
+    
+    public static DoubleVec3 operator +(DoubleVec3 value) 
+        => value;
+    public static DoubleVec3 operator -(DoubleVec3 value) 
+        => new(-value.X, -value.Y, -value.Z);
+    public static DoubleVec3 operator +(DoubleVec3 left, DoubleVec3 right)
+        => new(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+    public static DoubleVec3 operator -(DoubleVec3 left, DoubleVec3 right)
+        => left + -right;
+    public static DoubleVec3 operator *(DoubleVec3 vector, double scalar) 
+        => new(vector.X * scalar, vector.Y * scalar, vector.Z * scalar);
+    public static DoubleVec3 operator /(DoubleVec3 vector, double scalar)
+        => new(vector.X / scalar, vector.Y / scalar, vector.Z / scalar);
+    public static bool operator ==(DoubleVec3 left, DoubleVec3 right)
+        => left.Equals(right);
+    public static bool operator !=(DoubleVec3 left, DoubleVec3 right)
+        => !left.Equals(right);
+    
+    public static explicit operator DoubleVec2(DoubleVec3 value)
+        => new (value.X, value.Y);
+    
+    public static explicit operator Vec2<SDecimal>(DoubleVec3 vec)
+        => new(vec.X, vec.Y);
+    
+    public override string ToString()
+        => "<" + X + ", " + Y + ", " + Z + ">";
+
+    public string ToString(string? format, IFormatProvider? formatProvider = null) 
+        => "<" + 
+           X.ToString(format, formatProvider) + ", " + 
+           Y.ToString(format, formatProvider) + ", " + 
+           Z.ToString(format, formatProvider) + 
+           ">";
+
+    public bool Equals(DoubleVec3 other)
+    {
+        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is DoubleVec3 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y, Z);
+    }
+}

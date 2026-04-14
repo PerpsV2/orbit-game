@@ -8,19 +8,19 @@ namespace OrbitGame;
 /// </summary>
 public class ConvexCollider : CompactCollider
 {
-    private readonly ConvexHull<SDecimal> _convexHull;
+    private readonly ConvexHull _convexHull;
     private readonly BoundingBox _boundingBox;
 
     /// <summary>
     /// Creates a convex collider from a convex hull.
     /// </summary>
     /// <param name="points">Convex hull of the collider.</param>
-    public ConvexCollider(Vec2<SDecimal>[] points)
+    public ConvexCollider(DoubleVec2[] points)
     {
         _convexHull = new(points);
         // Compute the minimum bounding box which guarantees all points are contained within.
-        SDecimal maxRadius = _convexHull.Points.Select(x => x.Magnitude()).Max();
-        _boundingBox = new BoundingBox(Vec2<SDecimal>.Zero, maxRadius * 2, maxRadius * 2);
+        double maxRadius = _convexHull.Points.Select(x => x.Magnitude()).Max();
+        _boundingBox = new BoundingBox(DoubleVec2.Zero, maxRadius * 2, maxRadius * 2);
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)
@@ -40,9 +40,9 @@ public class ConvexCollider : CompactCollider
         SpatialInfo incidentSpatial)
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
-        Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> minPenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> relativeCenter = Vec2<SDecimal>.RotatePoint(
+        DoubleVec2 collisionPoint = DoubleVec2.Zero;
+        DoubleVec2 minPenetrationVector = DoubleVec2.Zero;
+        DoubleVec2 relativeCenter = (DoubleVec2)Vec2<SDecimal>.RotatePoint(
             incidentSpatial.Position - referenceSpatial.Position,
             incidentSpatial.Angle - referenceSpatial.Angle
         );
@@ -51,44 +51,44 @@ public class ConvexCollider : CompactCollider
         // TODO: fix cases where one object is fully within the other
         for (int i = 0; i < _convexHull.Points.Length; ++i)
         {
-            Vec2<SDecimal> currentVertex = _convexHull.Points[i];
-            Vec2<SDecimal> nextVertex = _convexHull.Points[(i + 1) % _convexHull.Points.Length];
-            double edgeAngle = Vec2<SDecimal>.Direction(currentVertex, nextVertex);
+            DoubleVec2 currentVertex = _convexHull.Points[i];
+            DoubleVec2 nextVertex = _convexHull.Points[(i + 1) % _convexHull.Points.Length];
+            double edgeAngle = DoubleVec2.Direction(currentVertex, nextVertex);
             
-            SDecimal edgeUpperBound = Vec2<SDecimal>.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
-            Vec2<SDecimal> transformedCenter = Vec2<SDecimal>.RotatePoint(relativeCenter - currentVertex, -edgeAngle);
+            double edgeUpperBound = DoubleVec2.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;
+            DoubleVec2 transformedCenter = DoubleVec2.RotatePoint(relativeCenter - currentVertex, -edgeAngle);
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
-                SDecimal.Abs(transformedCenter.Y) <= collider.Radius)
+                double.Abs(transformedCenter.Y) <= collider.Radius)
             {
-                SDecimal penetrationDistance = -collider.Radius + transformedCenter.Y;
-                if (SDecimal.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
-                    minPenetrationVector.Equals(Vec2<SDecimal>.Zero))
+                double penetrationDistance = -collider.Radius + transformedCenter.Y;
+                if (double.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
+                    minPenetrationVector.Equals(DoubleVec2.Zero))
                 {
-                    minPenetrationVector = Vec2<SDecimal>.RotatePoint(
-                        Vec2<SDecimal>.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance), referenceSpatial.Angle
+                    minPenetrationVector = DoubleVec2.RotatePoint(
+                        DoubleVec2.FromPolar(edgeAngle + Math.PI / 2, penetrationDistance), referenceSpatial.Angle
                     );
                     
-                    collisionPoint = Vec2<SDecimal>.RotatePoint(
-                        Vec2<SDecimal>.RotatePoint(new Vec2<SDecimal>(transformedCenter.X, 0), edgeAngle) + currentVertex,
+                    collisionPoint = DoubleVec2.RotatePoint(
+                        DoubleVec2.RotatePoint(new DoubleVec2(transformedCenter.X, 0), edgeAngle) + currentVertex,
                         referenceSpatial.Angle);
                 }
             }
         }
         
-        if (!minPenetrationVector.Equals(Vec2<SDecimal>.Zero))
+        if (!minPenetrationVector.Equals(DoubleVec2.Zero))
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
         
         // vertex case
         // sort vertices by distance to relative circular center
-        minPenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> closestVertex = _convexHull.Points.MinBy(v => (v - relativeCenter).Magnitude());
-        Vec2<SDecimal> diffVector = closestVertex - relativeCenter;
+        minPenetrationVector = DoubleVec2.Zero;
+        DoubleVec2 closestVertex = _convexHull.Points.MinBy(v => (v - relativeCenter).Magnitude());
+        DoubleVec2 diffVector = closestVertex - relativeCenter;
         if (diffVector.Magnitude() <= collider.Radius) {
             collisionPoint = Matrix3X3<SDecimal>.Rotation(referenceSpatial.Angle) * closestVertex;
             minPenetrationVector = Matrix3X3<SDecimal>.Rotation(referenceSpatial.Angle) * diffVector.Normalize() * 
                                    (collider.Radius - diffVector.Magnitude());
         }
-        if (!minPenetrationVector.Equals(Vec2<SDecimal>.Zero))
+        if (!minPenetrationVector.Equals(DoubleVec2.Zero))
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], minPenetrationVector);
         return null;
     }
@@ -101,19 +101,19 @@ public class ConvexCollider : CompactCollider
         if (IsEmpty() || collider.IsEmpty()) return null;
 
         // adjust points to spatial infos
-        Vec2<SDecimal>[] referencePoints = _convexHull.Points.Select(x => Vec2<SDecimal>.RotatePoint(x, referenceSpatial.Angle)).ToArray();
-        Vec2<SDecimal>[] incidentPoints = collider._convexHull.Points
-            .Select(x => Vec2<SDecimal>.RotatePoint(x, incidentSpatial.Angle))
-            .Select(x => x + incidentSpatial.Position - referenceSpatial.Position).ToArray();
+        DoubleVec2[] referencePoints = _convexHull.Points.Select(x => DoubleVec2.RotatePoint(x, referenceSpatial.Angle)).ToArray();
+        DoubleVec2[] incidentPoints = collider._convexHull.Points
+            .Select(x => DoubleVec2.RotatePoint(x, incidentSpatial.Angle))
+            .Select(x => x + (DoubleVec2)(incidentSpatial.Position - referenceSpatial.Position)).ToArray();
         
-        SDecimal minPenetrationDistance = SDecimal.PositiveInfinity;
-        Vec2<SDecimal> minPenetrationVector = Vec2<SDecimal>.Zero;
+        double minPenetrationDistance = double.PositiveInfinity;
+        DoubleVec2 minPenetrationVector = DoubleVec2.Zero;
 
         // set up edges to apply separating axis theorem for
-        Vec2<SDecimal>[] referenceEdges = new Vec2<SDecimal>[referencePoints.Length];
+        DoubleVec2[] referenceEdges = new DoubleVec2[referencePoints.Length];
         for (int i = 0; i < referenceEdges.Length; i++)
             referenceEdges[i] = referencePoints[(i + 1) % referencePoints.Length] - referencePoints[i];
-        Vec2<SDecimal>[] incidentEdges = new Vec2<SDecimal>[incidentPoints.Length];
+        DoubleVec2[] incidentEdges = new DoubleVec2[incidentPoints.Length];
         for (int i = 0; i < incidentEdges.Length; i++) 
             incidentEdges[i] = incidentPoints[(i + 1) % incidentPoints.Length] - incidentPoints[i];
 
@@ -121,27 +121,27 @@ public class ConvexCollider : CompactCollider
         {
             // apply separating axis theorem projection
             double edgeAngle = edge.Direction();
-            SDecimal[] projectedReferencePoints = referencePoints
-                .Select(x => Vec2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
-            (SDecimal min, SDecimal max) referenceRange = (projectedReferencePoints.Min(), projectedReferencePoints.Max());
-            SDecimal[] projectedIncidentPoints = incidentPoints
-                .Select(x => Vec2<SDecimal>.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
-            (SDecimal min, SDecimal max) incidentRange = (projectedIncidentPoints.Min(), projectedIncidentPoints.Max());
+            double[] projectedReferencePoints = referencePoints
+                .Select(x => DoubleVec2.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
+            (double min, double max) referenceRange = (projectedReferencePoints.Min(), projectedReferencePoints.Max());
+            double[] projectedIncidentPoints = incidentPoints
+                .Select(x => DoubleVec2.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
+            (double min, double max) incidentRange = (projectedIncidentPoints.Min(), projectedIncidentPoints.Max());
             
             // check for intersections
             if (referenceRange.min <= incidentRange.max && incidentRange.min <= referenceRange.max)
             {
                 // calculate the penetration distance and update the min penetration distance
-                SDecimal forwardsPenetrationDistance = referenceRange.max - incidentRange.min;
-                SDecimal backwardsPenetrationDistance = incidentRange.max - incidentRange.min;
-                SDecimal penetrationDistance =
-                    SDecimal.Abs(forwardsPenetrationDistance - backwardsPenetrationDistance) > 0
+                double forwardsPenetrationDistance = referenceRange.max - incidentRange.min;
+                double backwardsPenetrationDistance = incidentRange.max - incidentRange.min;
+                double penetrationDistance =
+                    double.Abs(forwardsPenetrationDistance - backwardsPenetrationDistance) > 0
                         ? -forwardsPenetrationDistance
                         : backwardsPenetrationDistance;
-                if (SDecimal.Abs(penetrationDistance) < minPenetrationDistance)
+                if (double.Abs(penetrationDistance) < minPenetrationDistance)
                 {
-                    minPenetrationDistance = SDecimal.Abs(penetrationDistance);
-                    minPenetrationVector = Vec2<SDecimal>.FromPolar(
+                    minPenetrationDistance = double.Abs(penetrationDistance);
+                    minPenetrationVector = DoubleVec2.FromPolar(
                         edgeAngle - Math.PI / 2,
                         minPenetrationDistance
                     );
@@ -157,9 +157,9 @@ public class ConvexCollider : CompactCollider
         var indexedReferencePoints = referencePoints.Index();
         var indexedIncidentPoints = incidentPoints.Index();
         var significantReferenceVertex = indexedReferencePoints
-            .MinBy(x => Vec2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X);
+            .MinBy(x => DoubleVec2.RotatePoint(x.Item, -collisionNormalAngle).X);
         var significantIncidentVertex = indexedIncidentPoints
-            .MaxBy(x => Vec2<SDecimal>.RotatePoint(x.Item, -collisionNormalAngle).X);
+            .MaxBy(x => DoubleVec2.RotatePoint(x.Item, -collisionNormalAngle).X);
         
         return new PhysicsCollision(referenceSpatial, incidentSpatial, [significantReferenceVertex.Item], minPenetrationVector);
     }

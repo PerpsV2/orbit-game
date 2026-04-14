@@ -161,6 +161,9 @@ public readonly struct Vec2<T>(T x, T y) : IEquatable<Vec2<T>>, IFormattable
     public static explicit operator Vector2(Vec2<T> value)
         => new ((float)T.ConvertToDouble(value.X), (float)T.ConvertToDouble(value.Y));
     
+    public static explicit operator DoubleVec2(Vec2<T> value)
+        => new (T.ConvertToDouble(value.X), T.ConvertToDouble(value.Y));
+    
     public override string ToString()
         => "<" + X + ", " + Y + ">";
 

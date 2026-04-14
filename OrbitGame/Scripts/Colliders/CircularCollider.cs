@@ -10,7 +10,7 @@ public class CircularCollider : CompactCollider
     /// <summary>
     /// Radius of the collider.
     /// </summary>
-    public SDecimal Radius { get; }
+    public double Radius { get; }
     private readonly BoundingBox _boundingBox;
 
     /// <summary>
@@ -18,11 +18,11 @@ public class CircularCollider : CompactCollider
     /// </summary>
     /// <param name="radius">The radius of the circular collider.</param>
     /// <exception cref="ArgumentException">Radius is less than zero</exception>
-    public CircularCollider(SDecimal radius)
+    public CircularCollider(double radius)
     {
-        if (radius.Negative) throw new ArgumentException("Circular collider radius cannot be negative.");
+        if (double.IsNegative(radius)) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
-        _boundingBox = new(Vec2<SDecimal>.Zero, Radius * 2, Radius * 2);
+        _boundingBox = new(DoubleVec2.Zero, Radius * 2, Radius * 2);
     }
     
     public override SDecimal CalculateInertia(SDecimal mass)
@@ -40,14 +40,14 @@ public class CircularCollider : CompactCollider
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
-        Vec2<SDecimal> diffVector = incidentSpatial.Position - referenceSpatial.Position;
-        SDecimal distance = diffVector.Magnitude();
+        DoubleVec2 diffVector = (DoubleVec2)(incidentSpatial.Position - referenceSpatial.Position);
+        double distance = diffVector.Magnitude();
         if (distance == 0) return PhysicsCollision.CreateUnresolvable(referenceSpatial, incidentSpatial);
         if (distance <= Radius + collider.Radius)
         {
-            Vec2<SDecimal> dirVector = diffVector.Normalize();
-            Vec2<SDecimal> collisionPoint = dirVector * Radius;
-            Vec2<SDecimal> penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            DoubleVec2 dirVector = diffVector.Normalize();
+            DoubleVec2 collisionPoint = dirVector * Radius;
+            DoubleVec2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], penetrationVector);
         }
 

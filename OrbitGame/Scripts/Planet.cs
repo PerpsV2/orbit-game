@@ -173,7 +173,7 @@ public class Planet : Body, IGameDrawable
             Color colour,
             Body? parent)
         {
-            CircularCollider collider = new CircularCollider(radius);
+            CircularCollider collider = new CircularCollider((double)radius);
             ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
                 OrbitMesh = _orbitMesh
             };

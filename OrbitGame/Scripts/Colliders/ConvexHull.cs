@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace OrbitGame;
 
-public class ConvexHull<T> where T : IArbitraryPlaceDecimal<T>, new()
+public class ConvexHull
 {
-    public Vec2<T>[] Points { get; private set; }
-    public (Vec2<T> a, Vec2<T> b, Vec2<T> c)[] Triangulation { get; private set; }
+    public DoubleVec2[] Points { get; private set; }
+    public (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[] Triangulation { get; private set; }
     
-    public ConvexHull(Vec2<T>[] points)
+    public ConvexHull(DoubleVec2[] points)
     {
         SetHull(points);
         Triangulate();
@@ -25,28 +25,28 @@ public class ConvexHull<T> where T : IArbitraryPlaceDecimal<T>, new()
     private void Triangulate()
     {
         if (Points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
-        var triangulation = new (Vec2<T> a, Vec2<T> b, Vec2<T> c)[Points.Length - 2];
+        var triangulation = new (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[Points.Length - 2];
         for (int i = 1; i < Points.Length - 1; ++i)
             triangulation[i - 1] = (Points[0], Points[i], Points[i + 1]);
         Triangulation = triangulation;
     }
 
-    private void SetHull(Vec2<T>[] points)
+    private void SetHull(DoubleVec2[] points)
     {
         LinkedList<int> convexHullIndices = GetHullIndices(points);
         Points = convexHullIndices.Select(x => points[x]).ToArray();
     }
     
-    private static RotationDirection GetTripletRotationDirection(Vec2<T>[] triplet)
+    private static RotationDirection GetTripletRotationDirection(DoubleVec2[] triplet)
     {
         if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
-        T edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
-        T edgeSlope2 = (triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X);
+        double edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
+        double edgeSlope2 = (triplet[2].Y - triplet[0].Y) * (triplet[1].X - triplet[0].X);
         return edgeSlope1 > edgeSlope2 ? RotationDirection.Clockwise :
             edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
     }
     
-    private static LinkedList<int> GetHullIndices(Vec2<T>[] points)
+    private static LinkedList<int> GetHullIndices(DoubleVec2[] points)
     {
         // get leftmost point to start
         int leftmostIndex = 0;
@@ -72,61 +72,63 @@ public class ConvexHull<T> where T : IArbitraryPlaceDecimal<T>, new()
         return convexHull;
     }
     
-    public Vec2<T> CalculateCenterOfMass()
+    public DoubleVec2 CalculateCenterOfMass()
     {
-        Vec2<T> centerOfMass = Vec2<T>.Zero;
+        DoubleVec2 centerOfMass = DoubleVec2.Zero;
         foreach (var triangle in Triangulation)
         {
-            Vec2<T> centroid = (triangle.a + triangle.b + triangle.c) / T.FromDouble(3);
+            DoubleVec2 centroid = (triangle.a + triangle.b + triangle.c) / 3;
             centerOfMass += centroid;
         }
 
-        centerOfMass /= T.FromDouble(Triangulation.Length);
+        centerOfMass /= Triangulation.Length;
 
         return centerOfMass;
     }
     
-    public T CalculateArea()
+    public double CalculateArea()
     {
-        if (Points.Length < 3) return T.Zero;
-        return Triangulation.Aggregate(T.Zero, (a, t) => a + Utils.CalculateTriangleArea(t.a, t.b, t.c));
+        if (Points.Length < 3) return 0;
+        return Triangulation.Aggregate(0d, (a, t) => a + Utils.CalculateTriangleArea(t.a, t.b, t.c));
     }
     
-    public T CalculateInertia(T mass)
+    public SDecimal CalculateInertia(SDecimal mass)
     {
-        T totalArea = CalculateArea();
+        double totalArea = CalculateArea();
 
-        T[] masses = new T[Triangulation.Length];
-        T[] inertias = new T[Triangulation.Length];
-        Vec2<T>[] centroids = new Vec2<T>[Triangulation.Length];
+        double[] areas = new double[Triangulation.Length];
+        SDecimal[] masses = new SDecimal[Triangulation.Length];
+        SDecimal[] inertias = new SDecimal[Triangulation.Length];
+        DoubleVec2[] centroids = new DoubleVec2[Triangulation.Length];
 
         for (int i = 0; i < Triangulation.Length; ++i)
         {
-            Vec2<T> a = Triangulation[i].a;
-            Vec2<T> b = Triangulation[i].b;
-            Vec2<T> c = Triangulation[i].c;
+            DoubleVec2 a = Triangulation[i].a;
+            DoubleVec2 b = Triangulation[i].b;
+            DoubleVec2 c = Triangulation[i].c;
 
-            masses[i] = mass * Utils.CalculateTriangleArea(a, b, c) / totalArea;
-            centroids[i] = (a + b + c) / T.FromDouble(3);
+            areas[i] = Utils.CalculateTriangleArea(a, b, c);
+            masses[i] = mass * areas[i] / totalArea;
+            centroids[i] = (a + b + c) / 3;
             inertias[i] = Utils.CalculateTriangleInertia(a, b, c, masses[i]);
         }
 
-        Vec2<T> totalCentroid = new();
+        DoubleVec2 totalCentroid = new();
         for (int i = 0; i < Triangulation.Length; ++i)
         {
-            totalCentroid += new Vec2<T>(
-                masses[i] * centroids[i].X,
-                masses[i] * centroids[i].Y
+            totalCentroid += new DoubleVec2(
+                areas[i] * centroids[i].X,
+                areas[i] * centroids[i].Y
             );
         }
 
-        totalCentroid /= mass;
+        totalCentroid /= totalArea;
 
-        T[] centroidDistancesSquared = new T[Triangulation.Length];
+        SDecimal[] centroidDistancesSquared = new SDecimal[Triangulation.Length];
         for (int i = 0; i < Triangulation.Length; ++i)
             centroidDistancesSquared[i] = (totalCentroid - centroids[i]).MagnitudeSquared();
 
-        T totalInertia = new();
+        SDecimal totalInertia = new();
         for (int i = 0; i < Triangulation.Length; ++i)
             totalInertia += inertias[i] + masses[i] * centroidDistancesSquared[i];
 

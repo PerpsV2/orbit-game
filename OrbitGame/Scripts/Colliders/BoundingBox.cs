@@ -1,3 +1,5 @@
+using System;
+
 namespace OrbitGame;
 
 /// <summary>
@@ -8,10 +10,10 @@ namespace OrbitGame;
 /// <param name="Top">Positive distance from the center to the top edge of the BoundingBox.</param>
 /// <param name="Bottom">Positive distance from the center to the bottom edge of the BoundingBox.</param>
 public readonly record struct BoundingBox(
-    SDecimal Left,
-    SDecimal Right,
-    SDecimal Top,
-    SDecimal Bottom)
+    double Left,
+    double Right,
+    double Top,
+    double Bottom)
 {
     
     /// <summary>
@@ -20,7 +22,7 @@ public readonly record struct BoundingBox(
     /// <param name="center">Center of the bounding box.</param>
     /// <param name="width">Width of the bounding box.</param>
     /// <param name="height">Height of the bounding box.</param>
-    public BoundingBox(Vec2<SDecimal> center, SDecimal width, SDecimal height) : 
+    public BoundingBox(DoubleVec2 center, double width, double height) : 
         this(center.X - width / 2, center.X + width / 2, center.Y + height / 2, center.Y - height / 2)
     { }
 
@@ -46,6 +48,7 @@ public readonly record struct BoundingBox(
     /// <returns>Whether the bounding box is empty or not.</returns>
     public bool IsEmpty()
     {
-        return Left == Right || Top == Bottom;
+        return Math.Abs(Left - Right) < Constants.ComparisonTolerance || 
+               Math.Abs(Top - Bottom) < Constants.ComparisonTolerance;
     }
 }
