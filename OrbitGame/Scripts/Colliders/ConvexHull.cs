@@ -34,6 +34,7 @@ public class ConvexHull
     private void SetHull(DoubleVec2[] points)
     {
         LinkedList<int> convexHullIndices = GetHullIndices(points);
+        convexHullIndices.RemoveLast();
         Points = convexHullIndices.Select(x => points[x]).ToArray();
     }
     

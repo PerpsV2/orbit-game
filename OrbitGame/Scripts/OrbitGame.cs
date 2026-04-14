@@ -222,7 +222,7 @@ public class OrbitGame : Game
             new DoubleVec2(-5, 0),
             new DoubleVec2(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 150; i++)
         {
              double randomAngle = _rnd.NextDouble() * Math.Tau;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -230,7 +230,7 @@ public class OrbitGame : Game
              SDecimal randomSpeed = SDecimal.Sqrt(earth.Mass * Constants.G / randomAltitude);
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
                  new(Vec2<SDecimal>.FromPolar(randomAngle, randomAltitude), 
-                     Vec2<SDecimal>.FromPolar(randomAngle + 1 * Math.PI / 2, randomSpeed + _rnd.Next(-50, 50))), 
+                     Vec2<SDecimal>.FromPolar(randomAngle + 1 * Math.PI / 2, randomSpeed * randomDirection + _rnd.Next(-50, 50))), 
                  1000, new Color(0, 255, 0, 255), earth);
              smokestack.DrawOrbitalPath = true;
              smokestack.MouseDetectionEnabled = false;
@@ -504,7 +504,7 @@ public class OrbitGame : Game
 
             Task.WaitAll(tasks.ToArray());
             
-            //_collisionHandler.ResolveCollisions();
+            _collisionHandler.ResolveCollisions();
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)
