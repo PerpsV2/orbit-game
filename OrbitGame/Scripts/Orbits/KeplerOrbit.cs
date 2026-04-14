@@ -130,14 +130,14 @@ public readonly record struct KeplerOrbit
         double periapsis = Periapsis;
         double eccentricity = Eccentricity;
         SDecimal semiLatusRectum = SemiLatusRectum;
-        return angle => (SDecimal)(semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis)));
+        return angle => semiLatusRectum / (1 + eccentricity * Math.Cos(angle - periapsis));
     }
 
     private SDecimal LazyInitializeSemiMajorAxis()
     {
         switch (Eccentricity)
         {
-            case <= 0: return (SDecimal)SemiLatusRectum;
+            case <= 0: return SemiLatusRectum;
             case > 0 and < 1: return (Equation(Periapsis) + Equation(Periapsis + Math.PI)) / 2;
             case >= 1: return Equation(Periapsis) / (1 - Eccentricity);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
@@ -148,9 +148,9 @@ public readonly record struct KeplerOrbit
     {
         switch (Eccentricity)
         {
-            case <= 0: return (SDecimal)SemiLatusRectum;
+            case <= 0: return SemiLatusRectum;
             case > 0 and < 1: return SDecimal.Sqrt(Equation(Periapsis) * Equation(Periapsis + Math.PI));
-            case >= 1: return (SDecimal)SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
+            case >= 1: return SemiLatusRectum / Math.Sqrt(Eccentricity * Eccentricity - 1);
             default: throw new ArgumentOutOfRangeException(nameof(Eccentricity));
         }
     }

@@ -141,77 +141,92 @@ public class OrbitGame : Game
         Planet.PlanetTemplate planetTemplate = new Planet.PlanetTemplate(planetMaterial);
         Planet sun = planetTemplate.CreateInstance(
             "Sun", new(Vec2<SDecimal>.Zero), new SDecimal(1.989, 30), 
-            new SDecimal(6.98340, 8), Color.White, null
+            new SDecimal(6.98340, 8), Color.White, null, 
+            5005
         );
         Planet mercury = planetTemplate.CreateInstance("Mercury",
             new(new Vec2<SDecimal>(new SDecimal(-5.6940545, 10), new SDecimal(3.2977160, 9)),
                 new Vec2<SDecimal>(new SDecimal(-1.2946428, 4), new SDecimal(-4.6540563, 4))), 
-            new SDecimal(3.285, 23), new SDecimal(2.4397, 6), new Color(140, 140, 140, 255), sun
+            new SDecimal(3.285, 23), new SDecimal(2.4397, 6), new Color(140, 140, 140, 255), sun, 
+            1234
         );
         Planet venus = planetTemplate.CreateInstance("Venus", 
             new(new Vec2<SDecimal>(new SDecimal(8.2978939, 10), new SDecimal(6.9376114, 10)),
                 new Vec2<SDecimal>(new SDecimal(-2.2569107, 4), new SDecimal(2.6718186, 4))),
-            new SDecimal(4.867, 24), new SDecimal(6.0518, 6), new Color(230, 160, 40, 255), sun
+            new SDecimal(4.867, 24), new SDecimal(6.0518, 6), new Color(230, 160, 40, 255), sun, 
+            767
         );
         Planet earth = planetTemplate.CreateInstance("Earth", 
             new(new Vec2<SDecimal>(new SDecimal(-8.5613233, 8), new SDecimal(1.4688537, 11)),
                 new Vec2<SDecimal>(new SDecimal(-3.0223357, 4), new SDecimal(-1.8447646, 3))),
-            new SDecimal(5.9722, 24), new SDecimal(6.378, 6), new Color(100, 200, 255, 255), sun
+            new SDecimal(5.9722, 24), new SDecimal(6.378, 6), new Color(100, 200, 255, 255), sun, 
+            1
         );
         Planet moon = planetTemplate.CreateInstance("The Moon", 
             new(new Vec2<SDecimal>(new SDecimal(-3.6413936, 8), new SDecimal(-1.7481022, 8)),
                 new Vec2<SDecimal>(new SDecimal( 4.2899598, 2), new SDecimal(-8.6413934, 2))),
-            new SDecimal(7.349, 22), new SDecimal(1.737, 6), new Color(180, 180, 180, 255), earth
+            new SDecimal(7.349, 22), new SDecimal(1.737, 6), new Color(180, 180, 180, 255), earth,
+            2
         );
         Planet mars = planetTemplate.CreateInstance("Mars", 
             new(new Vec2<SDecimal>(new SDecimal(-6.4603691, 10), new SDecimal( 2.3127019, 11)),
                 new Vec2<SDecimal>(new SDecimal(-2.2420469, 4), new SDecimal(-4.6499686, 3))),
-            new SDecimal(6.39, 23), new SDecimal(3.3895, 6), new Color(230, 60, 50, 255), sun
+            new SDecimal(6.39, 23), new SDecimal(3.3895, 6), new Color(230, 60, 50, 255), sun,
+            8625
         );
         Planet jupiter = planetTemplate.CreateInstance("Jupiter", 
             new(new Vec2<SDecimal>(new SDecimal(1.6580000, 11), new SDecimal(7.4166230, 11)),
                 new Vec2<SDecimal>(new SDecimal(-1.2915655, 4), new SDecimal(3.4670152, 3))),
-            new SDecimal(1.898, 27), new SDecimal(6.9911, 7), new Color(175, 125, 50, 255), sun
+            new SDecimal(1.898, 27), new SDecimal(6.9911, 7), new Color(175, 125, 50, 255), sun,
+            136394
         );
         Planet io = planetTemplate.CreateInstance("Io", 
             new(new Vec2<SDecimal>(new SDecimal(-2.4992437, 8), new SDecimal(-3.3952711, 8)),
                 new Vec2<SDecimal>(new SDecimal(1.3919142, 4), new SDecimal(-1.0326546, 4))),
-            new SDecimal(8.931938, 22), new SDecimal(1.8216, 6), new Color(195, 200, 40, 255), jupiter
+            new SDecimal(8.931938, 22), new SDecimal(1.8216, 6), new Color(195, 200, 40, 255), jupiter,
+            10
         );
         Planet europa = planetTemplate.CreateInstance("Europa", 
             new(new Vec2<SDecimal>(new SDecimal(6.6134371, 8), new SDecimal(8.2686051, 7)),
                 new Vec2<SDecimal>(new SDecimal(-1.6290520, 3), new SDecimal(1.3728682, 4))),
-            new SDecimal(4.79984, 22), new SDecimal(1.5608, 6), new Color(255, 200, 200, 255), jupiter
+            new SDecimal(4.79984, 22), new SDecimal(1.5608, 6), new Color(255, 200, 200, 255), jupiter,
+            80085
         );
         Planet ganymede = planetTemplate.CreateInstance("Ganymede", 
             new(new Vec2<SDecimal>(new SDecimal(1.0221162, 9), new SDecimal(-3.1228698, 8)),
                 new Vec2<SDecimal>(new SDecimal(3.1804035, 3), new SDecimal(1.0413910, 4))),
-            new SDecimal(1.4819, 23), new SDecimal(2.6341, 6), new Color(105, 105, 105, 255), jupiter
+            new SDecimal(1.4819, 23), new SDecimal(2.6341, 6), new Color(105, 105, 105, 255), jupiter,
+            1672
         );
         Planet callisto = planetTemplate.CreateInstance("Callisto", 
             new(new Vec2<SDecimal>(new SDecimal(1.7988510, 9), new SDecimal(-5.1363150, 8)),
                 new Vec2<SDecimal>(new SDecimal(2.2405056, 3), new SDecimal(7.9426031, 3))),
-            new SDecimal(1.075938, 23), new SDecimal(2.4103, 6), new Color(130, 130, 95, 255), jupiter
+            new SDecimal(1.075938, 23), new SDecimal(2.4103, 6), new Color(130, 130, 95, 255), jupiter,
+            4
         );
         Planet saturn = planetTemplate.CreateInstance("Saturn", 
             new(new Vec2<SDecimal>(new SDecimal( 1.4146019, 12), new SDecimal(-2.6971440, 11)),
                 new Vec2<SDecimal>(new SDecimal( 1.2650097, 3), new SDecimal( 9.4749677, 3))),
-            new SDecimal(5.683, 26), new SDecimal(5.8232, 7), new Color(150, 150, 80, 255), sun
+            new SDecimal(5.683, 26), new SDecimal(5.8232, 7), new Color(150, 150, 80, 255), sun,
+            1997
         );
         Planet uranus = planetTemplate.CreateInstance("Uranus", 
             new(new Vec2<SDecimal>(new SDecimal(1.6645067, 12), new SDecimal(2.4055482, 12)),
                 new Vec2<SDecimal>(new SDecimal(-5.6626764, 3), new SDecimal(3.5634117, 3))),
-            new SDecimal(8.681, 25), new SDecimal(2.5362, 7), new Color(170, 200, 255, 255), sun
+            new SDecimal(8.681, 25), new SDecimal(2.5362, 7), new Color(170, 200, 255, 255), sun,
+            1047
         );
         Planet neptune = planetTemplate.CreateInstance("Neptune", 
             new(new Vec2<SDecimal>(new SDecimal(4.4699311, 12), new SDecimal(-9.8183016, 10)),
                 new Vec2<SDecimal>(new SDecimal(7.2829293, 1), new SDecimal(5.4729751, 3))),
-            new SDecimal(1.024, 26), new SDecimal(2.4622, 7), new Color(100, 120, 200, 255), sun
+            new SDecimal(1.024, 26), new SDecimal(2.4622, 7), new Color(100, 120, 200, 255), sun,
+            0
         );
         Planet halley = planetTemplate.CreateInstance("Halley", 
             new(new Vec2<SDecimal>(new SDecimal(-2.9450469, 12), new SDecimal(4.0907881, 12)),
                 new Vec2<SDecimal>(new SDecimal(8.0919083, 2), new SDecimal(8.0919083, 2))),
-            new SDecimal(2.2, 14), new SDecimal(5.5, 3), new Color(200, 100, 200, 255), sun
+            new SDecimal(2.2, 14), new SDecimal(5.5, 3), new Color(200, 100, 200, 255), sun,
+            1313
         );
             
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
