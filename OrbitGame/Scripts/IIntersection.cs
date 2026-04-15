@@ -24,26 +24,26 @@ public readonly struct PointCollision(bool intersects = true)
 /// <param name="manifold">Collision manifold with respect to the reference</param>
 /// <param name="penetrationVector">Minimum penetration vector with respect to the reference</param>
 public readonly struct PhysicsCollision(SpatialInfo reference, SpatialInfo incident, 
-    HashSet<DoubleVec2> manifold, DoubleVec2 penetrationVector)
+    HashSet<Vec2Double> manifold, Vec2Double penetrationVector)
     : IIntersection
 {
     public readonly SpatialInfo Reference = reference;
     public readonly SpatialInfo Incident = incident;
-    public readonly HashSet<DoubleVec2> CollisionManifold = manifold;
-    public readonly DoubleVec2 PenetrationVector = penetrationVector;
+    public readonly HashSet<Vec2Double> CollisionManifold = manifold;
+    public readonly Vec2Double PenetrationVector = penetrationVector;
 
     public static PhysicsCollision CreateUnresolvable(SpatialInfo reference, SpatialInfo incident)
     {
-        return new(reference, incident, [], DoubleVec2.Zero);
+        return new(reference, incident, [], Vec2Double.Zero);
     }
     
     public PhysicsCollision GetInverse()
     {
         SpatialInfo reference = Reference;
         SpatialInfo incident = Incident;
-        DoubleVec2 penetrationVector = PenetrationVector;
-        HashSet<DoubleVec2> newManifold = CollisionManifold
-            .Select(v => v + (DoubleVec2)(reference.Position - incident.Position) + penetrationVector)
+        Vec2Double penetrationVector = PenetrationVector;
+        HashSet<Vec2Double> newManifold = CollisionManifold
+            .Select(v => v + (Vec2Double)(reference.Position - incident.Position) + penetrationVector)
             .ToHashSet();
         return new(
             Incident,

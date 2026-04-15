@@ -64,7 +64,7 @@ public class Planet : Body, IGameDrawable
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
-        DoubleVec2 screenPosition = (DoubleVec2)camera.SD_ConvertToScreenCoordinates(Position);
+        Vec2Double screenPosition = (Vec2Double)camera.SD_ConvertToScreenCoordinates(Position);
 
         float h = Options.ScreenSize.height;
         float w = Options.ScreenSize.width;
@@ -78,15 +78,15 @@ public class Planet : Body, IGameDrawable
         double leftDiscriminant = r * r - p2 * p2;
         double radical;
 
-        List<DoubleVec2> intersectionPoints = new();
+        List<Vec2Double> intersectionPoints = new();
 
         if (topDiscriminant >= 0)
         {
             radical = Math.Sqrt(topDiscriminant);
             if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
             {
-                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 - radical, 0, w), h));
-                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 + radical, 0, w), h));
+                intersectionPoints.Add(new Vec2Double(Math.Clamp(p2 - radical, 0, w), h));
+                intersectionPoints.Add(new Vec2Double(Math.Clamp(p2 + radical, 0, w), h));
             }
         }
 
@@ -95,8 +95,8 @@ public class Planet : Body, IGameDrawable
             radical = Math.Sqrt(rightDiscriminant);
             if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
             {
-                intersectionPoints.Add(new DoubleVec2(w, Math.Clamp(p1 + radical, 0, h)));
-                intersectionPoints.Add(new DoubleVec2(w, Math.Clamp(p1 - radical, 0, h)));
+                intersectionPoints.Add(new Vec2Double(w, Math.Clamp(p1 + radical, 0, h)));
+                intersectionPoints.Add(new Vec2Double(w, Math.Clamp(p1 - radical, 0, h)));
             }
         }
 
@@ -105,8 +105,8 @@ public class Planet : Body, IGameDrawable
             radical = Math.Sqrt(bottomDiscriminant);
             if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
             {
-                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 + radical, 0, w), 0));
-                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 - radical, 0, w), 0));
+                intersectionPoints.Add(new Vec2Double(Math.Clamp(p2 + radical, 0, w), 0));
+                intersectionPoints.Add(new Vec2Double(Math.Clamp(p2 - radical, 0, w), 0));
             }
         }
 
@@ -115,8 +115,8 @@ public class Planet : Body, IGameDrawable
             radical = Math.Sqrt(leftDiscriminant);
             if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
             {
-                intersectionPoints.Add(new DoubleVec2(0, Math.Clamp(p1 - radical, 0, h)));
-                intersectionPoints.Add(new DoubleVec2(0, Math.Clamp(p1 + radical, 0, h)));
+                intersectionPoints.Add(new Vec2Double(0, Math.Clamp(p1 - radical, 0, h)));
+                intersectionPoints.Add(new Vec2Double(0, Math.Clamp(p1 + radical, 0, h)));
             }
         }
 
@@ -142,7 +142,7 @@ public class Planet : Body, IGameDrawable
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             DrawZoomedIn();
-            //DrawTerrain();
+            DrawTerrain();
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
@@ -204,7 +204,8 @@ public class Planet : Body, IGameDrawable
                Utils.PerlinNoise1D(_terrainSeed, angle, 10, 1 / (double)Radius * 2 * Math.PI * 5) +
                Utils.PerlinNoise1D(_terrainSeed, angle, 4, 1 / (double)Radius * 2 * Math.PI) +
                Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) * 
-               (Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400));
+               Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) + 
+               Math.Clamp(Utils.PerlinNoise1D(_terrainSeed, angle, 1000, 1 / (double)Radius * 2 * Math.PI * 1000), 0, 1000);
     }
 
     public class PlanetTemplate(Material material) : KinematicObjectTemplate

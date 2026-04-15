@@ -231,11 +231,11 @@ public class OrbitGame : Game
             
         Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
         Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate([
-            new DoubleVec2(0.4, 0.4),
-            new DoubleVec2(0.4, -0.3),
-            new DoubleVec2(-0.2, -0.5),
-            new DoubleVec2(-5, 0),
-            new DoubleVec2(-0.3, 0.5)
+            new Vec2Double(0.4, 0.4),
+            new Vec2Double(0.4, -0.3),
+            new Vec2Double(-0.2, -0.5),
+            new Vec2Double(-5, 0),
+            new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
         for (int i = 0; i < 2; i++)
         {
@@ -252,11 +252,11 @@ public class OrbitGame : Game
         }
         
         Ship.ShipTemplate strawhatTemplate = new Ship.ShipTemplate([
-            new DoubleVec2(1, 1),
-            new DoubleVec2(1, -0.75),
-            new DoubleVec2(-0.5, -1.25),
-            new DoubleVec2(-1, 0),
-            new DoubleVec2(-0.75, 1.25)
+            new Vec2Double(1, 1),
+            new Vec2Double(1, -0.75),
+            new Vec2Double(-0.5, -1.25),
+            new Vec2Double(-1, 0),
+            new Vec2Double(-0.75, 1.25)
         ], shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
             new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 1000), Math.PI / 2), 

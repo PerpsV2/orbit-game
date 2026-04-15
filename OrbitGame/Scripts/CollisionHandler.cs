@@ -53,24 +53,24 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
         PhysicsCollision c2 = (PhysicsCollision)collision2;
 
         if (c1.PenetrationVector.Magnitude() == 0) return;
-        DoubleVec2 cNormal = -c1.PenetrationVector.Normalize();
+        Vec2Double cNormal = -c1.PenetrationVector.Normalize();
         
         float restitution = (reference.Material.RestitutionCoefficient + reference.Material.RestitutionCoefficient) / 2;
         float staticFriction = (reference.Material.StaticFrictionCoefficient + reference.Material.StaticFrictionCoefficient) / 2;
         float dynamicFriction = (reference.Material.DynamicFrictionCoefficient + reference.Material.DynamicFrictionCoefficient) / 2;
         
         // TODO: account for multiple points of collision (the manifold) and subsequently calculate the collision point to use 
-        DoubleVec2 cPr = DoubleVec2.Zero;
+        Vec2Double cPr = Vec2Double.Zero;
         foreach (var collisionPoint in c1.CollisionManifold)
             cPr = collisionPoint;
         
-        DoubleVec2 cPi = DoubleVec2.Zero;
+        Vec2Double cPi = Vec2Double.Zero;
         foreach (var collisionPoint in c2.CollisionManifold)
             cPi = collisionPoint;
         
         // calculation combined linear and angular velocity of collision point
-        Vec2<SDecimal> pVr = reference.Velocity - (Vec2<SDecimal>)DoubleVec3.Cross(cPr, new(0, 0, reference.AngularVelocity));
-        Vec2<SDecimal> pVi = incident.Velocity - (Vec2<SDecimal>)DoubleVec3.Cross(cPi, new(0, 0, incident.AngularVelocity));
+        Vec2<SDecimal> pVr = reference.Velocity - (Vec2<SDecimal>)Vec3Double.Cross(cPr, new(0, 0, reference.AngularVelocity));
+        Vec2<SDecimal> pVi = incident.Velocity - (Vec2<SDecimal>)Vec3Double.Cross(cPi, new(0, 0, incident.AngularVelocity));
         Vec2<SDecimal> relV = pVi - pVr;
 
         // calculate collision tangent pointing in the direction of movement

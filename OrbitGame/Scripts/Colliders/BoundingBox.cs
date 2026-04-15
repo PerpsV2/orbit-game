@@ -22,7 +22,7 @@ public readonly record struct BoundingBox(
     /// <param name="center">Center of the bounding box.</param>
     /// <param name="width">Width of the bounding box.</param>
     /// <param name="height">Height of the bounding box.</param>
-    public BoundingBox(DoubleVec2 center, double width, double height) : 
+    public BoundingBox(Vec2Double center, double width, double height) : 
         this(center.X - width / 2, center.X + width / 2, center.Y + height / 2, center.Y - height / 2)
     { }
 

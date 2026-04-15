@@ -12,10 +12,10 @@ public class Ship_Tests
     private readonly Planet.PlanetTemplate _testPlanetTemplate = new(new Material(0, 0, 0));
     private readonly Planet _planet;
     private readonly Ship.ShipTemplate _testShipTemplate = new([
-        new DoubleVec2(2, 2),
-        new DoubleVec2(2, -2),
-        new DoubleVec2(-2, -2),
-        new DoubleVec2(-2, 2)
+        new Vec2Double(2, 2),
+        new Vec2Double(2, -2),
+        new Vec2Double(-2, -2),
+        new Vec2Double(-2, 2)
     ], new Material(0, 0, 0));
     private readonly Ship _ship;
 

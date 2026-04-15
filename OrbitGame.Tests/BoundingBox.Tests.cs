@@ -4,9 +4,9 @@ namespace OrbitGame.Tests;
 
 public class BoundingBox_Tests
 {
-    private readonly BoundingBox _testPointBoundingBox = new(Vec2<SDecimal>.Zero, 0, 0);
-    private readonly BoundingBox _testLineBoundingBox = new(Vec2<SDecimal>.Zero, 0, 10);
-    private readonly BoundingBox _testBoundingBox = new(Vec2<SDecimal>.Zero, 10, 10);
+    private readonly BoundingBox _testPointBoundingBox = new(Vec2Double.Zero, 0, 0);
+    private readonly BoundingBox _testLineBoundingBox = new(Vec2Double.Zero, 0, 10);
+    private readonly BoundingBox _testBoundingBox = new(Vec2Double.Zero, 10, 10);
 
     [Fact]
     public void BoundingBox_IsEmptyMethod()

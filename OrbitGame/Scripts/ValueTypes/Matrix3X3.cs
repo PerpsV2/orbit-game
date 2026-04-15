@@ -58,11 +58,11 @@ public readonly record struct Matrix3X3<T> : IFormattable where T : IArbitraryPl
             matrix.Data[3] * vector.X + matrix.Data[4] * vector.Y + matrix.Data[5]);
     }
     
-    public static DoubleVec2 operator *(Matrix3X3<T> matrix, DoubleVec2 vector)
+    public static Vec2Double operator *(Matrix3X3<T> matrix, Vec2Double vector)
     {
         if (matrix.Data[6] != T.Zero || matrix.Data[7] != T.Zero || matrix.Data[8] != T.One)
             throw new ArithmeticException("Matrix3x3 must have identity Z-axis values when multiplying with Vector2");
-        return new DoubleVec2(
+        return new Vec2Double(
             T.ConvertToDouble(matrix.Data[0]) * vector.X + T.ConvertToDouble(matrix.Data[1]) * vector.Y + T.ConvertToDouble(matrix.Data[2]),
             T.ConvertToDouble(matrix.Data[3]) * vector.X + T.ConvertToDouble(matrix.Data[4]) * vector.Y + T.ConvertToDouble(matrix.Data[5]));
     }

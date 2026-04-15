@@ -12,18 +12,18 @@ public struct ConvexHull
     /// <summary>
     /// Convex hull points.
     /// </summary>
-    public DoubleVec2[] Points { get; private set; }
+    public Vec2Double[] Points { get; private set; }
     
     /// <summary>
     /// Fan triangulation of the convex hull.
     /// </summary>
-    public (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[] Triangulation { get; private set; }
+    public (Vec2Double a, Vec2Double b, Vec2Double c)[] Triangulation { get; private set; }
     
     /// <summary>
     /// Create the minimum convex hull which includes all of the input points.
     /// </summary>
     /// <param name="points">Points to form a convex hull out of.</param>
-    public ConvexHull(DoubleVec2[] points)
+    public ConvexHull(Vec2Double[] points)
     {
         SetHull(points);
         Triangulate();
@@ -38,7 +38,7 @@ public struct ConvexHull
     /// </summary>
     private void Center()
     {
-        DoubleVec2 centerOfMass = CalculateCenterOfMass();
+        Vec2Double centerOfMass = CalculateCenterOfMass();
         Points = Points.Select(v => v - centerOfMass).ToArray();
     }
 
@@ -48,20 +48,20 @@ public struct ConvexHull
     private void Triangulate()
     {
         if (Points.Length < 3) Triangulation = [];
-        var triangulation = new (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[Points.Length - 2];
+        var triangulation = new (Vec2Double a, Vec2Double b, Vec2Double c)[Points.Length - 2];
         for (int i = 1; i < Points.Length - 1; ++i)
             triangulation[i - 1] = (Points[0], Points[i], Points[i + 1]);
         Triangulation = triangulation;
     }
 
-    private void SetHull(DoubleVec2[] points)
+    private void SetHull(Vec2Double[] points)
     {
         LinkedList<int> convexHullIndices = GetHullIndices(points);
         convexHullIndices.RemoveLast();
         Points = convexHullIndices.Select(x => points[x]).ToArray();
     }
     
-    private static RotationDirection GetTripletRotationDirection(DoubleVec2[] triplet)
+    private static RotationDirection GetTripletRotationDirection(Vec2Double[] triplet)
     {
         if (triplet.Length != 3) throw new ArgumentException("Vector2 triplet must have exactly 3 values");
         double edgeSlope1 = (triplet[1].Y - triplet[0].Y) * (triplet[2].X - triplet[0].X);
@@ -70,7 +70,7 @@ public struct ConvexHull
             edgeSlope1 < edgeSlope2 ? RotationDirection.Counterclockwise : RotationDirection.None;
     }
     
-    private static LinkedList<int> GetHullIndices(DoubleVec2[] points)
+    private static LinkedList<int> GetHullIndices(Vec2Double[] points)
     {
         // get leftmost point to start
         int leftmostIndex = 0;
@@ -96,12 +96,12 @@ public struct ConvexHull
         return convexHull;
     }
     
-    public DoubleVec2 CalculateCenterOfMass()
+    public Vec2Double CalculateCenterOfMass()
     {
-        DoubleVec2 centerOfMass = DoubleVec2.Zero;
+        Vec2Double centerOfMass = Vec2Double.Zero;
         foreach (var triangle in Triangulation)
         {
-            DoubleVec2 centroid = (triangle.a + triangle.b + triangle.c) / 3;
+            Vec2Double centroid = (triangle.a + triangle.b + triangle.c) / 3;
             centerOfMass += centroid;
         }
 
@@ -123,13 +123,13 @@ public struct ConvexHull
         double[] areas = new double[Triangulation.Length];
         SDecimal[] masses = new SDecimal[Triangulation.Length];
         SDecimal[] inertias = new SDecimal[Triangulation.Length];
-        DoubleVec2[] centroids = new DoubleVec2[Triangulation.Length];
+        Vec2Double[] centroids = new Vec2Double[Triangulation.Length];
 
         for (int i = 0; i < Triangulation.Length; ++i)
         {
-            DoubleVec2 a = Triangulation[i].a;
-            DoubleVec2 b = Triangulation[i].b;
-            DoubleVec2 c = Triangulation[i].c;
+            Vec2Double a = Triangulation[i].a;
+            Vec2Double b = Triangulation[i].b;
+            Vec2Double c = Triangulation[i].c;
 
             areas[i] = Utils.CalculateTriangleArea(a, b, c);
             masses[i] = mass * areas[i] / totalArea;
@@ -137,10 +137,10 @@ public struct ConvexHull
             inertias[i] = Utils.CalculateTriangleInertia(a, b, c, masses[i]);
         }
 
-        DoubleVec2 totalCentroid = new();
+        Vec2Double totalCentroid = new();
         for (int i = 0; i < Triangulation.Length; ++i)
         {
-            totalCentroid += new DoubleVec2(
+            totalCentroid += new Vec2Double(
                 areas[i] * centroids[i].X,
                 areas[i] * centroids[i].Y
             );

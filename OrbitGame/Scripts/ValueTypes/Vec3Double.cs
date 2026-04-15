@@ -2,18 +2,18 @@ using System;
 
 namespace OrbitGame;
 
-public readonly struct DoubleVec3(double x, double y, double z) : IEquatable<DoubleVec3>
+public readonly struct Vec3Double(double x, double y, double z) : IEquatable<Vec3Double>
 {
-    public static DoubleVec3 Zero = new(0, 0, 0);
+    public static Vec3Double Zero = new(0, 0, 0);
     
     public double X { get; } = x;
     public double Y { get; } = y;
     public double Z { get; } = z;
     
-    public static double Dot(DoubleVec3 left, DoubleVec3 right)
+    public static double Dot(Vec3Double left, Vec3Double right)
         => left.X * right.X + left.Y * right.Y + left.Z * right.Z;
     
-    public static DoubleVec3 Cross(DoubleVec3 left, DoubleVec3 right)
+    public static Vec3Double Cross(Vec3Double left, Vec3Double right)
         => new(
             left.Y * right.Z - left.Z * right.Y, 
             left.Z * right.X - left.X * right.Z, 
@@ -26,36 +26,36 @@ public readonly struct DoubleVec3(double x, double y, double z) : IEquatable<Dou
     public double Magnitude()
         => Math.Sqrt(MagnitudeSquared());
 
-    public static DoubleVec3 Direction(DoubleVec3 start, DoubleVec3 end)
+    public static Vec3Double Direction(Vec3Double start, Vec3Double end)
     {
-        DoubleVec3 difference = end - start;
+        Vec3Double difference = end - start;
         return difference.Normalize();
     }
     
-    public DoubleVec3 Normalize()
-        => new DoubleVec3(X, Y, Z) / Magnitude();
+    public Vec3Double Normalize()
+        => new Vec3Double(X, Y, Z) / Magnitude();
     
-    public static DoubleVec3 operator +(DoubleVec3 value) 
+    public static Vec3Double operator +(Vec3Double value) 
         => value;
-    public static DoubleVec3 operator -(DoubleVec3 value) 
+    public static Vec3Double operator -(Vec3Double value) 
         => new(-value.X, -value.Y, -value.Z);
-    public static DoubleVec3 operator +(DoubleVec3 left, DoubleVec3 right)
+    public static Vec3Double operator +(Vec3Double left, Vec3Double right)
         => new(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
-    public static DoubleVec3 operator -(DoubleVec3 left, DoubleVec3 right)
+    public static Vec3Double operator -(Vec3Double left, Vec3Double right)
         => left + -right;
-    public static DoubleVec3 operator *(DoubleVec3 vector, double scalar) 
+    public static Vec3Double operator *(Vec3Double vector, double scalar) 
         => new(vector.X * scalar, vector.Y * scalar, vector.Z * scalar);
-    public static DoubleVec3 operator /(DoubleVec3 vector, double scalar)
+    public static Vec3Double operator /(Vec3Double vector, double scalar)
         => new(vector.X / scalar, vector.Y / scalar, vector.Z / scalar);
-    public static bool operator ==(DoubleVec3 left, DoubleVec3 right)
+    public static bool operator ==(Vec3Double left, Vec3Double right)
         => left.Equals(right);
-    public static bool operator !=(DoubleVec3 left, DoubleVec3 right)
+    public static bool operator !=(Vec3Double left, Vec3Double right)
         => !left.Equals(right);
     
-    public static explicit operator DoubleVec2(DoubleVec3 value)
+    public static explicit operator Vec2Double(Vec3Double value)
         => new (value.X, value.Y);
     
-    public static explicit operator Vec2<SDecimal>(DoubleVec3 vec)
+    public static explicit operator Vec2<SDecimal>(Vec3Double vec)
         => new(vec.X, vec.Y);
     
     public override string ToString()
@@ -68,14 +68,14 @@ public readonly struct DoubleVec3(double x, double y, double z) : IEquatable<Dou
            Z.ToString(format, formatProvider) + 
            ">";
 
-    public bool Equals(DoubleVec3 other)
+    public bool Equals(Vec3Double other)
     {
         return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is DoubleVec3 other && Equals(other);
+        return obj is Vec3Double other && Equals(other);
     }
 
     public override int GetHashCode()

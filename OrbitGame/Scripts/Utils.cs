@@ -124,16 +124,16 @@ public static class Utils
         return current;
     }
     
-    public static double CalculateTriangleArea(DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)
+    public static double CalculateTriangleArea(Vec2Double a, Vec2Double b, Vec2Double c)
     {
         return double.Abs(a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y)) / 2;
     }
 
-    public static SDecimal CalculateTriangleInertia(DoubleVec2 a, DoubleVec2 b, DoubleVec2 c, SDecimal mass)
+    public static SDecimal CalculateTriangleInertia(Vec2Double a, Vec2Double b, Vec2Double c, SDecimal mass)
     {
         return mass * (
-            DoubleVec2.Dot(a, a) + DoubleVec2.Dot(b, b) + DoubleVec2.Dot(c, c) +
-            DoubleVec2.Dot(a, b) + DoubleVec2.Dot(b, c) + DoubleVec2.Dot(c, a)
+            Vec2Double.Dot(a, a) + Vec2Double.Dot(b, b) + Vec2Double.Dot(c, c) +
+            Vec2Double.Dot(a, b) + Vec2Double.Dot(b, c) + Vec2Double.Dot(c, a)
         ) / 6;
     }
 

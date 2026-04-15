@@ -22,7 +22,7 @@ public class CircularCollider : CompactCollider
     {
         if (double.IsNegative(radius)) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
-        _boundingBox = new(DoubleVec2.Zero, Radius * 2, Radius * 2);
+        _boundingBox = new(Vec2Double.Zero, Radius * 2, Radius * 2);
     }
     
     public override SDecimal CalculateInertia(SDecimal mass)
@@ -40,14 +40,14 @@ public class CircularCollider : CompactCollider
     {
         if (IsEmpty() || collider.IsEmpty()) return null;
 
-        DoubleVec2 diffVector = (DoubleVec2)(incidentSpatial.Position - referenceSpatial.Position);
+        Vec2Double diffVector = (Vec2Double)(incidentSpatial.Position - referenceSpatial.Position);
         double distance = diffVector.Magnitude();
         if (distance == 0) return PhysicsCollision.CreateUnresolvable(referenceSpatial, incidentSpatial);
         if (distance <= Radius + collider.Radius)
         {
-            DoubleVec2 dirVector = diffVector.Normalize();
-            DoubleVec2 collisionPoint = dirVector * Radius;
-            DoubleVec2 penetrationVector = -dirVector * (Radius + collider.Radius - distance);
+            Vec2Double dirVector = diffVector.Normalize();
+            Vec2Double collisionPoint = dirVector * Radius;
+            Vec2Double penetrationVector = -dirVector * (Radius + collider.Radius - distance);
             return new PhysicsCollision(referenceSpatial, incidentSpatial, [collisionPoint], penetrationVector);
         }
 

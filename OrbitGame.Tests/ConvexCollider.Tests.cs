@@ -5,8 +5,8 @@ namespace OrbitGame.Tests;
 
 public class ConvexCollider_Tests
 {
-    private readonly ConvexCollider _testEmptyPointCollider = new([DoubleVec2.Zero]);
-    private readonly ConvexCollider _testEmptyLineCollider = new([DoubleVec2.Zero, new DoubleVec2(5, 0)]);
+    private readonly ConvexCollider _testEmptyPointCollider = new([Vec2Double.Zero]);
+    private readonly ConvexCollider _testEmptyLineCollider = new([Vec2Double.Zero, new Vec2Double(5, 0)]);
     private readonly ConvexCollider _testCollider = new([new(1, 2), new(1, -2), new(-1, -2), new(-1, 2)]);
     private readonly CircularCollider _testEmptyCircularCollider = new(0);
     private readonly CircularCollider _testCircularCollider = new(1);
@@ -63,7 +63,7 @@ public class ConvexCollider_Tests
             overlappingIntersection.Value);
         
         if (!touchingIntersection.HasValue) { Assert.Fail("Null collision"); return; }
-        Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, [new(1, 0)], DoubleVec2.Zero),
+        Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, [new(1, 0)], Vec2Double.Zero),
             touchingIntersection.Value);
         
         Assert.Null(notTouchingIntersection);
@@ -91,7 +91,7 @@ public class ConvexCollider_Tests
             overlappingIntersection.Value);
         
         if (!touchingIntersection.HasValue) { Assert.Fail("Null collision"); return; }
-        Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, [new(1, 0)], DoubleVec2.Zero),
+        Assert.Equal(new PhysicsCollision(originSpatialInfo, touchingSpatialInfo, [new(1, 0)], Vec2Double.Zero),
             touchingIntersection.Value);
         
         Assert.Null(notTouchingIntersection);

@@ -21,7 +21,7 @@ public class PolyMesh : IMesh
 
     private bool _buffersGenerated;
     
-    public PolyMesh(DoubleVec2[] points)
+    public PolyMesh(Vec2Double[] points)
     {
         _points = points.Select(v => new Vector2((float)v.X, -(float)v.Y)).ToArray();
     }

@@ -164,7 +164,7 @@ public class Ship : Body, IGameDrawable
         private readonly double _maximumRadius;
         private readonly Material _material;
         
-        public ShipTemplate(DoubleVec2[] shipVertices, Material material)
+        public ShipTemplate(Vec2Double[] shipVertices, Material material)
         {
             _material = material;
             _mesh = new PolyMesh(shipVertices);
