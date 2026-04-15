@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame;
@@ -134,5 +135,27 @@ public static class Utils
             DoubleVec2.Dot(a, a) + DoubleVec2.Dot(b, b) + DoubleVec2.Dot(c, c) +
             DoubleVec2.Dot(a, b) + DoubleVec2.Dot(b, c) + DoubleVec2.Dot(c, a)
         ) / 6;
+    }
+
+    public static double SmoothStep(double value)
+    {
+        if (value >= 1) return 1;
+        if (value <= 0) return 0;
+        return 3 * value * value - 2 * value * value * value;
+    }
+
+    public static T Lerp<T>(T a, T b, T t) where T : INumber<T>
+        => a + t * (b - a);
+
+    public static double PerlinNoise1D(int seed, double position, double amplitude, double frequency)
+    {
+        if (frequency <= 0) throw new ArgumentOutOfRangeException(nameof(frequency));
+        position /= frequency;
+        double leftSlope = new Random(HashCode.Combine(seed, Math.Floor(position))).NextDouble() * 2 - 1;
+        double rightSlope = new Random(HashCode.Combine(seed, Math.Ceiling(position))).NextDouble() * 2 - 1;
+        double midValue = position - Math.Floor(position);
+        double leftValue = leftSlope * midValue;
+        double rightValue = rightSlope * (midValue - 1);
+        return amplitude * Lerp(leftValue, rightValue, SmoothStep(midValue));
     }
 }

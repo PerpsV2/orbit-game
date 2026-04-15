@@ -48,12 +48,15 @@ public class Planet : Body, IGameDrawable
             (camera.BottomRight - Position).Direction());
 
         if (minAngle > maxAngle) maxAngle += Math.Tau;
+
+        List<Vec2<SDecimal>> terrainElevationPoints = [];
         
-        
-        
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 10, (i, angle) => {
-            
+        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
+            terrainElevationPoints.Add(Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position);
         }, true);
+        
+        foreach (var point in terrainElevationPoints)
+            graphicsDevice.SD_DrawPoint(camera, point, Color.Red);
     }
 
     public void DrawZoomedIn()
@@ -137,8 +140,11 @@ public class Planet : Body, IGameDrawable
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
+        {
             DrawZoomedIn();
-        
+            DrawTerrain();
+        }
+
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
         else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
@@ -194,7 +200,11 @@ public class Planet : Body, IGameDrawable
 
     public SDecimal GetElevationAtPoint(double angle)
     {
-        return _rnd.NextDouble();
+        return (Utils.PerlinNoise1D(_terrainSeed, angle, 150, 1 / (double)Radius * 2 * Math.PI * 300) +
+               Utils.PerlinNoise1D(_terrainSeed, angle, 10, 1 / (double)Radius * 2 * Math.PI * 5) +
+               Utils.PerlinNoise1D(_terrainSeed, angle, 4, 1 / (double)Radius * 2 * Math.PI) +
+               Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) * 
+               (Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400));
     }
 
     public class PlanetTemplate(Material material) : KinematicObjectTemplate

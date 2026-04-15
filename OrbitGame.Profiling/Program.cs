@@ -3,16 +3,7 @@ using BenchmarkDotNet.Running;
 using OrbitGame;
 using OrbitGame.Profiling;
 
-ConvexHull hull = new ConvexHull([
-    new DoubleVec2(0, 0),
-    new DoubleVec2(-3, 1),
-    new DoubleVec2(4, 2),
-    new DoubleVec2(5, 4),
-    new DoubleVec2(-6, -4),
-    new DoubleVec2(-4, 0),
-]);
-
-Utils.LogEnumerable(hull.Points);
+Console.WriteLine(Utils.PerlinNoise1D(1, 2, 1, 1));
 
 /*var summary = BenchmarkRunner.Run<Benchmarker>();
 
