@@ -63,68 +63,68 @@ public class Planet : Body, IGameDrawable
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
-        
-        Vec2<SDecimal> screenPosition = camera.SD_ConvertToScreenCoordinates(Position);
+
+        DoubleVec2 screenPosition = (DoubleVec2)camera.SD_ConvertToScreenCoordinates(Position);
 
         float h = Options.ScreenSize.height;
         float w = Options.ScreenSize.width;
-        SDecimal p1 = screenPosition.Y;
-        SDecimal p2 = screenPosition.X;
-        SDecimal r = camera.SD_ConvertToScreenDistance(Radius);
+        double p1 = screenPosition.Y;
+        double p2 = screenPosition.X;
+        double r = camera.ConvertToScreenDistance(Radius);
 
-        SDecimal topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
-        SDecimal bottomDiscriminant = r * r - p1 * p1;
-        SDecimal rightDiscriminant = 2 * w * p2 - p2 * p2 - w * w + r * r;
-        SDecimal leftDiscriminant = r * r - p2 * p2;
-        SDecimal radical;
+        double topDiscriminant = 2 * h * p1 - p1 * p1 - h * h + r * r;
+        double bottomDiscriminant = r * r - p1 * p1;
+        double rightDiscriminant = 2 * w * p2 - p2 * p2 - w * w + r * r;
+        double leftDiscriminant = r * r - p2 * p2;
+        double radical;
 
-        List<Vec2<SDecimal>> intersectionPoints = new();
+        List<DoubleVec2> intersectionPoints = new();
 
         if (topDiscriminant >= 0)
         {
-            radical = SDecimal.Sqrt(topDiscriminant);
+            radical = Math.Sqrt(topDiscriminant);
             if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
             {
-                intersectionPoints.Add(new Vec2<SDecimal>(SDecimal.Clamp(p2 - radical, 0, w), h));
-                intersectionPoints.Add(new Vec2<SDecimal>(SDecimal.Clamp(p2 + radical, 0, w), h));
+                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 - radical, 0, w), h));
+                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 + radical, 0, w), h));
             }
         }
 
         if (rightDiscriminant >= 0)
         {
-            radical = SDecimal.Sqrt(rightDiscriminant);
+            radical = Math.Sqrt(rightDiscriminant);
             if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
             {
-                intersectionPoints.Add(new Vec2<SDecimal>(w, SDecimal.Clamp(p1 + radical, 0, h)));
-                intersectionPoints.Add(new Vec2<SDecimal>(w, SDecimal.Clamp(p1 - radical, 0, h)));
+                intersectionPoints.Add(new DoubleVec2(w, Math.Clamp(p1 + radical, 0, h)));
+                intersectionPoints.Add(new DoubleVec2(w, Math.Clamp(p1 - radical, 0, h)));
             }
         }
 
         if (bottomDiscriminant >= 0)
         {
-            radical = SDecimal.Sqrt(bottomDiscriminant);
+            radical = Math.Sqrt(bottomDiscriminant);
             if (!(p2 - radical < 0 && p2 + radical < 0) && !(p2 - radical > w && p2 + radical > w))
             {
-                intersectionPoints.Add(new Vec2<SDecimal>(SDecimal.Clamp(p2 + radical, 0, w), 0));
-                intersectionPoints.Add(new Vec2<SDecimal>(SDecimal.Clamp(p2 - radical, 0, w), 0));
+                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 + radical, 0, w), 0));
+                intersectionPoints.Add(new DoubleVec2(Math.Clamp(p2 - radical, 0, w), 0));
             }
         }
 
         if (leftDiscriminant >= 0)
         {
-            radical = SDecimal.Sqrt(leftDiscriminant);
+            radical = Math.Sqrt(leftDiscriminant);
             if (!(p1 - radical < 0 && p1 + radical < 0) && !(p1 - radical > h && p1 + radical > h))
             {
-                intersectionPoints.Add(new Vec2<SDecimal>(0, SDecimal.Clamp(p1 - radical, 0, h)));
-                intersectionPoints.Add(new Vec2<SDecimal>(0, SDecimal.Clamp(p1 + radical, 0, h)));
+                intersectionPoints.Add(new DoubleVec2(0, Math.Clamp(p1 - radical, 0, h)));
+                intersectionPoints.Add(new DoubleVec2(0, Math.Clamp(p1 + radical, 0, h)));
             }
         }
 
         if (intersectionPoints.Count == 0) return;
-
+        
         intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
         var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
-
+        
         graphicsDevice.DrawPoly(polyPoints, Colour);
     }
 
@@ -142,7 +142,7 @@ public class Planet : Body, IGameDrawable
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             DrawZoomedIn();
-            DrawTerrain();
+            //DrawTerrain();
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
