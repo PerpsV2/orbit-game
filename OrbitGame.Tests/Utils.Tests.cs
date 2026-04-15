@@ -143,48 +143,4 @@ public class Utils_Tests
         Assert.Equal(3, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(2, 5)));
         Assert.Equal(0, Utils.CalculateTriangleArea(new(-1, 5), new(0, 3), new(0, 3)));
     }
-    
-    [Fact]
-    public void Utils_TriangulateConvexMethod()
-    {
-        Assert.Throws<ArgumentException>(() => Utils.TriangulateConvex(_testEmptyHull));
-        Assert.Equal(new[] {
-            (new Vec2<SDecimal>(4, 4), new Vec2<SDecimal>(4, 0), new Vec2<SDecimal>(0, 0)), 
-            (new Vec2<SDecimal>(4, 4), new Vec2<SDecimal>(0, 0), new Vec2<SDecimal>(0, 4))
-        }, Utils.TriangulateConvex(_testConvexHull));
-    }
-
-    [Fact]
-    public void Utils_CenterOfMassConvexMethod()
-    {
-        Assert.Equal(new Vec2<SDecimal>(2, 2), Utils.CenterOfMassConvex(_testConvexHull));
-    }
-
-    [Fact]
-    public void Utils_CenterConvexMethod()
-    {
-        Assert.Equal([
-                new Vec2<SDecimal>(2, 2),
-                new Vec2<SDecimal>(2, -2),
-                new Vec2<SDecimal>(-2, -2),
-                new Vec2<SDecimal>(-2, 2)
-            ],
-            Utils.CenterConvex(_testConvexHull)
-        );
-    }
-
-    [Fact]
-    public void Utils_TripletRotationDirectionMethod()
-    {
-        Assert.Equal(RotationDirection.Clockwise, Utils.TripletRotationDirection(_testCWConvexHull));
-        Assert.Equal(RotationDirection.Counterclockwise, Utils.TripletRotationDirection(_testCCWConvexHull));
-        Assert.Equal(RotationDirection.None, Utils.TripletRotationDirection(_testNoRotationConvexHull));
-        Assert.ThrowsAny<ArgumentException>(() => Utils.TripletRotationDirection([]));
-    }
-
-    [Fact]
-    public void Vector2_GetConvexHullIndicesMethod()
-    {
-        Assert.Equal([1, 5, 0, 3, 1], Utils.GetConvexHullIndices(_testNonConvexHull).ToArray());
-    }
 }

@@ -29,19 +29,19 @@ public class KeplerOrbitPath_Tests
         OrbitGame.Graphics = _graphics;
         _orbitMesh = new OrbitMesh();
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
-            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null);
+            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null, 0);
         _circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 0), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         _ellipticBody = _testPlanetTemplate.CreateInstance("Elliptic Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         _hyperbolicBody = _testPlanetTemplate.CreateInstance("Hyperbolic Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         
         _circularBody.GenerateOrbitPath(0);
         _ellipticBody.GenerateOrbitPath(0);

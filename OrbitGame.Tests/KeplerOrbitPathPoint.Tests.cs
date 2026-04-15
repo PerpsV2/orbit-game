@@ -19,19 +19,19 @@ public class KeplerOrbitPathPoint_Tests
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
-            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null);
+            new SpatialInfo(Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero), 1, 0, Color.White, null, 0);
         var circularBody = _testPlanetTemplate.CreateInstance("Circular Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 0), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         var ellipticBody = _testPlanetTemplate.CreateInstance("Elliptic Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 0.96), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         var hyperbolicBody = _testPlanetTemplate.CreateInstance("Hyperbolic Orbit Body", new SpatialInfo(
             new Vec2<SDecimal>(0, 1),
             new Vec2<SDecimal>(Math.Sqrt(1 + 2.6), 0)
-        ), 1, 0, Color.White, parent);
+        ), 1, 0, Color.White, parent, 0);
         
         circularBody.GenerateOrbitPath(_initialTime);
         ellipticBody.GenerateOrbitPath(_initialTime);

@@ -23,7 +23,7 @@ public class Planet_Tests
         _graphics = debugGraphics;
         _output = output;
         _testPlanet = _testPlanetTemplate.CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 
-            1, 10000, Color.White, null);
+            1, 10000, Color.White, null, 0);
         
         SpatialInfo cameraSpatialInfo = new(position: new Vec2<SDecimal>(10000, 0));
         ICameraMovementScheme surfaceCameraMovement = new TrackingCameraScheme(cameraSpatialInfo, null);

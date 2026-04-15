@@ -12,10 +12,10 @@ public class Ship_Tests
     private readonly Planet.PlanetTemplate _testPlanetTemplate = new(new Material(0, 0, 0));
     private readonly Planet _planet;
     private readonly Ship.ShipTemplate _testShipTemplate = new([
-        new Vec2<SDecimal>(2, 2),
-        new Vec2<SDecimal>(2, -2),
-        new Vec2<SDecimal>(-2, -2),
-        new Vec2<SDecimal>(-2, 2)
+        new DoubleVec2(2, 2),
+        new DoubleVec2(2, -2),
+        new DoubleVec2(-2, -2),
+        new DoubleVec2(-2, 2)
     ], new Material(0, 0, 0));
     private readonly Ship _ship;
 
@@ -29,7 +29,7 @@ public class Ship_Tests
     {
         _output = output;
         _planet = _testPlanetTemplate
-            .CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null);
+            .CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null, 0);
         _ship = _testShipTemplate
             .CreateInstance("Test Ship", new(new Vec2<SDecimal>(100, 0)), 100, Color.White, _planet);
     }

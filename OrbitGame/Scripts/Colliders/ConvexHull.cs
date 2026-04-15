@@ -4,11 +4,25 @@ using System.Linq;
 
 namespace OrbitGame;
 
-public class ConvexHull
+/// <summary>
+/// Represents a convex set of points.
+/// </summary>
+public struct ConvexHull
 {
+    /// <summary>
+    /// Convex hull points.
+    /// </summary>
     public DoubleVec2[] Points { get; private set; }
+    
+    /// <summary>
+    /// Fan triangulation of the convex hull.
+    /// </summary>
     public (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[] Triangulation { get; private set; }
     
+    /// <summary>
+    /// Create the minimum convex hull which includes all of the input points.
+    /// </summary>
+    /// <param name="points">Points to form a convex hull out of.</param>
     public ConvexHull(DoubleVec2[] points)
     {
         SetHull(points);
@@ -18,13 +32,22 @@ public class ConvexHull
         Points ??= [];
         Triangulation ??= [];
     }
-    
+
+    /// <summary>
+    /// Set the origin of the convex hull to be the center of mass.
+    /// </summary>
     private void Center()
-        => Points = Points.Select(v => v - CalculateCenterOfMass()).ToArray();
-    
+    {
+        DoubleVec2 centerOfMass = CalculateCenterOfMass();
+        Points = Points.Select(v => v - centerOfMass).ToArray();
+    }
+
+    /// <summary>
+    /// Sets the fan triangulation of the convex hull.
+    /// </summary>
     private void Triangulate()
     {
-        if (Points.Length < 3) throw new ArgumentException("Convex shape must have at least 3 points.");
+        if (Points.Length < 3) Triangulation = [];
         var triangulation = new (DoubleVec2 a, DoubleVec2 b, DoubleVec2 c)[Points.Length - 2];
         for (int i = 1; i < Points.Length - 1; ++i)
             triangulation[i - 1] = (Points[0], Points[i], Points[i + 1]);
