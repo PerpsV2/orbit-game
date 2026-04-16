@@ -49,10 +49,10 @@ public class ConvexCollider : CompactCollider
         
         // edge case (literally)
         // TODO: fix cases where one object is fully within the other
-        for (int i = 0; i < _convexHull.Points.Length; ++i)
+        for (int i = 0; i < _convexHull.Points.Count; ++i)
         {
             Vec2Double currentVertex = _convexHull.Points[i];
-            Vec2Double nextVertex = _convexHull.Points[(i + 1) % _convexHull.Points.Length];
+            Vec2Double nextVertex = _convexHull.Points[(i + 1) % _convexHull.Points.Count];
             double edgeAngle = Vec2Double.Direction(currentVertex, nextVertex);
             
             double edgeUpperBound = Vec2Double.RotatePoint(nextVertex - currentVertex, -edgeAngle).X;

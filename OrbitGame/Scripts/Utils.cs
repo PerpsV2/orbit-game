@@ -47,6 +47,9 @@ public static class Utils
     
     public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> 
         => value.CompareTo(max) > 0 ? max : value.CompareTo(min) < 0 ? min : value;
+
+    public static int UnsignedMod(int a, int b)
+        => a - b * a / b;
     
     public static double UnsignedMod(double a, double b)
         => a - b * Math.Floor(a / b);
@@ -75,7 +78,7 @@ public static class Utils
         for (int i = 0; i < sortedAngles.Length; i++)
         {
             double arcStartAngle = sortedAngles[i];
-            double arcEndAngle = sortedAngles[(int)UnsignedMod(i - 1, sortedAngles.Length)];
+            double arcEndAngle = sortedAngles[UnsignedMod(i - 1, sortedAngles.Length)];
             if (arcEndAngle < arcStartAngle) arcEndAngle += Math.Tau;
             double arcRange = arcEndAngle - arcStartAngle;
             if (arcRange < minRange)

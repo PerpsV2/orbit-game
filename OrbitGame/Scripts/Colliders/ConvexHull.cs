@@ -5,32 +5,30 @@ using System.Linq;
 namespace OrbitGame;
 
 /// <summary>
-/// Represents a convex set of points.
+/// Represents a hull bounded by a convex set of points ordered clockwise.
 /// </summary>
 public struct ConvexHull
 {
     /// <summary>
     /// Convex hull points.
     /// </summary>
-    public Vec2Double[] Points { get; private set; }
-    
+    public List<Vec2Double> Points { get; private set; } = [];
+
     /// <summary>
     /// Fan triangulation of the convex hull.
     /// </summary>
-    public (Vec2Double a, Vec2Double b, Vec2Double c)[] Triangulation { get; private set; }
+    public (Vec2Double a, Vec2Double b, Vec2Double c)[] Triangulation { get; private set; } = [];
     
     /// <summary>
-    /// Create the minimum convex hull which includes all of the input points.
+    /// Create the minimum convex hull which includes all the input points.
     /// </summary>
     /// <param name="points">Points to form a convex hull out of.</param>
     public ConvexHull(Vec2Double[] points)
     {
         SetHull(points);
+        RemoveColinearPoints();
         Triangulate();
         Center();
-        
-        Points ??= [];
-        Triangulation ??= [];
     }
 
     /// <summary>
@@ -39,7 +37,7 @@ public struct ConvexHull
     private void Center()
     {
         Vec2Double centerOfMass = CalculateCenterOfMass();
-        Points = Points.Select(v => v - centerOfMass).ToArray();
+        Points = Points.Select(v => v - centerOfMass).ToList();
     }
 
     /// <summary>
@@ -47,18 +45,35 @@ public struct ConvexHull
     /// </summary>
     private void Triangulate()
     {
-        if (Points.Length < 3) Triangulation = [];
-        var triangulation = new (Vec2Double a, Vec2Double b, Vec2Double c)[Points.Length - 2];
-        for (int i = 1; i < Points.Length - 1; ++i)
+        if (Points.Count < 3) Triangulation = [];
+        var triangulation = new (Vec2Double a, Vec2Double b, Vec2Double c)[Points.Count - 2];
+        for (int i = 1; i < Points.Count - 1; ++i)
             triangulation[i - 1] = (Points[0], Points[i], Points[i + 1]);
         Triangulation = triangulation;
+    }
+
+    private void RemoveColinearPoints()
+    {
+        for (int i = 0; i < Points.Count; ++i)
+        {
+            Vec2Double prevPoint = Points[Utils.UnsignedMod(i - 1, Points.Count)];
+            Vec2Double currentPoint = Points[i];
+            Vec2Double nextPoint = Points[Utils.UnsignedMod(i + 1, Points.Count)];
+            double prevSlope = (currentPoint.Y - prevPoint.Y) / (currentPoint.X - prevPoint.X);
+            double nextSlope = (nextPoint.Y - currentPoint.X) / (nextPoint.X - currentPoint.X);
+            if (Math.Abs(nextSlope - prevSlope) < 1e-10)
+            {
+                Points.RemoveAt(i);
+                i--;
+            }
+        }
     }
 
     private void SetHull(Vec2Double[] points)
     {
         LinkedList<int> convexHullIndices = GetHullIndices(points);
         convexHullIndices.RemoveLast();
-        Points = convexHullIndices.Select(x => points[x]).ToArray();
+        Points = convexHullIndices.Select(x => points[x]).ToList();
     }
     
     private static RotationDirection GetTripletRotationDirection(Vec2Double[] triplet)
@@ -98,13 +113,12 @@ public struct ConvexHull
     
     public Vec2Double CalculateCenterOfMass()
     {
-        Vec2Double centerOfMass = Vec2Double.Zero;
+        Vec2Double centerOfMass = Vec2Double.Zero;;
         foreach (var triangle in Triangulation)
         {
             Vec2Double centroid = (triangle.a + triangle.b + triangle.c) / 3;
             centerOfMass += centroid;
         }
-
         centerOfMass /= Triangulation.Length;
 
         return centerOfMass;
@@ -112,7 +126,7 @@ public struct ConvexHull
     
     public double CalculateArea()
     {
-        if (Points.Length < 3) return 0;
+        if (Points.Count < 3) return 0;
         return Triangulation.Aggregate(0d, (a, t) => a + Utils.CalculateTriangleArea(t.a, t.b, t.c));
     }
     
