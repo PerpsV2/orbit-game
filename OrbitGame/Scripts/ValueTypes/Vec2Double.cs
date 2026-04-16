@@ -2,17 +2,41 @@ using System;
 
 namespace OrbitGame;
 
+/// <summary>
+/// Represents a 2D vector with doubles as arguments.
+/// </summary>
+/// <param name="x">X-component</param>
+/// <param name="y">Y-component</param>
 public readonly struct Vec2Double(double x, double y) : IEquatable<Vec2Double>
 {
+    /// <summary>
+    /// Value of the zero vector.
+    /// </summary>
     public static Vec2Double Zero = new(0, 0);
     
+    /// <summary>
+    /// X-component.
+    /// </summary>
     public double X { get; } = x;
-
+    /// <summary>
+    /// Y-component.
+    /// </summary>
     public double Y { get; } = y;
     
+    /// <summary>
+    /// Creates a unit direction vector.
+    /// </summary>
+    /// <param name="angle">Angle of the vector.</param>
+    /// <returns>A unit vector with a direction of the angle.</returns>
     public static Vec2Double FromPolar(double angle)
         => new(Math.Cos(angle), Math.Sin(angle));
  
+    /// <summary>
+    /// Creates a vector from polar coordinates.
+    /// </summary>
+    /// <param name="angle">Direction of the vector.</param>
+    /// <param name="magnitude">Magnitude of the vector.</param>
+    /// <returns></returns>
     public static Vec2Double FromPolar(double angle, double magnitude)
         => new(magnitude * Math.Cos(angle), magnitude * Math.Sin(angle));
     
