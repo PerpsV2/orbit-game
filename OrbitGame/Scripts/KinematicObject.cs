@@ -97,7 +97,7 @@ public abstract class KinematicObject
     /// </summary>
     public void Destroy()
     {
-        if (_destructor is null) throw new NullReferenceException("Object is not part of the game hierarchy");
+        if (_destructor is null) return;
         _destructor.Invoke(Identifier);
     }
     

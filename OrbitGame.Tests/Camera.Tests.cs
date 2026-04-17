@@ -6,16 +6,32 @@ namespace OrbitGame.Tests;
 
 public class Camera_Tests
 {
-    private class TestKinematicObject(string identifier, SpatialInfo spatialInfo)
-        : KinematicObject(identifier, spatialInfo)
+    private class TestKinematicObject(string identifier, SpatialInfo spatialInfo, Action<string> destructor)
+        : KinematicObject(identifier, spatialInfo, destructor)
     {
         public class TestTemplate : KinematicObjectTemplate
         {
             public TestKinematicObject CreateTestInstance(string identifier, SpatialInfo spatialInfo)
             {
-                TestKinematicObject instance = new TestKinematicObject(identifier, spatialInfo);
+                TestKinematicObject instance = new TestKinematicObject(identifier, spatialInfo, DestroyInstance);
                 AddInstance(identifier, instance);
                 return instance;
+            }
+            
+            public new static Dictionary<string, TestKinematicObject> AllInstances { get; } = new();
+            
+            protected override void AddInstance(string identifier, KinematicObject instance)
+            {
+                base.AddInstance(identifier, instance);
+                if (!AllInstances.TryAdd(identifier, (TestKinematicObject)instance))
+                    throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+            }
+
+            public override void DestroyInstance(string identifier)
+            {
+                base.DestroyInstance(identifier);
+                AllInstances.Remove(identifier);
+                Instances.Remove(identifier);
             }
         }
     }
@@ -35,6 +51,8 @@ public class Camera_Tests
     
     public Camera_Tests()
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         TestKinematicObject.TestTemplate testTemplate = new();
         _testTrackingObject = 
             testTemplate.CreateTestInstance("Tracking Object", new(new Vec2<SDecimal>(10, 0), Math.PI / 2));

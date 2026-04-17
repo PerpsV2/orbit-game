@@ -21,15 +21,6 @@ public class Body_Tests
         {
             public new static Dictionary<string, TestBody> AllInstances { get; } = new();
             
-            public TestBody CreateTestInstance(string identifier, SpatialInfo spatialInfo, int mass, Body? parent)
-            {
-                TestBody instance = new TestBody(identifier, spatialInfo, 
-                    new ObjectInfo { OrbitMesh = new OrbitMesh() }, 
-                    mass, Color.White, parent, DestroyInstance);
-                AddInstance(identifier, instance);
-                return instance;
-            }
-            
             protected override void AddInstance(string identifier, KinematicObject instance)
             {
                 base.AddInstance(identifier, instance);
@@ -42,6 +33,15 @@ public class Body_Tests
                 base.DestroyInstance(identifier);
                 AllInstances.Remove(identifier);
                 Instances.Remove(identifier);
+            }
+            
+            public TestBody CreateTestInstance(string identifier, SpatialInfo spatialInfo, int mass, Body? parent)
+            {
+                TestBody instance = new TestBody(identifier, spatialInfo, 
+                    new ObjectInfo { OrbitMesh = new OrbitMesh() }, 
+                    mass, Color.White, parent, DestroyInstance);
+                AddInstance(identifier, instance);
+                return instance;
             }
         }
     }
