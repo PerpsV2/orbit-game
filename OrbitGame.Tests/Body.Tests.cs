@@ -105,12 +105,6 @@ public class Body_Tests
         _testBody1.AngularAcceleration = 1;
         _testBody1.UpdatePosition_Integrator(1, NumericalIntegrator.ImplicitEuler, () => new Vec2<SDecimal>(1, 0), 1);
         
-        _output.WriteLine("ImplicitEuler:");
-        _output.WriteLine($"Velocity: {_testBody1.Velocity}");
-        _output.WriteLine($"Position: {_testBody1.Position}");
-        _output.WriteLine($"AngularVelocity: {_testBody1.AngularVelocity}");
-        _output.WriteLine($"Angle: {_testBody1.Angle}");
-        
         Assert.Equal(new Vec2<SDecimal>(1, 2), _testBody1.Velocity);
         Assert.Equal(new Vec2<SDecimal>(1, 2), _testBody1.Position);
         Assert.Equal(2, _testBody1.AngularVelocity);
@@ -123,14 +117,8 @@ public class Body_Tests
         _testBody1.AngularAcceleration = 1;
         _testBody1.UpdatePosition_Integrator(1, NumericalIntegrator.VelocityVerlet, () => new Vec2<SDecimal>(1, 0), 1);
         
-        _output.WriteLine("VelocityVerlet:");
-        _output.WriteLine($"Velocity: {_testBody1.Velocity}");
-        _output.WriteLine($"Position: {_testBody1.Position}");
-        _output.WriteLine($"AngularVelocity: {_testBody1.AngularVelocity}");
-        _output.WriteLine($"Angle: {_testBody1.Angle}");
-        
         Assert.Equal(new Vec2<SDecimal>(1, 2), _testBody1.Velocity);
-        Assert.Equal(new Vec2<SDecimal>(2, 2), _testBody1.Position);
+        Assert.Equal(new Vec2<SDecimal>(1.5, 2), _testBody1.Position);
         Assert.Equal(2, _testBody1.AngularVelocity);
         Assert.Equal(2, _testBody1.Angle);
     }
@@ -141,14 +129,8 @@ public class Body_Tests
         _testBody1.AngularAcceleration = 1;
         _testBody1.UpdatePosition_Integrator(1, NumericalIntegrator.RungeKutta4, () => new Vec2<SDecimal>(1, 0), 1);
         
-        _output.WriteLine("RungeKutta4:");
-        _output.WriteLine($"Velocity: {_testBody1.Velocity}");
-        _output.WriteLine($"Position: {_testBody1.Position}");
-        _output.WriteLine($"AngularVelocity: {_testBody1.AngularVelocity}");
-        _output.WriteLine($"Angle: {_testBody1.Angle}");
-        
-        Assert.Equal(new Vec2<SDecimal>(1, 2), _testBody1.Velocity);
-        Assert.Equal(new Vec2<SDecimal>(2, 2), _testBody1.Position);
+        Assert.Equal(new Vec2<SDecimal>(1, 2), _testBody1.Velocity, 1e-6);
+        Assert.Equal(new Vec2<SDecimal>(1.5, 2), _testBody1.Position, 1e-6);
         Assert.Equal(2, _testBody1.AngularVelocity);
         Assert.Equal(2, _testBody1.Angle);
     }

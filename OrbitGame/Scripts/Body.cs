@@ -87,7 +87,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual Vec2<SDecimal> CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(KinematicObjectTemplate.AllInstances.Values.OfType<Planet>());
+        return CalculateNetGravitationalAcceleration(Body.BodyTemplate.AllInstances.Values);
     }
     
     /// <summary>
