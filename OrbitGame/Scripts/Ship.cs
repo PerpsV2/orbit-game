@@ -39,8 +39,9 @@ public class Ship : Body, IGameDrawable
         SDecimal maximumRadius,
         SDecimal mass,
         Color colour,
-        Planet parent)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
+        Planet parent,
+        ShipTemplate template)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, template)
     {
         _maximumRadius = maximumRadius;
         Collider.CalculateInertia(mass);
@@ -156,8 +157,10 @@ public class Ship : Body, IGameDrawable
         return base.CalculateNetAcceleration() + ArtificialAcceleration;
     }
     
-    public class ShipTemplate : KinematicObjectTemplate
+    public class ShipTemplate : BodyTemplate
     {
+        public new static Dictionary<string, Ship> AllInstances { get; } = new();
+        
         private readonly IMesh _mesh;
         private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();
@@ -182,9 +185,16 @@ public class Ship : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent);
+            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent, this);
             AddInstance(identifier, ship);
             return ship;
+        }
+        
+        protected override void AddInstance(string identifier, KinematicObject instance)
+        {
+            base.AddInstance(identifier, instance);
+            if (!AllInstances.TryAdd(identifier, (Ship)instance))
+                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
         }
     }
 }

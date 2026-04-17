@@ -48,9 +48,11 @@ public abstract class KinematicObject
 
     public Vec2<SDecimal> ForwardVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle);
     public Vec2<SDecimal> RightVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle - Math.PI / 2);
+    private readonly KinematicObjectTemplate? _template;
     
-    protected KinematicObject(string identifier, SpatialInfo spatialInfo)
+    protected KinematicObject(string identifier, SpatialInfo spatialInfo, KinematicObjectTemplate? template = null)
     {
+        _template = template;
         Identifier = identifier;
         SpatialInfo = spatialInfo;
         OriginBody.OnResetOrigin += KinematicObject_OnResetOrigin;
@@ -89,6 +91,15 @@ public abstract class KinematicObject
     {
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }
+
+    /// <summary>
+    /// Removes the object from its respective template instance.
+    /// </summary>
+    public void Destroy()
+    {
+        if (_template is null) throw new NullReferenceException("Object is not part of the game hierarchy");
+        _template.DestroyInstance(Identifier);
+    }
     
     /// <summary>
     /// Factory class for KinematicObject.
@@ -97,34 +108,30 @@ public abstract class KinematicObject
     {
         public static Dictionary<string, KinematicObject> AllInstances { get; } = new();
         
-        private Dictionary<string, KinematicObject> Instances { get; } = new();
+        protected Dictionary<string, KinematicObject> Instances { get; } = new();
 
         /// <summary>
         /// Add an instance of a KinematicObject into the pool of objects
         /// </summary>
-        protected void AddInstance(string identifier, KinematicObject instance)
+        protected virtual void AddInstance(string identifier, KinematicObject instance)
         {
-            AllInstances.TryAdd(identifier, instance);
-            Instances.Add(identifier, instance);
+            if (!Instances.TryAdd(identifier, instance) || !AllInstances.TryAdd(identifier, instance))
+                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
         }
 
         /// <summary>
         /// Remove an instance from the pool of objects
         /// </summary>
-        public bool Destroy(string identifier)
+        public void DestroyInstance(string identifier)
         {
             AllInstances.Remove(identifier);
-            return Instances.Remove(identifier);
-        }
-
-        public static bool DestroyGlobal(string identifier)
-        {
-            return AllInstances.Remove(identifier);
+            Instances.Remove(identifier);
         }
 
         public static void DestroyAll()
         {
-            AllInstances.Clear();
+            foreach (var instance in AllInstances)
+                instance.Value.Destroy();
         }
     }
 }

@@ -114,7 +114,7 @@ public class OrbitGame : Game
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
     private CollisionHandler _collisionHandler;
-    private Body[] Bodies => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Body>().ToArray();
+    private Body[] Bodies => Body.BodyTemplate.AllInstances.Values.ToArray();
     private Planet[] Planets => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Planet>().ToArray();
     private Ship[] Ships => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Ship>().ToArray();
 
@@ -259,7 +259,7 @@ public class OrbitGame : Game
             new Vec2Double(-0.75, 1.25)
         ], shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(2 * new SDecimal(6.378, 6), 10), new Vec2<SDecimal>(0, 1000), Math.PI / 2), 
+            new Vec2<SDecimal>(1 * new SDecimal(6.378, 6) + 100, 0), new Vec2<SDecimal>(0, 0), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -486,6 +486,8 @@ public class OrbitGame : Game
         GameState.PhysicsTime += GameState.DeltaPhysicsTimeStep;
         GameState.RealTime = gameTime.TotalGameTime.TotalSeconds;
         GameState.FrameCountThisSecond++;
+        
+        Utils.LogEnumerable(Planet.PlanetTemplate.AllInstances.Values.Select(x => x.Identifier));
         
         HandleInput(GameState.DeltaRealTime);
         

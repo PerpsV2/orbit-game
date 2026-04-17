@@ -25,8 +25,9 @@ public class Planet : Body, IGameDrawable
         SDecimal radius,
         Color colour,
         Body? parent,
-        int seed)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
+        int seed,
+        PlanetTemplate template)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, template)
     {
         Radius = radius;
         _orbitMesh = orbitMesh;
@@ -47,8 +48,8 @@ public class Planet : Body, IGameDrawable
             (camera.BottomLeft - Position).Direction(),
             (camera.BottomRight - Position).Direction());
 
-        if (minAngle > maxAngle) maxAngle += Math.Tau;
-
+        if (maxAngle <= minAngle) maxAngle += Math.Tau;
+        
         List<Vec2<SDecimal>> terrainElevationPoints = [];
         
         Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
@@ -142,7 +143,7 @@ public class Planet : Body, IGameDrawable
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             DrawZoomedIn();
-            //DrawTerrain();
+            DrawTerrain();
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
@@ -203,13 +204,15 @@ public class Planet : Body, IGameDrawable
         return (Utils.PerlinNoise1D(_terrainSeed, angle, 150, 1 / (double)Radius * 2 * Math.PI * 300) +
                Utils.PerlinNoise1D(_terrainSeed, angle, 10, 1 / (double)Radius * 2 * Math.PI * 5) +
                Utils.PerlinNoise1D(_terrainSeed, angle, 4, 1 / (double)Radius * 2 * Math.PI) +
-               Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) * 
-               Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) + 
+               Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) *
+               Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) +
                Math.Clamp(Utils.PerlinNoise1D(_terrainSeed, angle, 1000, 1 / (double)Radius * 2 * Math.PI * 1000), 0, 1000);
     }
 
-    public class PlanetTemplate(Material material) : KinematicObjectTemplate
+    public class PlanetTemplate(Material material) : BodyTemplate
     {
+        public new static Dictionary<string, Planet> AllInstances { get; } = new();
+        
         private readonly CircularMesh _mesh = new();
         private readonly OrbitMesh _orbitMesh = new();
         private readonly Material _material = material;
@@ -227,9 +230,16 @@ public class Planet : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent, seed);
+            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent, seed, this);
             AddInstance(identifier, planet);
             return planet;
+        }
+
+        protected override void AddInstance(string identifier, KinematicObject instance)
+        {
+            base.AddInstance(identifier, instance);
+            if (!AllInstances.TryAdd(identifier, (Planet)instance))
+                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
         }
     }
 }

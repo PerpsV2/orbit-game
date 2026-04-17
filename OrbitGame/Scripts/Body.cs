@@ -33,8 +33,9 @@ public abstract class Body : KinematicObject
         ObjectInfo objectInfo,
         SDecimal mass,
         Color colour,
-        Body? parent)
-        : base(identifier, spatialInfo)
+        Body? parent,
+        BodyTemplate template)
+        : base(identifier, spatialInfo, template)
     {
         Mass = mass;
         Colour = colour;
@@ -182,5 +183,17 @@ public abstract class Body : KinematicObject
         SpatialInfo.Velocity = newState.Velocity;
         SpatialInfo.AngularVelocity += (double)(AngularAcceleration * timeDiff); 
         SpatialInfo.Angle += (double)(AngularVelocity * timeDiff);
+    }
+
+    public abstract class BodyTemplate : KinematicObjectTemplate
+    {
+        public new static Dictionary<string, Body> AllInstances { get; } = new();
+        
+        protected override void AddInstance(string identifier, KinematicObject instance)
+        {
+            base.AddInstance(identifier, instance);
+            if (!AllInstances.TryAdd(identifier, (Body)instance))
+                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+        }
     }
 }
