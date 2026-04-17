@@ -26,5 +26,6 @@ public interface IMesh
     /// <param name="graphicsDevice">Graphics device to be drawn on.</param>
     /// <param name="transform">Transform to be applied to the mesh.</param>
     /// <param name="shaderParameters">Dictionary with a shader parameter name as a key and its value as a value.</param>
-    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters);
+    /// <param name="effect">Effect to use while drawing. Can be left blank to use the meshes default effect.</param>
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters, Effect? effect = null);
 }

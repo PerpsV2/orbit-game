@@ -142,7 +142,7 @@ public class Planet : Body, IGameDrawable
         if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         {
             DrawZoomedIn();
-            DrawTerrain();
+            //DrawTerrain();
         }
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker

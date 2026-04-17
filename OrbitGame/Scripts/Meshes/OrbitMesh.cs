@@ -45,12 +45,11 @@ public class OrbitMesh : IMesh
         return true;
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters, Effect? effect)
     {
         if (_vertexBuffer == null || _indexBuffer == null) 
             throw new NullReferenceException("Buffers not generated for this mesh");
-        
-        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        effect ??= Effects.DefaultEffect ?? throw new NullReferenceException("Default effect not initialized");
         
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;

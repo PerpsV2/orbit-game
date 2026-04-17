@@ -270,7 +270,7 @@ public class ConicPath
             { "StartAngle", drawnStartAngle },
             { "EndAngle", drawnEndAngle },
             { "TexelSize", new Vector2(0.5f, 0.5f) }
-        });
+        }, Effects.OrbitEffect);
 
         DrawSelectedOrbitPoint(orbit, _colour);
     }

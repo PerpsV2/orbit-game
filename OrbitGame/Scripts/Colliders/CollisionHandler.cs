@@ -132,6 +132,17 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             });
     }
 
+    public static void BodyPlanetTerrainCollision(Body reference, Body incident)
+    {
+        Planet planet = (Planet)incident;
+        double shipPlanetAngle = (reference.Position - planet.Position).Direction();
+        if ((reference.Position - planet.Position).MagnitudeSquared() <
+            SDecimal.Square(planet.GetElevationAtPoint(shipPlanetAngle) + planet.Radius))
+        {
+            reference.Velocity *= -1;
+        }
+    }
+
     public static void RestShipPlanetCollision(Body reference, Body incident, 
         SDecimal timeStep, SDecimal deltaTime)
     {
@@ -143,11 +154,11 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             SDecimal deltaTimeStep = timeStep * deltaTime;
             SDecimal relSpeed = (incident.Velocity - reference.Velocity).Magnitude();
             SDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
-            if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
-            {
-                KinematicObject.KinematicObjectTemplate.DestroyGlobal(ship.Identifier);
-                return;
-            }
+            // if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
+            // {
+            //     KinematicObject.KinematicObjectTemplate.DestroyGlobal(ship.Identifier);
+            //     return;
+            // }
 
             ResolvePhysicsCollision(reference, incident);
             

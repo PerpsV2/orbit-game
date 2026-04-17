@@ -41,12 +41,11 @@ public class ScreenMesh : IMesh
         return true;
     }
 
-    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters)
+    public void Draw(GraphicsDevice graphicsDevice, Matrix transform, Dictionary<string, object> shaderParameters, Effect? effect)
     {
         if (_vertexBuffer == null || _indexBuffer == null) 
             throw new NullReferenceException("Buffers not generated for this mesh");
-
-        Effect effect = Effects.OrbitEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        if (effect == null) throw new NullReferenceException("ScreenMesh must have an effect.");
         
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;

@@ -298,7 +298,8 @@ public class OrbitGame : Game
         _collisionHandler = new CollisionHandler(Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => 
                 CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)},
-            {(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision}
+            {(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision},
+            //{(typeof(Ship), typeof(Planet)), CollisionHandler.BodyPlanetTerrainCollision}
         });
 
         base.Initialize();
