@@ -487,8 +487,6 @@ public class OrbitGame : Game
         GameState.RealTime = gameTime.TotalGameTime.TotalSeconds;
         GameState.FrameCountThisSecond++;
         
-        Utils.LogEnumerable(Planet.PlanetTemplate.AllInstances.Values.Select(x => x.Identifier));
-        
         HandleInput(GameState.DeltaRealTime);
         
         if (Options.EnablePhysics)

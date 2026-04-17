@@ -50,14 +50,26 @@ public class Planet : Body, IGameDrawable
 
         if (maxAngle <= minAngle) maxAngle += Math.Tau;
         
-        List<Vec2<SDecimal>> terrainElevationPoints = [];
+        List<Vector2> terrainMeshVertices = [camera.ConvertToScreenCoordinates(Position)];
         
         Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
-            terrainElevationPoints.Add(Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position);
+            terrainMeshVertices.Add(
+                camera.ConvertToScreenCoordinates(
+                    Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position
+                    )
+                );
         }, true);
         
-        foreach (var point in terrainElevationPoints)
-            graphicsDevice.SD_DrawPoint(camera, point, Color.Red);
+        Utils.IterateAngleRange(maxAngle, minAngle, (minAngle + Math.Tau - maxAngle) / 50, (_, angle) =>
+        {
+            terrainMeshVertices.Add(
+                camera.ConvertToScreenCoordinates(
+                    Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position
+                )
+            );
+        }, true);
+        
+        graphicsDevice.DrawPoly(terrainMeshVertices, Colour);
     }
 
     public void DrawZoomedIn()
@@ -140,14 +152,13 @@ public class Planet : Body, IGameDrawable
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
         
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
-        {
-            DrawZoomedIn();
+        //if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
+        //{
             DrawTerrain();
-        }
+        //}
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
-        else if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
+        if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
         {
             Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
             graphicsDevice.DrawLine(screenPosition + new Vector2(10, 0), screenPosition + new Vector2(0, 10),
@@ -161,17 +172,17 @@ public class Planet : Body, IGameDrawable
         }
 
         // otherwise draw the planet as a circle
-        else
-        {
-            Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
-            float screenRadius = camera.ConvertToScreenDistance(Radius);
-            Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
-                               Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-            graphicsDevice.DrawMesh(Mesh, transform, new()
-            {
-                { "Colour", Colour.ToVector4() }
-            });
-        }
+        // else
+        // {
+        //     Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
+        //     float screenRadius = camera.ConvertToScreenDistance(Radius);
+        //     Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
+        //                        Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
+        //     graphicsDevice.DrawMesh(Mesh, transform, new()
+        //     {
+        //         { "Colour", Colour.ToVector4() }
+        //     });
+        // }
     }
 
     public void DrawCollider()
@@ -206,7 +217,7 @@ public class Planet : Body, IGameDrawable
                Utils.PerlinNoise1D(_terrainSeed, angle, 4, 1 / (double)Radius * 2 * Math.PI) +
                Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) *
                Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) +
-               Math.Clamp(Utils.PerlinNoise1D(_terrainSeed, angle, 1000, 1 / (double)Radius * 2 * Math.PI * 1000), 0, 1000);
+               Math.Clamp(Utils.PerlinNoise1D(_terrainSeed, angle, 4000, 1 / (double)Radius * 2 * Math.PI * 1000), -1000, 1000);
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate
