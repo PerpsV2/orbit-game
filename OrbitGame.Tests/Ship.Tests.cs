@@ -28,6 +28,7 @@ public class Ship_Tests
     public Ship_Tests(ITestOutputHelper output)
     {
         _output = output;
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
         _planet = _testPlanetTemplate
             .CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null, 0);
         _ship = _testShipTemplate

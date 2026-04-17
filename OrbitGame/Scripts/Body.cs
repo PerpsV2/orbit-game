@@ -34,8 +34,8 @@ public abstract class Body : KinematicObject
         SDecimal mass,
         Color colour,
         Body? parent,
-        BodyTemplate template)
-        : base(identifier, spatialInfo, template)
+        Action<string>? destructor)
+        : base(identifier, spatialInfo, destructor)
     {
         Mass = mass;
         Colour = colour;
@@ -194,6 +194,13 @@ public abstract class Body : KinematicObject
             base.AddInstance(identifier, instance);
             if (!AllInstances.TryAdd(identifier, (Body)instance))
                 throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+        }
+
+        public override void DestroyInstance(string identifier)
+        {
+            base.DestroyInstance(identifier);
+            AllInstances.Remove(identifier);
+            Instances.Remove(identifier);
         }
     }
 }

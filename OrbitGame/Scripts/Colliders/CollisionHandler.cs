@@ -154,11 +154,11 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             SDecimal deltaTimeStep = timeStep * deltaTime;
             SDecimal relSpeed = (incident.Velocity - reference.Velocity).Magnitude();
             SDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
-            // if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
-            // {
-            //     KinematicObject.KinematicObjectTemplate.DestroyGlobal(ship.Identifier);
-            //     return;
-            // }
+            if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
+            {
+                ship.Destroy();
+                return;
+            }
 
             ResolvePhysicsCollision(reference, incident);
             

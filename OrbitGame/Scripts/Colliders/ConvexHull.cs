@@ -63,9 +63,9 @@ public struct ConvexHull
     {
         for (int i = 0; i < Points.Count; ++i)
         {
-            Vec2Double prevPoint = Points[Utils.UnsignedMod(i - 1, Points.Count)];
+            Vec2Double prevPoint = Points[(int)Utils.UnsignedMod(i - 1, Points.Count)];
             Vec2Double currentPoint = Points[i];
-            Vec2Double nextPoint = Points[Utils.UnsignedMod(i + 1, Points.Count)];
+            Vec2Double nextPoint = Points[(int)Utils.UnsignedMod(i + 1, Points.Count)];
             double prevSlope = (currentPoint.Y - prevPoint.Y) / (currentPoint.X - prevPoint.X);
             double nextSlope = (nextPoint.Y - currentPoint.X) / (nextPoint.X - currentPoint.X);
             if (Math.Abs(nextSlope - prevSlope) < 1e-10)

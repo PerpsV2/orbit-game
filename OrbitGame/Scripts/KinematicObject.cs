@@ -48,11 +48,11 @@ public abstract class KinematicObject
 
     public Vec2<SDecimal> ForwardVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle);
     public Vec2<SDecimal> RightVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle - Math.PI / 2);
-    private readonly KinematicObjectTemplate? _template;
+    private readonly Action<string>? _destructor;
     
-    protected KinematicObject(string identifier, SpatialInfo spatialInfo, KinematicObjectTemplate? template = null)
+    protected KinematicObject(string identifier, SpatialInfo spatialInfo, Action<string>? destructor = null)
     {
-        _template = template;
+        _destructor = destructor;
         Identifier = identifier;
         SpatialInfo = spatialInfo;
         OriginBody.OnResetOrigin += KinematicObject_OnResetOrigin;
@@ -97,8 +97,8 @@ public abstract class KinematicObject
     /// </summary>
     public void Destroy()
     {
-        if (_template is null) throw new NullReferenceException("Object is not part of the game hierarchy");
-        _template.DestroyInstance(Identifier);
+        if (_destructor is null) throw new NullReferenceException("Object is not part of the game hierarchy");
+        _destructor.Invoke(Identifier);
     }
     
     /// <summary>
@@ -122,7 +122,7 @@ public abstract class KinematicObject
         /// <summary>
         /// Remove an instance from the pool of objects
         /// </summary>
-        public void DestroyInstance(string identifier)
+        public virtual void DestroyInstance(string identifier)
         {
             AllInstances.Remove(identifier);
             Instances.Remove(identifier);

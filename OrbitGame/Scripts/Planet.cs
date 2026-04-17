@@ -26,8 +26,8 @@ public class Planet : Body, IGameDrawable
         Color colour,
         Body? parent,
         int seed,
-        PlanetTemplate template)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, template)
+        Action<string>? destructor)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, destructor)
     {
         Radius = radius;
         _orbitMesh = orbitMesh;
@@ -230,7 +230,7 @@ public class Planet : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent, seed, this);
+            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent, seed, DestroyInstance);
             AddInstance(identifier, planet);
             return planet;
         }
@@ -240,6 +240,13 @@ public class Planet : Body, IGameDrawable
             base.AddInstance(identifier, instance);
             if (!AllInstances.TryAdd(identifier, (Planet)instance))
                 throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+        }
+        
+        public override void DestroyInstance(string identifier)
+        {
+            base.DestroyInstance(identifier);
+            AllInstances.Remove(identifier);
+            Instances.Remove(identifier);
         }
     }
 }

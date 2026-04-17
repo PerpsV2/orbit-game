@@ -31,7 +31,7 @@ public class Ship : Body, IGameDrawable
     public bool MarkedForRemoval { get; set; }
     
     public Landing? LandingState { get; private set; }
-
+    
     private Ship(
         string identifier,
         SpatialInfo spatialInfo,
@@ -40,8 +40,8 @@ public class Ship : Body, IGameDrawable
         SDecimal mass,
         Color colour,
         Planet parent,
-        ShipTemplate template)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, template)
+        Action<string>? destructor)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, destructor)
     {
         _maximumRadius = maximumRadius;
         Collider.CalculateInertia(mass);
@@ -185,7 +185,7 @@ public class Ship : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent, this);
+            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent, DestroyInstance);
             AddInstance(identifier, ship);
             return ship;
         }
@@ -195,6 +195,13 @@ public class Ship : Body, IGameDrawable
             base.AddInstance(identifier, instance);
             if (!AllInstances.TryAdd(identifier, (Ship)instance))
                 throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+        }
+        
+        public override void DestroyInstance(string identifier)
+        {
+            base.DestroyInstance(identifier);
+            AllInstances.Remove(identifier);
+            Instances.Remove(identifier);
         }
     }
 }

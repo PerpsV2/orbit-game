@@ -13,17 +13,35 @@ public class Body_Tests
         ObjectInfo objectInfo,
         SDecimal mass,
         Color colour,
-        Body? parent) 
-        : Body(identifier, spatialinfo, objectInfo, mass, colour, parent)
+        Body? parent,
+        Action<string>? destructor) 
+        : Body(identifier, spatialinfo, objectInfo, mass, colour, parent, destructor)
     {
-        public class TestTemplate : KinematicObjectTemplate
+        public class TestTemplate : BodyTemplate
         {
+            public new static Dictionary<string, TestBody> AllInstances { get; } = new();
+            
             public TestBody CreateTestInstance(string identifier, SpatialInfo spatialInfo, int mass, Body? parent)
             {
-                TestBody instance = new TestBody(identifier, spatialInfo, new ObjectInfo(), 
-                    mass, Color.White, parent);
+                TestBody instance = new TestBody(identifier, spatialInfo, 
+                    new ObjectInfo { OrbitMesh = new OrbitMesh() }, 
+                    mass, Color.White, parent, DestroyInstance);
                 AddInstance(identifier, instance);
                 return instance;
+            }
+            
+            protected override void AddInstance(string identifier, KinematicObject instance)
+            {
+                base.AddInstance(identifier, instance);
+                if (!AllInstances.TryAdd(identifier, (TestBody)instance))
+                    throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
+            }
+
+            public override void DestroyInstance(string identifier)
+            {
+                base.DestroyInstance(identifier);
+                AllInstances.Remove(identifier);
+                Instances.Remove(identifier);
             }
         }
     }
@@ -38,16 +56,17 @@ public class Body_Tests
     {
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
+        TestBody.TestTemplate.DestroyAll();
         _template = new TestBody.TestTemplate();
-        _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
-                position: new Vec2<SDecimal>(0, 0),
-                velocity: new Vec2<SDecimal>(0, 0)),
-            4, null);
         _testBody1 = _template.CreateTestInstance("Test Body 1", new SpatialInfo(
                 position: new Vec2<SDecimal>(1, 0),
                 velocity: new Vec2<SDecimal>(0, 2),
                 angularVelocity: 1),
             1, _testBody2);
+        _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
+                position: new Vec2<SDecimal>(0, 0),
+                velocity: new Vec2<SDecimal>(0, 0)),
+            4, null);
     }
 
     [Fact]
