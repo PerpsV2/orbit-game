@@ -45,6 +45,7 @@ public class Ship : Body, IGameDrawable
     {
         _maximumRadius = maximumRadius;
         Collider.CalculateInertia(mass);
+        GenerateOrbitPath(0);
     }
 
     protected override void Body_UpdateFrame(object? e, EventArgs args)
@@ -100,7 +101,7 @@ public class Ship : Body, IGameDrawable
         throw new NotImplementedException();
     }
     
-    public override void GenerateOrbitPath(SDecimal time)
+    public sealed override void GenerateOrbitPath(SDecimal time)
     {
         if (Parent == null)
             throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");

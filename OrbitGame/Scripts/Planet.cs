@@ -11,7 +11,6 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly SDecimal Radius;
-    private readonly OrbitMesh _orbitMesh;
     private readonly int _terrainSeed;
 
     private readonly Random _rnd;
@@ -20,7 +19,6 @@ public class Planet : Body, IGameDrawable
         string identifier,
         SpatialInfo spatialInfo,
         ObjectInfo objectInfo,
-        OrbitMesh orbitMesh,
         SDecimal mass,
         SDecimal radius,
         Color colour,
@@ -30,10 +28,9 @@ public class Planet : Body, IGameDrawable
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent, destructor)
     {
         Radius = radius;
-        _orbitMesh = orbitMesh;
         _terrainSeed = seed;
         _rnd = new Random(seed);
-        
+        GenerateOrbitPath(0);
         objectInfo.Collider.CalculateInertia(mass);
     }
 
@@ -210,6 +207,9 @@ public class Planet : Body, IGameDrawable
         });
     }
 
+    public sealed override void GenerateOrbitPath(SDecimal time)
+        => base.GenerateOrbitPath(time);
+
     public SDecimal GetElevationAtPoint(double angle)
     {
         return (Utils.PerlinNoise1D(_terrainSeed, angle, 150, 1 / (double)Radius * 2 * Math.PI * 300) +
@@ -241,7 +241,7 @@ public class Planet : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Planet planet = new Planet(identifier, spatialInfo, objectInfo, _orbitMesh, mass, radius, colour, parent, seed, DestroyInstance);
+            Planet planet = new Planet(identifier, spatialInfo, objectInfo, mass, radius, colour, parent, seed, DestroyInstance);
             AddInstance(identifier, planet);
             return planet;
         }

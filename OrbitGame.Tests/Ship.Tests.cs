@@ -19,20 +19,16 @@ public class Ship_Tests
     ], new Material(0, 0, 0));
     private readonly Ship _ship;
 
-    private readonly (Vec2<SDecimal> thrust, Vec2<SDecimal> displacement) _centerThrust = 
-        (new(1000, 0), Vec2<SDecimal>.Zero);
-    private readonly (Vec2<SDecimal> thrust, Vec2<SDecimal> displacement) _displacedThrust = 
-        (new(1000, 0), new(0, 5));
+    private readonly (Vec2<SDecimal> thrust, Vec2<SDecimal> displacement) _centerThrust = (new(1000, 0), Vec2<SDecimal>.Zero);
+    private readonly (Vec2<SDecimal> thrust, Vec2<SDecimal> displacement) _displacedThrust = (new(1000, 0), new(0, 5));
     private readonly SpatialInfo _newPlanetSpatialInfo = new(new(500, 0), Math.PI);
 
     public Ship_Tests(ITestOutputHelper output)
     {
         _output = output;
         KinematicObject.KinematicObjectTemplate.DestroyAll();
-        _planet = _testPlanetTemplate
-            .CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null, 0);
-        _ship = _testShipTemplate
-            .CreateInstance("Test Ship", new(new Vec2<SDecimal>(100, 0)), 100, Color.White, _planet);
+        _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null, 0);
+        _ship = _testShipTemplate.CreateInstance("Test Ship", new(new Vec2<SDecimal>(100, 0)), 100, Color.White, _planet);
     }
 
     [Fact]

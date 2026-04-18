@@ -47,7 +47,6 @@ public abstract class Body : KinematicObject
             objectInfo.OrbitMesh ?? throw new NullReferenceException("Body was constructed without an OrbitMesh"),
             colour
         );
-        GenerateOrbitPath(0);
         OrbitGame.UpdateFrame += Body_UpdateFrame;
     }
     
@@ -87,7 +86,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual Vec2<SDecimal> CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(Body.BodyTemplate.AllInstances.Values);
+        return CalculateNetGravitationalAcceleration(BodyTemplate.AllInstances.Values);
     }
     
     /// <summary>

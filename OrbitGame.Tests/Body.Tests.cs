@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Xunit;
 using Xunit.Abstractions;
@@ -58,15 +59,15 @@ public class Body_Tests
         Constants.SetGravitationalConstant((SDecimal)1);
         TestBody.TestTemplate.DestroyAll();
         _template = new TestBody.TestTemplate();
+        _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
+                position: new Vec2<SDecimal>(0, 0),
+                velocity: new Vec2<SDecimal>(0, 0)),
+            4, null);
         _testBody1 = _template.CreateTestInstance("Test Body 1", new SpatialInfo(
                 position: new Vec2<SDecimal>(1, 0),
                 velocity: new Vec2<SDecimal>(0, 2),
                 angularVelocity: 1),
             1, _testBody2);
-        _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
-                position: new Vec2<SDecimal>(0, 0),
-                velocity: new Vec2<SDecimal>(0, 0)),
-            4, null);
     }
 
     [Fact]
