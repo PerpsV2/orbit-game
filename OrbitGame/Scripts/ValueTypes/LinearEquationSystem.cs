@@ -7,7 +7,7 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
     where T : INumber<T>
 {
     private int _numEquations = numEquations;
-    private int _numVariables = numVariables;
+    private readonly int _numVariables = numVariables;
     private T[,] _coefficients = new T[numEquations, numVariables];
     private T[] _constants = new T[numEquations];
 
@@ -54,7 +54,7 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
         _constants[modifyingRowIndex] += scale * _constants[scaleRowIndex];
     }
 
-    public void ConvertToReducedEchelonForm()
+    private void ConvertToReducedEchelonForm()
     {
         int highestAvailableRow = 0;
         for (int currentCol = 0; currentCol < _numVariables; ++currentCol)
@@ -84,7 +84,7 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
         }
     }
 
-    public T[,] GetTranspose()
+    private T[,] GetTranspose()
     {
         T[,] transpose = new T[_coefficients.GetLength(1), _coefficients.GetLength(0)];
         for (int i = 0; i < _coefficients.GetLength(0); ++i)
@@ -94,7 +94,7 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
         return transpose;
     }
 
-    public void Normalize()
+    private void Normalize()
     {
         T[,] transpose = GetTranspose();
         
@@ -115,11 +115,13 @@ public class LinearEquationSystem<T>(int numVariables, int numEquations)
         _numEquations = _numVariables;
     }
     
-    public T[] Solve(bool normalize = false)
+    public T[]? Solve(bool normalize = false)
     {
         if (normalize) Normalize();
         ConvertToReducedEchelonForm();
         T[] result = new T[_numVariables];
+
+        if (_numEquations < _numVariables) return null;
 
         for (int i = _numVariables - 1; i >= 0; --i)
         {

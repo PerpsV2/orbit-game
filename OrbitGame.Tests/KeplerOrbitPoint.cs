@@ -1,9 +1,11 @@
+using System;
 using Microsoft.Xna.Framework;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace OrbitGame.Tests;
 
-public class KeplerOrbitPathPoint_Tests
+public class KeplerOrbitPoint_Tests
 {
     private readonly ITestOutputHelper _output;
     
@@ -14,7 +16,7 @@ public class KeplerOrbitPathPoint_Tests
 
     private readonly SDecimal _initialTime = 100;
 
-    public KeplerOrbitPathPoint_Tests(ITestOutputHelper output)
+    public KeplerOrbitPoint_Tests(ITestOutputHelper output)
     {
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
@@ -43,7 +45,7 @@ public class KeplerOrbitPathPoint_Tests
     }
 
     [Fact]
-    public void KeplerOrbitPathPoint_GetTimeAtPoint()
+    public void KeplerOrbitPoint_GetTimeAtPoint()
     {
         //Assert.Equal(_initialTime + 3*Math.PI/2, _circularOrbitPathPoint.GetTimeAtPoint(_initialTime), Assert.Epsilon);
         Assert.Equal(_initialTime + 125 * Math.PI, _ellipticOrbitPoint.GetNextTime(_initialTime), Assert.Epsilon);
