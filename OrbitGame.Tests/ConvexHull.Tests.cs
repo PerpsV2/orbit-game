@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace OrbitGame.Tests;
 
 public class ConvexHull_Tests

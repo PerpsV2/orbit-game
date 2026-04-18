@@ -85,8 +85,8 @@ public readonly record struct KeplerOrbit
 
         Vec2<SDecimal> orbitalPosition = (bodySpatialInfo.Position - parentSpatialInfo.Position).Map<SDecimal>();
         Vec2<SDecimal> orbitalVelocity = (bodySpatialInfo.Velocity - parentSpatialInfo.Velocity).Map<SDecimal>();
-        SDecimal pObjectMass = (SDecimal)body.Mass;
-        SDecimal pParentMass = (SDecimal)parent.Mass;
+        SDecimal pObjectMass = body.Mass;
+        SDecimal pParentMass = parent.Mass;
         
         Vec2<SDecimal> momentum = orbitalVelocity * pObjectMass;
         Vec3<SDecimal> angularMomentum = Vec2<SDecimal>.Cross(orbitalPosition, momentum);

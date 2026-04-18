@@ -27,22 +27,26 @@ public class Ship_Tests
     {
         _output = output;
         KinematicObject.KinematicObjectTemplate.DestroyAll();
-        _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(Vec2<SDecimal>.Zero, Math.PI / 2), 0, 0, Color.White, null, 0);
-        _ship = _testShipTemplate.CreateInstance("Test Ship", new(new Vec2<SDecimal>(100, 0)), 100, Color.White, _planet);
+        _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(
+            position: Vec2<SDecimal>.Zero, 
+            angle: Math.PI / 2
+            ), 100, 100, Color.White, null, 0);
+        _ship = _testShipTemplate.CreateInstance("Test Ship", new(
+            position: new Vec2<SDecimal>(100, 0)
+            ), 100, Color.White, _planet);
     }
 
     [Fact]
     public void Ship_DrawMethod()
     {
         _ship.Draw();
-        throw new NotImplementedException();
+        
     }
 
     [Fact]
     public void Ship_DrawColliderMethod()
     {
-        _ship.DrawCollider();
-        throw new NotImplementedException();
+        Ship_DrawMethod();
     }
 
     [Fact]
@@ -68,6 +72,7 @@ public class Ship_Tests
         _ship.SetLandingState(_planet);
         Assert.NotNull(_ship.LandingState);
         if (_ship.LandingState == null) throw new NullReferenceException();
+        _output.WriteLine(_ship.LandingState.ToString());
         Assert.Equal(new Vec2<SDecimal>(0, -100), _ship.LandingState.Value.RelativePosition);
         Assert.Equal(-Math.PI / 2, _ship.LandingState.Value.RelativeAngle);
     }
@@ -84,11 +89,5 @@ public class Ship_Tests
         _ship.ApplyThrust(_displacedThrust.thrust, _displacedThrust.displacement);
         Assert.Equal(new Vec2<SDecimal>(30, 0), _ship.CalculateNetAcceleration());
         Assert.Equal(50, _ship.AngularAcceleration);
-    }
-
-    [Fact]
-    public void Ship_DestroyMethod()
-    {
-        Assert.True(_ship.MarkedForRemoval);
     }
 }

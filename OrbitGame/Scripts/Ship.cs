@@ -28,8 +28,6 @@ public class Ship : Body, IGameDrawable
         }
     }
     
-    public bool MarkedForRemoval { get; set; }
-    
     public Landing? LandingState { get; private set; }
     
     private Ship(

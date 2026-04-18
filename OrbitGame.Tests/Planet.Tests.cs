@@ -18,6 +18,8 @@ public class Planet_Tests
 
     public Planet_Tests(ITestOutputHelper output)
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         DebugGraphicsHandler debugGraphics = new();
         OrbitGame.Graphics = debugGraphics;
         _graphics = debugGraphics;

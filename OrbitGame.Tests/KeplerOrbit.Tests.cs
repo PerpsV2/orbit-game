@@ -23,6 +23,7 @@ public class KeplerOrbit_Tests
 
     public KeplerOrbit_Tests(ITestOutputHelper output)
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
         _parent = _testPlanetTemplate.CreateInstance("Test Parent", 

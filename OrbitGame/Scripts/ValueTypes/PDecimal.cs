@@ -19,7 +19,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
     /// <summary>
     /// Minimum exponent for a PDecimal to avoid infinitely precise decimals from occuring due to division.
     /// </summary>
-    private const int MinExponent = -20;
+    private const int MinExponent = -50;
     /// <summary>
     /// Number of extra decimals of precision produced by a division operation.
     /// </summary>
@@ -359,7 +359,7 @@ public struct PDecimal : IArbitraryPlaceDecimal<PDecimal>
         if (value._mantissa == 0) return Zero;
         int digits = (int)Math.Floor(BigInteger.Log10(value._mantissa));
         value.DecreaseExponent(value._exponent - digits - SqrtDecimals);
-        if (value._exponent % 2 != 0) value.DecreaseExponent(value._exponent + (value._exponent < 0 ? -1 : 1));
+        if (value._exponent % 2 != 0) value.DecreaseExponent(value._exponent - 1);
 
         BigInteger lastGuess;
         BigInteger bestGuess = value._mantissa >> 1;
