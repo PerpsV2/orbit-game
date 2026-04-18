@@ -38,6 +38,30 @@ public abstract partial class Assert
         Equal(left.X, right.X, T.FromDouble(epsilon));
         Equal(left.Y, right.Y, T.FromDouble(epsilon));
     }
+    
+    public static void Equal(Vec2Double left, Vec2Double right)
+    {
+        Equal(left.X, right.X, Epsilon);
+        Equal(left.Y, right.Y, Epsilon);
+    }
+
+    public static void Equal(Vec2Double left, Vec2Double right, double epsilon)
+    {
+        Equal(left.X, right.X, epsilon);
+        Equal(left.Y, right.Y, epsilon);
+    }
+    
+    public static void Equal(Vec3Double left, Vec3Double right)
+    {
+        Equal(left.X, right.X, Epsilon);
+        Equal(left.Y, right.Y, Epsilon);
+    }
+
+    public static void Equal(Vec3Double left, Vec3Double right, double epsilon)
+    {
+        Equal(left.X, right.X, epsilon);
+        Equal(left.Y, right.Y, epsilon);
+    }
 
     public static void Equal(Vector2 left, Vector2 right)
     {

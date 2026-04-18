@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace OrbitGame.Tests;
@@ -60,6 +61,13 @@ public class LinearEquationSystem_Tests
     }
 
     [Fact]
+    public void LinearEquationSystem_SetCoefficientConstantMethod()
+    {
+        Assert.Throws<IndexOutOfRangeException>(() => _consistentSystem.SetCoefficient(9, 0));
+        Assert.Throws<IndexOutOfRangeException>(() => _consistentSystem.SetConstant(3, 0));
+    }
+
+    [Fact]
     public void LinearEquationSystem_SolveMethod()
     {
         double[]? solution = _consistentSystem.Solve();
@@ -81,5 +89,11 @@ public class LinearEquationSystem_Tests
         
         solution = _underdeterminedSystem.Solve();
         Assert.Null(solution);
+    }
+
+    [Fact]
+    public void LinearEquationSystem_ToStringMethod()
+    {
+        Assert.Equal("", _consistentSystem.ToString());
     }
 }

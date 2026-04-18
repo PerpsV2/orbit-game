@@ -25,8 +25,9 @@ public class Ship_Tests
 
     public Ship_Tests(ITestOutputHelper output)
     {
-        _output = output;
         KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
+        _output = output;
         _planet = _testPlanetTemplate.CreateInstance("Test Planet", new(
             position: Vec2<SDecimal>.Zero, 
             angle: Math.PI / 2
@@ -72,7 +73,6 @@ public class Ship_Tests
         _ship.SetLandingState(_planet);
         Assert.NotNull(_ship.LandingState);
         if (_ship.LandingState == null) throw new NullReferenceException();
-        _output.WriteLine(_ship.LandingState.ToString());
         Assert.Equal(new Vec2<SDecimal>(0, -100), _ship.LandingState.Value.RelativePosition);
         Assert.Equal(-Math.PI / 2, _ship.LandingState.Value.RelativeAngle);
     }

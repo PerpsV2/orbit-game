@@ -48,7 +48,7 @@ public class Planet_Tests
     {
         OrbitGame.Camera = _testFullPlanetCamera;
         _testPlanet.Draw();
-        Assert.Equal(1, _graphics.DrawMeshCalls.Count);
+        Assert.Equal(1, _graphics.DrawPolyCalls.Count);
         _graphics.ResetCalls();
 
         OrbitGame.Camera = _testSurfaceCamera;
@@ -66,6 +66,7 @@ public class Planet_Tests
     public void Planet_DrawColliderMethod()
     {
         _testPlanet.DrawCollider();
-        throw new NotImplementedException();
+        _graphics.ResetCalls();
+        Planet_DrawMethod();
     }
 }

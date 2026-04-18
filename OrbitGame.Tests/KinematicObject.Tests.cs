@@ -26,6 +26,8 @@ public class KinematicObject_Tests
     
     public KinematicObject_Tests()
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         _testKinematicObject1 = _testKinObjTemplate.CreateTestInstance("Object 1", new(
             position: new Vec2<SDecimal>(5, 0),
             angle: Math.PI / 2

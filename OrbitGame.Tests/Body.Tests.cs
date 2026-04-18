@@ -49,21 +49,21 @@ public class Body_Tests
 
     private readonly ITestOutputHelper _output;
 
-    private readonly TestBody.TestTemplate _template;
     private readonly TestBody _testBody1;
     private readonly TestBody _testBody2;
 
     public Body_Tests(ITestOutputHelper output)
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
-        TestBody.TestTemplate.DestroyAll();
-        _template = new TestBody.TestTemplate();
-        _testBody2 = _template.CreateTestInstance("Test Body 2", new SpatialInfo(
+        var template = new TestBody.TestTemplate();
+        _testBody2 = template.CreateTestInstance("Test Body 2", new SpatialInfo(
                 position: new Vec2<SDecimal>(0, 0),
                 velocity: new Vec2<SDecimal>(0, 0)),
             4, null);
-        _testBody1 = _template.CreateTestInstance("Test Body 1", new SpatialInfo(
+        _testBody1 = template.CreateTestInstance("Test Body 1", new SpatialInfo(
                 position: new Vec2<SDecimal>(1, 0),
                 velocity: new Vec2<SDecimal>(0, 2),
                 angularVelocity: 1),

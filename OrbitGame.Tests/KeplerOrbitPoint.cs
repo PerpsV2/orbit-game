@@ -18,6 +18,8 @@ public class KeplerOrbitPoint_Tests
 
     public KeplerOrbitPoint_Tests(ITestOutputHelper output)
     {
+        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);
         var parent = _testPlanetTemplate.CreateInstance("Test Parent", 
