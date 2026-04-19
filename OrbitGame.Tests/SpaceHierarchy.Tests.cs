@@ -70,10 +70,13 @@ public class SpaceHierarchy_Tests
     private readonly ITestOutputHelper _output;
     private readonly TestKinematicObject.TestTemplate _template = new();
     private readonly TestDerivedKinematicObject.TestDerivedTemplate _derivedTemplate = new();
+
+    private readonly TestKinematicObject _testKinematicObject;
+    
     private readonly SpaceHierarchy _randomHierarchy;
     private readonly SpaceHierarchy _testHierarchy;
-    private readonly SpaceHierarchy.Node _xNode;
-    private readonly SpaceHierarchy.Node _yNode;
+    private readonly SpaceHierarchy.KDBranchNode _xNode;
+    private readonly SpaceHierarchy.KDBranchNode _yNode;
     private readonly Random _rnd = new();
     
     public SpaceHierarchy_Tests(ITestOutputHelper output)
@@ -111,8 +114,13 @@ public class SpaceHierarchy_Tests
             _template.CreateTestInstance("Test Instance D", new SpatialInfo(position: new Vec2<SDecimal>(3, 7))),
             _template.CreateTestInstance("Test Instance E", new SpatialInfo(position: new Vec2<SDecimal>(9, 9))),
         ]);
-        _xNode = new SpaceHierarchy.Node(0, 5, null, null, new());
-        _yNode = new SpaceHierarchy.Node(1, 5, null, null, new());
+        
+        TestKinematicObject nullTestInstance = _template.CreateTestInstance("Null Test Instance", new SpatialInfo());
+        SpaceHierarchy.KDLeafNode leafNode = new(nullTestInstance);
+        _xNode = new SpaceHierarchy.KDBranchNode(0, 5, leafNode, leafNode);
+        _yNode = new SpaceHierarchy.KDBranchNode(1, 5, leafNode, leafNode);
+
+        _testKinematicObject = _derivedTemplate.CreateTestInstance("Test Instance F", new SpatialInfo(position: new Vec2<SDecimal>(3, 9)));
     }
 
     [Fact]
@@ -125,23 +133,24 @@ public class SpaceHierarchy_Tests
     [Fact]
     public void SpaceHierarchy_AddObject()
     {
-        _output.WriteLine(_testHierarchy.ToString());
-        _testHierarchy.AddObject(
-            _derivedTemplate.CreateTestInstance("Test Instance F", new SpatialInfo(position: new Vec2<SDecimal>(3, 9)))
-        );
-        _output.WriteLine(_testHierarchy.ToString());
+        _testHierarchy.AddObject(_testKinematicObject);
+        Assert.Equal(6, _testHierarchy.GetAllObjects().Count);
+        Assert.Equal(6, _testHierarchy.GetAllObjectsOfType<KinematicObject>().Count);
+        Assert.Equal(6, _testHierarchy.GetAllObjectsOfType<TestKinematicObject>().Count);
+        Assert.Equal(1, _testHierarchy.GetAllObjectsOfType<TestDerivedKinematicObject>().Count);
     }
     
     [Fact]
     public void SpaceHierarchy_RemoveObject()
     {
-        _output.WriteLine(_testHierarchy.ToString());
         _testHierarchy.RemoveObject("Test Instance E");
-        _output.WriteLine(_testHierarchy.ToString());
+        Assert.Equal(4, _testHierarchy.GetAllObjects().Count);
+        Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<KinematicObject>().Count);
+        Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<TestKinematicObject>().Count);
     }
 
     [Fact]
-    public void SpaceHierarchyNode_GetSideMethod()
+    public void KDBranchNode_GetSideMethod()
     {
         Vec2<SDecimal> leftXNodePosition = new Vec2<SDecimal>(0, 5);
         Vec2<SDecimal> medianXNodePosition = new Vec2<SDecimal>(5, 0);
@@ -158,18 +167,5 @@ public class SpaceHierarchy_Tests
         Assert.Equal(-1, _yNode.GetSide(leftYNodePosition));
         Assert.Equal(0, _yNode.GetSide(medianYNodePosition));
         Assert.Equal(1, _yNode.GetSide(rightYNodePosition));
-    }
-
-    [Fact]
-    public void SpaceHierarchyNode_SplitMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SpaceHierarchyNode_IsLeafMethod()
-    {
-        Assert.False(_testHierarchy.RootNode?.Right?.IsLeaf());
-        Assert.True(_testHierarchy.RootNode?.Right?.Right?.IsLeaf());
     }
 }

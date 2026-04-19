@@ -6,76 +6,132 @@ namespace OrbitGame;
 
 public class SpaceHierarchy
 {
-    public class Node(int axis, SDecimal? median, Node? left, Node? right, List<KinematicObject> objList)
+    public class KDTree
+    {
+        private KDTreeNode _rootNode;
+        private Dictionary<string, KinematicObject> _objects;
+
+        public KDTree(List<KinematicObject> objList)
+        {
+            _objects = new Dictionary<string, KinematicObject>();
+            foreach (var obj in objList)
+                _objects.Add(obj.Identifier, obj);
+            _rootNode = Construct(objList);
+        }
+
+        private KDTreeNode Construct(List<KinematicObject> objList, int splittingAxis = 0)
+        {
+            if (objList.Count == 1)
+            {
+                KDLeafNode kdLeafNode = new KDLeafNode(objList[0]);
+                return kdLeafNode;
+            }
+
+            bool xAxis = splittingAxis == 0;
+            SDecimal median = objList.Aggregate((SDecimal)0, (total, next) => total + (xAxis ? next.Position.X : next.Position.Y)) /
+                              objList.Count;
+
+            KDBranchNode kdBranchNode =  new KDBranchNode(splittingAxis, median,
+                Construct(objList.Where(obj => (xAxis ? obj.Position.X : obj.Position.Y) <= median).ToList(), (splittingAxis + 1) % 2),
+                Construct(objList.Where(obj => (xAxis ? obj.Position.X : obj.Position.Y) > median).ToList(), (splittingAxis + 1) % 2)
+            );
+            kdBranchNode.Right.Parent = kdBranchNode;
+            kdBranchNode.Left.Parent = kdBranchNode;
+            return kdBranchNode;
+        }
+        
+        public void Reconstruct()
+            => _rootNode = Construct(_objects.Values.ToList());
+
+        public KDLeafNode GetPositionLeafNode(Vec2<SDecimal> position)
+        {
+            KDTreeNode currentNode = _rootNode;
+            while (true)
+            {
+                if (currentNode is KDBranchNode branch)
+                {
+                    int side = branch.GetSide(position);
+                    if (side <= 0) currentNode = branch.Left;
+                    else currentNode = branch.Right;
+                }
+                else if (currentNode is KDLeafNode leaf)
+                    return leaf;
+            }
+        }
+        
+        public void AddKinematicObject(KinematicObject obj)
+        {
+            _objects.Add(obj.Identifier, obj);
+            KDLeafNode kdLeafNode = GetPositionLeafNode(obj.Position);
+            KDBranchNode? parent = (KDBranchNode?)kdLeafNode.Parent;
+            if (parent is null) _rootNode = Construct([kdLeafNode.Object, obj]);
+            else
+            {
+                if (parent.Right.Equals(kdLeafNode)) parent.Right = Construct([kdLeafNode.Object, obj], (parent.Axis + 1) % 2);
+                else if (parent.Left.Equals(kdLeafNode)) parent.Left = Construct([kdLeafNode.Object, obj], (parent.Axis + 1) % 2);
+            }
+        }
+
+        public void RemoveKinematicObject(string identifier)
+        {
+            KDLeafNode kdLeafNode = GetPositionLeafNode(_objects[identifier].Position);
+            _objects.Remove(identifier);
+            KDBranchNode? parent = (KDBranchNode?)kdLeafNode.Parent;
+            if (parent is null) throw new InvalidOperationException("Cannot remove last object in kD-tree");
+            KinematicObject newLeafNodeObject = parent.Right.Equals(kdLeafNode) ? 
+                ((KDLeafNode)parent.Left).Object : ((KDLeafNode)parent.Right).Object;
+            KDBranchNode? grandParent = (KDBranchNode?)parent.Parent;
+            if (grandParent is null) _rootNode = new KDLeafNode(_objects.Values.First());
+            else
+            {
+                if (grandParent.Right.Equals(parent)) grandParent.Right = new KDLeafNode(newLeafNodeObject);
+                else if (grandParent.Left.Equals(parent)) grandParent.Left = new KDLeafNode(newLeafNodeObject);
+            }
+        }
+    }
+
+    public abstract class KDTreeNode
+    {
+        public KDTreeNode? Parent;
+    }
+    
+    public class KDLeafNode(KinematicObject obj) : KDTreeNode
+    {
+        public readonly KinematicObject Object = obj;
+    }
+
+    public class KDBranchNode(int axis, SDecimal median, KDTreeNode left, KDTreeNode right) : KDTreeNode
     {
         public readonly int Axis = axis;
-        public SDecimal? Median = median;
-        public Node? Left = left;
-        public Node? Right = right;
-        public readonly List<KinematicObject> ObjectList = objList;
+        public SDecimal Median = median;
+        public KDTreeNode Left = left;
+        public KDTreeNode Right = right;
 
-        public Node(int? axis, KinematicObject obj)
-            : this(axis ?? 0, null, null, null, [obj])
-        { }
-        
-        /// <summary>
-        /// Returns the side of a node a coordinate is on.
-        /// </summary>
-        /// <param name="position">Coordinate to find the side of.</param>
-        /// <returns>
-        /// <para>-1 - Object is on the left side of the median (lesser side).</para>
-        /// <para> 0 - Object is on the median.</para>
-        /// <para>+1 - Object is on the right side of the median (greater side).</para>
-        /// </returns>
-        /// <exception cref="NullReferenceException">Node is a leaf node and has no median.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Node has an invalid axis.</exception>
         public int GetSide(Vec2<SDecimal> position)
         {
-            if (Median is null) throw new NullReferenceException("Cannot access side of kD-tree node with no median");
             SDecimal comparisonVariable = Axis == 0 ? position.X : Axis == 1 ? position.Y : 
                 throw new ArgumentOutOfRangeException(nameof(Axis), "Node axis is out of range");
-            return comparisonVariable < Median ? -1 : comparisonVariable > Median.Value ? 1 : 0;
+            return comparisonVariable < Median ? -1 : comparisonVariable > Median ? 1 : 0;
         }
 
-        public void AddKinematicObject(KinematicObject newObj)
+        public List<KinematicObject> GetObjects()
         {
-            KinematicObject? leafObject = GetLeafObject();
-            if (leafObject is null) throw new Exception("Cannot add object to branch node");
-            if (Axis == 0) Median = (leafObject.Position.X + newObj.Position.X) / 2;
-            if (Axis == 1) Median = (leafObject.Position.Y + newObj.Position.Y) / 2;
-
-            int childAxis = Axis == 0 ? 1 : 0;
-            
-            if (GetSide(newObj.Position) <= 0)
-            {
-                Left = new Node(childAxis, newObj);
-                Right = new Node(childAxis, leafObject);
-            }
-
-            if (GetSide(newObj.Position) > 0)
-            {
-                Left = new Node(childAxis, leafObject);
-                Right = new Node(childAxis, newObj);
-            }
-        }
-
-        public bool IsLeaf() 
-            => Median is null;
-        
-        private KinematicObject? GetLeafObject()
-        {
-            if (!IsLeaf()) return null;
-            return ObjectList[0];
+            List<KinematicObject> objects = new();
+            if (Right is KDBranchNode branchRight) objects.AddRange(branchRight.GetObjects());
+            if (Left is KDBranchNode branchLeft) objects.AddRange(branchLeft.GetObjects());
+            if (Right is KDLeafNode leafRight) objects.Add(leafRight.Object);
+            if (Left is KDLeafNode leafLeft) objects.Add(leafLeft.Object);
+            return objects;
         }
     }
 
     private Dictionary<string, KinematicObject> _objects;
     private Dictionary<Type, Dictionary<string, KinematicObject>> _objectTypes;
-    public Node? RootNode;
+    private KDTree _kdTree;
     
     public SpaceHierarchy(List<KinematicObject> objList)
     {
-        RootNode = ConstructKdTree(objList);
+        _kdTree = new KDTree(objList);
         _objects = new Dictionary<string, KinematicObject>();
         _objectTypes = new Dictionary<Type, Dictionary<string, KinematicObject>>();
         foreach (var obj in objList) AddObjectToObjectList(obj);
@@ -86,31 +142,11 @@ public class SpaceHierarchy
 
     public Dictionary<string, KinematicObject> GetAllObjectsOfType<T>() where T : KinematicObject
         => _objectTypes[typeof(T)];
-    
-    public Node TraverseTreeToPosition(Vec2<SDecimal> position, Action<Node>? action = null)
-    {
-        if (RootNode is null) throw new NullReferenceException("Root node does not exist");
-        
-        Node currentNode = RootNode;
-        while (true)
-        {
-            if (currentNode.IsLeaf()) return currentNode;
-            action?.Invoke(currentNode);
-            int side = currentNode.GetSide(position);
-            if (side <= 0) currentNode = currentNode.Left ?? throw new NullReferenceException("Non-leaf node has no children");
-            if (side > 0) currentNode = currentNode.Right ?? throw new NullReferenceException("Non-leaf node has no children");
-        }
-    }
-
-    public Node TraverseTreeToIdentifier(string identifier, Action<Node>? action = null)
-    {
-        return TraverseTreeToPosition(_objects[identifier].Position, action);
-    }
 
     public void RemoveObject(string identifier)
     {
-        RemoveObjectFromKdTree(identifier);
         RemoveObjectFromObjectList(identifier);
+        _kdTree.RemoveKinematicObject(identifier);
     }
 
     private void RemoveObjectFromObjectList(string identifier)
@@ -120,90 +156,26 @@ public class SpaceHierarchy
             type.Value.Remove(identifier);
     }
 
-    private void RemoveObjectFromKdTree(string identifier)
-    {
-        if (RootNode is null) throw new NullReferenceException("Root node does not exist");
-        Node parentNode = RootNode;
-        TraverseTreeToIdentifier(identifier, node => {
-                node.ObjectList.RemoveAll(obj => obj.Identifier == identifier);
-                parentNode = node;
-            });
-        parentNode.Left = null;
-        parentNode.Right = null;
-        parentNode.Median = null;
-    }
-
     public void AddObject(KinematicObject obj)
     {
         AddObjectToObjectList(obj);
-        AddObjectToKdTree(obj);
+        _kdTree.AddKinematicObject(obj);
     }
 
     private void AddObjectToObjectList(KinematicObject obj)
     {
         _objects.Add(obj.Identifier, obj);
         Type? currentType = obj.GetType();
-        do
+        while (true)
         {
             if (currentType is null) break;
             _objectTypes.TryAdd(currentType, new Dictionary<string, KinematicObject>());
             _objectTypes[currentType].Add(obj.Identifier, obj);
+            if (currentType == typeof(KinematicObject)) break;
             currentType = currentType.BaseType;
-        } while (currentType != typeof(KinematicObject));
+        } 
     }
 
-    private void AddObjectToKdTree(KinematicObject obj)
-    {
-        // if the space hierarchy does not exist, create one.
-        if (RootNode == null)
-        {
-            RootNode = new Node(null, obj);
-            return;
-        }
-
-        Node leafNode = TraverseTreeToPosition(obj.Position, node => node.ObjectList.Add(obj));
-        leafNode.AddKinematicObject(obj);
-    }
-    
-    public void ReconstructKdTree()
-    {
-        RootNode = ConstructKdTree(_objects.Values.ToList());
-    }
-
-    private Node ConstructKdTree(List<KinematicObject> objList, int depth = 0)
-    {
-        int axis = depth % 2;
-
-        if (objList.Count == 1) return new Node(axis, objList[0]);
-
-        switch (axis)
-        {
-            case 0:
-            {
-                objList = objList.OrderBy(obj => obj.Position.X).ToList();
-                SDecimal median = objList.Aggregate((SDecimal)0, (total, next) => total + next.Position.X) / objList.Count;
-
-                Node node = new Node(axis, median,
-                    ConstructKdTree(objList.Where(obj => obj.Position.X <= median).ToList(), depth + 1),
-                    ConstructKdTree(objList.Where(obj => obj.Position.X > median).ToList(), depth + 1), 
-                    objList
-                );
-                return node;
-            }
-            case 1:
-            {
-                objList = objList.OrderBy(obj => obj.Position.Y).ToList();
-                SDecimal median = objList.Aggregate((SDecimal)0, (total, next) => total + next.Position.Y) / objList.Count;
-
-                Node node = new Node(axis, median,
-                    ConstructKdTree(objList.Where(obj => obj.Position.Y <= median).ToList(), depth + 1),
-                    ConstructKdTree(objList.Where(obj => obj.Position.Y > median).ToList(), depth + 1), 
-                    objList
-                );
-                return node;
-            }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(axis), axis, "KdTree axis is invalid");
-        }
-    }
+    public void ReconstructTree()
+        => _kdTree.Reconstruct();
 }
