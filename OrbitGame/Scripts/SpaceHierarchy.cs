@@ -21,7 +21,7 @@ public class SpaceHierarchy
 
         private KDTreeNode Construct(List<KinematicObject> objList, int splittingAxis = 0)
         {
-            if (objList.Count == 1)
+            if (objList.Count <= 1)
             {
                 KDLeafNode kdLeafNode = new KDLeafNode(objList[0]);
                 return kdLeafNode;
@@ -58,27 +58,56 @@ public class SpaceHierarchy
                     return leaf;
             }
         }
+
+        private List<KinematicObject> TraverseBranch(KDTreeNode rootNode, Vec2<SDecimal> queryPosition, SDecimal radius)
+        {
+            List<KinematicObject> objectsInRadius = new();
+            switch (rootNode)
+            {
+                case KDLeafNode leafNode:
+                    if (leafNode.ObjectWithinRadius(queryPosition, radius))
+                        objectsInRadius.Add(leafNode.Object);
+                    break;
+                case KDBranchNode branchNode when branchNode.RadiusIntersectsPlane(queryPosition, radius):
+                    objectsInRadius.AddRange(TraverseBranch(branchNode.Left, queryPosition, radius));
+                    objectsInRadius.AddRange(TraverseBranch(branchNode.Right, queryPosition, radius));
+                    break;
+                case KDBranchNode branchNode:
+                    if (branchNode.GetSide(queryPosition) <= 0)
+                        objectsInRadius.AddRange(TraverseBranch(branchNode.Left, queryPosition, radius));
+                    if (branchNode.GetSide(queryPosition) > 0)
+                        objectsInRadius.AddRange(TraverseBranch(branchNode.Right, queryPosition, radius));
+                    break;
+            }
+
+            return objectsInRadius;
+        }
+
+        public List<KinematicObject> GetObjectsInRadius(Vec2<SDecimal> queryPosition, SDecimal radius)
+        {
+            return TraverseBranch(_rootNode, queryPosition, radius);
+        }
         
         public void AddKinematicObject(KinematicObject obj)
         {
             _objects.Add(obj.Identifier, obj);
-            KDLeafNode kdLeafNode = GetPositionLeafNode(obj.Position);
-            KDBranchNode? parent = (KDBranchNode?)kdLeafNode.Parent;
-            if (parent is null) _rootNode = Construct([kdLeafNode.Object, obj]);
+            KDLeafNode leafNode = GetPositionLeafNode(obj.Position);
+            KDBranchNode? parent = (KDBranchNode?)leafNode.Parent;
+            if (parent is null) _rootNode = Construct([leafNode.Object, obj]);
             else
             {
-                if (parent.Right.Equals(kdLeafNode)) parent.Right = Construct([kdLeafNode.Object, obj], (parent.Axis + 1) % 2);
-                else if (parent.Left.Equals(kdLeafNode)) parent.Left = Construct([kdLeafNode.Object, obj], (parent.Axis + 1) % 2);
+                if (parent.Right.Equals(leafNode)) parent.Right = Construct([leafNode.Object, obj], (parent.Axis + 1) % 2);
+                else if (parent.Left.Equals(leafNode)) parent.Left = Construct([leafNode.Object, obj], (parent.Axis + 1) % 2);
             }
         }
 
         public void RemoveKinematicObject(string identifier)
         {
-            KDLeafNode kdLeafNode = GetPositionLeafNode(_objects[identifier].Position);
+            KDLeafNode leafNode = GetPositionLeafNode(_objects[identifier].Position);
             _objects.Remove(identifier);
-            KDBranchNode? parent = (KDBranchNode?)kdLeafNode.Parent;
+            KDBranchNode? parent = (KDBranchNode?)leafNode.Parent;
             if (parent is null) throw new InvalidOperationException("Cannot remove last object in kD-tree");
-            KinematicObject newLeafNodeObject = parent.Right.Equals(kdLeafNode) ? 
+            KinematicObject newLeafNodeObject = parent.Right.Equals(leafNode) ? 
                 ((KDLeafNode)parent.Left).Object : ((KDLeafNode)parent.Right).Object;
             KDBranchNode? grandParent = (KDBranchNode?)parent.Parent;
             if (grandParent is null) _rootNode = new KDLeafNode(_objects.Values.First());
@@ -98,6 +127,9 @@ public class SpaceHierarchy
     public class KDLeafNode(KinematicObject obj) : KDTreeNode
     {
         public readonly KinematicObject Object = obj;
+
+        public bool ObjectWithinRadius(Vec2<SDecimal> queryPosition, SDecimal radius)
+            => (Object.Position - queryPosition).MagnitudeSquared() <= radius * radius;
     }
 
     public class KDBranchNode(int axis, SDecimal median, KDTreeNode left, KDTreeNode right) : KDTreeNode
@@ -114,6 +146,9 @@ public class SpaceHierarchy
             return comparisonVariable < Median ? -1 : comparisonVariable > Median ? 1 : 0;
         }
 
+        public bool RadiusIntersectsPlane(Vec2<SDecimal> queryPosition, SDecimal radius)
+            => SDecimal.Abs(Median - (Axis == 0 ? queryPosition.X : queryPosition.Y)) <= radius;
+
         public List<KinematicObject> GetObjects()
         {
             List<KinematicObject> objects = new();
@@ -125,9 +160,9 @@ public class SpaceHierarchy
         }
     }
 
-    private Dictionary<string, KinematicObject> _objects;
-    private Dictionary<Type, Dictionary<string, KinematicObject>> _objectTypes;
-    private KDTree _kdTree;
+    private readonly Dictionary<string, KinematicObject> _objects;
+    private readonly Dictionary<Type, Dictionary<string, KinematicObject>> _objectTypes;
+    private readonly KDTree _kdTree;
     
     public SpaceHierarchy(List<KinematicObject> objList)
     {
@@ -178,4 +213,9 @@ public class SpaceHierarchy
 
     public void ReconstructTree()
         => _kdTree.Reconstruct();
+
+    public List<KinematicObject> GetObjectsInRadius(Vec2<SDecimal> queryPosition, SDecimal radius)
+    {
+        return _kdTree.GetObjectsInRadius(queryPosition, radius);
+    }
 }

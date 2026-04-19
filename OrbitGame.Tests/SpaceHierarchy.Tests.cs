@@ -85,7 +85,7 @@ public class SpaceHierarchy_Tests
         
         _output = output;
         List<KinematicObject> points = new();
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 10000; ++i)
         {
             points.Add(_template.CreateTestInstance("Test Instance " + i, new SpatialInfo(
                 position: new Vec2<SDecimal>(_rnd.NextDouble() * 100, _rnd.NextDouble() * 100)
@@ -131,7 +131,7 @@ public class SpaceHierarchy_Tests
     }
 
     [Fact]
-    public void SpaceHierarchy_AddObject()
+    public void SpaceHierarchy_AddObjectMethod()
     {
         _testHierarchy.AddObject(_testKinematicObject);
         Assert.Equal(6, _testHierarchy.GetAllObjects().Count);
@@ -141,12 +141,19 @@ public class SpaceHierarchy_Tests
     }
     
     [Fact]
-    public void SpaceHierarchy_RemoveObject()
+    public void SpaceHierarchy_RemoveObjectMethod()
     {
         _testHierarchy.RemoveObject("Test Instance E");
         Assert.Equal(4, _testHierarchy.GetAllObjects().Count);
         Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<KinematicObject>().Count);
         Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<TestKinematicObject>().Count);
+    }
+
+    [Fact]
+    public void SpaceHierarchy_GetObjectsInRadiusMethod()
+    {
+        _testHierarchy.GetObjectsInRadius(new(1, 2), 4);
+        _output.WriteLine(_testHierarchy.ToString());
     }
 
     [Fact]

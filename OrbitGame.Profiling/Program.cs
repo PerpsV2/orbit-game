@@ -38,39 +38,30 @@ public class Benchmarker
     }
     
     private readonly TestKinematicObject.TestTemplate _template = new();
-    private SpaceHierarchy.KDTree _testHierarchy;
-    private readonly TestKinematicObject _newObject;
+    private readonly int _index;
+    private readonly Random _rnd = new();
+    private readonly List<KinematicObject> _points;
+    private readonly Vec2<SDecimal> _queryPosition = new(50, 50);
+    private readonly SDecimal _radius = 10;
     
     public Benchmarker()
     {
         KinematicObject.KinematicObjectTemplate.DestroyAll();
-        _testHierarchy = new SpaceHierarchy.KDTree([
-            _template.CreateTestInstance("Test Instance A", new SpatialInfo(position: new Vec2<SDecimal>(1, 2))),
-            _template.CreateTestInstance("Test Instance B", new SpatialInfo(position: new Vec2<SDecimal>(6, 3))),
-            _template.CreateTestInstance("Test Instance C", new SpatialInfo(position: new Vec2<SDecimal>(1, 6))),
-            _template.CreateTestInstance("Test Instance D", new SpatialInfo(position: new Vec2<SDecimal>(3, 7))),
-            _template.CreateTestInstance("Test Instance E", new SpatialInfo(position: new Vec2<SDecimal>(9, 9))),
-        ]);
-        _newObject = _template.CreateTestInstance("Test Instance F", new SpatialInfo(position: new Vec2<SDecimal>(3, 9)));
-        points = new();
+        _points = new();
         for (int i = 0; i < 10000; ++i)
         {
-            points.Add(_template.CreateTestInstance("Test Instance " + index, new SpatialInfo(
+            _points.Add(_template.CreateTestInstance("Test Instance " + _index, new SpatialInfo(
                 position: new Vec2<SDecimal>(_rnd.NextDouble() * 100, _rnd.NextDouble() * 100)
             )));
-            index++;
+            _index++;
         }
     }
-
-    private int index = 0;
-    private Random _rnd = new();
-    private List<KinematicObject> points;
     
     [Benchmark]
     public void Operation1()
     {
-        
-        _testHierarchy = new SpaceHierarchy.KDTree(points);
+        SpaceHierarchy.KDTree testHierarchy = new SpaceHierarchy.KDTree(_points);
+        testHierarchy.GetObjectsInRadius(_queryPosition, 10);
         /*_testHierarchy.AddKinematicObject(_newObject);
         _testHierarchy.RemoveKinematicObject("Test Instance F");*/
     }
