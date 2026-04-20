@@ -23,9 +23,8 @@ public class Planet : Body, IGameDrawable
         SDecimal radius,
         Color colour,
         Body? parent,
-        int seed,
-        Action<string>? destructor)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, destructor)
+        int seed)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         Radius = radius;
         _terrainSeed = seed;
@@ -222,8 +221,6 @@ public class Planet : Body, IGameDrawable
 
     public class PlanetTemplate(Material material) : BodyTemplate
     {
-        public new static Dictionary<string, Planet> AllInstances { get; } = new();
-        
         private readonly CircularMesh _mesh = new();
         private readonly OrbitMesh _orbitMesh = new();
         private readonly Material _material = material;
@@ -241,23 +238,9 @@ public class Planet : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Planet planet = new Planet(identifier, spatialInfo, objectInfo, mass, radius, colour, parent, seed, DestroyInstance);
-            AddInstance(identifier, planet);
+            Planet planet = new Planet(identifier, spatialInfo, objectInfo, mass, radius, colour, parent, seed);
+            OrbitGame.Hierarchy.AddObject(planet);
             return planet;
-        }
-
-        protected override void AddInstance(string identifier, KinematicObject instance)
-        {
-            base.AddInstance(identifier, instance);
-            if (!AllInstances.TryAdd(identifier, (Planet)instance))
-                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-        }
-        
-        public override void DestroyInstance(string identifier)
-        {
-            base.DestroyInstance(identifier);
-            AllInstances.Remove(identifier);
-            Instances.Remove(identifier);
         }
     }
 }

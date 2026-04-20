@@ -14,24 +14,9 @@ public class Benchmarker
         {
             public new static Dictionary<string, TestKinematicObject> AllInstances { get; } = new();
             
-            protected override void AddInstance(string identifier, KinematicObject instance)
-            {
-                base.AddInstance(identifier, instance);
-                if (!AllInstances.TryAdd(identifier, (TestKinematicObject)instance))
-                    throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-            }
-
-            public override void DestroyInstance(string identifier)
-            {
-                base.DestroyInstance(identifier);
-                AllInstances.Remove(identifier);
-                Instances.Remove(identifier);
-            }
-            
             public TestKinematicObject CreateTestInstance(string identifier, SpatialInfo spatialInfo)
             {
                 TestKinematicObject instance = new TestKinematicObject(identifier, spatialInfo);
-                AddInstance(identifier, instance);
                 return instance;
             }
         }

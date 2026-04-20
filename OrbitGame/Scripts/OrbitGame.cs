@@ -113,10 +113,11 @@ public class OrbitGame : Game
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
+    public static SpaceHierarchy Hierarchy = new([]);
     private CollisionHandler _collisionHandler;
-    private Body[] Bodies => Body.BodyTemplate.AllInstances.Values.ToArray();
-    private Planet[] Planets => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Planet>().ToArray();
-    private Ship[] Ships => KinematicObject.KinematicObjectTemplate.AllInstances.Values.OfType<Ship>().ToArray();
+    private Body[] Bodies => Hierarchy.GetAllObjectsOfType<Body>().Values.ToArray();
+    private Planet[] Planets => Hierarchy.GetAllObjectsOfType<Planet>().Values.ToArray();
+    private Ship[] Ships => Hierarchy.GetAllObjectsOfType<Ship>().Values.ToArray();
 
     public static SpriteFont DefaultFont;
     private readonly Random _rnd = new();
@@ -237,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 100; i++)
         {
              double randomAngle = _rnd.NextDouble() * Math.Tau;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -519,6 +520,8 @@ public class OrbitGame : Game
             }
 
             Task.WaitAll(tasks.ToArray());
+
+            Hierarchy.ReconstructTree();
             
             _collisionHandler.ResolveCollisions();
 

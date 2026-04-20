@@ -16,11 +16,13 @@ public class SpaceHierarchy
             _objects = new Dictionary<string, KinematicObject>();
             foreach (var obj in objList)
                 _objects.Add(obj.Identifier, obj);
-            _rootNode = Construct(objList);
+            _rootNode = objList.Count == 0 ? new KDEmptyNode() : Construct(objList);
         }
 
         private KDTreeNode Construct(List<KinematicObject> objList, int splittingAxis = 0)
         {
+            if (objList.Count == 0) return new KDEmptyNode();
+            
             if (objList.Count <= 1)
             {
                 KDLeafNode kdLeafNode = new KDLeafNode(objList[0]);
@@ -91,6 +93,13 @@ public class SpaceHierarchy
         public void AddKinematicObject(KinematicObject obj)
         {
             _objects.Add(obj.Identifier, obj);
+            
+            if (_rootNode is KDEmptyNode)
+            {
+                _rootNode = new KDLeafNode(obj);
+                return;
+            }
+            
             KDLeafNode leafNode = GetPositionLeafNode(obj.Position);
             KDBranchNode? parent = (KDBranchNode?)leafNode.Parent;
             if (parent is null) _rootNode = Construct([leafNode.Object, obj]);
@@ -123,6 +132,8 @@ public class SpaceHierarchy
     {
         public KDTreeNode? Parent;
     }
+
+    private class KDEmptyNode : KDTreeNode;
     
     public class KDLeafNode(KinematicObject obj) : KDTreeNode
     {
@@ -175,8 +186,14 @@ public class SpaceHierarchy
     public Dictionary<string, KinematicObject> GetAllObjects()
         => _objects;
 
-    public Dictionary<string, KinematicObject> GetAllObjectsOfType<T>() where T : KinematicObject
-        => _objectTypes[typeof(T)];
+    public Dictionary<string, T> GetAllObjectsOfType<T>() where T : KinematicObject
+    {
+        Dictionary<string, T> objects = new();
+        if (!_objectTypes.ContainsKey(typeof(T))) return objects;
+        foreach (var keyValuePair in _objectTypes[typeof(T)])
+            objects.Add(keyValuePair.Key, (T)keyValuePair.Value);
+        return objects;
+    }
 
     public void RemoveObject(string identifier)
     {

@@ -37,9 +37,8 @@ public class Ship : Body, IGameDrawable
         SDecimal maximumRadius,
         SDecimal mass,
         Color colour,
-        Planet parent,
-        Action<string>? destructor)
-        : base(identifier, spatialInfo, objectInfo, mass, colour, parent, destructor)
+        Planet parent)
+        : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         _maximumRadius = maximumRadius;
         Collider.CalculateInertia(mass);
@@ -109,7 +108,7 @@ public class Ship : Body, IGameDrawable
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
         
-        foreach (Planet planet in KinematicObjectTemplate.AllInstances.Values.OfType<Planet>())
+        foreach (Planet planet in OrbitGame.Hierarchy.GetAllObjectsOfType<Planet>().Values)
         {
             if (planet == Parent) continue;
             SDecimal? bodySOIRadius = planet.OrbitPath.GetSphereOfInfluenceRadius();
@@ -184,23 +183,9 @@ public class Ship : Body, IGameDrawable
             ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material) {
                 OrbitMesh = _orbitMesh
             };
-            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent, DestroyInstance);
-            AddInstance(identifier, ship);
+            Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent);
+            OrbitGame.Hierarchy.AddObject(ship);
             return ship;
-        }
-        
-        protected override void AddInstance(string identifier, KinematicObject instance)
-        {
-            base.AddInstance(identifier, instance);
-            if (!AllInstances.TryAdd(identifier, (Ship)instance))
-                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-        }
-        
-        public override void DestroyInstance(string identifier)
-        {
-            base.DestroyInstance(identifier);
-            AllInstances.Remove(identifier);
-            Instances.Remove(identifier);
         }
     }
 }

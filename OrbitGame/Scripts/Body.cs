@@ -33,9 +33,8 @@ public abstract class Body : KinematicObject
         ObjectInfo objectInfo,
         SDecimal mass,
         Color colour,
-        Body? parent,
-        Action<string>? destructor)
-        : base(identifier, spatialInfo, destructor)
+        Body? parent)
+        : base(identifier, spatialInfo)
     {
         Mass = mass;
         Colour = colour;
@@ -86,7 +85,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual Vec2<SDecimal> CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(BodyTemplate.AllInstances.Values);
+        return CalculateNetGravitationalAcceleration(OrbitGame.Hierarchy.GetAllObjectsOfType<Body>().Values);
     }
     
     /// <summary>
@@ -184,22 +183,5 @@ public abstract class Body : KinematicObject
         SpatialInfo.Angle += (double)(AngularVelocity * timeDiff);
     }
 
-    public abstract class BodyTemplate : KinematicObjectTemplate
-    {
-        public new static Dictionary<string, Body> AllInstances { get; } = new();
-        
-        protected override void AddInstance(string identifier, KinematicObject instance)
-        {
-            base.AddInstance(identifier, instance);
-            if (!AllInstances.TryAdd(identifier, (Body)instance))
-                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-        }
-
-        public override void DestroyInstance(string identifier)
-        {
-            base.DestroyInstance(identifier);
-            AllInstances.Remove(identifier);
-            Instances.Remove(identifier);
-        }
-    }
+    public abstract class BodyTemplate : KinematicObjectTemplate;
 }

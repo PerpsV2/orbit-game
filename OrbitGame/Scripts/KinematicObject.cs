@@ -48,11 +48,9 @@ public abstract class KinematicObject
 
     public Vec2<SDecimal> ForwardVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle);
     public Vec2<SDecimal> RightVector => Vec2<SDecimal>.FromPolar(SpatialInfo.Angle - Math.PI / 2);
-    private readonly Action<string>? _destructor;
     
-    protected KinematicObject(string identifier, SpatialInfo spatialInfo, Action<string>? destructor = null)
+    protected KinematicObject(string identifier, SpatialInfo spatialInfo)
     {
-        _destructor = destructor;
         Identifier = identifier;
         SpatialInfo = spatialInfo;
         OriginBody.OnResetOrigin += KinematicObject_OnResetOrigin;
@@ -92,46 +90,13 @@ public abstract class KinematicObject
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }
 
-    /// <summary>
-    /// Removes the object from its respective template instance.
-    /// </summary>
     public void Destroy()
     {
-        if (_destructor is null) return;
-        _destructor.Invoke(Identifier);
+        OrbitGame.Hierarchy.RemoveObject(Identifier);
     }
-    
+
     /// <summary>
     /// Factory class for KinematicObject.
     /// </summary>
-    public abstract class KinematicObjectTemplate
-    {
-        public static Dictionary<string, KinematicObject> AllInstances { get; } = new();
-        
-        protected Dictionary<string, KinematicObject> Instances { get; } = new();
-
-        /// <summary>
-        /// Add an instance of a KinematicObject into the pool of objects
-        /// </summary>
-        protected virtual void AddInstance(string identifier, KinematicObject instance)
-        {
-            if (!Instances.TryAdd(identifier, instance) || !AllInstances.TryAdd(identifier, instance))
-                throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-        }
-
-        /// <summary>
-        /// Remove an instance from the pool of objects
-        /// </summary>
-        public virtual void DestroyInstance(string identifier)
-        {
-            AllInstances.Remove(identifier);
-            Instances.Remove(identifier);
-        }
-
-        public static void DestroyAll()
-        {
-            foreach (var instance in AllInstances)
-                instance.Value.Destroy();
-        }
-    }
+    public abstract class KinematicObjectTemplate;
 }
