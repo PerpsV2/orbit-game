@@ -21,6 +21,7 @@ public class ConvexCollider : CompactCollider
         // Compute the minimum bounding box which guarantees all points are contained within.
         double maxRadius = _convexHull.Points.Select(x => x.Magnitude()).Max();
         _boundingBox = new BoundingBox(Vec2Double.Zero, maxRadius * 2, maxRadius * 2);
+        MaxRadius = maxRadius;
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)

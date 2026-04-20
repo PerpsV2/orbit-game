@@ -18,6 +18,8 @@ public abstract class CompactCollider
     /// The inertia of the collider.
     /// </summary>
     public SDecimal Inertia { get; protected set; }
+    
+    public double MaxRadius { get; protected set; }
 
     /// <summary>
     /// Whether the collider should be moved during a collision.

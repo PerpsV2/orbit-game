@@ -48,6 +48,7 @@ public class SpaceHierarchy
         public KDLeafNode GetPositionLeafNode(Vec2<SDecimal> position)
         {
             KDTreeNode currentNode = _rootNode;
+            if (currentNode is KDEmptyNode) throw new NullReferenceException("KDTree does not exist");
             while (true)
             {
                 if (currentNode is KDBranchNode branch)
@@ -183,16 +184,13 @@ public class SpaceHierarchy
         foreach (var obj in objList) AddObjectToObjectList(obj);
     }
 
-    public Dictionary<string, KinematicObject> GetAllObjects()
+    public Dictionary<string, KinematicObject> GetObjects()
         => _objects;
 
-    public Dictionary<string, T> GetAllObjectsOfType<T>() where T : KinematicObject
+    public T[] GetObjectsOfType<T>() where T : KinematicObject
     {
-        Dictionary<string, T> objects = new();
-        if (!_objectTypes.ContainsKey(typeof(T))) return objects;
-        foreach (var keyValuePair in _objectTypes[typeof(T)])
-            objects.Add(keyValuePair.Key, (T)keyValuePair.Value);
-        return objects;
+        if (!_objectTypes.ContainsKey(typeof(T))) return [];
+        return _objects.Values.OfType<T>().ToArray();
     }
 
     public void RemoveObject(string identifier)

@@ -108,7 +108,7 @@ public class Ship : Body, IGameDrawable
             if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
                 Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
         
-        foreach (Planet planet in OrbitGame.Hierarchy.GetAllObjectsOfType<Planet>().Values)
+        foreach (Planet planet in OrbitGame.Hierarchy.GetObjectsOfType<Planet>())
         {
             if (planet == Parent) continue;
             SDecimal? bodySOIRadius = planet.OrbitPath.GetSphereOfInfluenceRadius();

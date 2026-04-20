@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
-using CollisionBehaviours = Dictionary<(Type referenceType, Type incidentType), ResolveCollisionMethod>;
 
 /// <summary>
 /// Collision resolution method between two colliding bodies.
@@ -16,30 +16,26 @@ public delegate void ResolveCollisionMethod(Body reference, Body incident);
 /// </summary>
 /// <param name="bodies">List of bodies in the scene that have collisions enabled</param>
 /// <param name="collisionBehaviours">List of collision resolution methods that should be used between types of objects</param>
-public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours collisionBehaviours)
+public class CollisionHandler
 {
     public void ResolveCollisions()
     {
-        TraverseCollisions(ResolveCollision);
-    }
-
-    private void TraverseCollisions(Action<Body, Body> resolver)
-    {
+        Ship[] ships = OrbitGame.Hierarchy.GetObjectsOfType<Ship>();
+        Planet[] planets = OrbitGame.Hierarchy.GetObjectsOfType<Planet>();
+        
         List<Task> tasks = new List<Task>();
-        foreach (var reference in bodies)
-        foreach (var incident in bodies)
-        {
-            tasks.Add(Task.Run(() =>
-            {
-                if (reference != incident) resolver(reference, incident);
-            }));
-        }
+
+        SDecimal maxShipRadius = ships.MaxBy(x => x.Collider.MaxRadius)?.Collider.MaxRadius ?? 0;
+        foreach (var reference in ships)
+            foreach (var incident in OrbitGame.Hierarchy.GetObjectsInRadius(reference.Position,
+                         reference.Collider.MaxRadius + maxShipRadius))
+                tasks.Add(Task.Run(() => { if (incident != reference) ResolvePhysicsCollision(reference, (Body)incident); }));
+        
+        foreach (var reference in ships)
+            foreach (var incident in planets)
+                tasks.Add(Task.Run(() => { RestShipPlanetCollision(reference, incident); }));
+        
         Task.WaitAll(tasks.ToArray());
-    }
-    
-    private void ResolveCollision(Body reference, Body incident)
-    {
-        collisionBehaviours.GetValueOrDefault((reference.GetType(), incident.GetType()))?.Invoke(reference, incident);
     }
     
     public static void ResolvePhysicsCollision(Body reference, Body incident)
@@ -143,15 +139,13 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
         }
     }
 
-    public static void RestShipPlanetCollision(Body reference, Body incident, 
-        SDecimal timeStep, SDecimal deltaTime)
+    public static void RestShipPlanetCollision(Body reference, Body incident)
     {
         Ship ship = reference as Ship ?? throw new NullReferenceException();
         ResolvePhysicsCollision(reference, incident);
         if (reference.Collider.IntersectsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo) !=
             null)
         {
-            SDecimal deltaTimeStep = timeStep * deltaTime;
             SDecimal relSpeed = (incident.Velocity - reference.Velocity).Magnitude();
             SDecimal relAngularSpeed = Math.Abs(incident.AngularVelocity - reference.AngularVelocity);
             if (relSpeed > Options.MinimumShipCrashSpeed && ship.LandingState == null)
@@ -161,10 +155,6 @@ public class CollisionHandler(IReadOnlyList<Body> bodies, CollisionBehaviours co
             }
 
             ResolvePhysicsCollision(reference, incident);
-            
-            if (relSpeed * deltaTimeStep < Options.MaximumShipRestingSpeed &&
-                relAngularSpeed * deltaTimeStep < Options.MaximumShipRestingAngularSpeed)
-                ship.SetLandingState(incident);
         }
     }
 }

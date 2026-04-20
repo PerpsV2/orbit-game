@@ -22,6 +22,7 @@ public class CircularCollider : CompactCollider
     {
         if (double.IsNegative(radius)) throw new ArgumentException("Circular collider radius cannot be negative.");
         Radius = radius;
+        MaxRadius = radius;
         _boundingBox = new(Vec2Double.Zero, Radius * 2, Radius * 2);
     }
     

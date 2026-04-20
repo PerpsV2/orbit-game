@@ -134,19 +134,19 @@ public class SpaceHierarchy_Tests
     public void SpaceHierarchy_AddObjectMethod()
     {
         _testHierarchy.AddObject(_testKinematicObject);
-        Assert.Equal(6, _testHierarchy.GetAllObjects().Count);
-        Assert.Equal(6, _testHierarchy.GetAllObjectsOfType<KinematicObject>().Count);
-        Assert.Equal(6, _testHierarchy.GetAllObjectsOfType<TestKinematicObject>().Count);
-        Assert.Equal(1, _testHierarchy.GetAllObjectsOfType<TestDerivedKinematicObject>().Count);
+        Assert.Equal(6, _testHierarchy.GetObjects().Count);
+        Assert.Equal(6, _testHierarchy.GetObjectsOfType<KinematicObject>().Count);
+        Assert.Equal(6, _testHierarchy.GetObjectsOfType<TestKinematicObject>().Count);
+        Assert.Equal(1, _testHierarchy.GetObjectsOfType<TestDerivedKinematicObject>().Count);
     }
     
     [Fact]
     public void SpaceHierarchy_RemoveObjectMethod()
     {
         _testHierarchy.RemoveObject("Test Instance E");
-        Assert.Equal(4, _testHierarchy.GetAllObjects().Count);
-        Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<KinematicObject>().Count);
-        Assert.Equal(4, _testHierarchy.GetAllObjectsOfType<TestKinematicObject>().Count);
+        Assert.Equal(4, _testHierarchy.GetObjects().Count);
+        Assert.Equal(4, _testHierarchy.GetObjectsOfType<KinematicObject>().Count);
+        Assert.Equal(4, _testHierarchy.GetObjectsOfType<TestKinematicObject>().Count);
     }
 
     [Fact]

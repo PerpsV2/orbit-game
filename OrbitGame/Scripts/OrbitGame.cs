@@ -115,9 +115,9 @@ public class OrbitGame : Game
     );
     public static SpaceHierarchy Hierarchy = new([]);
     private CollisionHandler _collisionHandler;
-    private Body[] Bodies => Hierarchy.GetAllObjectsOfType<Body>().Values.ToArray();
-    private Planet[] Planets => Hierarchy.GetAllObjectsOfType<Planet>().Values.ToArray();
-    private Ship[] Ships => Hierarchy.GetAllObjectsOfType<Ship>().Values.ToArray();
+    private Body[] Bodies => Hierarchy.GetObjectsOfType<Body>();
+    private Planet[] Planets => Hierarchy.GetObjectsOfType<Planet>();
+    private Ship[] Ships => Hierarchy.GetObjectsOfType<Ship>();
 
     public static SpriteFont DefaultFont;
     private readonly Random _rnd = new();
@@ -238,17 +238,17 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
-             double randomAngle = _rnd.NextDouble() * Math.Tau;
+             double randomAngle = _rnd.NextDouble() * 0.001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
-             SDecimal randomAltitude = (_rnd.NextDouble() * 50 + 40) * new SDecimal(6.378, 6);
+             SDecimal randomAltitude = (_rnd.NextDouble() * 0.001 + 40) * new SDecimal(6.378, 6);
              SDecimal randomSpeed = SDecimal.Sqrt(earth.Mass * Constants.G / randomAltitude);
              Ship smokestack = smokestackTemplate.CreateInstance("Smokestack " + i, 
                  new(Vec2<SDecimal>.FromPolar(randomAngle, randomAltitude), 
                      Vec2<SDecimal>.FromPolar(randomAngle + 1 * Math.PI / 2, randomSpeed * randomDirection + _rnd.Next(-50, 50))), 
                  1000, new Color(0, 255, 0, 255), earth);
-             smokestack.DrawOrbitalPath = true;
+             smokestack.DrawOrbitalPath = false;
              smokestack.MouseDetectionEnabled = false;
         }
         
@@ -260,7 +260,7 @@ public class OrbitGame : Game
             new Vec2Double(-0.75, 1.25)
         ], shipMaterial);
         Ship strawhat = strawhatTemplate.CreateInstance("Strawhat", new SpatialInfo(
-            new Vec2<SDecimal>(1 * new SDecimal(6.378, 6) + 100, 0), new Vec2<SDecimal>(0, 0), Math.PI / 2), 
+            new Vec2<SDecimal>(40 * new SDecimal(6.378, 6), 0), new Vec2<SDecimal>(0, -SDecimal.Sqrt(earth.Mass * Constants.G / 40 / new SDecimal(6.378, 6))), Math.PI / 2), 
             1000, new Color(255, 0, 0, 255), earth);
         strawhat.DrawOrbitalPath = true;
         
@@ -296,12 +296,13 @@ public class OrbitGame : Game
         GameState.ControlShip = Ships[^1];
         GameState.ControlShip.DrawOrbitalPath = true;
         GameState.TrackingIndex = Array.IndexOf(Bodies, OriginBody.Body);
-        _collisionHandler = new CollisionHandler(Bodies, new() {
+        _collisionHandler = new CollisionHandler();
+        /*Bodies, new() {
             {(typeof(Ship), typeof(Planet)), (r, i) => 
                 CollisionHandler.RestShipPlanetCollision(r, i, GameState.PhysicsTimeStep, GameState.DeltaPhysicsTimeStep)},
             {(typeof(Ship), typeof(Ship)), CollisionHandler.ResolvePhysicsCollision},
             //{(typeof(Ship), typeof(Planet)), CollisionHandler.BodyPlanetTerrainCollision}
-        });
+        });*/
 
         base.Initialize();
     }

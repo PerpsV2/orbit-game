@@ -85,7 +85,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     public virtual Vec2<SDecimal> CalculateNetAcceleration()
     {
-        return CalculateNetGravitationalAcceleration(OrbitGame.Hierarchy.GetAllObjectsOfType<Body>().Values);
+        return CalculateNetGravitationalAcceleration(OrbitGame.Hierarchy.GetObjectsOfType<Planet>());
     }
     
     /// <summary>
