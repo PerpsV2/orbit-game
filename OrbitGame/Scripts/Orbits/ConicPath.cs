@@ -208,7 +208,7 @@ public class ConicPath
         float[] conicCoefficients = new float[6];
         double e = orbit.Eccentricity;
         double e2 = e * e;
-        double p = Math.Tau - orbit.Periapsis;
+        double p = Math.Tau - orbit.Periapsis - camera.Angle;
         double l = camera.ConvertToScreenDistance(orbit.SemiLatusRectum);
         Vec2<SDecimal> fVec = camera.SD_ConvertToScreenCoordinates(orbit.Parent.Position);
         SDecimal fX = fVec.X;

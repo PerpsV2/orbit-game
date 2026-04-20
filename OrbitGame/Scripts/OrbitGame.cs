@@ -238,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 30; i++)
         {
              double randomAngle = _rnd.NextDouble() * 0.001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -522,9 +522,9 @@ public class OrbitGame : Game
 
             Task.WaitAll(tasks.ToArray());
 
-            Hierarchy.ReconstructTree();
+            //Hierarchy.ReconstructTree();
             
-            _collisionHandler.ResolveCollisions();
+            //_collisionHandler.ResolveCollisions();
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)

@@ -48,7 +48,7 @@ public class Planet : Body, IGameDrawable
         
         List<Vector2> terrainMeshVertices = [camera.ConvertToScreenCoordinates(Position)];
         
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
+        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 300, (_, angle) => {
             terrainMeshVertices.Add(
                 camera.ConvertToScreenCoordinates(
                     Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position
@@ -56,7 +56,7 @@ public class Planet : Body, IGameDrawable
                 );
         }, true);
         
-        Utils.IterateAngleRange(maxAngle, minAngle, (minAngle + Math.Tau - maxAngle) / 50, (_, angle) =>
+        Utils.IterateAngleRange(maxAngle, minAngle, (minAngle + Math.Tau - maxAngle) / 150, (_, angle) =>
         {
             terrainMeshVertices.Add(
                 camera.ConvertToScreenCoordinates(
@@ -211,12 +211,7 @@ public class Planet : Body, IGameDrawable
 
     public SDecimal GetElevationAtPoint(double angle)
     {
-        return (Utils.PerlinNoise1D(_terrainSeed, angle, 150, 1 / (double)Radius * 2 * Math.PI * 300) +
-               Utils.PerlinNoise1D(_terrainSeed, angle, 10, 1 / (double)Radius * 2 * Math.PI * 5) +
-               Utils.PerlinNoise1D(_terrainSeed, angle, 4, 1 / (double)Radius * 2 * Math.PI) +
-               Utils.PerlinNoise1D(_terrainSeed, angle, 2, 1 / (double)Radius * 2 * Math.PI / 2)) *
-               Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) +
-               Math.Clamp(Utils.PerlinNoise1D(_terrainSeed, angle, 4000, 1 / (double)Radius * 2 * Math.PI * 1000), -1000, 1000);
+        return 1000 * Math.Cos(100 * angle);
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate
