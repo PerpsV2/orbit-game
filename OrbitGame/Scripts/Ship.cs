@@ -79,7 +79,7 @@ public class Ship : Body, IGameDrawable
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
             graphicsDevice.DrawMesh(ObjectInfo.MarkerMesh ?? throw new NullReferenceException("Ship does not have a marker mesh"),
-                Matrix.Identity,
+                Matrix.CreateTranslation(screenPosition.X, screenPosition.Y, 0) * Matrix.CreateRotationZ((float)iconAngle),
                 new() {{"Colour", colour.ToVector4()}});
             /*graphicsDevice.DrawPath([
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle),

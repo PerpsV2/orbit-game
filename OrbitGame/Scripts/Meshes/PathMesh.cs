@@ -12,8 +12,6 @@ public class PathMesh : IMesh
     private IndexBuffer? _indexBuffer;
     private bool _buffersGenerated;
 
-    private int _numVertices;
-    
     private readonly Vector2[] _points;
 
     public PathMesh(Vector2[] points)
@@ -26,8 +24,7 @@ public class PathMesh : IMesh
     public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
         VertexPositionColor[] vertices = _points.Select(v => new VertexPositionColor(new Vector3(v.X, v.Y, 0), Color.White)).ToArray(); 
-        _numVertices = vertices.Length;
-        
+
         int[] indices = new int[vertices.Length];
         for (int i = 0; i < vertices.Length; i++)
             indices[i] = i;
@@ -65,7 +62,7 @@ public class PathMesh : IMesh
         {
             pass.Apply();
             graphicsDevice.DrawInstancedPrimitives(
-                PrimitiveType.LineStrip, 0, 0, _numVertices - 1, 1
+                PrimitiveType.LineStrip, 0, 0, 1, 1
             );
         }
     }

@@ -150,7 +150,7 @@ public class Planet : Body, IGameDrawable
         // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
         //if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
         //{
-            DrawTerrain();
+            
         //}
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
@@ -166,6 +166,7 @@ public class Planet : Body, IGameDrawable
             graphicsDevice.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0),
                 Colour);
         }
+        else DrawTerrain();
 
         // otherwise draw the planet as a circle
         // else
