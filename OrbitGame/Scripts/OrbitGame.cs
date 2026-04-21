@@ -238,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 10000; i++)
         {
              double randomAngle = _rnd.NextDouble() * 0.1;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -502,7 +502,7 @@ public class OrbitGame : Game
 
             if (!GameState.IsFastForward)
             {
-                foreach (var ship in Ships)
+                /*foreach (var ship in Ships)
                 {
                     tasks.Add(Task.Run(() =>
                     {
@@ -510,7 +510,7 @@ public class OrbitGame : Game
                             ship.CalculateNetAcceleration); 
                         ship.GenerateOrbitPath(GameState.PhysicsTime);
                     }));
-                }
+                }*/
             }
             else
             {
@@ -522,7 +522,7 @@ public class OrbitGame : Game
 
             Task.WaitAll(tasks.ToArray());
 
-            Hierarchy.ReconstructTree();
+            //Hierarchy.ReconstructTree();
             
             _collisionHandler.ResolveCollisions();
 

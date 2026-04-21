@@ -184,8 +184,17 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         int exponentDifference = exponent - Exponent;
         if (exponentDifference < 0) throw new ArgumentOutOfRangeException();
         if (exponentDifference == 0) return this;
-        Mantissa /= Math.Pow(10, exponentDifference);
-        Exponent += exponentDifference;
+
+        while (Exponent != exponent)
+        {
+            Mantissa /= 10;
+            if (Mantissa == 0)
+            {
+                Exponent = exponent;
+                break;
+            }
+            Exponent++;
+        }
 
         return this;
     }
