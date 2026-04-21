@@ -21,11 +21,11 @@ public abstract class Body : KinematicObject
     public Body? Parent;
     public readonly PatchedConicPath OrbitPath;
 
-    private readonly ObjectInfo _objectInfo;
+    protected readonly ObjectInfo ObjectInfo;
     
-    public IMesh Mesh => _objectInfo.Mesh;
-    public CompactCollider Collider => _objectInfo.Collider;
-    public Material Material => _objectInfo.Material;
+    public IMesh Mesh => ObjectInfo.Mesh;
+    public CompactCollider Collider => ObjectInfo.Collider;
+    public Material Material => ObjectInfo.Material;
     
     protected Body(
         string identifier, 
@@ -39,7 +39,7 @@ public abstract class Body : KinematicObject
         Mass = mass;
         Colour = colour;
         Parent = parent;
-        _objectInfo = objectInfo;
+        ObjectInfo = objectInfo;
         Position = spatialInfo.Position + (parent?.Position ?? Vec2<SDecimal>.Zero);
         Velocity = spatialInfo.Velocity + (parent?.Velocity ?? Vec2<SDecimal>.Zero);
         OrbitPath = new PatchedConicPath(

@@ -78,7 +78,10 @@ public class Ship : Body, IGameDrawable
             double iconAngle = -Angle - camera.Angle;
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
-            graphicsDevice.DrawPath([
+            graphicsDevice.DrawMesh(ObjectInfo.MarkerMesh ?? throw new NullReferenceException("Ship does not have a marker mesh"),
+                Matrix.Identity,
+                new() {{"Colour", colour.ToVector4()}});
+            /*graphicsDevice.DrawPath([
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 5), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 0), iconAngle),
@@ -86,7 +89,7 @@ public class Ship : Body, IGameDrawable
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, -8), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle)
-            ], colour);
+            ], colour);*/
         }
     }
 
@@ -159,6 +162,15 @@ public class Ship : Body, IGameDrawable
         private readonly IMesh _mesh;
         private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();
+        private readonly PathMesh _markerMesh = new([
+            new(10, -5),
+            new(10, 5),
+            new(10, 0),
+            new(-10, 0),
+            new(5, -8),
+            new(-10, 0),
+            new(5, 8)
+        ]);
         private readonly double _maximumRadius;
         private readonly Material _material;
         
@@ -178,7 +190,8 @@ public class Ship : Body, IGameDrawable
             Planet parent)
         {
             ObjectInfo objectInfo = new ObjectInfo(_mesh, _collider, _material) {
-                OrbitMesh = _orbitMesh
+                OrbitMesh = _orbitMesh,
+                MarkerMesh = _markerMesh
             };
             Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent);
             OrbitGame.Hierarchy.AddObject(ship);
