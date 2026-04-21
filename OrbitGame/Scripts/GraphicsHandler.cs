@@ -65,7 +65,13 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
 
     public void DrawLine(Vector2 start, Vector2 end, Color colour)
     {
-        VertexPositionColor[] vertices = [
+        Vector2 lineVector =  end - start;
+        Matrix transform = Matrix.CreateScale(lineVector.X, lineVector.Y, 1) *
+                           Matrix.CreateTranslation(start.X, start.Y, 0);
+        LineMesh.Mesh.TryGenerateBuffers(GraphicsDevice);
+        LineMesh.Mesh.Draw(GraphicsDevice, transform, new() {{"Colour", colour}}, Effects.DefaultEffect);
+        
+        /*VertexPositionColor[] vertices = [
             new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)
         ];
         int[] indices = [0, 1];
@@ -79,7 +85,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             GraphicsDevice.DrawUserIndexedPrimitives(
                 PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
             );
-        }
+        }*/
     }
 
     public void DrawLineR(Vector2 start, Vector2 displacement, Color colour)

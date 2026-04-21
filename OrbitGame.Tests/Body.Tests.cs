@@ -14,34 +14,18 @@ public class Body_Tests
         ObjectInfo objectInfo,
         SDecimal mass,
         Color colour,
-        Body? parent,
-        Action<string>? destructor) 
-        : Body(identifier, spatialinfo, objectInfo, mass, colour, parent, destructor)
+        Body? parent) 
+        : Body(identifier, spatialinfo, objectInfo, mass, colour, parent)
     {
         public class TestTemplate : BodyTemplate
         {
             public new static Dictionary<string, TestBody> AllInstances { get; } = new();
             
-            protected override void AddInstance(string identifier, KinematicObject instance)
-            {
-                base.AddInstance(identifier, instance);
-                if (!AllInstances.TryAdd(identifier, (TestBody)instance))
-                    throw new ArgumentException($"KinematicObject with identifier '{identifier}' has already been added");
-            }
-
-            public override void DestroyInstance(string identifier)
-            {
-                base.DestroyInstance(identifier);
-                AllInstances.Remove(identifier);
-                Instances.Remove(identifier);
-            }
-            
             public TestBody CreateTestInstance(string identifier, SpatialInfo spatialInfo, int mass, Body? parent)
             {
                 TestBody instance = new TestBody(identifier, spatialInfo, 
                     new ObjectInfo { OrbitMesh = new OrbitMesh() }, 
-                    mass, Color.White, parent, DestroyInstance);
-                AddInstance(identifier, instance);
+                    mass, Color.White, parent);
                 return instance;
             }
         }
@@ -54,7 +38,7 @@ public class Body_Tests
 
     public Body_Tests(ITestOutputHelper output)
     {
-        KinematicObject.KinematicObjectTemplate.DestroyAll();
+        
         
         _output = output;
         Constants.SetGravitationalConstant((SDecimal)1);

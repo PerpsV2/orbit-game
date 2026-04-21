@@ -78,18 +78,15 @@ public class Ship : Body, IGameDrawable
             double iconAngle = -Angle - camera.Angle;
             float alpha = Utils.Clamp(1 - camera.ConvertToScreenDistance(_maximumRadius) / 10, 0, 1);
             Color colour = Colour * alpha;
-            graphicsDevice.DrawLine(
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle), 
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 5), iconAngle), colour);
-            graphicsDevice.DrawLine(
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 0), iconAngle), 
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
-            graphicsDevice.DrawLine(
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, -8), iconAngle), 
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
-            graphicsDevice.DrawLine(
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle), 
-                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle), colour);
+            graphicsDevice.DrawPath([
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 5), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 0), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, -8), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle),
+                screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle)
+            ], colour);
         }
     }
 

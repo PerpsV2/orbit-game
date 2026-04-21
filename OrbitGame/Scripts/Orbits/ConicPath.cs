@@ -41,7 +41,7 @@ public class ConicPath
         StartAngle = startAngle;
         EndAngle = endAngle;
         
-        MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
+        //MouseHandler.MouseHover += KeplerOrbitPath_MouseHover;
         MouseHandler.MouseDown += KeplerOrbitPath_MouseDown;
         OrbitGame.UpdateFrame += KeplerOrbitPath_UpdateFrame;
     }

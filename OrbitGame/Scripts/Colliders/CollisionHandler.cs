@@ -14,8 +14,6 @@ public delegate void ResolveCollisionMethod(Body reference, Body incident);
 /// <summary>
 /// Handler class to detect and resolve collisions between objects in the game scene.
 /// </summary>
-/// <param name="bodies">List of bodies in the scene that have collisions enabled</param>
-/// <param name="collisionBehaviours">List of collision resolution methods that should be used between types of objects</param>
 public class CollisionHandler
 {
     public void ResolveCollisions()
@@ -33,7 +31,8 @@ public class CollisionHandler
         
         foreach (var reference in ships)
             foreach (var incident in planets)
-                tasks.Add(Task.Run(() => { RestShipPlanetCollision(reference, incident); }));
+                if (reference.Collider.NearsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo))
+                    tasks.Add(Task.Run(() => { RestShipPlanetCollision(reference, incident); }));
         
         Task.WaitAll(tasks.ToArray());
     }
