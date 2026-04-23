@@ -565,7 +565,6 @@ public class OrbitGame : Game
                     Hierarchy.GetObjectsOfType<Ship>()[0].SpatialInfo
                 )?.PenetrationVector ?? Vec2Double.Zero;
             }
-            
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)

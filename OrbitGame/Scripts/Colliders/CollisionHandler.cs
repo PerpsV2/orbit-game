@@ -85,33 +85,38 @@ public class CollisionHandler
                                 Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) <= jS
                 ? cTangent * -Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) : cTangent * jD;
 
-        // apply linear impulse
-        if (!referenceCollider.Fixed)
+        if (Options.EnableCollisions)
         {
-            reference.Velocity -= cNormal * (j / reference.Mass);
-            reference.Velocity -= jF / reference.Mass;
-        }
+            // apply linear impulse
+            if (!referenceCollider.Fixed)
+            {
+                reference.Velocity -= cNormal * (j / reference.Mass);
+                reference.Velocity -= jF / reference.Mass;
+            }
 
-        if (!incidentCollider.Fixed)
-        {
-            incident.Velocity += cNormal * (j / incident.Mass);
-            incident.Velocity += jF / incident.Mass;
+            if (!incidentCollider.Fixed)
+            {
+                incident.Velocity += cNormal * (j / incident.Mass);
+                incident.Velocity += jF / incident.Mass;
+            }
+
+            // apply angular impulse
+            if (!referenceCollider.Fixed)
+                reference.AngularVelocity -=
+                    (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
+            if (!incidentCollider.Fixed)
+                incident.AngularVelocity +=
+                    (double)(Vec2<SDecimal>.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
+            // apply projection method to resolve intersection
+
+            if (!referenceCollider.Fixed && !incidentCollider.Fixed)
+            {
+                reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
+                incident.Position += c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
+            }
+            else if (referenceCollider.Fixed) incident.Position += c2.PenetrationVector;
+            else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;
         }
-        
-        // apply angular impulse
-        if (!referenceCollider.Fixed) reference.AngularVelocity -= 
-            (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / referenceCollider.Inertia);
-        if (!incidentCollider.Fixed) incident.AngularVelocity += 
-            (double)(Vec2<SDecimal>.Cross(cPi, cNormal * j).Z / incidentCollider.Inertia);
-        // apply projection method to resolve intersection
-        
-        if (!referenceCollider.Fixed && !incidentCollider.Fixed)
-        {
-            reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
-            incident.Position += c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
-        }
-        else if (referenceCollider.Fixed) incident.Position += c2.PenetrationVector;
-        else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;
 
         if (Options.EnablePhysicsCollisionDebug)
             DrawDebug.Add(() => {
