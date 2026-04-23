@@ -177,8 +177,9 @@ public class Ship : Body, IGameDrawable
         public ShipTemplate(Vec2Double[] shipVertices, Material material)
         {
             _material = material;
-            _mesh = new PolyMesh(shipVertices);
-            _collider = new ConvexCollider(shipVertices);
+            ConvexCollider convexCollider = new ConvexCollider(shipVertices);
+            _collider = convexCollider;
+            _mesh = new PolyMesh(convexCollider.Points.ToArray());
             _maximumRadius = shipVertices.Select(x => x.Magnitude()).Max();
         }
 

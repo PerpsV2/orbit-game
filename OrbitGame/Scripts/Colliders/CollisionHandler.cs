@@ -24,7 +24,7 @@ public class CollisionHandler
         List<Task> tasks = new List<Task>();
 
         SDecimal maxShipRadius = ships.MaxBy(x => x.Collider.MaxRadius)?.Collider.MaxRadius ?? 0;
-        foreach (var reference in ships)
+        foreach (var reference in ships) 
             foreach (var incident in OrbitGame.Hierarchy.GetObjectsInRadius(reference.Position, 
                          reference.Collider.MaxRadius + maxShipRadius))
                 tasks.Add(Task.Run(() => { if (incident != reference) ResolvePhysicsCollision(reference, (Body)incident); }));

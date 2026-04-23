@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace OrbitGame;
@@ -8,6 +9,8 @@ namespace OrbitGame;
 /// </summary>
 public class ConvexCollider : CompactCollider
 {
+    public List<Vec2Double> Points => _convexHull.Points;
+    
     private readonly ConvexHull _convexHull;
     private readonly BoundingBox _boundingBox;
 
@@ -154,6 +157,7 @@ public class ConvexCollider : CompactCollider
         }
         
         // pick the furthest vertex along the collision normal
+        if (minPenetrationVector == Vec2Double.Zero) return null;
         double collisionNormalAngle = minPenetrationVector.Direction();
         var indexedReferencePoints = referencePoints.Index();
         var indexedIncidentPoints = incidentPoints.Index();

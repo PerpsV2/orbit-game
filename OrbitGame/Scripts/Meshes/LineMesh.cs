@@ -48,6 +48,8 @@ public class LineMesh : IMesh
         graphicsDevice.Indices = _indexBuffer;
 
         effect.Parameters["World"].SetValue(transform);
+        foreach (var pair in shaderParameters)
+            effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
 
         foreach (var pass in effect.CurrentTechnique.Passes)
         {

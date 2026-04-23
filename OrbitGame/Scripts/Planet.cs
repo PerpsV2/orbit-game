@@ -212,7 +212,7 @@ public class Planet : Body, IGameDrawable
 
     public SDecimal GetElevationAtPoint(double angle)
     {
-        return 1000 * Math.Cos(100 * angle);
+        return 0;
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate

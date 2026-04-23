@@ -28,9 +28,6 @@ public readonly record struct KeplerOrbit
     private readonly SpatialInfo _initialParentSpatialInfo;
     private readonly SpatialInfo _initialOrbitalSpatialInfo;
     
-    private SDecimal PBodyMass => (SDecimal)Body.Mass;
-    private SDecimal PParentMass => (SDecimal) Parent.Mass;
-    
     // ----- Orbital Parameters ----- 
     public readonly Vec2<SDecimal> LRLVector;
     public readonly SDecimal SemiLatusRectum;
@@ -123,7 +120,7 @@ public readonly record struct KeplerOrbit
         => LRLVector != Vec2<SDecimal>.Zero ? Utils.WrapAngle(LRLVector.Direction()) : 0;
 
     private double LazyInitializeEccentricity()
-        => (double)(LRLVector.Magnitude() / SDecimal.Abs(PBodyMass * PBodyMass * PParentMass * Constants.G));
+        => (double)(LRLVector.Magnitude() / SDecimal.Abs(Body.Mass * Body.Mass * Parent.Mass * Constants.G));
     
     private OrbitEquation LazyInitializeEquation()
     {

@@ -69,7 +69,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         Matrix transform = Matrix.CreateScale(lineVector.X, lineVector.Y, 1) *
                            Matrix.CreateTranslation(start.X, start.Y, 0);
         LineMesh.Mesh.TryGenerateBuffers(GraphicsDevice);
-        LineMesh.Mesh.Draw(GraphicsDevice, transform, new() {{"Colour", colour}}, Effects.DefaultEffect);
+        LineMesh.Mesh.Draw(GraphicsDevice, transform, new() {{"Colour", colour.ToVector4() }}, Effects.DefaultEffect);
         
         /*VertexPositionColor[] vertices = [
             new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)
