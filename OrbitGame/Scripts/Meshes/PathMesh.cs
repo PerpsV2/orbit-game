@@ -8,8 +8,12 @@ namespace OrbitGame;
 
 public class PathMesh : IMesh
 {
+    private VertexPositionColor[] _vertices = [];
+    private int[] _indices = [];
+    
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
+    
     private bool _buffersGenerated;
 
     private readonly Vector2[] _points;
@@ -23,11 +27,13 @@ public class PathMesh : IMesh
 
     public void GenerateBuffers(GraphicsDevice graphicsDevice)
     {
-        VertexPositionColor[] vertices = _points.Select(v => new VertexPositionColor(new Vector3(v.X, v.Y, 0), Color.White)).ToArray(); 
-
+        VertexPositionColor[] vertices = _points.Select(v => new VertexPositionColor(new Vector3(v.X, v.Y, 0), Color.White)).ToArray();
+        _vertices = vertices;
+        
         int[] indices = new int[vertices.Length];
         for (int i = 0; i < vertices.Length; i++)
             indices[i] = i;
+        _indices = indices;
          
         _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.None);
         _indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.None);
@@ -54,7 +60,7 @@ public class PathMesh : IMesh
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         graphicsDevice.Indices = _indexBuffer;
 
-        effect.Parameters["World"].SetValue(transform);
+        effect.Parameters["World"].SetValue(Matrix.Identity);
         foreach (var pair in shaderParameters)
             effect.Parameters[pair.Key].SetValue((dynamic)pair.Value);
 
@@ -62,7 +68,7 @@ public class PathMesh : IMesh
         {
             pass.Apply();
             graphicsDevice.DrawInstancedPrimitives(
-                PrimitiveType.LineStrip, 0, 0, 1, 1
+                PrimitiveType.LineStrip, 0, 0, _vertices.Length, 1
             );
         }
     }
