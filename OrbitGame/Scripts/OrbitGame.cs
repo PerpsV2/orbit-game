@@ -306,7 +306,16 @@ public class OrbitGame : Game
             "Clocknotch", new SpatialInfo(new(100, 100)), 400, new Color(255, 125, 100), manatee
         );
 
-        _testCollider = new TerrainCollider(new Vec2Double(150, 100));
+        _testCollider = new TerrainCollider([
+            new Vec2Double(0, 0),
+            new Vec2Double(30, 10),
+            new Vec2Double(40, -10),
+            new Vec2Double(50, 0),
+            new Vec2Double(80, 40),
+            new Vec2Double(120, -10),
+            new Vec2Double(130, 0),
+            new Vec2Double(140, 30)
+        ]);
 
         #endregion
 
@@ -488,6 +497,13 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Keys.U)) GameState.ControlShip.Angle += 0.05;
         if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;
+
+        if (keyboardState.IsKeyDown(Keys.X))
+            GameState.ControlShip.Position -= _testCollider.IntersectsWith(
+                (ConvexCollider)GameState.Tracking.Collider,
+                GameState.Tracking.SpatialInfo,
+                Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
+            )?.PenetrationVector ?? Vec2Double.Zero;
         
         _lastKeyboardState = keyboardState;
     }
@@ -541,7 +557,15 @@ public class OrbitGame : Game
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();
 
-            _testCollider.IntersectsWith(GameState.Tracking.SpatialInfo, Hierarchy.GetObjectsOfType<Planet>()[0].SpatialInfo);
+            for (int i = 1; i < Ships.Length; ++i)
+            {
+                Ships[i].Position -= _testCollider.IntersectsWith(
+                    (ConvexCollider)Ships[i].Collider,
+                    Ships[i].SpatialInfo,
+                    Hierarchy.GetObjectsOfType<Ship>()[0].SpatialInfo
+                )?.PenetrationVector ?? Vec2Double.Zero;
+            }
+            
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)
