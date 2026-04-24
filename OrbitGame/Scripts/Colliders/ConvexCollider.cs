@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
@@ -33,9 +34,47 @@ public class ConvexCollider : CompactCollider
     protected override BoundingBox GetBoundingBox(double angle)
         => _boundingBox;
 
-    public override PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial)
+    public override PointCollision? IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial)
     {
-        throw new NotImplementedException();
+        Vec2Double minPenetrationVector = new Vec2Double(double.PositiveInfinity, double.PositiveInfinity);
+        List<Vec2Double> rotatedPoint = _convexHull.Points.Select(x => Vec2Double.RotatePoint(x, spatial.Angle)).ToList();
+        for (int i = 0; i < rotatedPoint.Count; ++i)
+        {
+            Vec2Double currentVertex = rotatedPoint[i];
+            Vec2Double nextVertex = rotatedPoint[(i + 1) % rotatedPoint.Count];
+            double edgeAngle = Vec2Double.Direction(currentVertex, nextVertex);
+            
+            double[] projectedColliderPoints = rotatedPoint
+                .Select(x => Vec2Double.RotatePoint(x, -edgeAngle - Math.PI / 2).X).ToArray();
+            (double min, double max) projectedRange = (projectedColliderPoints.Min(), projectedColliderPoints.Max());
+            double projectedPoint = Vec2Double.RotatePoint((Vec2Double)(point - spatial.Position), -edgeAngle - Math.PI / 2).X;
+            if (projectedPoint < projectedRange.min || projectedPoint > projectedRange.max)
+                return null;
+            
+            double forwardsPenetrationDistance = projectedRange.max - projectedPoint;
+            double backwardsPenetrationDistance = projectedRange.min - projectedPoint;
+            double penetrationDistance =
+                Math.Abs(forwardsPenetrationDistance - backwardsPenetrationDistance) > 0
+                    ? -forwardsPenetrationDistance
+                    : backwardsPenetrationDistance;
+            if (Math.Pow(Math.Abs(penetrationDistance), 2) < minPenetrationVector.MagnitudeSquared())
+            {
+                minPenetrationVector = Vec2Double.FromPolar(
+                    edgeAngle - Math.PI / 2,
+                    penetrationDistance
+                );
+            }
+        }
+        
+        DrawDebug.Add(() =>
+        {
+            Camera cam = OrbitGame.Camera;
+            IGraphicsHandler g = OrbitGame.Graphics;
+            
+            g.SD_DrawLineR(cam, point, minPenetrationVector, Color.Purple);
+        });
+
+        return new PointCollision(minPenetrationVector);
     }
     
     protected override PhysicsCollision? IntersectsWith(

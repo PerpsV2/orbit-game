@@ -31,9 +31,11 @@ public class CircularCollider : CompactCollider
 
     protected override BoundingBox GetBoundingBox(double angle) =>
         _boundingBox;
-    
-    public override PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial) =>
-        new((point - spatial.Position).Magnitude() <= Radius && !IsEmpty());
+
+    public override PointCollision? IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial)
+    {
+        throw new NotImplementedException();
+    }
 
     protected override PhysicsCollision? IntersectsWith(
         CircularCollider collider, SpatialInfo referenceSpatial, SpatialInfo incidentSpatial

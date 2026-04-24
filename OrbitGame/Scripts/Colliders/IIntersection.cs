@@ -6,14 +6,10 @@ namespace OrbitGame;
 
 public interface IIntersection;
 
-/// <summary>
-/// Contains information about a collision between a collider and a point.
-/// </summary>
-/// <param name="intersects">Whether the point and the collider intersect</param>
-public readonly struct PointCollision(bool intersects = true)
+public readonly struct PointCollision(Vec2Double penetrationVector)
     : IIntersection
 {
-    public readonly bool Intersects = intersects;
+    public readonly Vec2Double PenetrationVector = penetrationVector;
 }
 
 /// <summary>

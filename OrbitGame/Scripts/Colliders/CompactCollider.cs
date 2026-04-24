@@ -59,7 +59,7 @@ public abstract class CompactCollider
     /// <param name="point">Point to check.</param>
     /// <param name="referenceSpatial">SpatialInfo of the object.</param>
     /// <returns>The point collision information.</returns>
-    public abstract PointCollision IntersectsWith(Vec2<SDecimal> point, SpatialInfo referenceSpatial);
+    public abstract PointCollision? IntersectsWith(Vec2<SDecimal> point, SpatialInfo referenceSpatial);
     
     /// <summary>
     /// Returns the collision of an object with another object. 
