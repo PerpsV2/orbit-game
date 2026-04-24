@@ -556,11 +556,11 @@ public class OrbitGame : Game
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();
 
-            GameState.ControlShip.Position += _testCollider.IntersectsWith(
+            _testCollider.IntersectsWith2(
                 (ConvexCollider)GameState.Tracking.Collider,
                 GameState.Tracking.SpatialInfo,
                 Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
-            )?.PenetrationVector ?? Vec2Double.Zero;
+            );
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)
