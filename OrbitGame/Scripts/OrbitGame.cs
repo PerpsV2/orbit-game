@@ -306,15 +306,14 @@ public class OrbitGame : Game
             "Clocknotch", new SpatialInfo(new(100, 100)), 400, new Color(255, 125, 100), manatee
         );
 
-        _testCollider = new TerrainCollider([
-            new Vec2Double(0, 0),
-            new Vec2Double(75, 50),
-            new Vec2Double(125, 75),
-            new Vec2Double(150, 30),
-            new Vec2Double(180, 90),
-            new Vec2Double(210, 100),
-            new Vec2Double(250, 50),
-            new Vec2Double(325, 40),
+        _testCollider = new TestTerrainCollider([
+            (0, 30),
+            (0.5, 35),
+            (1.5, 20),
+            (3, 40),
+            (3.5, 35),
+            (5, 40),
+            (6, 25)
         ]);
 
         #endregion
@@ -331,7 +330,7 @@ public class OrbitGame : Game
         base.Initialize();
     }
 
-    private TerrainCollider _testCollider;
+    private TestTerrainCollider _testCollider;
     private ScreenMesh _screenMesh;
 
     protected override void LoadContent()
@@ -468,14 +467,6 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.Z))
             if (_lastKeyboardState.IsKeyUp(Keys.Z))
                 CreateManeuverNode();
-        
-        /*if (keyboardState.IsKeyDown(Keys.X))
-            if (_lastKeyboardState.IsKeyUp(Keys.X))
-                GameState.Tracking.Position -= _testCollider.IntersectsWith(
-                    (ConvexCollider)GameState.Tracking.Collider,
-                    GameState.Tracking.SpatialInfo,
-                    Hierarchy.GetObjectsOfType<Planet>()[0].SpatialInfo
-                )?.PenetrationVector ?? new Vec2Double(0, 0);*/
 
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);
@@ -505,13 +496,13 @@ public class OrbitGame : Game
 
         if (keyboardState.IsKeyDown(Keys.U)) GameState.ControlShip.Angle += 0.05;
         if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;
-        
-        if (keyboardState.IsKeyDown(Keys.X))
-            GameState.Tracking.Position -= _testCollider.IntersectsWith(
-                (ConvexCollider)GameState.Tracking.Collider,
-                GameState.Tracking.SpatialInfo,
-                Hierarchy.GetObjectsOfType<Planet>()[0].SpatialInfo
-            )?.PenetrationVector ?? new Vec2Double(0, 0);
+
+        // if (keyboardState.IsKeyDown(Keys.X))
+        //     GameState.ControlShip.Position -= _testCollider.IntersectsWith(
+        //         (ConvexCollider)GameState.Tracking.Collider,
+        //         GameState.Tracking.SpatialInfo,
+        //         Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
+        //     )?.PenetrationVector ?? Vec2Double.Zero;
         
         _lastKeyboardState = keyboardState;
     }
@@ -564,10 +555,10 @@ public class OrbitGame : Game
 
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();
+
             _testCollider.IntersectsWith(
-                (ConvexCollider)GameState.Tracking.Collider,
                 GameState.Tracking.SpatialInfo,
-                Hierarchy.GetObjectsOfType<Planet>()[0].SpatialInfo
+                Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
             );
 
             foreach (var ship in Ships)

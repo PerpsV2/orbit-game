@@ -64,7 +64,7 @@ public class ConvexCollider : CompactCollider
             if (transformedCenter.X >= 0 && transformedCenter.X <= edgeUpperBound &&
                 double.Abs(transformedCenter.Y) <= collider.Radius)
             {
-                double penetrationDistance = -collider.Radius + transformedCenter.Y;
+                double penetrationDistance = collider.Radius + transformedCenter.Y;
                 if (double.Abs(penetrationDistance) < minPenetrationVector.Magnitude() ||
                     minPenetrationVector.Equals(Vec2Double.Zero))
                 {
