@@ -15,6 +15,8 @@ public class TrackingCameraScheme : ICameraMovementScheme
     /// Position of the camera relative to a tracking object.
     /// </summary>
     private Vec2<SDecimal> _localPosition;
+
+    private double _localAngle;
     private readonly KinematicObject? _tracking;
 
     /// <summary>
@@ -26,11 +28,13 @@ public class TrackingCameraScheme : ICameraMovementScheme
     {
         _tracking = tracking;
         _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? Vec2<SDecimal>.Zero);
+        _localAngle = cameraSpatialInfo.Angle - (_tracking?.Angle ?? 0);
     }
 
     public void Focus()
     {
         _localPosition = Vec2<SDecimal>.Zero;
+        _localAngle = 0;
     }
 
     public void MovePerpendicular(SDecimal distance, ref SpatialInfo spatialInfo)
@@ -45,11 +49,12 @@ public class TrackingCameraScheme : ICameraMovementScheme
 
     public void RotateBy(double angle, ref SpatialInfo spatialInfo)
     {
-        spatialInfo.Angle += angle;
+        _localAngle += angle;
     }
 
     public void Update(ref SpatialInfo spatialInfo)
     {
         spatialInfo.Position = (_tracking?.Position ?? Vec2<SDecimal>.Zero) + _localPosition;
+        spatialInfo.Angle = _localAngle;
     }
 }

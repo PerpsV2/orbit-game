@@ -307,13 +307,13 @@ public class OrbitGame : Game
         );
 
         _testCollider = new TestTerrainCollider([
-            (0, 30),
-            (0.5, 35),
+            (0.25, 30),
+            (0.5, 45),
             (1.5, 20),
             (3, 40),
             (3.5, 35),
             (5, 40),
-            (6, 25)
+            (6, 45)
         ]);
 
         #endregion
@@ -497,12 +497,12 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.U)) GameState.ControlShip.Angle += 0.05;
         if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;
 
-        // if (keyboardState.IsKeyDown(Keys.X))
-        //     GameState.ControlShip.Position -= _testCollider.IntersectsWith(
-        //         (ConvexCollider)GameState.Tracking.Collider,
-        //         GameState.Tracking.SpatialInfo,
-        //         Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
-        //     )?.PenetrationVector ?? Vec2Double.Zero;
+        if (keyboardState.IsKeyDown(Keys.X))
+            GameState.ControlShip.Position += _testCollider.IntersectsWith(
+                (ConvexCollider)GameState.Tracking.Collider,
+                GameState.Tracking.SpatialInfo,
+                Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
+            )?.PenetrationVector ?? Vec2Double.Zero;
         
         _lastKeyboardState = keyboardState;
     }
@@ -556,10 +556,11 @@ public class OrbitGame : Game
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();
 
-            _testCollider.IntersectsWith(
+            GameState.ControlShip.Position += _testCollider.IntersectsWith(
+                (ConvexCollider)GameState.Tracking.Collider,
                 GameState.Tracking.SpatialInfo,
                 Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
-            );
+            )?.PenetrationVector ?? Vec2Double.Zero;
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)
