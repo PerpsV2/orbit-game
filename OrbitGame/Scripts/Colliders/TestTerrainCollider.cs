@@ -154,6 +154,9 @@ public class TestTerrainCollider
         {
             Vec2<SDecimal> cartesianPoint = Vec2<SDecimal>.FromPolar(point.angle, point.distance);
             collider.IntersectsWith(cartesianPoint + incident.Position, reference);
+            
+
+            // collider.IntersectsWith(cartesianPoint + incident.Position, reference);
             // Vec2<SDecimal> pointMinEdgePenetrationVector = Vec2<SDecimal>.Zero;
             // Vec2<SDecimal> pointCollisionPoint = Vec2<SDecimal>.Zero;
             // for (int i = 0; i < rotatedPoints.Length; ++i)
