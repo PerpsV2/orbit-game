@@ -306,14 +306,6 @@ public class OrbitGame : Game
             "Clocknotch", new SpatialInfo(new(150, 150), new Vec2<SDecimal>(0, 0)), 400, new Color(255, 125, 100), manatee
         );*/
 
-        List<(double angle, SDecimal distance)> terrainColliderPoints = [];
-        for (double i = 0; i < Math.Tau; i += Math.Tau / 100)
-        {
-            terrainColliderPoints.Add((i, _rnd.NextDouble() * 100 + new SDecimal(6.378, 6)));
-        }
-        
-        _testCollider = new TestTerrainCollider(terrainColliderPoints.ToArray());
-
         #endregion
 
         foreach (var planet in Planets) planet.GenerateOrbitPath(GameState.PhysicsTime);
@@ -328,7 +320,6 @@ public class OrbitGame : Game
         base.Initialize();
     }
 
-    private TestTerrainCollider _testCollider;
     private ScreenMesh _screenMesh;
 
     protected override void LoadContent()
@@ -553,12 +544,15 @@ public class OrbitGame : Game
 
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();
+            
+            foreach (var planet in Hierarchy.GetObjectsOfType<Planet>())
+                planet.GenerateTerrainCollider();
 
-            GameState.ControlShip.Position += _testCollider.IntersectsWith2(
+            /*GameState.ControlShip.Position += _testCollider.IntersectsWith(
                 (ConvexCollider)GameState.Tracking.Collider,
                 GameState.Tracking.SpatialInfo,
                 Hierarchy.GetObjectsOfType<Planet>()[3].SpatialInfo
-            )?.PenetrationVector ?? Vec2Double.Zero;
+            )?.PenetrationVector ?? Vec2Double.Zero;*/
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)

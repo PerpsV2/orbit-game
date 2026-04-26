@@ -11,6 +11,7 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly SDecimal Radius;
+    public TerrainCollider TerrainCollider { get; private set; }
     private readonly int _terrainSeed;
 
     private readonly Random _rnd;
@@ -27,10 +28,34 @@ public class Planet : Body, IGameDrawable
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         Radius = radius;
+        GenerateTerrainCollider();
         _terrainSeed = seed;
         _rnd = new Random(seed);
         GenerateOrbitPath(0);
         objectInfo.Collider.CalculateInertia(mass);
+    }
+
+    public void GenerateTerrainCollider()
+    {
+        Camera camera = OrbitGame.Camera;
+
+        Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
+            (camera.TopRight - Position).Direction(),
+            (camera.TopLeft - Position).Direction(),
+            (camera.BottomLeft - Position).Direction(),
+            (camera.BottomRight - Position).Direction());
+
+        if (maxAngle <= minAngle) maxAngle += Math.Tau;
+        
+        var elevationPoints = new List<(double, SDecimal)>();
+        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
+            elevationPoints.Add((angle, Radius + GetElevationAtPoint(angle)));
+        });
+        Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 100, (_, angle) => {
+            elevationPoints.Add((angle, Radius + GetElevationAtPoint(angle)));
+        });
+        
+        TerrainCollider = new TerrainCollider(elevationPoints.ToArray());
     }
 
     public void DrawTerrain()
@@ -146,12 +171,6 @@ public class Planet : Body, IGameDrawable
         OrbitPath.Draw();
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
-        
-        // if the planet is too large to draw on screen as a circle, draw its intersection with the camera as a line
-        //if (camera.Height <= Radius / Options.SurfaceApproximationRadiusZoomFraction)
-        //{
-            
-        //}
 
         // if the planet is too small to draw on screen, instead draw its approximate location with a marker
         if (camera.Height >= Radius / Options.LocationApproximationRadiusZoomFraction)
@@ -212,7 +231,7 @@ public class Planet : Body, IGameDrawable
 
     public SDecimal GetElevationAtPoint(double angle)
     {
-        return 0;
+        return 150 * Math.Cos(angle * 32000);
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate

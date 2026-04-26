@@ -31,8 +31,7 @@ public class CollisionHandler
         
         foreach (var reference in ships)
             foreach (var incident in planets)
-                if (reference.Collider.NearsWith(incident.Collider, reference.SpatialInfo, incident.SpatialInfo))
-                    tasks.Add(Task.Run(() => { RestShipPlanetCollision(reference, incident); }));
+                tasks.Add(Task.Run(() => { BodyPlanetTerrainCollision(reference, incident); }));
         
         Task.WaitAll(tasks.ToArray());
     }
@@ -135,12 +134,11 @@ public class CollisionHandler
     public static void BodyPlanetTerrainCollision(Body reference, Body incident)
     {
         Planet planet = (Planet)incident;
-        double shipPlanetAngle = (reference.Position - planet.Position).Direction();
-        if ((reference.Position - planet.Position).MagnitudeSquared() <
-            SDecimal.Square(planet.GetElevationAtPoint(shipPlanetAngle) + planet.Radius))
-        {
-            reference.Velocity *= -1;
-        }
+        if (planet.TerrainCollider.NearsWith(reference.Collider, reference.SpatialInfo, incident.SpatialInfo))
+            reference.Position +=
+                planet.TerrainCollider
+                    .IntersectsWith((ConvexCollider)reference.Collider, reference.SpatialInfo, incident.SpatialInfo)
+                    ?.PenetrationVector ?? Vec2<SDecimal>.Zero;
     }
 
     public static void RestShipPlanetCollision(Body reference, Body incident)
