@@ -498,7 +498,7 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;
 
         if (keyboardState.IsKeyDown(Keys.X))
-            GameState.ControlShip.Position += _testCollider.IntersectsWith(
+            GameState.ControlShip.Position += _testCollider.IntersectsWith2(
                 (ConvexCollider)GameState.Tracking.Collider,
                 GameState.Tracking.SpatialInfo,
                 Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
