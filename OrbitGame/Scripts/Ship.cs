@@ -81,7 +81,7 @@ public class Ship : Body, IGameDrawable
             graphicsDevice.DrawMesh(ObjectInfo.MarkerMesh ?? throw new NullReferenceException("Ship does not have a marker mesh"),
                 Matrix.CreateTranslation(screenPosition.X, screenPosition.Y, 0) * Matrix.CreateRotationZ((float)iconAngle),
                 new() {{"Colour", colour.ToVector4()}});
-            /*graphicsDevice.DrawPath([
+            graphicsDevice.DrawPath([
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, -5), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 5), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(10, 0), iconAngle),
@@ -89,7 +89,7 @@ public class Ship : Body, IGameDrawable
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, -8), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle)
-            ], colour);*/
+            ], colour);
         }
     }
 
@@ -157,8 +157,6 @@ public class Ship : Body, IGameDrawable
     
     public class ShipTemplate : BodyTemplate
     {
-        public new static Dictionary<string, Ship> AllInstances { get; } = new();
-        
         private readonly IMesh _mesh;
         private readonly CompactCollider _collider;
         private readonly OrbitMesh _orbitMesh = new();

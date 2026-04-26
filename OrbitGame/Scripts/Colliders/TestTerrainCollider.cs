@@ -122,7 +122,7 @@ public class TestTerrainCollider
         Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
         foreach (var point in rotatedPoints)
         {
-            Vec2<SDecimal> relPos = point - incident.Position;
+            Vec2<SDecimal> relPos = point + reference.Position - incident.Position;
             (int startIndex, int endIndex) pointSurfaceLineSegment = GetPointSegment(relPos);
             Vec2<SDecimal> segmentStart = Vec2<SDecimal>.FromPolar(
                 _elevationPoints[pointSurfaceLineSegment.startIndex].angle,
@@ -218,27 +218,24 @@ public class TestTerrainCollider
     {
         Vec2<SDecimal> totalPenetrationVector = Vec2<SDecimal>.Zero;
         Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
-        int i = 0;
-        while (i < 1)
+        while (true)
         {
-            var edgeCollision = GetEdgeCollision(collider, new(reference.Position + totalPenetrationVector), incident);
+            var edgeCollision = GetEdgeCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
             if (edgeCollision.penetrationVector != Vec2<SDecimal>.Zero)
             {
                 totalPenetrationVector += edgeCollision.penetrationVector;
-                Console.WriteLine(totalPenetrationVector);
-                Console.WriteLine(edgeCollision.penetrationVector);
                 collisionPoint = edgeCollision.collisionPoint;
             }
+            
+            var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
+            if (vertexCollision.penetrationVector != Vec2<SDecimal>.Zero)
+            {
+                totalPenetrationVector += vertexCollision.penetrationVector;
+                collisionPoint = vertexCollision.collisionPoint;
+            }
 
-            ++i;
-            // var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector), incident);
-            // if (vertexCollision.penetrationVector != Vec2<SDecimal>.Zero)
-            // {
-            //     totalPenetrationVector += vertexCollision.penetrationVector;
-            //     collisionPoint = vertexCollision.collisionPoint;
-            // }
-
-            if (edgeCollision.penetrationVector == Vec2<SDecimal>.Zero)
+            if (vertexCollision.penetrationVector.MagnitudeSquared() < 0.0001 && 
+                edgeCollision.penetrationVector.MagnitudeSquared() < 0.0001)
                 break;
         }
 

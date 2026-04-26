@@ -60,9 +60,9 @@ public abstract class Body : KinematicObject
     /// </summary>
     private Vec2<SDecimal> CalculateGravitationalAcceleration(Body attractor)
     {
-        /*Vec2<SDecimal> direction = (attractor.Position - Position).Normalize();
+        Vec2<SDecimal> direction = (attractor.Position - Position).Normalize();
         SDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
-        return direction * magnitude;*/
+        return direction * magnitude;
         Vec2<SDecimal> differenceVector = Position - attractor.Position;
         return differenceVector * Constants.G * attractor.Mass / SDecimal.IntPow(differenceVector.Magnitude(), 3);
     }
