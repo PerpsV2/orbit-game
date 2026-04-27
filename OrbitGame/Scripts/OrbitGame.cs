@@ -541,18 +541,12 @@ public class OrbitGame : Game
             }
 
             Task.WaitAll(tasks.ToArray());
-
-            Hierarchy.ReconstructTree();
-            _collisionHandler.ResolveCollisions();
             
             foreach (var planet in Hierarchy.GetObjectsOfType<Planet>())
                 planet.GenerateTerrainCollider();
 
-            /*GameState.ControlShip.Position += _testCollider.IntersectsWith(
-                (ConvexCollider)GameState.Tracking.Collider,
-                GameState.Tracking.SpatialInfo,
-                Hierarchy.GetObjectsOfType<Planet>()[3].SpatialInfo
-            )?.PenetrationVector ?? Vec2Double.Zero;*/
+            Hierarchy.ReconstructTree();
+            _collisionHandler.ResolveCollisions();
 
             foreach (var ship in Ships)
                 if (ship.LandingState != null)

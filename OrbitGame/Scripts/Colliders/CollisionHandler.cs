@@ -143,10 +143,7 @@ public class CollisionHandler
     {
         Planet planet = (Planet)incident;
         if (planet.Collider.NearsWith(reference.Collider, reference.SpatialInfo, incident.SpatialInfo))
-        {
-            Console.WriteLine("Test");
             ResolveTerrainCollision(reference, planet);
-        }
     }
 
     public static void RestShipPlanetCollision(Body reference, Body incident)
