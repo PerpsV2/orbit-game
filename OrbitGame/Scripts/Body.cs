@@ -58,21 +58,21 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the gravitational acceleration caused by the attraction of one other body.
     /// </summary>
-    private Vec2<SDecimal> CalculateGravitationalAcceleration(Body attractor)
+    private Vec2Double CalculateGravitationalAcceleration(Body attractor)
     {
-        Vec2<SDecimal> direction = (attractor.Position - Position).Normalize();
-        SDecimal magnitude = Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared();
+        Vec2Double direction = (Vec2Double)(attractor.Position - Position).Normalize();
+        double magnitude = (double)(Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared());
         return direction * magnitude;
-        Vec2<SDecimal> differenceVector = Position - attractor.Position;
-        return differenceVector * Constants.G * attractor.Mass / SDecimal.IntPow(differenceVector.Magnitude(), 3);
+        //Vec2<SDecimal> differenceVector = Position - attractor.Position;
+        //return differenceVector * Constants.G * attractor.Mass / SDecimal.IntPow(differenceVector.Magnitude(), 3);
     }
 
     /// <summary>
     /// Calculate the net gravitational acceleration with all bodies in the scene.
     /// </summary>
-    private Vec2<SDecimal> CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
+    private Vec2Double CalculateNetGravitationalAcceleration(IEnumerable<Body> attractors)
     {
-        Vec2<SDecimal> result = Vec2<SDecimal>.Zero;
+        Vec2Double result = Vec2Double.Zero;
         foreach (var attractor in attractors)
         {
             if (attractor == this) continue;

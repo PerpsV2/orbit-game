@@ -8,12 +8,12 @@ namespace OrbitGame;
 
 public class TerrainCollider : CompactCollider
 {
-    private readonly (double angle, SDecimal distance)[] _elevationPoints;
+    private readonly (double angle, double distance)[] _elevationPoints;
     
-    public TerrainCollider((double angle, SDecimal distance)[] elevationPoints)
+    public TerrainCollider((double angle, double distance)[] elevationPoints)
     {
         _elevationPoints = elevationPoints.OrderBy(x => x.angle).ToArray();
-        MaxRadius = (double)_elevationPoints.MaxBy(x => x.distance).distance;
+        MaxRadius = _elevationPoints.MaxBy(x => x.distance).distance;
     }
 
     public override SDecimal CalculateInertia(SDecimal mass)
@@ -54,39 +54,39 @@ public class TerrainCollider : CompactCollider
         throw new UnreachableException("Point is outside of the range of every terrain segment");
     }
 
-    private (Vec2<SDecimal> penetrationVector, Vec2<SDecimal> collisionPoint) GetEdgeCollision(
+    private (Vec2Double penetrationVector, Vec2Double collisionPoint) GetEdgeCollision(
         ConvexCollider collider, 
         SpatialInfo reference,
         SpatialInfo incident)
     {
         Vec2Double[] rotatedPoints = collider.Points.Select(x => Vec2Double.RotatePoint(x, reference.Angle)).ToArray();
-        Vec2<SDecimal> minEdgePenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
+        Vec2Double minEdgePenetrationVector = Vec2Double.Zero;
+        Vec2Double collisionPoint = Vec2Double.Zero;
         foreach (var point in rotatedPoints)
         {
-            Vec2<SDecimal> relPos = point + reference.Position - incident.Position;
+            Vec2Double relPos = (Vec2Double)(point + reference.Position - incident.Position);
             (int startIndex, int endIndex) pointSurfaceLineSegment = GetPointSegment(relPos);
-            Vec2<SDecimal> segmentStart = Vec2<SDecimal>.FromPolar(
+            Vec2Double segmentStart = Vec2Double.FromPolar(
                 _elevationPoints[pointSurfaceLineSegment.startIndex].angle,
                 _elevationPoints[pointSurfaceLineSegment.startIndex].distance
             );
-            Vec2<SDecimal> segmentEnd = Vec2<SDecimal>.FromPolar(
+            Vec2Double segmentEnd = Vec2Double.FromPolar(
                 _elevationPoints[pointSurfaceLineSegment.endIndex].angle,
                 _elevationPoints[pointSurfaceLineSegment.endIndex].distance
             );
-            double segmentSlope = (double)((segmentEnd.Y - segmentStart.Y) / (segmentEnd.X - segmentStart.X));
-            SDecimal interceptionXPoint = (segmentSlope * segmentSlope * segmentStart.X -
+            double segmentSlope = ((segmentEnd.Y - segmentStart.Y) / (segmentEnd.X - segmentStart.X));
+            double interceptionXPoint = (segmentSlope * segmentSlope * segmentStart.X -
                                            segmentSlope * segmentStart.Y +
                                            segmentSlope * relPos.Y + relPos.X) / (segmentSlope * segmentSlope + 1);
-            SDecimal interceptionYPoint = segmentSlope * (interceptionXPoint - segmentStart.X) + segmentStart.Y;
-            Vec2<SDecimal> surfaceImpactPoint = new Vec2<SDecimal>(interceptionXPoint, interceptionYPoint);
-            Vec2<SDecimal> penetrationVector = surfaceImpactPoint - relPos;
+            double interceptionYPoint = segmentSlope * (interceptionXPoint - segmentStart.X) + segmentStart.Y;
+            Vec2Double surfaceImpactPoint = new Vec2Double(interceptionXPoint, interceptionYPoint);
+            Vec2Double penetrationVector = surfaceImpactPoint - relPos;
 
-            if (Vec2<SDecimal>.Dot(penetrationVector, relPos).Negative)
+            if (double.IsNegative(Vec2Double.Dot(penetrationVector, relPos)))
                 continue;
 
             if (penetrationVector.MagnitudeSquared() > minEdgePenetrationVector.MagnitudeSquared() ||
-                minEdgePenetrationVector == Vec2<SDecimal>.Zero)
+                minEdgePenetrationVector == Vec2Double.Zero)
             {
                 minEdgePenetrationVector = penetrationVector;
                 collisionPoint = point;
@@ -96,19 +96,19 @@ public class TerrainCollider : CompactCollider
         return (minEdgePenetrationVector, collisionPoint);
     }
 
-    private (Vec2<SDecimal> penetrationVector, Vec2<SDecimal> collisionPoint) GetVertexCollision(
+    private (Vec2Double penetrationVector, Vec2Double collisionPoint) GetVertexCollision(
         ConvexCollider collider, 
         SpatialInfo reference,
         SpatialInfo incident)
     {
-        Vec2<SDecimal> minVertexPenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
+        Vec2Double minVertexPenetrationVector = Vec2Double.Zero;
+        Vec2Double collisionPoint = Vec2Double.Zero;
 
         foreach (var point in _elevationPoints)
         {
-            Vec2<SDecimal> cartesianPoint = Vec2<SDecimal>.FromPolar(point.angle, point.distance);
+            Vec2Double cartesianPoint = Vec2Double.FromPolar(point.angle, point.distance);
 
-            Vec2<SDecimal> minPenetrationVector = new Vec2Double(double.PositiveInfinity, double.PositiveInfinity);
+            Vec2Double minPenetrationVector = new Vec2Double(double.PositiveInfinity, double.PositiveInfinity);
             List<Vec2Double> rotatedPoint =
                 collider.Points.Select(x => Vec2Double.RotatePoint(x, reference.Angle)).ToList();
             for (int i = 0; i < rotatedPoint.Count; ++i)
@@ -136,19 +136,19 @@ public class TerrainCollider : CompactCollider
                     Vec2Double.FromPolar(edgeAngle - Math.PI / 2, forwardsPenetrationDistance);
                 Vec2Double backwardsPenetrationVector =
                     Vec2Double.FromPolar(edgeAngle - Math.PI / 2, backwardsPenetrationDistance);
-                Vec2<SDecimal> penetrationVector = Vec2<SDecimal>.Dot(forwardsPenetrationVector, cartesianPoint) > 0
+                Vec2Double penetrationVector = Vec2Double.Dot(forwardsPenetrationVector, cartesianPoint) > 0
                     ? forwardsPenetrationVector
                     : backwardsPenetrationVector;
                 if (penetrationVector.MagnitudeSquared() < minPenetrationVector.MagnitudeSquared())
                     minPenetrationVector = penetrationVector;
             }
 
-            if (!SDecimal.IsInfinity(minPenetrationVector.MagnitudeSquared()))
+            if (!double.IsInfinity(minPenetrationVector.MagnitudeSquared()))
                 if (minPenetrationVector.MagnitudeSquared() < minVertexPenetrationVector.MagnitudeSquared() ||
                     minVertexPenetrationVector == Vec2<SDecimal>.Zero)
                 {
                     minVertexPenetrationVector = minPenetrationVector;
-                    collisionPoint = cartesianPoint + incident.Position - minVertexPenetrationVector;
+                    collisionPoint = (Vec2Double)(cartesianPoint + incident.Position - minVertexPenetrationVector);
                 }
         }
 
@@ -163,20 +163,20 @@ public class TerrainCollider : CompactCollider
 
     protected override PhysicsCollision? IntersectsWith(ConvexCollider collider, SpatialInfo reference, SpatialInfo incident)
     {
-        Vec2<SDecimal> totalPenetrationVector = Vec2<SDecimal>.Zero;
-        Vec2<SDecimal> collisionPoint = Vec2<SDecimal>.Zero;
+        Vec2Double totalPenetrationVector = Vec2Double.Zero;
+        Vec2Double collisionPoint = Vec2Double.Zero;
         int iterations = 0;
         while (iterations < 10)
         {
             var edgeCollision = GetEdgeCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
-            if (edgeCollision.penetrationVector != Vec2<SDecimal>.Zero)
+            if (edgeCollision.penetrationVector != Vec2Double.Zero)
             {
                 totalPenetrationVector += edgeCollision.penetrationVector;
                 collisionPoint = edgeCollision.collisionPoint;
             }
             
             var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
-            if (vertexCollision.penetrationVector != Vec2<SDecimal>.Zero)
+            if (vertexCollision.penetrationVector != Vec2Double.Zero)
             {
                 totalPenetrationVector += vertexCollision.penetrationVector;
                 collisionPoint = vertexCollision.collisionPoint;
@@ -189,8 +189,8 @@ public class TerrainCollider : CompactCollider
                 break;
         }
 
-        if (collisionPoint != Vec2<SDecimal>.Zero)
-            return new PhysicsCollision(reference, incident, [(Vec2Double)collisionPoint], (Vec2Double)totalPenetrationVector);
+        if (collisionPoint != Vec2Double.Zero)
+            return new PhysicsCollision(reference, incident, [collisionPoint], totalPenetrationVector);
         return null;
     }
 

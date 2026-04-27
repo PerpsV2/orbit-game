@@ -46,12 +46,12 @@ public class Planet : Body, IGameDrawable
 
         if (maxAngle <= minAngle) maxAngle += Math.Tau;
         
-        var elevationPoints = new List<(double, SDecimal)>();
+        var elevationPoints = new List<(double, double)>();
         Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
-            elevationPoints.Add((angle, Radius + GetElevationAtPoint(angle)));
+            elevationPoints.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
         });
         Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 100, (_, angle) => {
-            elevationPoints.Add((angle, Radius + GetElevationAtPoint(angle)));
+            elevationPoints.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
         });
         
         ObjectInfo.Collider = new TerrainCollider(elevationPoints.ToArray());
@@ -227,7 +227,7 @@ public class Planet : Body, IGameDrawable
     public sealed override void GenerateOrbitPath(SDecimal time)
         => base.GenerateOrbitPath(time);
 
-    public SDecimal GetElevationAtPoint(double angle)
+    public double GetElevationAtPoint(double angle)
     {
         return 150 * Math.Cos(angle * 32000);
     }

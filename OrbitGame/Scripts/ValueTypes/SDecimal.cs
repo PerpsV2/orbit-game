@@ -124,8 +124,8 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
-        if (Abs(value) < DoubleEpsilon) return 0;
-        if (Abs(value) > DoubleMaxValue) throw new OverflowException("SDecimal is outside of the range of a double");
+        //if (Abs(value) < DoubleEpsilon) return 0;
+        //if (Abs(value) > DoubleMaxValue) throw new OverflowException("SDecimal is outside of the range of a double");
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
