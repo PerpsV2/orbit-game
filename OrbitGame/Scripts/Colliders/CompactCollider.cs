@@ -37,7 +37,7 @@ public abstract class CompactCollider
     /// Returns the bounding-box which contains the set of all points in the collider.
     /// </summary>
     /// <returns>The axis-aligned bounding-box which contains the set of all points in the collider.</returns>
-    protected abstract BoundingBox GetBoundingBox(double angle);
+    protected abstract BoundingBox GetBoundingBox();
     
     /// <summary>
     /// Checks whether two objects are near each other by detecting intersections of their bounding boxes.
@@ -46,10 +46,10 @@ public abstract class CompactCollider
     /// <param name="referenceSpatial">The SpatialInfo of the first object.</param>
     /// <param name="colliderSpatial">The SpatialInfo of the second object.</param>
     /// <returns>Whether the two objects are near each other.</returns>
-    public bool NearsWith(CompactCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial)
+    public virtual bool NearsWith(CompactCollider collider, SpatialInfo referenceSpatial, SpatialInfo colliderSpatial)
     {
-        return GetBoundingBox(referenceSpatial.Angle).IntersectsWith(
-            collider.GetBoundingBox(colliderSpatial.Angle), referenceSpatial, colliderSpatial
+        return GetBoundingBox().IntersectsWith(
+            collider.GetBoundingBox(), referenceSpatial, colliderSpatial
         );
     }
     

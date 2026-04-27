@@ -11,7 +11,6 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly SDecimal Radius;
-    public TerrainCollider TerrainCollider { get; private set; }
     private readonly int _terrainSeed;
 
     private readonly Random _rnd;
@@ -55,10 +54,10 @@ public class Planet : Body, IGameDrawable
             elevationPoints.Add((angle, Radius + GetElevationAtPoint(angle)));
         });
         
-        TerrainCollider = new TerrainCollider(elevationPoints.ToArray());
+        ObjectInfo.Collider = new TerrainCollider(elevationPoints.ToArray());
     }
 
-    public void DrawTerrain()
+    private void DrawTerrain()
     {
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
@@ -73,22 +72,21 @@ public class Planet : Body, IGameDrawable
         
         List<Vector2> terrainMeshVertices = [camera.ConvertToScreenCoordinates(Position)];
         
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 300, (_, angle) => {
+        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 200, (_, angle) => {
             terrainMeshVertices.Add(
                 camera.ConvertToScreenCoordinates(
                     Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position
                     )
                 );
-        }, true);
+        });
         
-        Utils.IterateAngleRange(maxAngle, minAngle, (minAngle + Math.Tau - maxAngle) / 150, (_, angle) =>
-        {
+        Utils.IterateAngleRange(maxAngle, minAngle, (minAngle + Math.Tau - maxAngle) / 100, (_, angle) => {
             terrainMeshVertices.Add(
                 camera.ConvertToScreenCoordinates(
                     Vec2<SDecimal>.FromPolar(angle, Radius + GetElevationAtPoint(angle)) + Position
                 )
             );
-        }, true);
+        });
         
         graphicsDevice.DrawPoly(terrainMeshVertices, Colour);
     }

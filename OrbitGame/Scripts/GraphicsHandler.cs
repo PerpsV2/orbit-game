@@ -36,6 +36,9 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3
             );
         }
+        
+        foreach (var point in points)
+            DrawPoint(point, Color.Red);
     }
 
     public void DrawPath(IEnumerable<Vector2> points, Color colour)

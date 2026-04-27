@@ -7,11 +7,6 @@ using Microsoft.Xna.Framework;
 namespace OrbitGame;
 
 /// <summary>
-/// Collision resolution method between two colliding bodies.
-/// </summary>
-public delegate void ResolveCollisionMethod(Body reference, Body incident);
-
-/// <summary>
 /// Handler class to detect and resolve collisions between objects in the game scene.
 /// </summary>
 public class CollisionHandler
@@ -34,6 +29,19 @@ public class CollisionHandler
                 tasks.Add(Task.Run(() => { BodyPlanetTerrainCollision(reference, incident); }));
         
         Task.WaitAll(tasks.ToArray());
+    }
+
+    public static void ResolveTerrainCollision(Body body, Planet planet)
+    {
+        ConvexCollider convexCollider = (ConvexCollider)body.Collider;
+        CompactCollider terrainCollider = planet.Collider;
+        PhysicsCollision? collision = terrainCollider.IntersectsWith(convexCollider, body.SpatialInfo, planet.SpatialInfo);
+        if (collision == null) return;
+        PhysicsCollision c = (PhysicsCollision)collision;
+
+        Vec2<SDecimal> relVelocity = body.Velocity - planet.Velocity;
+        body.Velocity = planet.Velocity + (relVelocity * -(1 - body.Material.RestitutionCoefficient));
+        body.Position += c.PenetrationVector;
     }
     
     public static void ResolvePhysicsCollision(Body reference, Body incident)
@@ -134,11 +142,11 @@ public class CollisionHandler
     public static void BodyPlanetTerrainCollision(Body reference, Body incident)
     {
         Planet planet = (Planet)incident;
-        if (planet.TerrainCollider.NearsWith(reference.Collider, reference.SpatialInfo, incident.SpatialInfo))
-            reference.Position +=
-                planet.TerrainCollider
-                    .IntersectsWith((ConvexCollider)reference.Collider, reference.SpatialInfo, incident.SpatialInfo)
-                    ?.PenetrationVector ?? Vec2<SDecimal>.Zero;
+        if (planet.Collider.NearsWith(reference.Collider, reference.SpatialInfo, incident.SpatialInfo))
+        {
+            Console.WriteLine("Test");
+            ResolveTerrainCollision(reference, planet);
+        }
     }
 
     public static void RestShipPlanetCollision(Body reference, Body incident)

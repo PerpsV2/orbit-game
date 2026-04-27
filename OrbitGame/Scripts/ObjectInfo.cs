@@ -11,6 +11,6 @@ public struct ObjectInfo(IMesh mesh, CompactCollider collider, Material material
     public readonly IMesh Mesh = mesh;
     public OrbitMesh? OrbitMesh = null;
     public PathMesh? MarkerMesh = null;
-    public readonly CompactCollider Collider = collider;
-    public readonly Material Material = material;
+    public CompactCollider Collider = collider;
+    public Material Material = material;
 }

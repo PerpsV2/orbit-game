@@ -21,7 +21,7 @@ public abstract class Body : KinematicObject
     public Body? Parent;
     public readonly PatchedConicPath OrbitPath;
 
-    protected readonly ObjectInfo ObjectInfo;
+    protected ObjectInfo ObjectInfo;
     
     public IMesh Mesh => ObjectInfo.Mesh;
     public CompactCollider Collider => ObjectInfo.Collider;

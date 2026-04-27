@@ -31,7 +31,7 @@ public class ConvexCollider : CompactCollider
     public override SDecimal CalculateInertia(SDecimal mass)
         => Inertia = _convexHull.CalculateInertia(mass);
 
-    protected override BoundingBox GetBoundingBox(double angle)
+    protected override BoundingBox GetBoundingBox()
         => _boundingBox;
 
     public override PointCollision? IntersectsWith(Vec2<SDecimal> point, SpatialInfo spatial)
