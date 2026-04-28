@@ -50,25 +50,25 @@ public class Camera : KinematicObject
     /// World position of the top left point of the camera view box.
     /// </summary>
     public Vec2<SDecimal> TopLeft 
-        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, Height * 0.5), Angle);
+        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, Height * 0.5), -Angle);
     
     /// <summary>
     /// World position of the top right point of the camera view box.
     /// </summary>
     public Vec2<SDecimal> TopRight
-        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, Height * 0.5), Angle);
+        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, Height * 0.5), -Angle);
     
     /// <summary>
     /// World position of the bottom left point of the camera view box.
     /// </summary>
     public Vec2<SDecimal> BottomLeft 
-        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, -Height * 0.5), Angle);
+        => Position + Vec2<SDecimal>.RotatePoint(new(-Width * 0.5, -Height * 0.5), -Angle);
     
     /// <summary>
     /// World position of the bottom right point of the camera view box.
     /// </summary>
     public Vec2<SDecimal> BottomRight 
-        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, -Height * 0.5), Angle);
+        => Position + Vec2<SDecimal>.RotatePoint(new(Width * 0.5, -Height * 0.5), -Angle);
 
     private Matrix3X3<SDecimal> _viewMatrix;
     private Matrix3X3<SDecimal> _inverseViewMatrix;

@@ -238,9 +238,9 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 20; i++)
         {
-             double randomAngle = _rnd.NextDouble() * 1;
+             double randomAngle = _rnd.NextDouble() * 0.0001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
              //SDecimal randomAltitude = (_rnd.NextDouble() * 0.1 + 40) * new SDecimal(6.378, 6);
              //SDecimal randomSpeed = SDecimal.Sqrt(earth.Mass * Constants.G / randomAltitude);

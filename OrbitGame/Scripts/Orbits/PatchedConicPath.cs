@@ -40,9 +40,7 @@ public class PatchedConicPath
             orbitPath.Draw();
 
         foreach (var maneuverNode in ManeuverNodes)
-        {
             maneuverNode.Draw();
-        }
     }
     
     public void DrawCollider()
@@ -72,7 +70,7 @@ public class PatchedConicPath
         int numManeuverNodes = ManeuverNodes.Count;
         point.ConicPath.EndAngle = point.TrueAnomaly;
         Conics[numManeuverNodes].Orbit = newTrajectory;
-        Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(point.GetWorldPosition());
+        Conics[numManeuverNodes].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPoint(point.GetWorldPosition());
     }
 
     public void AddSOIChange()
@@ -87,7 +85,7 @@ public class PatchedConicPath
             KeplerOrbit newTrajectory = ManeuverNodes[i].GenerateAppliedKeplerOrbit(e.PhysicsTime);
             Conics[i + 1].Orbit = newTrajectory;
             Conics[i].EndAngle = ManeuverNodes[i].TrueAnomaly;
-            Conics[i + 1].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPosition(ManeuverNodes[i].Point.GetWorldPosition());
+            Conics[i + 1].StartAngle = newTrajectory.GetTrueAnomalyFromWorldPoint(ManeuverNodes[i].Point.GetWorldPosition());
         }
     }
 }

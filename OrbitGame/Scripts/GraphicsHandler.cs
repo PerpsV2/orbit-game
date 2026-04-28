@@ -36,9 +36,6 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                 PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3
             );
         }
-        
-        foreach (var point in points)
-            DrawPoint(point, Color.Red);
     }
 
     public void DrawPath(IEnumerable<Vector2> points, Color colour)
@@ -73,22 +70,6 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                            Matrix.CreateTranslation(start.X, start.Y, 0);
         LineMesh.Mesh.TryGenerateBuffers(GraphicsDevice);
         LineMesh.Mesh.Draw(GraphicsDevice, transform, new() {{"Colour", colour.ToVector4() }}, Effects.DefaultEffect);
-        
-        /*VertexPositionColor[] vertices = [
-            new(new Vector3(start.X, start.Y, 0), Color.White), new(new Vector3(end.X, end.Y, 0), Color.White)
-        ];
-        int[] indices = [0, 1];
-        
-        Effect effect = Effects.DefaultEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        effect.Parameters["World"].SetValue(Matrix.Identity);
-        effect.Parameters["Colour"].SetValue(colour.ToVector4());
-        foreach (var pass in effect.CurrentTechnique.Passes)
-        {
-            pass.Apply();
-            GraphicsDevice.DrawUserIndexedPrimitives(
-                PrimitiveType.LineList, vertices, 0, vertices.Length, indices, 0, 1
-            );
-        }*/
     }
 
     public void DrawLineR(Vector2 start, Vector2 displacement, Color colour)
@@ -143,6 +124,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     public void DrawMesh(IMesh mesh, Vector2 scale, Vector2 position, Vector2 rotation, Color colour)
     {
         mesh.TryGenerateBuffers(GraphicsDevice);
+        throw new NotImplementedException();
     }
 
     public void DrawText(SpriteFont spriteFont, string text, Vector2 position, Color colour)

@@ -166,7 +166,7 @@ public class Planet : Body, IGameDrawable
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
-        OrbitPath.Draw();
+        // OrbitPath.Draw();
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
 
@@ -186,17 +186,17 @@ public class Planet : Body, IGameDrawable
         else DrawTerrain();
 
         // otherwise draw the planet as a circle
-        // else
-        // {
-        //     Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
-        //     float screenRadius = camera.ConvertToScreenDistance(Radius);
-        //     Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
-        //                        Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
-        //     graphicsDevice.DrawMesh(Mesh, transform, new()
-        //     {
-        //         { "Colour", Colour.ToVector4() }
-        //     });
-        // }
+        /*else
+        {
+            Vector2 screenCenter = camera.ConvertToScreenCoordinates(Position);
+            float screenRadius = camera.ConvertToScreenDistance(Radius);
+            Matrix transform = Matrix.CreateScale(screenRadius, screenRadius, 1) *
+                               Matrix.CreateTranslation(new Vector3(screenCenter.X, screenCenter.Y, 0));
+            graphicsDevice.DrawMesh(Mesh, transform, new()
+            {
+                { "Colour", Colour.ToVector4() }
+            });
+        }*/
     }
 
     public void DrawCollider()
@@ -229,7 +229,7 @@ public class Planet : Body, IGameDrawable
 
     public double GetElevationAtPoint(double angle)
     {
-        return 150 * Math.Cos(angle * 32000);
+        return 150 * Math.Cos(angle * Math.PI * 10000) + 120 * Math.Cos(angle * 40000 + 5000);
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate

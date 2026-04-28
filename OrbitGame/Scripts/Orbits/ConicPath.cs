@@ -199,11 +199,24 @@ public class ConicPath
             _onScreen = false;
             return;
         }
-        _onScreen = true;
         KeplerOrbit orbit = Orbit.Value;
-
         Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphics = OrbitGame.Graphics;
+
+        if (orbit.IsPointWithinOrbit(camera.TopRight) && orbit.IsPointWithinOrbit(camera.TopLeft) &&
+            orbit.IsPointWithinOrbit(camera.BottomRight) && orbit.IsPointWithinOrbit(camera.BottomLeft))
+        {
+            _onScreen = false;
+            return;
+        }
+
+        if (orbit.Eccentricity < 1 && camera.ConvertToScreenDistance(orbit.SemiMajorAxis) < 1)
+        {
+            _onScreen = false;
+            return;
+        }
+        
+        _onScreen = true;
         
         float[] conicCoefficients = new float[6];
         double e = orbit.Eccentricity;
@@ -241,7 +254,7 @@ public class ConicPath
             return;
         }*/
 
-        float drawnStartAngle = (float)0;
+        float drawnStartAngle = 0;
         float drawnEndAngle = (float)Math.Tau;
         
         if (StartAngle is not null && EndAngle is not null)

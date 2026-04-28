@@ -345,8 +345,13 @@ public readonly record struct KeplerOrbit
         );
     }
 
-    public double GetTrueAnomalyFromWorldPosition(Vec2<SDecimal> getWorldPosition)
+    public double GetTrueAnomalyFromWorldPoint(Vec2<SDecimal> worldPoint)
+        => Utils.WrapAngle((worldPoint - Parent.Position).Direction() - Periapsis);
+
+    public bool IsPointWithinOrbit(Vec2<SDecimal> worldPoint)
     {
-        return Utils.WrapAngle((getWorldPosition - Parent.Position).Direction() - Periapsis);
+        SDecimal distance = (worldPoint - Parent.Position).Magnitude();
+        double trueAnomaly = GetTrueAnomalyFromWorldPoint(worldPoint);
+        return distance <= GetDistanceFromTrueAnomaly(trueAnomaly);
     }
 }
