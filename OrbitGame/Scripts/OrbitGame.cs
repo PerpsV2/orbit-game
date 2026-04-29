@@ -230,7 +230,7 @@ public class OrbitGame : Game
             1313
         );
             
-        Material shipMaterial = new Material(0.1f, 0.7f, 0.5f);
+        Material shipMaterial = new Material(0.05f, 0.8f, 0.7f);
         Ship.ShipTemplate smokestackTemplate = new Ship.ShipTemplate([
             new Vec2Double(0.4, 0.4),
             new Vec2Double(0.4, -0.3),

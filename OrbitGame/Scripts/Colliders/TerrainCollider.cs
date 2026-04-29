@@ -188,6 +188,22 @@ public class TerrainCollider : CompactCollider
                 edgeCollision.penetrationVector.MagnitudeSquared() < 0.0001)
                 break;
         }
+        
+        /*DrawDebug.Add(() =>
+        {
+            Camera cam = OrbitGame.Camera;
+            IGraphicsHandler g = OrbitGame.Graphics;
+            for (int i = 0; i < _elevationPoints.Length; ++i)
+            {
+                int nextIndex = (i + 1) % _elevationPoints.Length;
+                g.SD_DrawPoint(cam, incident.Position + Vec2<SDecimal>.FromPolar(_elevationPoints[i].angle, _elevationPoints[i].distance), Color.Red);
+                g.SD_DrawLine(cam,
+                    incident.Position + Vec2<SDecimal>.FromPolar(_elevationPoints[i].angle, _elevationPoints[i].distance),
+                    incident.Position + Vec2<SDecimal>.FromPolar(_elevationPoints[nextIndex].angle, _elevationPoints[nextIndex].distance),
+                    Color.Red);
+            }
+            g.SD_DrawLineR(cam, collisionPoint, totalPenetrationVector, Color.Gray);
+        });*/
 
         if (collisionPoint != Vec2Double.Zero)
             return new PhysicsCollision(reference, incident, [collisionPoint], totalPenetrationVector);

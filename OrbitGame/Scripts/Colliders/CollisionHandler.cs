@@ -40,7 +40,19 @@ public class CollisionHandler
         PhysicsCollision c = (PhysicsCollision)collision;
 
         Vec2<SDecimal> relVelocity = body.Velocity - planet.Velocity;
-        body.Velocity = planet.Velocity + (relVelocity * -(1 - body.Material.RestitutionCoefficient));
+        Vec2<SDecimal> collisionNormal = c.PenetrationVector.Normalize();
+        Vec2<SDecimal> cPerpendicularNormal = new Vec2<SDecimal>(-collisionNormal.Y, collisionNormal.X);
+        Vec2<SDecimal> collisionTangent = cPerpendicularNormal * (Vec2<SDecimal>.Dot(-relVelocity, cPerpendicularNormal).Positive ? 1 : -1);
+        SDecimal jV = -(1 + body.Material.RestitutionCoefficient) * Vec2<SDecimal>.Dot(relVelocity, collisionNormal);
+        SDecimal j = jV * body.Mass;
+        SDecimal jS = body.Material.StaticFrictionCoefficient * j;
+        SDecimal jD = body.Material.DynamicFrictionCoefficient * j;
+        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relVelocity, collisionTangent) == 0 && 
+                            Vec2<SDecimal>.Dot(relVelocity * body.Mass, collisionTangent) <= jS
+            ? collisionTangent * -Vec2<SDecimal>.Dot(relVelocity * body.Mass, collisionTangent) : collisionTangent * jD;
+
+        body.Velocity += collisionNormal * j / body.Mass;
+        body.Velocity += jF / body.Mass;
         body.Position += c.PenetrationVector;
     }
     
@@ -88,7 +100,7 @@ public class CollisionHandler
                            + Vec3<SDecimal>.Dot(m1 + m2, (Vec2<SDecimal>)cNormal));
         SDecimal jS = staticFriction * j;
         SDecimal jD = dynamicFriction * j;
-        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relV, cTangent) == 0 || 
+        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relV, cTangent) == 0 && 
                                 Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) <= jS
                 ? cTangent * -Vec2<SDecimal>.Dot(relV * reference.Mass, cTangent) : cTangent * jD;
 
