@@ -463,17 +463,19 @@ public struct SDecimal : IArbitraryPlaceDecimal<SDecimal>
         => !left.Equals(right);
     public static bool operator <(SDecimal left, SDecimal right)
     {
-        if (left == right) return false;
         if (left._infinite) return left.Negative;
         if (right._infinite) return right.Positive;
+        if (left.Positive != right.Positive) return right.Positive;
+        if (left.Exponent != right.Exponent) return left.Positive ? left.Exponent < right.Exponent : left.Exponent > right.Exponent;
         return (right - left).Positive;
     }
 
     public static bool operator >(SDecimal left, SDecimal right)
     {
-        if (left == right) return false;
         if (left._infinite) return left.Positive;
         if (right._infinite) return right.Negative;
+        if (left.Positive != right.Positive) return left.Positive;
+        if (left.Exponent != right.Exponent) return left.Positive ? left.Exponent > right.Exponent : left.Exponent < right.Exponent;
         return (left - right).Positive;
     }
 

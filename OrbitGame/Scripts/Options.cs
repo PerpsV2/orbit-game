@@ -96,5 +96,5 @@ public static class Options
     public const float LocationApproximationRadiusZoomFraction = 0.005f;
 
     // ----- stuff that should probably not be touched -----
-    public const double ScientificComparisonTolerance = 0.0000000001;
+    public const double ScientificComparisonTolerance = 1e-30;
 }

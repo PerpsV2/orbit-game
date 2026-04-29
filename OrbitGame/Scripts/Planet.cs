@@ -36,23 +36,29 @@ public class Planet : Body, IGameDrawable
 
     public void GenerateTerrainCollider()
     {
-        Camera camera = OrbitGame.Camera;
-
-        Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
-            (camera.TopRight - Position).Direction(),
-            (camera.TopLeft - Position).Direction(),
-            (camera.BottomLeft - Position).Direction(),
-            (camera.BottomRight - Position).Direction());
-
-        if (maxAngle <= minAngle) maxAngle += Math.Tau;
-        
         var elevationPoints = new List<(double, double)>();
-        Utils.IterateAngleRange(minAngle, maxAngle, (maxAngle - minAngle) / 100, (_, angle) => {
-            elevationPoints.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
-        });
+
+        foreach (var ship in OrbitGame.Hierarchy.GetObjectsOfType<Ship>())
+        {
+            if (ship.Parent == this)
+            {
+                SDecimal distanceSquared = (ship.Position - Position).MagnitudeSquared();
+                double shipAngle = (ship.Position - Position).Direction();
+                double angleSpan = Math.Acos((double)((2 * distanceSquared - Math.Pow(ship.Collider.MaxRadius, 2)) /
+                                                      (2 * distanceSquared)));
+                var points1 = elevationPoints;
+                Utils.IterateAngleRange(shipAngle - angleSpan, shipAngle + angleSpan, angleSpan * 2 / 10, (_, angle) => {
+                    points1.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
+                });
+            }
+        }
+
+        var points2 = elevationPoints;
         Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 100, (_, angle) => {
-            elevationPoints.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
+            points2.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
         });
+        
+        elevationPoints = elevationPoints.OrderBy(x => x.Item1).ToList();
         
         ObjectInfo.Collider = new TerrainCollider(elevationPoints.ToArray());
     }

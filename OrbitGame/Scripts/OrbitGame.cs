@@ -309,7 +309,7 @@ public class OrbitGame : Game
         #endregion
 
         foreach (var planet in Planets) planet.GenerateOrbitPath(GameState.PhysicsTime);
-        OriginBody.Body = Bodies[^2];
+        OriginBody.Body = Bodies[^1];
         GameState.Tracking = OriginBody.Body;
         Camera.MovementScheme = new TrackingCameraScheme(OriginBody.Body.SpatialInfo, OriginBody.Body);
         Camera.Focus();
