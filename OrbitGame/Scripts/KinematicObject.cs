@@ -14,17 +14,17 @@ public abstract class KinematicObject
     public SpatialInfo SpatialInfo;
 
     // Access properties of SpatialInfo
-    public Vec2<SDecimal> Position
+    public Vec2Double Position
     {
         get => SpatialInfo.Position;
         set => SpatialInfo.Position = value;
     }
-    public Vec2<SDecimal> Velocity
+    public Vec2Double Velocity
     {
         get => SpatialInfo.Velocity;
         set => SpatialInfo.Velocity = value;
     }
-    public Vec2<SDecimal> Acceleration
+    public Vec2Double Acceleration
     {
         get => SpatialInfo.Acceleration;
         set => SpatialInfo.Acceleration = value;

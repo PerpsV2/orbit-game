@@ -470,13 +470,13 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
         if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.ApplyThrust(
-            new Vec2<SDecimal>(-10000, 0), new Vec2<SDecimal>(-0.4, 0));
+            new Vec2Double(-10000, 0), new Vec2Double(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.D8)) GameState.ControlShip.ApplyThrust(
-            new Vec2<SDecimal>(-100000, 0), new Vec2<SDecimal>(-0.4, 0));
+            new Vec2Double(-100000, 0), new Vec2Double(-0.4, 0));
         if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.ApplyThrust(
-            new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, 0.1));
+            new Vec2Double(10000, 0), new Vec2Double(-0.4, 0.1));
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.ApplyThrust(
-            new Vec2<SDecimal>(10000, 0), new Vec2<SDecimal>(-0.4, -0.1));
+            new Vec2Double(10000, 0), new Vec2Double(-0.4, -0.1));
 
         /*if (keyboardState.IsKeyDown(Keys.I)) GameState.ControlShip.Position += new Vec2<SDecimal>(0, +0.5);
         if (keyboardState.IsKeyDown(Keys.J)) GameState.ControlShip.Position += new Vec2<SDecimal>(-0.5, 0);
@@ -519,7 +519,7 @@ public class OrbitGame : Game
                 {
                     tasks.Add(Task.Run(() =>
                     {
-                        ship.UpdatePosition_Integrator(GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
+                        ship.UpdatePosition_Integrator((double)GameState.DeltaPhysicsTimeStep, Options.IntegratorMethod,
                             ship.CalculateNetAcceleration); 
                         ship.GenerateOrbitPath(GameState.PhysicsTime);
                     }));

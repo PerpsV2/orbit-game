@@ -13,7 +13,7 @@ public class Ship : Body, IGameDrawable
 {
     private readonly SDecimal _maximumRadius;
     
-    private Vec2<SDecimal> ArtificialAcceleration { get; set; }
+    private Vec2Double ArtificialAcceleration { get; set; }
     
     public bool DrawOrbitalPath { get; set; }
     private bool _mouseDetectionEnabled = true;
@@ -48,7 +48,7 @@ public class Ship : Body, IGameDrawable
     protected override void Body_UpdateFrame(object? e, EventArgs args)
     {
         base.Body_UpdateFrame(e, args);
-        ArtificialAcceleration = Vec2<SDecimal>.Zero;
+        ArtificialAcceleration = Vec2Double.Zero;
     }
 
     public void Draw()
@@ -125,7 +125,7 @@ public class Ship : Body, IGameDrawable
         if (LandingState == null)
             throw new NullReferenceException("Ship is not landed");
         Landing landing = LandingState.Value;
-        Position = landing.Parent.Position + Vec2<SDecimal>.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
+        Position = landing.Parent.Position + Vec2Double.RotatePoint(landing.RelativePosition, landing.Parent.Angle);
         Velocity = landing.Parent.Velocity;
         Angle = landing.Parent.Angle + landing.RelativeAngle;
     }
@@ -140,17 +140,17 @@ public class Ship : Body, IGameDrawable
         LandingState = null;
     }
 
-    public void ApplyThrust(Vec2<SDecimal> thrust, Vec2<SDecimal> position)
+    public void ApplyThrust(Vec2Double thrust, Vec2Double position)
     {
-        thrust = Vec2<SDecimal>.RotatePoint(thrust, Angle);
-        position = Vec2<SDecimal>.RotatePoint(position, Angle);
+        thrust = Vec2Double.RotatePoint(thrust, Angle);
+        position = Vec2Double.RotatePoint(position, Angle);
         SDecimal torque = Vec2<SDecimal>.Cross(thrust, position).Z;
         AngularAcceleration += (double)(torque / Mass);
-        ArtificialAcceleration += thrust / Mass;
+        ArtificialAcceleration += thrust / (double)Mass;
         DisturbLandingState();
     }
 
-    public override Vec2<SDecimal> CalculateNetAcceleration()
+    public override Vec2Double CalculateNetAcceleration()
     {
         return base.CalculateNetAcceleration() + ArtificialAcceleration;
     }

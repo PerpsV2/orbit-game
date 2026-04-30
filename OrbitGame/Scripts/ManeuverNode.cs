@@ -6,7 +6,7 @@ namespace OrbitGame;
 public class ManeuverNode : IGameDrawable
 {
     public readonly KeplerOrbitPoint Point;
-    private Vec2<SDecimal> _velocity;
+    private Vec2Double _velocity;
 
     public static ManeuverNode? SelectedNode;
     private static SDecimal? _minMouseDistanceToNode = SDecimal.PositiveInfinity; 
@@ -16,7 +16,7 @@ public class ManeuverNode : IGameDrawable
     public ManeuverNode(KeplerOrbitPoint point, Vec2<SDecimal> velocity)
     {
         Point = point;
-        _velocity = velocity;
+        _velocity = (Vec2Double)velocity;
         
         MouseHandler.MouseClickDown += ManeuverNode_MouseClickDown;
         MouseHandler.MouseDown += ManeuverNode_MouseDown;
@@ -34,7 +34,7 @@ public class ManeuverNode : IGameDrawable
         Camera camera = OrbitGame.Camera;
         Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(Point.GetWorldPosition());
         Vector2 mouseDisplacement = e.Position - nodeScreenPosition;
-        _velocity += new Vec2<SDecimal>(mouseDisplacement.X, mouseDisplacement.Y);
+        _velocity += new Vec2Double(mouseDisplacement.X, mouseDisplacement.Y);
     }
 
     private void ManeuverNode_MouseClickDown(object? sender, MouseEventArgs e)

@@ -7,12 +7,12 @@ public record struct Landing
 {
     public KinematicObject Parent { get; }
 
-    public Vec2<SDecimal> RelativePosition { get; private set; }
+    public Vec2Double RelativePosition { get; private set; }
 
     public double RelativeAngle { get; private set; }
     
     public Landing(KinematicObject Parent,
-        Vec2<SDecimal> RelativePosition,
+        Vec2Double RelativePosition,
         double RelativeAngle)
     {
         this.Parent = Parent;

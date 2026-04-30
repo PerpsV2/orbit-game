@@ -80,8 +80,8 @@ public readonly record struct KeplerOrbit
             bodySpatialInfo.Velocity - parentSpatialInfo.Velocity
         );
 
-        Vec2<SDecimal> orbitalPosition = (bodySpatialInfo.Position - parentSpatialInfo.Position).Map<SDecimal>();
-        Vec2<SDecimal> orbitalVelocity = (bodySpatialInfo.Velocity - parentSpatialInfo.Velocity).Map<SDecimal>();
+        Vec2<SDecimal> orbitalPosition = bodySpatialInfo.Position - parentSpatialInfo.Position;
+        Vec2<SDecimal> orbitalVelocity = bodySpatialInfo.Velocity - parentSpatialInfo.Velocity;
         SDecimal pObjectMass = body.Mass;
         SDecimal pParentMass = parent.Mass;
         

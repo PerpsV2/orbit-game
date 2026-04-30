@@ -5,9 +5,9 @@ namespace OrbitGame;
 
 public delegate void OriginBodyEventHandler(object? sender, OriginBodyEventArgs e);
 
-public class OriginBodyEventArgs(Vec2<SDecimal> positionOffset) : EventArgs
+public class OriginBodyEventArgs(Vec2Double positionOffset) : EventArgs
 {
-    public Vec2<SDecimal> PositionOffset = positionOffset;
+    public Vec2Double PositionOffset = positionOffset;
 }
 
 /// <summary>
@@ -21,6 +21,6 @@ public static class OriginBody
 
     public static void ResetOrigin()
     {
-        OnResetOrigin?.Invoke(null, new OriginBodyEventArgs(-Body?.Position ?? Vec2<SDecimal>.Zero));
+        OnResetOrigin?.Invoke(null, new OriginBodyEventArgs(-Body?.Position ?? Vec2Double.Zero));
     }
 }

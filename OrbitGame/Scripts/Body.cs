@@ -9,7 +9,7 @@ namespace OrbitGame;
 /// <summary>
 /// Delegate for calculating instant acceleration given other spatial info.
 /// </summary>
-public delegate Vec2<SDecimal> CalculateAccelerationMethod();
+public delegate Vec2Double CalculateAccelerationMethod();
 
 /// <summary>
 /// A KinematicObject with physics information.
@@ -40,8 +40,8 @@ public abstract class Body : KinematicObject
         Colour = colour;
         Parent = parent;
         ObjectInfo = objectInfo;
-        Position = spatialInfo.Position + (parent?.Position ?? Vec2<SDecimal>.Zero);
-        Velocity = spatialInfo.Velocity + (parent?.Velocity ?? Vec2<SDecimal>.Zero);
+        Position = spatialInfo.Position + (parent?.Position ?? Vec2Double.Zero);
+        Velocity = spatialInfo.Velocity + (parent?.Velocity ?? Vec2Double.Zero);
         OrbitPath = new PatchedConicPath(
             objectInfo.OrbitMesh ?? throw new NullReferenceException("Body was constructed without an OrbitMesh"),
             colour
@@ -51,7 +51,7 @@ public abstract class Body : KinematicObject
     
     protected virtual void Body_UpdateFrame(object? e, EventArgs args)
     {
-        Acceleration = Vec2<SDecimal>.Zero;
+        Acceleration = Vec2Double.Zero;
         AngularAcceleration = 0;
     }
     
@@ -60,7 +60,7 @@ public abstract class Body : KinematicObject
     /// </summary>
     private Vec2Double CalculateGravitationalAcceleration(Body attractor)
     {
-        Vec2Double direction = (Vec2Double)(attractor.Position - Position).Normalize();
+        Vec2Double direction = (attractor.Position - Position).Normalize();
         double magnitude = (double)(Constants.G * attractor.Mass / (Position - attractor.Position).MagnitudeSquared());
         return direction * magnitude;
         //Vec2<SDecimal> differenceVector = Position - attractor.Position;
@@ -85,7 +85,7 @@ public abstract class Body : KinematicObject
     /// <summary>
     /// Calculate the net acceleration from gravity and other sources.
     /// </summary>
-    public virtual Vec2<SDecimal> CalculateNetAcceleration()
+    public virtual Vec2Double CalculateNetAcceleration()
     {
         return CalculateNetGravitationalAcceleration(OrbitGame.Hierarchy.GetObjectsOfType<Planet>());
     }
@@ -100,7 +100,7 @@ public abstract class Body : KinematicObject
     }
 
     public void UpdatePosition_Integrator(
-        SDecimal timeStep, 
+        double timeStep, 
         NumericalIntegrator integrator, 
         CalculateAccelerationMethod calculateAcceleration,
         uint integrationIterationAmount = Options.IntegratorIterationAmount)
@@ -114,61 +114,61 @@ public abstract class Body : KinematicObject
                     Acceleration = calculateAcceleration();
                     Velocity += Acceleration * timeStep;
                     Position += Velocity * timeStep;
-                    AngularVelocity += AngularAcceleration * (double)timeStep;
-                    Angle += AngularVelocity * (double)timeStep;
+                    AngularVelocity += AngularAcceleration * timeStep;
+                    Angle += AngularVelocity * timeStep;
                     break;
                 case NumericalIntegrator.ImplicitEuler:
                     Acceleration = calculateAcceleration();
                     Position += Velocity * timeStep;
                     Velocity += Acceleration * timeStep;
-                    AngularVelocity += AngularAcceleration * (double)timeStep;
-                    Angle += AngularVelocity * (double)timeStep;
+                    AngularVelocity += AngularAcceleration * timeStep;
+                    Angle += AngularVelocity * timeStep;
                     break;
                 case NumericalIntegrator.VelocityVerlet:
-                    Vec2<SDecimal> acceleration1 = calculateAcceleration();
+                    Vec2Double acceleration1 = calculateAcceleration();
                     Position += Velocity * timeStep + acceleration1 * 0.5f * timeStep * timeStep;
-                    Vec2<SDecimal> acceleration2 = calculateAcceleration();
+                    Vec2Double acceleration2 = calculateAcceleration();
                     Velocity += (acceleration1 + acceleration2) * 0.5f * timeStep;
-                    AngularVelocity += AngularAcceleration * (double)timeStep;
-                    Angle += AngularVelocity * (double)timeStep;
+                    AngularVelocity += AngularAcceleration * timeStep;
+                    Angle += AngularVelocity * timeStep;
                     break;
                 case NumericalIntegrator.RungeKutta4:
-                    Vec2<SDecimal> originalPosition = Position;
-                    Vec2<SDecimal> originalVelocity = Velocity;
+                    Vec2Double originalPosition = Position;
+                    Vec2Double originalVelocity = Velocity;
 
                     Acceleration = calculateAcceleration();
-                    Vec2<SDecimal> originalAcceleration = Acceleration;
-                    Vec2<SDecimal> velocityK1 = originalAcceleration * timeStep;
-                    Vec2<SDecimal> positionK1 = Velocity * timeStep;
+                    Vec2Double originalAcceleration = Acceleration;
+                    Vec2Double velocityK1 = originalAcceleration * timeStep;
+                    Vec2Double positionK1 = Velocity * timeStep;
 
                     Position = originalPosition + positionK1 * 0.5f;
                     Velocity = originalVelocity + velocityK1 * 0.5f;
 
                     Acceleration = calculateAcceleration();
-                    Vec2<SDecimal> velocityK2 = Acceleration * timeStep;
-                    Vec2<SDecimal> positionK2 = Velocity * timeStep;
+                    Vec2Double velocityK2 = Acceleration * timeStep;
+                    Vec2Double positionK2 = Velocity * timeStep;
 
                     Position = originalPosition + positionK2 * 0.5f;
                     Velocity = originalVelocity + velocityK2 * 0.5f;
 
                     Acceleration = calculateAcceleration();
-                    Vec2<SDecimal> velocityK3 = Acceleration * timeStep;
-                    Vec2<SDecimal> positionK3 = Velocity * timeStep;
+                    Vec2Double velocityK3 = Acceleration * timeStep;
+                    Vec2Double positionK3 = Velocity * timeStep;
 
                     Position = originalPosition + positionK3;
                     Velocity = originalVelocity + velocityK3;
 
                     Acceleration = calculateAcceleration();
-                    Vec2<SDecimal> velocityK4 = Acceleration * timeStep;
-                    Vec2<SDecimal> positionK4 = Velocity * timeStep;
+                    Vec2Double velocityK4 = Acceleration * timeStep;
+                    Vec2Double positionK4 = Velocity * timeStep;
 
                     Velocity = originalVelocity +
                                (velocityK1 + velocityK2 * 2 + velocityK3 * 2 + velocityK4) * (1f / 6f);
                     Position = originalPosition +
                                (positionK1 + positionK2 * 2 + positionK3 * 2 + positionK4) * (1f / 6f);
 
-                    AngularVelocity += AngularAcceleration * (double)timeStep;
-                    Angle += AngularVelocity * (double)timeStep;
+                    AngularVelocity += AngularAcceleration * timeStep;
+                    Angle += AngularVelocity * timeStep;
                     break;
                 default: throw new ArgumentOutOfRangeException(nameof(integrator));
             }

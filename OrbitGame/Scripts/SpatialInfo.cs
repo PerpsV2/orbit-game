@@ -6,13 +6,13 @@ namespace OrbitGame;
 /// Struct containing positional information about an object and some of its derivatives.
 /// </summary>
 public struct SpatialInfo(
-    Vec2<SDecimal> position, Vec2<SDecimal> velocity, Vec2<SDecimal> acceleration, 
+    Vec2Double position, Vec2Double velocity, Vec2Double acceleration, 
     double angle, double angularVelocity, double angularAcceleration) 
     : IEquatable<SpatialInfo>
 {
-    public Vec2<SDecimal> Position { get; set; } = position;
-    public Vec2<SDecimal> Velocity { get; set; } = velocity;
-    public Vec2<SDecimal> Acceleration { get; set; } = acceleration;
+    public Vec2Double Position { get; set; } = position;
+    public Vec2Double Velocity { get; set; } = velocity;
+    public Vec2Double Acceleration { get; set; } = acceleration;
     private double _angle = Utils.WrapAngle(angle);
 
     public double Angle
@@ -25,13 +25,13 @@ public struct SpatialInfo(
     public double AngularAcceleration { get; set; } = angularAcceleration;
 
     public SpatialInfo(Vec2<SDecimal> position, Vec2<SDecimal> velocity, double angle = 0, double angularVelocity = 0)
-        : this(position, velocity, Vec2<SDecimal>.Zero, angle, angularVelocity, 0) { }
+        : this((Vec2Double)position, (Vec2Double)velocity, Vec2Double.Zero, angle, angularVelocity, 0) { }
     
     public SpatialInfo(Vec2<SDecimal> position, double angle)
         : this(position, Vec2<SDecimal>.Zero, angle) { }
     
     public SpatialInfo(Vec2<SDecimal> position)
-        : this(position, Vec2<SDecimal>.Zero, Vec2<SDecimal>.Zero, 0, 0, 0) {}
+        : this((Vec2Double)position, Vec2Double.Zero, Vec2Double.Zero, 0, 0, 0) {}
 
     public static bool operator !=(SpatialInfo left, SpatialInfo right)
     {

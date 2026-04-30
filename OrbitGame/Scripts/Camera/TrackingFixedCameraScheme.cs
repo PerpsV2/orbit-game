@@ -14,7 +14,7 @@ public class TrackingFixedCameraScheme : ICameraMovementScheme
     /// <summary>
     /// Position of the camera relative to a tracking object.
     /// </summary>
-    private Vec2<SDecimal> _localPosition;
+    private Vec2Double _localPosition;
     /// <summary>
     /// Angle of the camera relative to a tracking object.
     /// </summary>
@@ -29,24 +29,24 @@ public class TrackingFixedCameraScheme : ICameraMovementScheme
     public TrackingFixedCameraScheme(SpatialInfo cameraSpatialInfo, KinematicObject? tracking)
     {
         _tracking = tracking;
-        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? Vec2<SDecimal>.Zero);
+        _localPosition = cameraSpatialInfo.Position - (_tracking?.Position ?? Vec2Double.Zero);
         _localAngle = cameraSpatialInfo.Angle - (_tracking?.Angle ?? 0);
     }
 
     public void Focus()
     {
-        _localPosition = Vec2<SDecimal>.Zero;
+        _localPosition = Vec2Double.Zero;
         _localAngle = 0;
     }
 
     public void MovePerpendicular(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += Vec2<SDecimal>.FromPolar(-spatialInfo.Angle, distance);
+        _localPosition += Vec2Double.FromPolar(-spatialInfo.Angle, (double)distance);
     }
 
     public void MoveParallel(SDecimal distance, ref SpatialInfo spatialInfo)
     {
-        _localPosition += Vec2<SDecimal>.FromPolar(-spatialInfo.Angle + Math.PI / 2, distance);
+        _localPosition += Vec2Double.FromPolar(-spatialInfo.Angle + Math.PI / 2, (double)distance);
     }
 
     public void RotateBy(double angle, ref SpatialInfo spatialInfo)
@@ -56,7 +56,7 @@ public class TrackingFixedCameraScheme : ICameraMovementScheme
 
     public void Update(ref SpatialInfo spatialInfo)
     {
-        spatialInfo.Position = (_tracking?.Position ?? Vec2<SDecimal>.Zero) + _localPosition;
+        spatialInfo.Position = (_tracking?.Position ?? Vec2Double.Zero) + _localPosition;
         spatialInfo.Angle = -(_tracking?.Angle ?? 0) - _localAngle;
     }
 }

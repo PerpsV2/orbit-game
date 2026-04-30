@@ -13,6 +13,7 @@ public class CollisionHandler
 {
     public void ResolveCollisions()
     {
+        Body[] bodies = OrbitGame.Hierarchy.GetObjectsOfType<Body>();
         Ship[] ships = OrbitGame.Hierarchy.GetObjectsOfType<Ship>();
         Planet[] planets = OrbitGame.Hierarchy.GetObjectsOfType<Planet>();
         
@@ -60,9 +61,10 @@ public class CollisionHandler
 
         if (Options.EnableCollisions)
         {
-            body.Velocity += cNormal * j / body.Mass;
-            body.Velocity += jF / body.Mass;
-            body.AngularVelocity += (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / body.Collider.Inertia);
+            Vec2<SDecimal> dV = (cNormal * j + jF) / body.Mass;
+            double dW = (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / body.Collider.Inertia);
+            body.Velocity += (Vec2Double)dV;
+            body.AngularVelocity += dW;
             body.Position += c.PenetrationVector;
         }
 
@@ -133,14 +135,14 @@ public class CollisionHandler
             // apply linear impulse
             if (!referenceCollider.Fixed)
             {
-                reference.Velocity -= cNormal * (j / reference.Mass);
-                reference.Velocity -= jF / reference.Mass;
+                reference.Velocity -= (Vec2Double)(cNormal * (j / reference.Mass));
+                reference.Velocity -= (Vec2Double)(jF / reference.Mass);
             }
 
             if (!incidentCollider.Fixed)
             {
-                incident.Velocity += cNormal * (j / incident.Mass);
-                incident.Velocity += jF / incident.Mass;
+                incident.Velocity += (Vec2Double)(cNormal * (j / incident.Mass));
+                incident.Velocity += (Vec2Double)(jF / incident.Mass);
             }
 
             // apply angular impulse
@@ -154,8 +156,8 @@ public class CollisionHandler
 
             if (!referenceCollider.Fixed && !incidentCollider.Fixed)
             {
-                reference.Position += c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass);
-                incident.Position += c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass);
+                reference.Position += (Vec2Double)(c1.PenetrationVector * incident.Mass / (incident.Mass + reference.Mass));
+                incident.Position += (Vec2Double)(c2.PenetrationVector * reference.Mass / (incident.Mass + reference.Mass));
             }
             else if (referenceCollider.Fixed) incident.Position += c2.PenetrationVector;
             else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;

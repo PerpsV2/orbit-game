@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Xna.Framework;
 
 namespace OrbitGame;
 
@@ -106,6 +107,9 @@ public readonly struct Vec2Double(double x, double y) : IEquatable<Vec2Double>
     
     public static implicit operator Vec3<SDecimal>(Vec2Double vec)
         => new(vec.X, vec.Y, 0);
+    
+    public static explicit operator Vector2(Vec2Double vec)
+        => new((float)vec.X, (float)vec.Y);
     
     public override string ToString()
         => "<" + X + ", " + Y + ">";
