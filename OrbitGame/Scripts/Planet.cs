@@ -11,6 +11,7 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly SDecimal Radius;
+    public readonly double Atmosphere;
     private readonly int _terrainSeed;
 
     private readonly Random _rnd;
@@ -27,6 +28,7 @@ public class Planet : Body, IGameDrawable
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         Radius = radius;
+        Atmosphere = (double)Radius / 100;
         GenerateTerrainCollider();
         _terrainSeed = seed;
         _rnd = new Random(seed);
@@ -40,27 +42,26 @@ public class Planet : Body, IGameDrawable
 
         foreach (var ship in OrbitGame.Hierarchy.GetObjectsOfType<Ship>())
         {
-            if (ship.Parent == this)
+            if (ship.Parent == this && (ship.Position - Position).MagnitudeSquared() < Math.Pow((double)Radius + Atmosphere, 2))
             {
                 SDecimal distanceSquared = (ship.Position - Position).MagnitudeSquared();
                 double shipAngle = (ship.Position - Position).Direction();
                 double angleSpan = Math.Acos((double)((2 * distanceSquared - Math.Pow(ship.Collider.MaxRadius, 2)) /
                                                       (2 * distanceSquared)));
                 var points1 = elevationPoints;
-                Utils.IterateAngleRange(shipAngle - angleSpan, shipAngle + angleSpan, angleSpan * 2 / 10, (_, angle) => {
+                Utils.IterateAngleRange(shipAngle - angleSpan, shipAngle + angleSpan, angleSpan * 2 / 5, (_, angle) => {
                     points1.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
                 });
             }
         }
 
         var points2 = elevationPoints;
-        Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 100, (_, angle) => {
+        Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 10, (_, angle) => {
             points2.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
         });
         
-        elevationPoints = elevationPoints.OrderBy(x => x.Item1).ToList();
-        
-        ObjectInfo.Collider = new TerrainCollider(elevationPoints.ToArray());
+        var elevationPointsArray = elevationPoints.OrderBy(x => x.Item1).ToArray();
+        ObjectInfo.Collider = new TerrainCollider(elevationPointsArray);
     }
 
     private void DrawTerrain()
@@ -235,7 +236,13 @@ public class Planet : Body, IGameDrawable
 
     public double GetElevationAtPoint(double angle)
     {
-        return 150 * Math.Cos(angle * Math.PI * 10000) + 120 * Math.Cos(angle * 40000 + 5000);
+        return (Utils.PerlinNoise1D(_terrainSeed, angle, 200, 1 / (double)Radius * 2 * Math.PI * 30) +
+                Utils.PerlinNoise1D(_terrainSeed, angle, 40, 1 / (double)Radius * 2 * Math.PI * 10) +
+                Utils.PerlinNoise1D(_terrainSeed, angle, 5, 1 / (double)Radius * 2 * Math.PI * 1) +
+                Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 0.5)) *
+               Utils.PerlinNoise1D(_terrainSeed, angle, 3, 1 / (double)Radius * 2 * Math.PI * 400) +
+               Math.Clamp(Math.Pow(Utils.PerlinNoise1D(_terrainSeed, angle, 110, 1 / (double)Radius * 2 * Math.PI * 1000), 2),
+                   -2000, 2000);
     }
 
     public class PlanetTemplate(Material material) : BodyTemplate

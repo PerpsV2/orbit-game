@@ -81,16 +81,6 @@ public static class Options
     /// </summary>
     public const float SOIAlpha = 0.05f;
     /// <summary>
-    /// Strength of bias for orbit points to be near the apoapsis of an elliptic orbit.
-    /// Increases resolution of areas on the orbit sensitive to large angle change (apoapsis).
-    /// </summary>
-    public const float EllipsePointDistributionBiasStrength = 2;
-    /// <summary>
-    /// Maximum scale of planet radius with respect to the camera's height before the surface of the planet is
-    /// drawn as a line rather than a curve.
-    /// </summary>
-    public const float SurfaceApproximationRadiusZoomFraction = 100;
-    /// <summary>
     /// Minimum scale of the planet radius with respect to the camera's height before the planet is drawn as a marker.
     /// </summary>
     public const float LocationApproximationRadiusZoomFraction = 0.005f;

@@ -238,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 0; i++)
         {
              double randomAngle = _rnd.NextDouble() * 0.0001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;

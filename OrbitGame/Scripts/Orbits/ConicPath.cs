@@ -273,7 +273,7 @@ public class ConicPath
             { "Center", camera.ConvertToScreenCoordinates(orbit.Center + orbit.Parent.Position) },
             { "Focus", camera.ConvertToScreenCoordinates(orbit.Parent.Position) },
             { "Eccentricity", (float)orbit.Eccentricity },
-            { "ConicSymmetryAngle", (float)(orbit.Periapsis - Math.PI / 2) },
+            { "ConicSymmetryAngle", (float)(orbit.Periapsis + Math.PI / 2) },
             { "C1", conicCoefficients[0] },
             { "C2", conicCoefficients[1] },
             { "C3", conicCoefficients[2] },
