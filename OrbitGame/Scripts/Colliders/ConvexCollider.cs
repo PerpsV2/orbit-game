@@ -147,7 +147,7 @@ public class ConvexCollider : CompactCollider
         Vec2Double[] referencePoints = _convexHull.Points.Select(x => Vec2Double.RotatePoint(x, referenceSpatial.Angle)).ToArray();
         Vec2Double[] incidentPoints = collider._convexHull.Points
             .Select(x => Vec2Double.RotatePoint(x, incidentSpatial.Angle))
-            .Select(x => x + (Vec2Double)(incidentSpatial.Position - referenceSpatial.Position)).ToArray();
+            .Select(x => x + (incidentSpatial.Position - referenceSpatial.Position)).ToArray();
         
         double minPenetrationDistance = double.PositiveInfinity;
         Vec2Double minPenetrationVector = Vec2Double.Zero;

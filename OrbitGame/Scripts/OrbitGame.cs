@@ -238,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 500; i++)
         {
              double randomAngle = _rnd.NextDouble() * 0.0001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -316,6 +316,9 @@ public class OrbitGame : Game
         GameState.ControlShip = Ships[^1];
         GameState.TrackingIndex = Array.IndexOf(Bodies, OriginBody.Body);
         _collisionHandler = new CollisionHandler();
+        
+        foreach (var planet in Hierarchy.GetObjectsOfType<Planet>())
+            planet.GenerateTerrainCollider();
 
         base.Initialize();
     }
@@ -534,9 +537,6 @@ public class OrbitGame : Game
             }
 
             Task.WaitAll(tasks.ToArray());
-            
-            foreach (var planet in Hierarchy.GetObjectsOfType<Planet>())
-                planet.GenerateTerrainCollider();
 
             Hierarchy.ReconstructTree();
             _collisionHandler.ResolveCollisions();

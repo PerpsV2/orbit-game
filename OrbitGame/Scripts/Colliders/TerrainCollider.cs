@@ -37,7 +37,7 @@ public class TerrainCollider : CompactCollider
         throw new NotImplementedException();
     }
 
-    private (int startIndex, int endIndex) GetPointSegment(Vec2<SDecimal> point)
+    private (int startIndex, int endIndex) GetPointSegment(Vec2Double point)
     {
         for (int i = 0; i < _elevationPoints.Length; ++i)
         {
@@ -64,7 +64,7 @@ public class TerrainCollider : CompactCollider
         Vec2Double collisionPoint = Vec2Double.Zero;
         foreach (var point in rotatedPoints)
         {
-            Vec2Double relPos = (Vec2Double)(point + reference.Position - incident.Position);
+            Vec2Double relPos = point + reference.Position - incident.Position;
             (int startIndex, int endIndex) pointSurfaceLineSegment = GetPointSegment(relPos);
             Vec2Double segmentStart = Vec2Double.FromPolar(
                 _elevationPoints[pointSurfaceLineSegment.startIndex].angle,
