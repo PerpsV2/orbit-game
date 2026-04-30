@@ -21,8 +21,8 @@ public class CollisionHandler
         SDecimal maxShipRadius = ships.MaxBy(x => x.Collider.MaxRadius)?.Collider.MaxRadius ?? 0;
         foreach (var reference in ships) 
             foreach (var incident in OrbitGame.Hierarchy.GetObjectsInRadius(reference.Position, 
-                         reference.Collider.MaxRadius + maxShipRadius))
-                tasks.Add(Task.Run(() => { if (incident != reference) ResolvePhysicsCollision(reference, (Body)incident); }));
+                         reference.Collider.MaxRadius + maxShipRadius).OfType<Ship>())
+                tasks.Add(Task.Run(() => { if (incident != reference) ResolvePhysicsCollision(reference, incident); }));
         
         foreach (var reference in ships)
             foreach (var incident in planets)
@@ -38,22 +38,46 @@ public class CollisionHandler
         PhysicsCollision? collision = terrainCollider.IntersectsWith(convexCollider, body.SpatialInfo, planet.SpatialInfo);
         if (collision == null) return;
         PhysicsCollision c = (PhysicsCollision)collision;
+        
+        Vec2Double cPr = c.CollisionManifold.FirstOrDefault();
 
-        Vec2<SDecimal> relVelocity = body.Velocity - planet.Velocity;
-        Vec2<SDecimal> collisionNormal = c.PenetrationVector.Normalize();
-        Vec2<SDecimal> cPerpendicularNormal = new Vec2<SDecimal>(-collisionNormal.Y, collisionNormal.X);
-        Vec2<SDecimal> collisionTangent = cPerpendicularNormal * (Vec2<SDecimal>.Dot(-relVelocity, cPerpendicularNormal).Positive ? 1 : -1);
-        SDecimal jV = -(1 + body.Material.RestitutionCoefficient) * Vec2<SDecimal>.Dot(relVelocity, collisionNormal);
-        SDecimal j = jV * body.Mass;
+        // calculation combined linear and angular velocity of collision point
+        Vec2<SDecimal> pVr = body.Velocity - (Vec2<SDecimal>)Vec3Double.Cross(cPr, new(0, 0, body.AngularVelocity));
+        Vec2<SDecimal> relV = pVr - planet.Velocity;
+        
+        Vec2<SDecimal> cNormal = c.PenetrationVector.Normalize();
+        Vec2<SDecimal> cPerpendicularNormal = new Vec2<SDecimal>(-cNormal.Y, cNormal.X);
+        Vec2<SDecimal> cTangent = cPerpendicularNormal * (Vec2<SDecimal>.Dot(-relV, cPerpendicularNormal).Positive ? 1 : -1);
+        
+        SDecimal jV = -(1 + body.Material.RestitutionCoefficient) * Vec2<SDecimal>.Dot(relV, cNormal);
+        Vec3<SDecimal> m1 = Vec3<SDecimal>.Cross(Vec2<SDecimal>.Cross(cPr, cNormal) / body.Collider.Inertia, cPr);
+        SDecimal j = jV / (Vec2<SDecimal>.Dot(cNormal, cNormal * (1 / body.Mass)) + Vec3<SDecimal>.Dot(m1, cNormal));
         SDecimal jS = body.Material.StaticFrictionCoefficient * j;
         SDecimal jD = body.Material.DynamicFrictionCoefficient * j;
-        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relVelocity, collisionTangent) == 0 && 
-                            Vec2<SDecimal>.Dot(relVelocity * body.Mass, collisionTangent) <= jS
-            ? collisionTangent * -Vec2<SDecimal>.Dot(relVelocity * body.Mass, collisionTangent) : collisionTangent * jD;
+        Vec2<SDecimal> jF = Vec2<SDecimal>.Dot(relV, cTangent) == 0 && 
+                            Vec2<SDecimal>.Dot(relV * body.Mass, cTangent) <= jS
+            ? cTangent * -Vec2<SDecimal>.Dot(relV * body.Mass, cTangent) : cTangent * jD;
 
-        body.Velocity += collisionNormal * j / body.Mass;
-        body.Velocity += jF / body.Mass;
-        body.Position += c.PenetrationVector;
+        if (Options.EnableCollisions)
+        {
+            body.Velocity += cNormal * j / body.Mass;
+            body.Velocity += jF / body.Mass;
+            body.AngularVelocity += (double)(Vec2<SDecimal>.Cross(cPr, cNormal * j).Z / body.Collider.Inertia);
+            body.Position += c.PenetrationVector;
+        }
+
+        if (Options.EnablePhysicsCollisionDebug)
+            DrawDebug.Add(() => {
+                var g = OrbitGame.Graphics;
+                var cam = OrbitGame.Camera;
+                g.SD_DrawPoint(cam, body.Position + cPr, Color.Blue);
+                g.SD_DrawLineR(cam, body.Position + cPr, c.PenetrationVector, Color.Red);
+                g.SD_DrawLineR(cam, body.Position + cPr, cTangent, Color.Purple);
+                foreach (var point in c.CollisionManifold)
+                    g.SD_DrawPoint(cam, body.Position + point, Color.Red);
+                g.SD_DrawLineR(cam, body.Position + cPr, relV, Color.Yellow);
+                g.SD_DrawLineR(cam, body.Position + cPr, cNormal * (j / body.Mass), Color.Orange);
+            });
     }
     
     public static void ResolvePhysicsCollision(Body reference, Body incident)

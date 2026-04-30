@@ -238,7 +238,7 @@ public class OrbitGame : Game
             new Vec2Double(-5, 0),
             new Vec2Double(-0.3, 0.5)
         ], shipMaterial);
-        for (int i = 0; i < 0; i++)
+        for (int i = 0; i < 200; i++)
         {
              double randomAngle = _rnd.NextDouble() * 0.0001;
              int randomDirection = _rnd.Next(0, 1) * 2 - 1;
@@ -484,14 +484,7 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Keys.L)) GameState.ControlShip.Position += new Vec2<SDecimal>(+0.5, 0);
 
         if (keyboardState.IsKeyDown(Keys.U)) GameState.ControlShip.Angle += 0.05;
-        if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;
-
-        if (keyboardState.IsKeyDown(Keys.X))
-            GameState.ControlShip.Position += _testCollider.IntersectsWith2(
-                (ConvexCollider)GameState.Tracking.Collider,
-                GameState.Tracking.SpatialInfo,
-                Hierarchy.GetObjectsOfType<Ship>()[5].SpatialInfo
-            )?.PenetrationVector ?? Vec2Double.Zero;*/
+        if (keyboardState.IsKeyDown(Keys.O)) GameState.ControlShip.Angle -= 0.05;*/
         
         _lastKeyboardState = keyboardState;
     }

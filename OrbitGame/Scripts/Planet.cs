@@ -11,7 +11,6 @@ namespace OrbitGame;
 public class Planet : Body, IGameDrawable
 {
     public readonly SDecimal Radius;
-    public readonly double Atmosphere;
     private readonly int _terrainSeed;
 
     private readonly Random _rnd;
@@ -28,7 +27,6 @@ public class Planet : Body, IGameDrawable
         : base(identifier, spatialInfo, objectInfo, mass, colour, parent)
     {
         Radius = radius;
-        Atmosphere = (double)Radius / 100;
         GenerateTerrainCollider();
         _terrainSeed = seed;
         _rnd = new Random(seed);
@@ -42,7 +40,7 @@ public class Planet : Body, IGameDrawable
 
         foreach (var ship in OrbitGame.Hierarchy.GetObjectsOfType<Ship>())
         {
-            if (ship.Parent == this && (ship.Position - Position).MagnitudeSquared() < Math.Pow((double)Radius + Atmosphere, 2))
+            if (ship.Parent == this)
             {
                 SDecimal distanceSquared = (ship.Position - Position).MagnitudeSquared();
                 double shipAngle = (ship.Position - Position).Direction();

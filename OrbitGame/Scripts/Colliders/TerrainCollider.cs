@@ -74,7 +74,7 @@ public class TerrainCollider : CompactCollider
                 _elevationPoints[pointSurfaceLineSegment.endIndex].angle,
                 _elevationPoints[pointSurfaceLineSegment.endIndex].distance
             );
-            double segmentSlope = ((segmentEnd.Y - segmentStart.Y) / (segmentEnd.X - segmentStart.X));
+            double segmentSlope = (segmentEnd.Y - segmentStart.Y) / (segmentEnd.X - segmentStart.X);
             double interceptionXPoint = (segmentSlope * segmentSlope * segmentStart.X -
                                            segmentSlope * segmentStart.Y +
                                            segmentSlope * relPos.Y + relPos.X) / (segmentSlope * segmentSlope + 1);
@@ -148,7 +148,7 @@ public class TerrainCollider : CompactCollider
                     minVertexPenetrationVector == Vec2<SDecimal>.Zero)
                 {
                     minVertexPenetrationVector = minPenetrationVector;
-                    collisionPoint = (Vec2Double)(cartesianPoint + incident.Position - minVertexPenetrationVector);
+                    collisionPoint = (Vec2Double)(cartesianPoint + incident.Position - minVertexPenetrationVector - reference.Position);
                 }
         }
 
@@ -175,17 +175,17 @@ public class TerrainCollider : CompactCollider
                 collisionPoint = edgeCollision.collisionPoint;
             }
             
-            var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
+            /*var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
             if (vertexCollision.penetrationVector != Vec2Double.Zero)
             {
                 totalPenetrationVector += vertexCollision.penetrationVector;
                 collisionPoint = vertexCollision.collisionPoint;
-            }
+            }*/
 
             iterations++;
 
-            if (vertexCollision.penetrationVector.MagnitudeSquared() < 0.0001 && 
-                edgeCollision.penetrationVector.MagnitudeSquared() < 0.0001)
+            if (/*vertexCollision.penetrationVector.MagnitudeSquared() < Constants.Epsilon &&*/ 
+                edgeCollision.penetrationVector.MagnitudeSquared() < Constants.Epsilon)
                 break;
         }
         

@@ -11,6 +11,7 @@ namespace OrbitGame;
 public static class Constants
 {
     public static double ComparisonTolerance { get; } = 1e-32;
+    public static double Epsilon { get; } = 1e-10;
     public static SDecimal G { get; private set; } = new(6.6743, -11);
 
     public static void SetGravitationalConstant<T>(IArbitraryPlaceDecimal<T> value) 

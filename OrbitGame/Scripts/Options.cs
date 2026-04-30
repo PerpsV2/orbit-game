@@ -15,7 +15,7 @@ public static class Options
     // debug options
     public static readonly bool EnablePhysics = true;
     public static readonly bool EnableCollisions = true;
-    public static readonly bool EnablePhysicsCollisionDebug = true;
+    public static readonly bool EnablePhysicsCollisionDebug = false;
     public const bool DisplayFPS = true;
     public const int ScientificPrintPrecision = 5;
 
