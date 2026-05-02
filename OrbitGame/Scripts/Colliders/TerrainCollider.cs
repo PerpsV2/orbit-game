@@ -175,16 +175,16 @@ public class TerrainCollider : CompactCollider
                 collisionPoint = edgeCollision.collisionPoint;
             }
             
-            /*var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
+            var vertexCollision = GetVertexCollision(collider, new(reference.Position + totalPenetrationVector, reference.Angle), incident);
             if (vertexCollision.penetrationVector != Vec2Double.Zero)
             {
                 totalPenetrationVector += vertexCollision.penetrationVector;
                 collisionPoint = vertexCollision.collisionPoint;
-            }*/
+            }
 
             iterations++;
 
-            if (/*vertexCollision.penetrationVector.MagnitudeSquared() < Constants.Epsilon &&*/ 
+            if (vertexCollision.penetrationVector.MagnitudeSquared() < Constants.Epsilon && 
                 edgeCollision.penetrationVector.MagnitudeSquared() < Constants.Epsilon)
                 break;
         }
