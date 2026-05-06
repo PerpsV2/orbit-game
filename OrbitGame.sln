@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrbitGame.Profiling", "Orbi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qQEngine", "qQEngine\qQEngine.csproj", "{22DD4D3B-1ED8-4242-9201-BF140F32BAF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "qQEngine.Profiling", "qQEngine.Profiling\qQEngine.Profiling.csproj", "{AFD12EE5-A049-41D5-BA4A-D68BFCC8F83A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{22DD4D3B-1ED8-4242-9201-BF140F32BAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22DD4D3B-1ED8-4242-9201-BF140F32BAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22DD4D3B-1ED8-4242-9201-BF140F32BAF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFD12EE5-A049-41D5-BA4A-D68BFCC8F83A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFD12EE5-A049-41D5-BA4A-D68BFCC8F83A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFD12EE5-A049-41D5-BA4A-D68BFCC8F83A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFD12EE5-A049-41D5-BA4A-D68BFCC8F83A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
