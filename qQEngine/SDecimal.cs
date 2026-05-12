@@ -32,7 +32,7 @@ public struct SDecimal : INumber<SDecimal>
             return;
         }
 
-        if (absMantissa is >= 10 and < 100000)
+        if (absMantissa is >= 10 and < 10000000000)
         {
             while (Math.Abs(Mantissa) >= 10)
             {
@@ -42,7 +42,7 @@ public struct SDecimal : INumber<SDecimal>
             return;
         }
 
-        if (absMantissa is < 1 and >= 0.00001)
+        if (absMantissa is < 1 and >= 0.0000000001)
         {
             while (Math.Abs(Mantissa) < 1)
             {
@@ -57,6 +57,32 @@ public struct SDecimal : INumber<SDecimal>
         Exponent += (int)exponentDiff;
     }
 
+    private void IncreaseExponent(int exponent)
+    {
+        int exponentDiff = exponent - Exponent;
+        switch (exponentDiff)
+        {
+            case 0:
+                return;
+            case < 0:
+                throw new ArgumentException("Exponent argument must be greater than or equal to this number's exponent");
+            case < 10:
+            {
+                while (Exponent != exponent)
+                {
+                    Exponent++;
+                    Mantissa /= 10;
+                }
+                
+                return;
+            }
+            default:
+                Exponent = exponent;
+                Mantissa /= Math.Pow(10, exponentDiff);
+                break;
+        }
+    }
+
     public static SDecimal operator +(SDecimal value)
         => value;
 
@@ -65,7 +91,9 @@ public struct SDecimal : INumber<SDecimal>
     
     public static SDecimal operator +(SDecimal left, SDecimal right)
     {
-        throw new NotImplementedException();
+        if (left.Exponent > right.Exponent) left.IncreaseExponent(right.Exponent);
+        if (right.Exponent > left.Exponent) right.IncreaseExponent(left.Exponent);
+        return new(left.Mantissa + right.Mantissa, left.Exponent);
     }
 
     public static SDecimal operator -(SDecimal left, SDecimal right)

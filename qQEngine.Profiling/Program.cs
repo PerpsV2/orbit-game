@@ -8,24 +8,29 @@ public class Benchmarker
 {
     private static Random _rnd = new Random();
 
-    private double _rndValue;
-    private SDecimal _sDecimal;
-    private ScientificDecimal _scientificDecimal;
-    
+    private SDecimal _sDecimal1;
+    private SDecimal _sDecimal2;
+    private ScientificDecimal _scientificDecimal1;
+    private ScientificDecimal _scientificDecimal2;
+
     public Benchmarker()
     {
-        _rndValue = _rnd.NextDouble();
+        _sDecimal1 = new SDecimal(_rnd.NextInt64(), 0);
+        _sDecimal2 = new SDecimal(_rnd.NextInt64(), 0);
+
+        _scientificDecimal1 = new ScientificDecimal(_rnd.NextInt64(), 0);
+        _scientificDecimal2 = new ScientificDecimal(_rnd.NextInt64(), 0);
     }
 
     [Benchmark]
-    public void Operation1()
+    public SDecimal Operation1()
     {
-        _sDecimal = new SDecimal(_rndValue, 0);
+        return _sDecimal1 + _sDecimal2;
     }
-
+    
     [Benchmark]
-    public void Operation2()
+    public ScientificDecimal Operation2()
     {
-        _scientificDecimal = new ScientificDecimal(_rndValue, 0);
+        return _scientificDecimal1 + _scientificDecimal2;
     }
 }
