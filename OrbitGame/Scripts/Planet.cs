@@ -171,7 +171,7 @@ public class Planet : Body, IGameDrawable
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
-        // OrbitPath.Draw();
+        OrbitPath.Draw();
 
         if ((Position - camera.Position).MagnitudeSquared() - 4 * Radius * Radius > camera.MaximumRadiusSquared) return;
 

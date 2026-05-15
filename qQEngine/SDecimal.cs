@@ -11,15 +11,48 @@ public struct SDecimal : INumber<SDecimal>
     public static SDecimal AdditiveIdentity { get; } = new(0, 0);
     public static SDecimal MultiplicativeIdentity { get; } = new(1, 0);
     public static int Radix { get; } = 10;
+
+    public static SDecimal PositiveInfinity { get; } = new();
+    public static SDecimal NegativeInfinity { get; } = new();
+    
+    public static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
+    public static SDecimal DoubleMaxValue { get; } = new(double.MaxValue, 0);
+    public static SDecimal DoubleMinValue { get; } = new(double.MinValue, 0);
     
     public double Mantissa { get; private set; }
     public int Exponent { get; private set; }
+    
+    private readonly bool _infinite = false;
     
     public SDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
         Exponent = exponent;
         Normalize();
+    }
+
+    private SDecimal(bool positive)
+        : this(positive ? 1 : -1, 0)
+    {
+        _infinite = true;
+    }
+    
+    private static SDecimal FromDouble(double value)
+    {
+        if (double.IsPositiveInfinity(value)) return PositiveInfinity;
+        if (double.IsNegativeInfinity(value)) return NegativeInfinity;
+        if (double.IsNaN(value)) throw new ArgumentException("Cannot convert NaN into an SDecimal");
+        return new(value, 0);
+    }
+    
+    private static double ConvertToDoubleSaturating(SDecimal value)
+    {
+        if (IsPositiveInfinity(value)) return double.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return double.NegativeInfinity;
+        if (Abs(value) < DoubleEpsilon) return 0;
+        if (value > DoubleMaxValue) return double.MaxValue;
+        if (value < DoubleMinValue) return double.MinValue;
+        return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
     private void Normalize()
