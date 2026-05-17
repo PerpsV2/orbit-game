@@ -25,12 +25,6 @@ public class Benchmarker
     [Benchmark]
     public SDecimal Operation1()
     {
-        return _sDecimal1 + _sDecimal2;
-    }
-    
-    [Benchmark]
-    public ScientificDecimal Operation2()
-    {
-        return _scientificDecimal1 + _scientificDecimal2;
+        return SDecimal.Zero;
     }
 }
