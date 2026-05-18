@@ -51,9 +51,6 @@ public struct SDecimal : INumber<SDecimal>
     
     private readonly bool _infinite = false;
     
-    public readonly bool Positive => double.IsPositive(_mantissa);
-    public readonly bool Negative => double.IsNegative(_mantissa);
-    
     public SDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
@@ -73,9 +70,15 @@ public struct SDecimal : INumber<SDecimal>
         _infinite = true;
     }
 
+    /// <summary>
+    /// Normalize this number by adjusting the exponent so that the mantissa is 1-digit long.
+    /// When normalizing zero, the exponent is also set to zero.
+    /// When normalizing infinities, the exponent is set to zero and the mantissa is set to either 1 or -1 depending on the sign.
+    /// </summary>
     private void Normalize()
     {
         double absMantissa = Math.Abs(Mantissa);
+        // value is already normalized
         if (absMantissa is >= 1 and < 10) return;
         if (absMantissa == 0)
         {
@@ -83,6 +86,8 @@ public struct SDecimal : INumber<SDecimal>
             return;
         }
 
+        // if the absolute value of the mantissa is small enough,
+        // use iterated multiplication/division instead of multiplying by a power
         if (absMantissa is >= 10 and < 1e+10)
         {
             while (Math.Abs(Mantissa) >= 10)
@@ -117,6 +122,7 @@ public struct SDecimal : INumber<SDecimal>
                 return;
             case < 0:
                 throw new ArgumentException("Exponent argument must be greater than or equal to this number's exponent");
+            // if the exponent difference is small enough, use iterated division instead of multiplying by a power of ten.
             case < 10:
             {
                 while (Exponent != exponent)
@@ -132,6 +138,23 @@ public struct SDecimal : INumber<SDecimal>
                 Mantissa /= Math.Pow(10, exponentDiff);
                 break;
         }
+    }
+
+    private static SDecimal Add(SDecimal left, SDecimal right)
+    {
+        if (left.Exponent > right.Exponent) left.IncreaseExponent(right.Exponent);
+        if (right.Exponent > left.Exponent) right.IncreaseExponent(left.Exponent);
+        return new(left.Mantissa + right.Mantissa, left.Exponent);
+    }
+
+    private static SDecimal Multiply(SDecimal left, SDecimal right)
+    {
+        return new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent);
+    }
+
+    private static SDecimal Divide(SDecimal dividend, SDecimal divisor)
+    {
+        return new(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent);
     }
     
     /// <summary>
@@ -192,7 +215,7 @@ public struct SDecimal : INumber<SDecimal>
     /// <exception cref="ArithmeticException">Attempted to take the square root of a negative number</exception>
     public static SDecimal Sqrt(SDecimal value)
     {
-        if (value.Negative) throw new ArithmeticException("Cannot take the square root of a negative SDecimal");
+        if (IsNegative(value)) throw new ArithmeticException("Cannot take the square root of a negative SDecimal");
         if (value._infinite) return value;
         if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
         return new SDecimal(Math.Sqrt(value.Mantissa), value.Exponent / 2);
@@ -292,16 +315,12 @@ public struct SDecimal : INumber<SDecimal>
 
     public static SDecimal operator -(SDecimal value)
         => new(-value.Mantissa, value.Exponent);
-    
+
     public static SDecimal operator +(SDecimal left, SDecimal right)
-    {
-        if (left.Exponent > right.Exponent) left.IncreaseExponent(right.Exponent);
-        if (right.Exponent > left.Exponent) right.IncreaseExponent(left.Exponent);
-        return new(left.Mantissa + right.Mantissa, left.Exponent);
-    }
+        => Add(left, right);
 
     public static SDecimal operator -(SDecimal left, SDecimal right)
-        => left + -right;
+        => Add(left, -right);
 
     public static SDecimal operator ++(SDecimal value)
         => value + One;
@@ -310,25 +329,19 @@ public struct SDecimal : INumber<SDecimal>
         => value - One;
 
     public static SDecimal operator *(SDecimal left, SDecimal right)
-        => new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent);
+        => Multiply(left, right);
 
     public static SDecimal operator /(SDecimal left, SDecimal right)
-        => new(left.Mantissa / right.Mantissa, left.Exponent - right.Exponent);
-    
+        => Divide(left, right);
+
     public static SDecimal operator %(SDecimal left, SDecimal right)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => Remainder(left, right);
+
     public static bool operator ==(SDecimal left, SDecimal right)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => left.Equals(right);
+
     public static bool operator !=(SDecimal left, SDecimal right)
-    {
-        throw new NotImplementedException();
-    }
+        => !left.Equals(right);
     
     public static bool operator >(SDecimal left, SDecimal right)
     {
@@ -373,74 +386,90 @@ public struct SDecimal : INumber<SDecimal>
     public static explicit operator uint(SDecimal value)
         => (uint)ConvertToDoubleSaturating(value);
     
-    public static explicit operator long (SDecimal value)
+    public static explicit operator long(SDecimal value)
         => (long)ConvertToDoubleSaturating(value);
     
-    public static bool IsCanonical(SDecimal value)
+    static bool INumberBase<SDecimal>.IsZero(SDecimal value)
     {
         throw new NotImplementedException();
     }
-    public static bool IsComplexNumber(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsEvenInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsFinite(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsImaginaryNumber(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsInfinity(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsNaN(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsNegative(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsNegativeInfinity(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsNormal(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    public static bool IsOddInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+    
     public static bool IsPositive(SDecimal value)
     {
         throw new NotImplementedException();
     }
+    
+    public static bool IsNegative(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsFinite(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsRealNumber(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsImaginaryNumber(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsComplexNumber(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool IsInteger(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool IsEvenInteger(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool IsOddInteger(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public static bool IsInfinity(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
     public static bool IsPositiveInfinity(SDecimal value)
     {
         throw new NotImplementedException();
     }
-    public static bool IsRealNumber(SDecimal value)
+    
+    public static bool IsNegativeInfinity(SDecimal value)
     {
         throw new NotImplementedException();
     }
-    public static bool IsSubnormal(SDecimal value)
+    
+    static bool INumberBase<SDecimal>.IsNaN(SDecimal value)
     {
         throw new NotImplementedException();
     }
-    public static bool IsZero(SDecimal value)
+    
+    static bool INumberBase<SDecimal>.IsCanonical(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsNormal(SDecimal value)
+    {
+        throw new NotImplementedException();
+    }
+    
+    static bool INumberBase<SDecimal>.IsSubnormal(SDecimal value)
     {
         throw new NotImplementedException();
     }
