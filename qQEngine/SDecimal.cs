@@ -14,12 +14,13 @@ public struct SDecimal : INumber<SDecimal>
 
     public static SDecimal PositiveInfinity { get; } = new();
     public static SDecimal NegativeInfinity { get; } = new();
-    
+
     public static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
     public static SDecimal DoubleMaxValue { get; } = new(double.MaxValue, 0);
     public static SDecimal DoubleMinValue { get; } = new(double.MinValue, 0);
-    
+
     private double _mantissa;
+
     public double Mantissa
     {
         readonly get
@@ -35,6 +36,7 @@ public struct SDecimal : INumber<SDecimal>
     }
 
     private int _exponent;
+
     public int Exponent
     {
         readonly get
@@ -48,21 +50,25 @@ public struct SDecimal : INumber<SDecimal>
             _exponent = value;
         }
     }
-    
+
     private readonly bool _infinite = false;
-    
+
     public SDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
         Exponent = exponent;
         Normalize();
     }
-    
+
     public SDecimal(int exponent)
-        : this(1, exponent) {}
-    
+        : this(1, exponent)
+    {
+    }
+
     public SDecimal()
-        : this(0, 0) {}
+        : this(0, 0)
+    {
+    }
 
     private SDecimal(bool positive)
         : this(positive ? 1 : -1, 0)
@@ -95,6 +101,7 @@ public struct SDecimal : INumber<SDecimal>
                 Mantissa /= 10;
                 Exponent++;
             }
+
             return;
         }
 
@@ -105,6 +112,7 @@ public struct SDecimal : INumber<SDecimal>
                 Mantissa *= 10;
                 Exponent--;
             }
+
             return;
         }
 
@@ -130,7 +138,7 @@ public struct SDecimal : INumber<SDecimal>
                     Exponent++;
                     Mantissa /= 10;
                 }
-                
+
                 return;
             }
             default:
@@ -142,21 +150,35 @@ public struct SDecimal : INumber<SDecimal>
 
     private static SDecimal Add(SDecimal left, SDecimal right)
     {
-        if (left.Exponent > right.Exponent) left.IncreaseExponent(right.Exponent);
-        if (right.Exponent > left.Exponent) right.IncreaseExponent(left.Exponent);
+        if (left._infinite && right._infinite)
+            return IsPositive(left) == IsPositive(right) ? 
+                left : throw new ArithmeticException("Cannot add opposite signed infinite ScientificDecimals");
+        if (left._infinite) return left;
+        if (right._infinite) return right;
+        if (left.Exponent > right.Exponent) right.IncreaseExponent(left.Exponent);
+        if (right.Exponent > left.Exponent) left.IncreaseExponent(right.Exponent);
         return new(left.Mantissa + right.Mantissa, left.Exponent);
     }
 
     private static SDecimal Multiply(SDecimal left, SDecimal right)
     {
+        if (left == 0 || right == 0) return 0;
+        if (left._infinite || right._infinite) 
+            return new((IsPositive(left) && IsPositive(right)) || (IsNegative(left) && IsNegative(right)));
         return new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent);
     }
 
     private static SDecimal Divide(SDecimal dividend, SDecimal divisor)
     {
+        if (divisor == 0 && dividend == 0) throw new DivideByZeroException("Cannot divide zero by zero");
+        if (divisor == 0) return PositiveInfinity * (IsPositive(dividend) ? 1 : -1);
+        if (dividend._infinite && divisor._infinite) 
+            throw new ArithmeticException("Cannot divide an infinite ScientificDecimal by another infinite ScientificDecimal");
+        if (dividend._infinite) return dividend * divisor;
+        if (divisor._infinite) return 0;
         return new(dividend.Mantissa / divisor.Mantissa, dividend.Exponent - divisor.Exponent);
     }
-    
+
     /// <summary>
     /// Calculates the remainder between two values.
     /// </summary>
@@ -169,18 +191,18 @@ public struct SDecimal : INumber<SDecimal>
     private static SDecimal Remainder(SDecimal dividend, SDecimal divisor)
     {
         if (divisor == 0) throw new ArithmeticException("Cannot calculate the remainder of a division by zero");
-        if (dividend._infinite || divisor._infinite) 
+        if (dividend._infinite || divisor._infinite)
             throw new ArithmeticException("Cannot calculate the remainder of infinity");
         return dividend - divisor * Math.Truncate((double)(dividend / divisor));
     }
-    
+
     public static SDecimal Mod(SDecimal value, SDecimal mod)
     {
         if (mod == 0) throw new ArithmeticException("Cannot modulate by zero");
         if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate infinity or by infinity");
         return value - mod * Math.Floor((double)(value / mod));
     }
-    
+
     /// <summary>
     /// Calculates the square of a value.
     /// </summary>
@@ -220,7 +242,7 @@ public struct SDecimal : INumber<SDecimal>
         if (value.Exponent % 2 != 0) value.IncreaseExponent(value.Exponent + 1);
         return new SDecimal(Math.Sqrt(value.Mantissa), value.Exponent / 2);
     }
-    
+
     public static double Atan2(SDecimal y, SDecimal x)
     {
         double quotient = ConvertToDoubleSaturating(y / x);
@@ -244,22 +266,24 @@ public struct SDecimal : INumber<SDecimal>
     public static SDecimal Abs(SDecimal value)
     {
         if (value._infinite) return new SDecimal(true);
-        return new (Math.Abs(value.Mantissa), value.Exponent);
+        return new(Math.Abs(value.Mantissa), value.Exponent);
     }
 
     public static SDecimal Min(SDecimal value, params SDecimal[] values)
     {
         SDecimal result = value;
         foreach (var n in values)
-            if (n < result) result = n;
+            if (n < result)
+                result = n;
         return result;
     }
-    
+
     public static SDecimal Max(SDecimal value, params SDecimal[] values)
     {
         SDecimal result = value;
         foreach (var n in values)
-            if (n > result) result = n;
+            if (n > result)
+                result = n;
         return result;
     }
 
@@ -296,7 +320,7 @@ public struct SDecimal : INumber<SDecimal>
 
     public static SDecimal MinMagnitudeNumber(SDecimal x, SDecimal y)
         => IsInfinity(x) ? IsInfinity(y) ? throw new ArithmeticException() : y : IsInfinity(y) ? x : Min(x, y);
-    
+
     [Obsolete("MaxMagnitude is obsolete. Use Max method instead.")]
     public static SDecimal MaxMagnitude(SDecimal x, SDecimal y)
         => Max(x, y);
@@ -342,28 +366,34 @@ public struct SDecimal : INumber<SDecimal>
 
     public static bool operator !=(SDecimal left, SDecimal right)
         => !left.Equals(right);
-    
+
     public static bool operator >(SDecimal left, SDecimal right)
     {
-        throw new NotImplementedException();
+        if (left._infinite) return IsPositive(left);
+        if (right._infinite) return IsNegative(right);
+        if (IsPositive(left) != IsPositive(right)) return IsPositive(left);
+        if (left.Exponent != right.Exponent)
+            return IsPositive(left) ? left.Exponent > right.Exponent : left.Exponent < right.Exponent;
+        return IsPositive(left - right);
     }
-    
+
     public static bool operator >=(SDecimal left, SDecimal right)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => left > right || left == right;
+
     public static bool operator <(SDecimal left, SDecimal right)
     {
-        throw new NotImplementedException();
+        if (left._infinite) return IsNegative(left);
+        if (right._infinite) return IsPositive(right);
+        if (IsPositive(left) != IsPositive(right)) return IsPositive(left);
+        if (left.Exponent != right.Exponent)
+            return IsPositive(left) ? left.Exponent < right.Exponent : left.Exponent > right.Exponent;
+        return IsPositive(right - left);
     }
-    
+
     public static bool operator <=(SDecimal left, SDecimal right)
-    {
-        throw new NotImplementedException();
-    }
-    
-    // to ScientificDecimal
+        => left < right || left == right;
+
+// to ScientificDecimal
     public static implicit operator SDecimal(int value) 
         => new(value, 0);
 
@@ -388,91 +418,57 @@ public struct SDecimal : INumber<SDecimal>
     
     public static explicit operator long(SDecimal value)
         => (long)ConvertToDoubleSaturating(value);
-    
+
     static bool INumberBase<SDecimal>.IsZero(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => value.Mantissa == 0;
     
     public static bool IsPositive(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => value.Mantissa >= 0;
     
     public static bool IsNegative(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => value.Mantissa < 0;
+
     static bool INumberBase<SDecimal>.IsFinite(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => !value._infinite;
     
     static bool INumberBase<SDecimal>.IsRealNumber(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => !IsInfinity(value);
+
     static bool INumberBase<SDecimal>.IsImaginaryNumber(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => false;
+
     static bool INumberBase<SDecimal>.IsComplexNumber(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => false;
     
     public static bool IsInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => !value._infinite && double.IsInteger(ConvertToDoubleSaturating(value));
     
     public static bool IsEvenInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => !value._infinite && double.IsEvenInteger(ConvertToDoubleSaturating(value));
     
     public static bool IsOddInteger(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => !value._infinite && double.IsOddInteger(ConvertToDoubleSaturating(value));
+
     public static bool IsInfinity(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => value._infinite;
     
     public static bool IsPositiveInfinity(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => value._infinite && IsPositive(value);
+
     public static bool IsNegativeInfinity(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => value._infinite && IsNegative(value);
+
     static bool INumberBase<SDecimal>.IsNaN(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => false;
+
     static bool INumberBase<SDecimal>.IsCanonical(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
-    
+        => true;
+
     static bool INumberBase<SDecimal>.IsNormal(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => double.IsNormal(value.Mantissa);
     
     static bool INumberBase<SDecimal>.IsSubnormal(SDecimal value)
-    {
-        throw new NotImplementedException();
-    }
+        => double.IsSubnormal(value.Mantissa);
     
     private static SDecimal FromDouble(double value)
     {
@@ -539,16 +535,6 @@ public struct SDecimal : INumber<SDecimal>
         throw new NotImplementedException();
     }
     
-    public int CompareTo(object? obj)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public bool Equals(SDecimal? other)
-    {
-        throw new NotImplementedException();
-    }
-    
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         throw new NotImplementedException();
@@ -588,6 +574,11 @@ public struct SDecimal : INumber<SDecimal>
     {
         throw new NotImplementedException();
     }
+    
+    public int CompareTo(object? obj)
+    {
+        throw new NotImplementedException();
+    }
 
     public int CompareTo(SDecimal other)
     {
@@ -601,7 +592,12 @@ public struct SDecimal : INumber<SDecimal>
 
     public bool Equals(SDecimal other)
     {
-        throw new NotImplementedException();
+        if (IsInfinity(this) && IsInfinity(other))
+            return IsPositive(this) && IsPositive(other);
+        if (!IsInfinity(this) && !IsInfinity(other))
+            return Mantissa.Equals(other.Mantissa) && 
+                   Exponent.Equals(other.Exponent);
+        return false;
     }
 
     public override int GetHashCode()

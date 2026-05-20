@@ -798,81 +798,77 @@ public class SDecimal_Tests
     }
 
     [Fact]
-    public void SDecimal_IsRealNumber()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsImaginaryNumber()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsComplexNumber()
-    {
-        
-    }
-
-    [Fact]
     public void SDecimal_IsIntegerMethod()
     {
+        SDecimal integerSDecimal = new SDecimal(1, 0);
+        SDecimal fractionalSDecimal = new SDecimal(0.5, 0);
         
+        Assert.True(SDecimal.IsInteger(integerSDecimal));
+        Assert.False(SDecimal.IsInteger(fractionalSDecimal));
+        Assert.False(SDecimal.IsInteger(SDecimal.PositiveInfinity));
+        Assert.False(SDecimal.IsInteger(SDecimal.NegativeInfinity));
+    }
+
+    [Fact]
+    public void SDecimal_IsIntegerMethod_LargeNumber()
+    {
+        SDecimal largeIntegerSDecimal = new SDecimal(20);
+        SDecimal largeFractionalSDecimal = new SDecimal(20) + new SDecimal(0.5, 0);
+        
+        Assert.True(SDecimal.IsInteger(largeIntegerSDecimal));
+        Assert.False(SDecimal.IsInteger(largeFractionalSDecimal));
     }
 
     [Fact]
     public void SDecimal_IsEvenIntegerMethod()
     {
+        SDecimal oddIntegerSDecimal = new SDecimal(1, 0);
+        SDecimal evenIntegerSDecimal = new SDecimal(2, 0);
+        SDecimal fractionalSDecimal = new SDecimal(0.5, 0);
         
+        Assert.False(SDecimal.IsEvenInteger(oddIntegerSDecimal));
+        Assert.True(SDecimal.IsEvenInteger(evenIntegerSDecimal));
+        Assert.False(SDecimal.IsEvenInteger(fractionalSDecimal));
+        Assert.False(SDecimal.IsEvenInteger(SDecimal.PositiveInfinity));
+        Assert.False(SDecimal.IsEvenInteger(SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_IsOddIntegerMethod()
     {
+        SDecimal oddIntegerSDecimal = new SDecimal(1, 0);
+        SDecimal evenIntegerSDecimal = new SDecimal(2, 0);
+        SDecimal fractionalSDecimal = new SDecimal(0.5, 0);
         
+        Assert.True(SDecimal.IsOddInteger(oddIntegerSDecimal));
+        Assert.False(SDecimal.IsOddInteger(evenIntegerSDecimal));
+        Assert.False(SDecimal.IsOddInteger(fractionalSDecimal));
+        Assert.False(SDecimal.IsOddInteger(SDecimal.PositiveInfinity));
+        Assert.False(SDecimal.IsOddInteger(SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_IsInfinityMethod()
     {
-        
+        Assert.False(SDecimal.IsInfinity(new SDecimal(1, 0)));
+        Assert.True(SDecimal.IsInfinity(SDecimal.PositiveInfinity));
+        Assert.True(SDecimal.IsInfinity(SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_IsPositiveInfinityMethod()
     {
-        
+        Assert.False(SDecimal.IsPositiveInfinity(new SDecimal(1, 0)));
+        Assert.True(SDecimal.IsPositiveInfinity(SDecimal.PositiveInfinity));
+        Assert.False(SDecimal.IsPositiveInfinity(SDecimal.NegativeInfinity));
     }
 
     [Fact]
     public void SDecimal_IsNegativeInfinityMethod()
     {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsNaNMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsCanonicalMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsNormalMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_IsSubnormalMethod()
-    {
-        
+        Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(1, 0)));
+        Assert.False(SDecimal.IsNegativeInfinity(SDecimal.PositiveInfinity));
+        Assert.True(SDecimal.IsNegativeInfinity(SDecimal.NegativeInfinity));
     }
 
     [Fact]
