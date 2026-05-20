@@ -499,74 +499,91 @@ public struct SDecimal : INumber<SDecimal>
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
     
-    public static bool TryConvertFromChecked<TOther>(TOther value, out SDecimal result) where TOther : INumberBase<TOther>
+    static bool INumberBase<SDecimal>.TryConvertFromChecked<TOther>(TOther value, out SDecimal result)
     {
         throw new NotImplementedException();
     }
-    public static bool TryConvertFromSaturating<TOther>(TOther value, out SDecimal result) where TOther : INumberBase<TOther>
+    
+    static bool INumberBase<SDecimal>.TryConvertFromSaturating<TOther>(TOther value, out SDecimal result)
     {
         throw new NotImplementedException();
     }
-    public static bool TryConvertFromTruncating<TOther>(TOther value, out SDecimal result) where TOther : INumberBase<TOther>
+    
+    static bool INumberBase<SDecimal>.TryConvertFromTruncating<TOther>(TOther value, out SDecimal result)
     {
         throw new NotImplementedException();
     }
-    public static bool TryConvertToChecked<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    
+    static bool INumberBase<SDecimal>.TryConvertToChecked<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result)
     {
         throw new NotImplementedException();
     }
-    public static bool TryConvertToSaturating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    
+    static bool INumberBase<SDecimal>.TryConvertToSaturating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result)
     {
         throw new NotImplementedException();
     }
-    public static bool TryConvertToTruncating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result) where TOther : INumberBase<TOther>
+    
+    static bool INumberBase<SDecimal>.TryConvertToTruncating<TOther>(SDecimal value, [MaybeNullWhen(false)] out TOther result)
     {
         throw new NotImplementedException();
     }
+    
     public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
+    
     public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
+    
     public int CompareTo(object? obj)
     {
         throw new NotImplementedException();
     }
+    
     public bool Equals(SDecimal? other)
     {
         throw new NotImplementedException();
     }
+    
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         throw new NotImplementedException();
     }
+    
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
+    
     public static SDecimal Parse(string s, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
+    
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
+    
     public static SDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
+    
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
+    
     public static SDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
     {
         throw new NotImplementedException();
     }
+    
     public static SDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
     {
         throw new NotImplementedException();
