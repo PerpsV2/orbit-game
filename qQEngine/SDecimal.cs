@@ -1,11 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace qQEngine;
 
 public struct SDecimal : INumber<SDecimal>
 {
+    private const int DefaultPrintPrecision = 5;
+    
     public static SDecimal Zero { get; } = new(0, 0);
     public static SDecimal One { get; } = new(1, 0);
     public static SDecimal AdditiveIdentity { get; } = new(0, 0);
@@ -525,19 +528,96 @@ public struct SDecimal : INumber<SDecimal>
         throw new NotImplementedException();
     }
     
-    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, out SDecimal result)
+    private string ToStringGeneral(string format)
     {
-        throw new NotImplementedException();
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+
+        string mantissaString = Mantissa.ToString("F" + (sigFigs - 1));
+        return mantissaString + "e" + Exponent.ToString("+0;-#");
     }
-    
-    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, out SDecimal result)
+
+    private string ToStringNumber(string format)
     {
-        throw new NotImplementedException();
+        if (IsPositiveInfinity(this)) return "PositiveInfinity";
+        if (IsNegativeInfinity(this)) return "NegativeInfinity";
+        
+        int sigFigs;
+        try
+        {
+            sigFigs = int.Parse(format.Substring(1));
+        }
+        catch (FormatException)
+        {
+            sigFigs = DefaultPrintPrecision;
+        }
+        
+        string mantissaString = Mantissa.ToString("N" + (sigFigs - 1));
+        // strip the negative sign and re-add at the end
+        if (IsNegative(this)) mantissaString = mantissaString.Substring(1);
+        int mantissaDecimalIndex = mantissaString.IndexOf('.');
+        if (mantissaDecimalIndex < 0)
+        {
+            mantissaString += '.';
+            mantissaDecimalIndex = mantissaString.IndexOf('.');
+        }
+        int resultDecimalIndex = mantissaDecimalIndex + Exponent;
+        string result = mantissaString.Substring(0, mantissaDecimalIndex) + 
+                        mantissaString.Substring(mantissaDecimalIndex + 1);
+        string resultDecimalInsert = ".";
+        
+        if (resultDecimalIndex <= 0)
+        {
+            result = result.PadLeft(result.Length + Math.Abs(resultDecimalIndex), '0');
+            resultDecimalIndex = 0;
+            resultDecimalInsert = "0.";
+        }
+        
+        if (resultDecimalIndex >= result.Length)
+        {
+            result = result.PadRight(resultDecimalIndex, '0');
+            resultDecimalInsert = "";
+        }
+        
+        result = result.Insert(resultDecimalIndex, resultDecimalInsert);
+        if (IsNegative(this)) return "-" + result;
+        return result;
     }
+
+    private string ToStringGeneral()
+        => ToStringGeneral("G" + DefaultPrintPrecision);
     
-    public string ToString(string? format, IFormatProvider? formatProvider)
+    private string ToStringNumber()
+        => ToStringNumber("N" + DefaultPrintPrecision);
+
+    public override string ToString()
+        => ToStringGeneral();
+
+    public string ToString(string? format, IFormatProvider? formatProvider = null)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrEmpty(format))
+            format = "G";
+
+        switch (format.ToUpperInvariant())
+        {
+            case "G": return ToStringGeneral(); // general format
+            case var f when new Regex(@"G[1-9]\d*").IsMatch(f): 
+                return ToStringGeneral(f); // custom precision format
+            case "N": return ToStringNumber(); // standard decimal format
+            case var f when new Regex(@"N[1-9]\d*").IsMatch(f): 
+                return ToStringNumber(f); // standard decimal format with precision
+            default: throw new FormatException($"The format '{format}' is not supported.");
+        }
     }
     
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -545,45 +625,44 @@ public struct SDecimal : INumber<SDecimal>
         throw new NotImplementedException();
     }
     
-    public static SDecimal Parse(string s, IFormatProvider? provider)
+    public static SDecimal Parse(string s, IFormatProvider? provider = null)
     {
         throw new NotImplementedException();
     }
     
+    public static SDecimal Parse(string s, NumberStyles style, IFormatProvider? provider = null)
+        => Parse(s, provider);
+
+    public static SDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider = null)
+        => Parse(s.ToString(), provider);
+    
+    public static SDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider = null)
+        => Parse(s.ToString(), provider);
+
     public static bool TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, out SDecimal result)
     {
         throw new NotImplementedException();
     }
     
-    public static SDecimal Parse(ReadOnlySpan<char> s, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
+    public static bool TryParse([NotNullWhen(true)] string? s, NumberStyles style, IFormatProvider? provider, 
+        out SDecimal result)
+        => TryParse(s, provider, out result);
+
     public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out SDecimal result)
-    {
-        throw new NotImplementedException();
-    }
+        => TryParse(s.ToString(), provider, out result);
     
-    public static SDecimal Parse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public static SDecimal Parse(string s, NumberStyles style, IFormatProvider? provider)
-    {
-        throw new NotImplementedException();
-    }
+    public static bool TryParse(ReadOnlySpan<char> s, NumberStyles style, IFormatProvider? provider, 
+        out SDecimal result)
+        => TryParse(s.ToString(), provider, out result);
     
     public int CompareTo(object? obj)
     {
-        throw new NotImplementedException();
+        if (obj is SDecimal other)
+            return this < other ? -1 : this > other ? 1 : 0;
+        return -1;
     }
-
     public int CompareTo(SDecimal other)
-    {
-        throw new NotImplementedException();
-    }
+        => this < other ? -1 : this > other ? 1 : 0;
     
     public override bool Equals(object? obj)
     {

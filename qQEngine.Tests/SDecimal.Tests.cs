@@ -1,8 +1,4 @@
-﻿using System;
-using System.Numerics;
-using Xunit;
-
-namespace qQEngine.Tests;
+﻿namespace qQEngine.Tests;
 
 public class SDecimal_Tests
 {
@@ -262,13 +258,19 @@ public class SDecimal_Tests
         Assert.Equal(0.25, SDecimal.IntPow(positiveSDecimal, -2));
         Assert.Equal(-0.5, SDecimal.IntPow(negativeSDecimal, -1));
         Assert.Equal(0.25, SDecimal.IntPow(negativeSDecimal, -2));
-        Assert.Equal(0, SDecimal.IntPow(SDecimal.Zero, -10));
+        
     }
 
     [Fact]
-    public void SDecimal_IntPowMethod_ZeroToThePowerOfZeroException()
+    public void SDecimal_IntPowMethod_DivideByZeroException()
     {
-        Assert.Throws<ArithmeticException>(() => SDecimal.IntPow(SDecimal.Zero, 0));
+        Assert.Throws<DivideByZeroException>(() => SDecimal.IntPow(SDecimal.Zero, -10));
+    }
+
+    [Fact]
+    public void SDecimal_IntPowMethod_ZeroToThePowerOfZero()
+    {
+        Assert.Equal(1, SDecimal.IntPow(SDecimal.Zero, 0));
     }
     
     [Fact]
@@ -388,7 +390,7 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_TanMethod_LargeNumber()
     {
-        Assert.Equal(0, Math.PI * new SDecimal(20));
+        Assert.Equal(0, SDecimal.Tan(Math.PI * new SDecimal(20)));
     }
 
     [Fact]
@@ -710,11 +712,11 @@ public class SDecimal_Tests
         SDecimal positiveFractionalSDecimal = new SDecimal(0.9, 0);
         SDecimal negativeFractionalSDecimal = new SDecimal(-0.9, 0);
         
-        Assert.Equal(0, SDecimal.Zero);
-        Assert.Equal(1, positiveSDecimal);
-        Assert.Equal(0, positiveFractionalSDecimal);
-        Assert.Equal(-1, negativeSDecimal);
-        Assert.Equal(0, negativeFractionalSDecimal);
+        Assert.Equal(0, (int)SDecimal.Zero);
+        Assert.Equal(1, (int)positiveSDecimal);
+        Assert.Equal(0, (int)positiveFractionalSDecimal);
+        Assert.Equal(-1, (int)negativeSDecimal);
+        Assert.Equal(0, (int)negativeFractionalSDecimal);
         Assert.Throws<ArgumentOutOfRangeException>(() => (int)largeSDecimal);
         Assert.Throws<ArgumentException>(() => (int)SDecimal.PositiveInfinity);
         Assert.Throws<ArgumentException>(() => (int)SDecimal.NegativeInfinity);
@@ -729,11 +731,11 @@ public class SDecimal_Tests
         SDecimal positiveFractionalSDecimal = new SDecimal(0.9, 0);
         SDecimal negativeFractionalSDecimal = new SDecimal(-0.9, 0);
         
-        Assert.Equal(0L, SDecimal.Zero);
-        Assert.Equal(1L, positiveSDecimal);
-        Assert.Equal(0L, positiveFractionalSDecimal);
-        Assert.Equal(-1L, negativeSDecimal);
-        Assert.Equal(0L, negativeFractionalSDecimal);
+        Assert.Equal(0L, (long)SDecimal.Zero);
+        Assert.Equal(1L, (long)positiveSDecimal);
+        Assert.Equal(0L, (long)positiveFractionalSDecimal);
+        Assert.Equal(-1L, (long)negativeSDecimal);
+        Assert.Equal(0L, (long)negativeFractionalSDecimal);
         Assert.Throws<ArgumentOutOfRangeException>(() => (long)largeSDecimal);
         Assert.Throws<ArgumentException>(() => (long)SDecimal.PositiveInfinity);
         Assert.Throws<ArgumentException>(() => (long)SDecimal.NegativeInfinity);
@@ -748,13 +750,13 @@ public class SDecimal_Tests
         SDecimal positiveFractionalSDecimal = new SDecimal(0.9, 0);
         SDecimal negativeFractionalSDecimal = new SDecimal(-0.9, 0);
         
-        Assert.Equal(0f, SDecimal.Zero);
-        Assert.Equal(1f, positiveSDecimal);
-        Assert.Equal(0.9f, positiveFractionalSDecimal);
-        Assert.Equal(-1f, negativeSDecimal);
-        Assert.Equal(-0.9f, negativeFractionalSDecimal);
-        Assert.Equal(float.PositiveInfinity, SDecimal.PositiveInfinity);
-        Assert.Equal(float.NegativeInfinity, SDecimal.NegativeInfinity);
+        Assert.Equal(0f, (float)SDecimal.Zero);
+        Assert.Equal(1f, (float)positiveSDecimal);
+        Assert.Equal(0.9f, (float)positiveFractionalSDecimal);
+        Assert.Equal(-1f, (float)negativeSDecimal);
+        Assert.Equal(-0.9f, (float)negativeFractionalSDecimal);
+        Assert.Equal(float.PositiveInfinity, (float)SDecimal.PositiveInfinity);
+        Assert.Equal(float.NegativeInfinity, (float)SDecimal.NegativeInfinity);
         Assert.Throws<ArgumentOutOfRangeException>(() => (float)largeSDecimal);
     }
 
@@ -767,13 +769,13 @@ public class SDecimal_Tests
         SDecimal positiveFractionalSDecimal = new SDecimal(0.9, 0);
         SDecimal negativeFractionalSDecimal = new SDecimal(-0.9, 0);
         
-        Assert.Equal(0d, SDecimal.Zero);
-        Assert.Equal(1d, positiveSDecimal);
-        Assert.Equal(0.9d, positiveFractionalSDecimal);
-        Assert.Equal(-1d, negativeSDecimal);
-        Assert.Equal(-0.9d, negativeFractionalSDecimal);
-        Assert.Equal(double.NegativeInfinity, SDecimal.NegativeInfinity);
-        Assert.Equal(double.PositiveInfinity, SDecimal.PositiveInfinity);
+        Assert.Equal(0d, (double)SDecimal.Zero);
+        Assert.Equal(1d, (double)positiveSDecimal);
+        Assert.Equal(0.9d, (double)positiveFractionalSDecimal);
+        Assert.Equal(-1d, (double)negativeSDecimal);
+        Assert.Equal(-0.9d, (double)negativeFractionalSDecimal);
+        Assert.Equal(double.NegativeInfinity, (double)SDecimal.NegativeInfinity);
+        Assert.Equal(double.PositiveInfinity, (double)SDecimal.PositiveInfinity);
         Assert.Throws<ArgumentOutOfRangeException>(() => (double)largeSDecimal);
     }
 
