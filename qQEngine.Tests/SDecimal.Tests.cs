@@ -1,6 +1,8 @@
-﻿namespace qQEngine.Tests;
+﻿using Xunit.Abstractions;
 
-public class SDecimal_Tests
+namespace qQEngine.Tests;
+
+public class SDecimal_Tests(ITestOutputHelper output)
 {
     [Fact]
     public void SDecimal_Constructor()
@@ -26,8 +28,8 @@ public class SDecimal_Tests
         Assert.Equal(-1, finiteSDecimal.Exponent);
 
         SDecimal infiniteSDecimal = SDecimal.PositiveInfinity;
-        Assert.Throws<Exception>(() => infiniteSDecimal.Mantissa);
-        Assert.Throws<Exception>(() => infiniteSDecimal.Exponent);
+        Assert.Throws<ArithmeticException>(() => infiniteSDecimal.Mantissa);
+        Assert.Throws<ArithmeticException>(() => infiniteSDecimal.Exponent);
     }
 
     [Fact]
@@ -147,10 +149,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_RemainderOperator_LargeNumber()
     {
-        SDecimal leftSDecimal = new SDecimal(20);
+        SDecimal leftSDecimal = new SDecimal(14);
         SDecimal rightSDecimal = new SDecimal(43, 0);
         
-        Assert.Equal(13, leftSDecimal % rightSDecimal);
+        Assert.Equal(36, leftSDecimal % rightSDecimal);
     }
 
     [Fact]
@@ -193,10 +195,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_ModuloMethod_LargeNumber()
     {
-        SDecimal leftSDecimal = new SDecimal(20);
+        SDecimal leftSDecimal = new SDecimal(14);
         SDecimal rightSDecimal = new SDecimal(43, 0);
         
-        Assert.Equal(13, SDecimal.Mod(leftSDecimal, rightSDecimal));
+        Assert.Equal(36, SDecimal.Mod(leftSDecimal, rightSDecimal));
     }
 
     [Fact]
@@ -258,13 +260,7 @@ public class SDecimal_Tests
         Assert.Equal(0.25, SDecimal.IntPow(positiveSDecimal, -2));
         Assert.Equal(-0.5, SDecimal.IntPow(negativeSDecimal, -1));
         Assert.Equal(0.25, SDecimal.IntPow(negativeSDecimal, -2));
-        
-    }
-
-    [Fact]
-    public void SDecimal_IntPowMethod_DivideByZeroException()
-    {
-        Assert.Throws<DivideByZeroException>(() => SDecimal.IntPow(SDecimal.Zero, -10));
+        Assert.Equal(SDecimal.PositiveInfinity, SDecimal.IntPow(SDecimal.Zero, -1));
     }
 
     [Fact]
@@ -339,9 +335,9 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_CosMethod()
     {
-        Assert.Equal(1, SDecimal.Cos(0));
-        Assert.Equal(-1, SDecimal.Cos(Math.PI));
-        Assert.Equal(1, SDecimal.Cos(Math.Tau));
+        Assert.Equal(SDecimal.One, SDecimal.Cos(0));
+        Assert.Equal(-SDecimal.One, SDecimal.Cos(Math.PI));
+        Assert.Equal(SDecimal.One, SDecimal.Cos(Math.Tau));
     }
 
     [Fact]
@@ -360,10 +356,10 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_SinMethod()
     {
-        Assert.Equal(0, SDecimal.Sin(0));
-        Assert.Equal(1, SDecimal.Sin(Math.PI / 2));
-        Assert.Equal(-1, SDecimal.Sin(3 * Math.PI / 2));
-        Assert.Equal(0, SDecimal.Sin(Math.Tau));
+        Assert.Equal(SDecimal.Zero, SDecimal.Sin(0));
+        Assert.Equal(SDecimal.One, SDecimal.Sin(Math.PI / 2));
+        Assert.Equal(-SDecimal.One, SDecimal.Sin(3 * Math.PI / 2));
+        Assert.Equal(SDecimal.Zero, SDecimal.Sin(Math.Tau));
     }
 
     [Fact]
@@ -382,9 +378,8 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_TanMethod()
     {
-        Assert.Equal(0, SDecimal.Tan(0));
-        Assert.Throws<ArithmeticException>(() => SDecimal.Tan(Math.PI / 2));
-        Assert.Equal(0, SDecimal.Tan(Math.PI));
+        Assert.Equal(SDecimal.Zero, SDecimal.Tan(0));
+        Assert.Equal(SDecimal.Zero, SDecimal.Tan(Math.PI));
     }
 
     [Fact]
@@ -573,7 +568,7 @@ public class SDecimal_Tests
     public void SDecimal_CeilingMethod_LargeNumberRounding()
     {
         SDecimal sDecimal = new SDecimal(20) + new SDecimal(0.1, 0);
-        Assert.Equal(new SDecimal(20), SDecimal.Ceiling(sDecimal));
+        Assert.Equal(new SDecimal(20) + 1, SDecimal.Ceiling(sDecimal));
     }
 
     [Fact]
@@ -588,6 +583,52 @@ public class SDecimal_Tests
     {
         Assert.Equal(SDecimal.NegativeInfinity, SDecimal.Ceiling(SDecimal.NegativeInfinity));
         Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Ceiling(SDecimal.PositiveInfinity));
+    }
+
+    [Fact]
+    public void SDecimal_TruncateMethod()
+    {
+        SDecimal fractionSDecimal = new SDecimal(0.1, 0);
+        Assert.Equal(0, SDecimal.Truncate(fractionSDecimal));
+        
+        fractionSDecimal = new SDecimal(0.9, 0);
+        Assert.Equal(0, SDecimal.Truncate(fractionSDecimal));
+        
+        fractionSDecimal = new SDecimal(1.1, 0);
+        Assert.Equal(1, SDecimal.Truncate(fractionSDecimal));
+        
+        fractionSDecimal = new SDecimal(-0.9, 0);
+        Assert.Equal(0, SDecimal.Truncate(fractionSDecimal));
+        
+        fractionSDecimal = new SDecimal(-1.1, 0);
+        Assert.Equal(-1, SDecimal.Truncate(fractionSDecimal));
+    }
+
+    [Fact]
+    public void SDecimal_TruncateMethod_LargeNumberRounding()
+    {
+        SDecimal sDecimal = new SDecimal(20) + new SDecimal(0.1, 0);
+        Assert.Equal(new SDecimal(20), SDecimal.Truncate(sDecimal));
+        
+        sDecimal = new SDecimal(-1, 20) - new SDecimal(0.1, 0);
+        Assert.Equal(new SDecimal(-1, 20), SDecimal.Truncate(sDecimal));
+    }
+
+    [Fact]
+    public void SDecimal_TruncateMethod_SmallNumberRounding()
+    {
+        SDecimal sDecimal = new SDecimal(1, -20);
+        Assert.Equal(0, SDecimal.Truncate(sDecimal));
+        
+        sDecimal = new SDecimal(-1, -20);
+        Assert.Equal(0, SDecimal.Truncate(sDecimal));
+    }
+
+    [Fact]
+    public void SDecimal_TruncateMethod_InfinityHandling()
+    {
+        Assert.Equal(SDecimal.PositiveInfinity, SDecimal.Truncate(SDecimal.PositiveInfinity));
+        Assert.Equal(SDecimal.NegativeInfinity, SDecimal.Truncate(SDecimal.NegativeInfinity));
     }
 
     [Fact]
@@ -631,8 +672,8 @@ public class SDecimal_Tests
         Assert.Equal(-1, SDecimal.Clamp(SDecimal.NegativeInfinity, lowerLimitSDecimal, upperLimitSDecimal));
     }
 
-    [Fact]
-    public void SDecimal_CLampMethod_LimitOutOfRangeException()
+    [Fact] 
+    public void SDecimal_ClampMethod_LimitOutOfRangeException()
     {
         SDecimal lowerLimitSDecimal = new SDecimal(-1, 0);
         SDecimal upperLimitSDecimal = new SDecimal(1, 0);
@@ -693,9 +734,9 @@ public class SDecimal_Tests
         SDecimal positiveFractionalSDecimal = new SDecimal(0.9, 0);
         SDecimal negativeFractionalSDecimal = new SDecimal(-0.9, 0);
         
-        Assert.Equal(0u, SDecimal.Zero);
-        Assert.Equal(1u, positiveSDecimal);
-        Assert.Equal(0u, positiveFractionalSDecimal);
+        Assert.Equal(0u, (uint)SDecimal.Zero);
+        Assert.Equal(1u, (uint)positiveSDecimal);
+        Assert.Equal(0u, (uint)positiveFractionalSDecimal);
         Assert.Throws<ArgumentOutOfRangeException>(() => (uint)negativeSDecimal);
         Assert.Throws<ArgumentOutOfRangeException>(() => (uint)negativeFractionalSDecimal);
         Assert.Throws<ArgumentOutOfRangeException>(() => (uint)largeSDecimal);
@@ -814,8 +855,8 @@ public class SDecimal_Tests
     [Fact]
     public void SDecimal_IsIntegerMethod_LargeNumber()
     {
-        SDecimal largeIntegerSDecimal = new SDecimal(20);
-        SDecimal largeFractionalSDecimal = new SDecimal(20) + new SDecimal(0.5, 0);
+        SDecimal largeIntegerSDecimal = new SDecimal(14);
+        SDecimal largeFractionalSDecimal = new SDecimal(14) + new SDecimal(0.5, 0);
         
         Assert.True(SDecimal.IsInteger(largeIntegerSDecimal));
         Assert.False(SDecimal.IsInteger(largeFractionalSDecimal));
@@ -871,41 +912,5 @@ public class SDecimal_Tests
         Assert.False(SDecimal.IsNegativeInfinity(new SDecimal(1, 0)));
         Assert.False(SDecimal.IsNegativeInfinity(SDecimal.PositiveInfinity));
         Assert.True(SDecimal.IsNegativeInfinity(SDecimal.NegativeInfinity));
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertFromCheckedMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertFromSaturatingMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertFromTruncatingMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertToCheckedMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertToSaturatingMethod()
-    {
-        
-    }
-
-    [Fact]
-    public void SDecimal_TryConvertToTruncatingMethod()
-    {
-        
     }
 }

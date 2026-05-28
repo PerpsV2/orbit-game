@@ -15,12 +15,25 @@ public struct SDecimal : INumber<SDecimal>
     public static SDecimal MultiplicativeIdentity { get; } = new(1, 0);
     public static int Radix { get; } = 10;
 
-    public static SDecimal PositiveInfinity { get; } = new();
-    public static SDecimal NegativeInfinity { get; } = new();
+    public static SDecimal PositiveInfinity { get; } = new(true);
+    public static SDecimal NegativeInfinity { get; } = new(false);
 
-    public static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
-    public static SDecimal DoubleMaxValue { get; } = new(double.MaxValue, 0);
-    public static SDecimal DoubleMinValue { get; } = new(double.MinValue, 0);
+    static SDecimal FloatEpsilon { get; } = new(float.Epsilon, 0);
+    static SDecimal FloatMinValue { get; } = new(float.MinValue, 0);
+    static SDecimal FloatMaxValue { get; } = new(float.MaxValue, 0);
+    
+    static SDecimal DoubleEpsilon { get; } = new(double.Epsilon, 0);
+    static SDecimal DoubleMinValue { get; } = new(double.MinValue, 0);
+    static SDecimal DoubleMaxValue { get; } = new(double.MaxValue, 0);
+    
+    static SDecimal Int32MinValue { get; } = new(int.MinValue, 0);
+    static SDecimal Int32MaxValue { get; } = new(int.MaxValue, 0);
+
+    static SDecimal UInt32MinValue { get; } = new(uint.MinValue, 0);
+    static SDecimal UInt32MaxValue { get; } = new(uint.MaxValue, 0);
+
+    static SDecimal Int64MinValue { get; } = new(long.MinValue, 0);
+    static SDecimal Int64MaxValue { get; } = new(long.MaxValue, 0);
 
     private double _mantissa;
 
@@ -56,6 +69,11 @@ public struct SDecimal : INumber<SDecimal>
 
     private readonly bool _infinite = false;
 
+    /// <summary>
+    /// Constructs a normalized scientific decimal from a mantissa and an exponent.
+    /// </summary>
+    /// <param name="mantissa">Mantissa of the scientific decimal.</param>
+    /// <param name="exponent">Exponent of the scientific decimal.</param>
     public SDecimal(double mantissa, int exponent)
     {
         Mantissa = mantissa;
@@ -63,16 +81,27 @@ public struct SDecimal : INumber<SDecimal>
         Normalize();
     }
 
+    /// <summary>
+    /// Constructs a scientific decimal from a power of ten.
+    /// </summary>
+    /// <param name="exponent">Exponent of the power of ten.</param>
     public SDecimal(int exponent)
         : this(1, exponent)
     {
     }
 
+    /// <summary>
+    /// Constructs a zero scientific decimal.
+    /// </summary>
     public SDecimal()
         : this(0, 0)
     {
     }
 
+    /// <summary>
+    /// Constructs an infinite scientific decimal.
+    /// </summary>
+    /// <param name="positive">Sign of the infinite scientific decimal.</param>
     private SDecimal(bool positive)
         : this(positive ? 1 : -1, 0)
     {
@@ -80,15 +109,24 @@ public struct SDecimal : INumber<SDecimal>
     }
 
     /// <summary>
-    /// Normalize this number by adjusting the exponent so that the mantissa is 1-digit long.
+    /// Normalizes this number by adjusting the exponent so that the mantissa is 1-digit long.
     /// When normalizing zero, the exponent is also set to zero.
     /// When normalizing infinities, the exponent is set to zero and the mantissa is set to either 1 or -1 depending on the sign.
     /// </summary>
     private void Normalize()
     {
+        if (_infinite)
+        {
+            _mantissa = IsPositive(this) ? 1 : -1;
+            _exponent = 0;
+            return;
+        }
+        
         double absMantissa = Math.Abs(Mantissa);
+        
         // value is already normalized
         if (absMantissa is >= 1 and < 10) return;
+        
         if (absMantissa == 0)
         {
             Exponent = 0;
@@ -124,6 +162,11 @@ public struct SDecimal : INumber<SDecimal>
         Exponent += (int)exponentDiff;
     }
 
+    /// <summary>
+    /// Increases the exponent of a scientific decimal while roughly preserving the value.
+    /// </summary>
+    /// <param name="exponent">The exponent to increase to.</param>
+    /// <exception cref="ArgumentException">The exponent to increase to is less than the current exponent.</exception>
     private void IncreaseExponent(int exponent)
     {
         int exponentDiff = exponent - Exponent;
@@ -151,6 +194,13 @@ public struct SDecimal : INumber<SDecimal>
         }
     }
 
+    /// <summary>
+    /// Adds two scientific decimals.
+    /// </summary>
+    /// <param name="left">Left scientific decimal.</param>
+    /// <param name="right">Right scientific decimal.</param>
+    /// <returns>The sum of the two scientific decimals.</returns>
+    /// <exception cref="ArithmeticException">Attempted to add opposite signed infinite scientific decimals.</exception>
     private static SDecimal Add(SDecimal left, SDecimal right)
     {
         if (left._infinite && right._infinite)
@@ -163,6 +213,12 @@ public struct SDecimal : INumber<SDecimal>
         return new(left.Mantissa + right.Mantissa, left.Exponent);
     }
 
+    /// <summary>
+    /// Multiplies two scientific decimals.
+    /// </summary>
+    /// <param name="left">Left scientific decimal.</param>
+    /// <param name="right">Right scientific decimal.</param>
+    /// <returns>The product of the two scientific decimals.</returns>
     private static SDecimal Multiply(SDecimal left, SDecimal right)
     {
         if (left == 0 || right == 0) return 0;
@@ -171,6 +227,14 @@ public struct SDecimal : INumber<SDecimal>
         return new(left.Mantissa * right.Mantissa, left.Exponent + right.Exponent);
     }
 
+    /// <summary>
+    /// Divides two scientific decimals.
+    /// </summary>
+    /// <param name="dividend">Value to divide.</param>
+    /// <param name="divisor">Value to divide by.</param>
+    /// <returns>The quotient of the dividend divided by the divisor.</returns>
+    /// <exception cref="DivideByZeroException">Attempted to divide zero by zero.</exception>
+    /// <exception cref="ArithmeticException">Attempted to divide an infinite scientific decimal by another infinite scientific decimal</exception>
     private static SDecimal Divide(SDecimal dividend, SDecimal divisor)
     {
         if (divisor == 0 && dividend == 0) throw new DivideByZeroException("Cannot divide zero by zero");
@@ -186,24 +250,32 @@ public struct SDecimal : INumber<SDecimal>
     /// Calculates the remainder between two values.
     /// </summary>
     /// <param name="dividend">Value to divide.</param>
-    /// <param name="divisor">Divisor.</param>
+    /// <param name="divisor">Value to divide by.</param>
     /// <returns>The remainder of the dividend divided by the divisor.</returns>
-    /// <exception cref="ArithmeticException">
-    /// Attempted to calculate the remainder of a division by zero or attempted to calculate the remainder of infinity
-    /// </exception>
+    /// <exception cref="DivideByZeroException">Attempted to calculate the remainder of a division by zero.</exception>
+    /// <exception cref="ArithmeticException">Attempted to calculate the remainder of infinity</exception>
     private static SDecimal Remainder(SDecimal dividend, SDecimal divisor)
     {
-        if (divisor == 0) throw new ArithmeticException("Cannot calculate the remainder of a division by zero");
-        if (dividend._infinite || divisor._infinite)
-            throw new ArithmeticException("Cannot calculate the remainder of infinity");
-        return dividend - divisor * Math.Truncate((double)(dividend / divisor));
+        if (divisor == 0) throw new DivideByZeroException("Cannot calculate the remainder of a division by zero");
+        if (IsInfinity(dividend)) throw new ArithmeticException("Cannot calculate the remainder of infinity");
+        SDecimal quotient = dividend / divisor;
+        if (IsPositive(quotient)) return dividend - divisor * Floor(quotient);
+        return dividend - divisor * Ceiling(quotient);
     }
 
+    /// <summary>
+    /// Calculates the modulo between two values.
+    /// </summary>
+    /// <param name="value">Value to find the mod of.</param>
+    /// <param name="mod">Value to modulate by.</param>
+    /// <returns>The value modulated by the mod.</returns>
+    /// <exception cref="DivideByZeroException">Attempted to modulate by zero.</exception>
+    /// <exception cref="ArithmeticException">Attempted to calculate the modulo of infinity</exception>
     public static SDecimal Mod(SDecimal value, SDecimal mod)
     {
-        if (mod == 0) throw new ArithmeticException("Cannot modulate by zero");
-        if (value._infinite || mod._infinite) throw new ArithmeticException("Cannot modulate infinity or by infinity");
-        return value - mod * Math.Floor((double)(value / mod));
+        if (mod == 0) throw new DivideByZeroException("Cannot modulate by zero");
+        if (IsInfinity(value)) throw new ArithmeticException("Cannot modulate infinity");
+        return value - mod * Floor(value / mod);
     }
 
     /// <summary>
@@ -217,8 +289,8 @@ public struct SDecimal : INumber<SDecimal>
     /// <summary>
     /// Calculates an integer power of a value.
     /// </summary>
-    /// <param name="value">Base value.</param>
-    /// <param name="amount">Exponent value.</param>
+    /// <param name="value">The base of the power.</param>
+    /// <param name="amount">The exponent of the power.</param>
     /// <returns>The base raised to the exponent.</returns>
     public static SDecimal IntPow(SDecimal value, int amount)
     {
@@ -235,7 +307,7 @@ public struct SDecimal : INumber<SDecimal>
     /// <summary>
     /// Calculates the square root of a value.
     /// </summary>
-    /// <param name="value">Value to square root.</param>
+    /// <param name="value">Value to calculate the square root of.</param>
     /// <returns>The square root of the value.</returns>
     /// <exception cref="ArithmeticException">Attempted to take the square root of a negative number</exception>
     public static SDecimal Sqrt(SDecimal value)
@@ -246,6 +318,13 @@ public struct SDecimal : INumber<SDecimal>
         return new SDecimal(Math.Sqrt(value.Mantissa), value.Exponent / 2);
     }
 
+    /// <summary>
+    /// Calculates the atan2 value of two scientific decimals.
+    /// </summary>
+    /// <param name="y">Y-value scientific decimal.</param>
+    /// <param name="x">X-value scientific decimal.</param>
+    /// <returns>The quadrant corrected tangent of the y-value divided by the x-value.</returns>
+    /// <exception cref="DivideByZeroException">Attempted to divide zero by zero while calculating atan2.</exception>
     public static double Atan2(SDecimal y, SDecimal x)
     {
         double quotient = ConvertToDoubleSaturating(y / x);
@@ -257,21 +336,42 @@ public struct SDecimal : INumber<SDecimal>
         throw new DivideByZeroException("Cannot calculate atan2 of 0 / 0");
     }
 
+    /// <summary>
+    /// Calculates the cosine value of a scientific decimal.
+    /// </summary>
+    /// <param name="value">Value to calculate the cosine of.</param>
+    /// <returns>The cosine of the value.</returns>
     public static double Cos(SDecimal value)
         => Math.Cos((double)(value % Math.Tau));
 
+    /// <summary>
+    /// Calculates the sine value of a scientific decimal.
+    /// </summary>
+    /// <param name="value">Value to calculate the sine of.</param>
+    /// <returns>The sine of the value.</returns>
     public static double Sin(SDecimal value)
         => Math.Sin((double)(value % Math.Tau));
 
+    /// <summary>
+    /// Calculates the tangent value of a scientific decimal.
+    /// </summary>
+    /// <param name="value">Value to calculate the tangent of.</param>
+    /// <returns>The tangent of the value.</returns>
     public static double Tan(SDecimal value)
         => Math.Tan((double)(value % Math.PI));
 
     public static SDecimal Abs(SDecimal value)
     {
-        if (value._infinite) return new SDecimal(true);
+        if (IsInfinity(value)) return PositiveInfinity;
         return new(Math.Abs(value.Mantissa), value.Exponent);
     }
 
+    /// <summary>
+    /// Computes the minimum value of one or more scientific decimals.
+    /// </summary>
+    /// <param name="value">First value.</param>
+    /// <param name="values">Additional values.</param>
+    /// <returns>The minimum of all the provided values.</returns>
     public static SDecimal Min(SDecimal value, params SDecimal[] values)
     {
         SDecimal result = value;
@@ -281,6 +381,12 @@ public struct SDecimal : INumber<SDecimal>
         return result;
     }
 
+    /// <summary>
+    /// Computes the maximum value of one or more scientific decimals.
+    /// </summary>
+    /// <param name="value">First value.</param>
+    /// <param name="values">Additional values.</param>
+    /// <returns>The maximum of all the provided values.</returns>
     public static SDecimal Max(SDecimal value, params SDecimal[] values)
     {
         SDecimal result = value;
@@ -290,31 +396,59 @@ public struct SDecimal : INumber<SDecimal>
         return result;
     }
 
+    /// <summary>
+    /// Rounds a scientific decimal to the nearest integer.
+    /// </summary>
+    /// <param name="value">Value to round.</param>
+    /// <param name="mode">Behaviour of rounding midpoints.</param>
+    /// <returns>The value rounded to the nearest integer.</returns>
     public static SDecimal Round(SDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
+        if (IsInfinity(value)) return value;
         if (value.Mantissa == 0) return value;
         if (value.Exponent < -1) return 0;
         if (value.Exponent == -1) return new(double.Round(value.Mantissa * 0.1, mode), 0);
         return new(double.Round(value.Mantissa, Math.Clamp(value.Exponent, 0, 15), mode), value.Exponent);
     }
 
+    /// <summary>
+    /// Rounds a scientific decimal down to an integer.
+    /// </summary>
+    /// <param name="value">Value to round.</param>
+    /// <returns>The value rounded down to an integer.</returns>
     public static SDecimal Floor(SDecimal value)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
+        if (IsInfinity(value)) return value;
         if (value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff < Zero) return value - One - roundDiff;
         return value - roundDiff;
     }
 
+    /// <summary>
+    /// Rounds a scientific decimal up to an integer.
+    /// </summary>
+    /// <param name="value">Value to round.</param>
+    /// <returns>The value rounded up to an integer.</returns>
     public static SDecimal Ceiling(SDecimal value)
     {
-        if (value._infinite) throw new ArithmeticException("Cannot round infinite SDecimal");
+        if (IsInfinity(value)) return value;
         if (value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff > Zero) return value + One - roundDiff;
         return value - roundDiff;
+    }
+
+    /// <summary>
+    /// Truncates the decimal portion of a scientific decimal.
+    /// </summary>
+    /// <param name="value">Value to truncate.</param>
+    /// <returns>The truncated integer value.</returns>
+    public static SDecimal Truncate(SDecimal value)
+    {
+        if (IsPositive(value)) 
+            return Floor(value);
+        return Ceiling(value);
     }
 
     [Obsolete("MinMagnitude is obsolete, Use Min method instead.")]
@@ -333,7 +467,8 @@ public struct SDecimal : INumber<SDecimal>
 
     public static SDecimal Clamp(SDecimal value, SDecimal min, SDecimal max)
     {
-        if (max < min) throw new ArgumentException("SDecimal clamp maximum cannot be less than the minimum");
+        if ((IsInfinity(min) && IsInfinity(max) && IsPositive(min) == IsPositive(max)) || max < min)
+            throw new ArgumentOutOfRangeException("SDecimal clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
     }
 
@@ -341,7 +476,11 @@ public struct SDecimal : INumber<SDecimal>
         => value;
 
     public static SDecimal operator -(SDecimal value)
-        => new(-value.Mantissa, value.Exponent);
+    {
+        if (IsPositiveInfinity(value)) return NegativeInfinity;
+        if (IsNegativeInfinity(value)) return PositiveInfinity;
+        return new(-value.Mantissa, value.Exponent);
+    }
 
     public static SDecimal operator +(SDecimal left, SDecimal right)
         => Add(left, right);
@@ -372,11 +511,8 @@ public struct SDecimal : INumber<SDecimal>
 
     public static bool operator >(SDecimal left, SDecimal right)
     {
-        if (left._infinite) return IsPositive(left);
-        if (right._infinite) return IsNegative(right);
-        if (IsPositive(left) != IsPositive(right)) return IsPositive(left);
-        if (left.Exponent != right.Exponent)
-            return IsPositive(left) ? left.Exponent > right.Exponent : left.Exponent < right.Exponent;
+        if (IsInfinity(left)) return IsPositive(left);
+        if (IsInfinity(right)) return IsNegative(right);
         return IsPositive(left - right);
     }
 
@@ -385,19 +521,22 @@ public struct SDecimal : INumber<SDecimal>
 
     public static bool operator <(SDecimal left, SDecimal right)
     {
-        if (left._infinite) return IsNegative(left);
-        if (right._infinite) return IsPositive(right);
-        if (IsPositive(left) != IsPositive(right)) return IsPositive(left);
-        if (left.Exponent != right.Exponent)
-            return IsPositive(left) ? left.Exponent < right.Exponent : left.Exponent > right.Exponent;
+        if (IsInfinity(left)) return IsNegative(left);
+        if (IsInfinity(right)) return IsPositive(right);
         return IsPositive(right - left);
     }
 
     public static bool operator <=(SDecimal left, SDecimal right)
         => left < right || left == right;
 
-// to ScientificDecimal
+    // to ScientificDecimal
     public static implicit operator SDecimal(int value) 
+        => new(value, 0);
+
+    public static implicit operator SDecimal(uint value)
+        => new(value, 0);
+
+    public static implicit operator SDecimal(long value)
         => new(value, 0);
 
     public static implicit operator SDecimal(double value)
@@ -408,28 +547,28 @@ public struct SDecimal : INumber<SDecimal>
 
     // from ScientificDecimal
     public static explicit operator double(SDecimal value)
-        => ConvertToDoubleSaturating(value);
+        => ConvertToDoubleChecked(value);
     
     public static explicit operator float(SDecimal value)
-        => Convert.ToSingle((double)value);
+        => ConvertToFloatChecked(value);
     
     public static explicit operator int(SDecimal value)
-        => (int)ConvertToDoubleSaturating(value);
+        => ConvertToIntChecked(value);
     
     public static explicit operator uint(SDecimal value)
-        => (uint)ConvertToDoubleSaturating(value);
+        => ConvertToUIntChecked(value);
     
     public static explicit operator long(SDecimal value)
-        => (long)ConvertToDoubleSaturating(value);
+        => ConvertToLongChecked(value);
 
     static bool INumberBase<SDecimal>.IsZero(SDecimal value)
-        => value.Mantissa == 0;
+        => !value._infinite && value.Mantissa == 0;
     
     public static bool IsPositive(SDecimal value)
-        => value.Mantissa >= 0;
+        => value._mantissa >= 0;
     
     public static bool IsNegative(SDecimal value)
-        => value.Mantissa < 0;
+        => value._mantissa < 0;
 
     static bool INumberBase<SDecimal>.IsFinite(SDecimal value)
         => !value._infinite;
@@ -480,6 +619,25 @@ public struct SDecimal : INumber<SDecimal>
         if (double.IsNaN(value)) throw new ArgumentException("Cannot convert NaN into an SDecimal");
         return new(value, 0);
     }
+
+    private static float ConvertToFloatSaturating(SDecimal value)
+    {
+        if (IsPositiveInfinity(value)) return float.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return float.NegativeInfinity;
+        if (Abs(value) < FloatEpsilon) return 0;
+        if (value > FloatMaxValue) return float.MaxValue;
+        if (value < FloatMinValue) return float.MinValue;
+        return (float)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+    
+    private static float ConvertToFloatChecked(SDecimal value)
+    {
+        if (IsPositiveInfinity(value)) return float.PositiveInfinity;
+        if (IsNegativeInfinity(value)) return float.NegativeInfinity;
+        if (value > FloatMaxValue) throw new ArgumentOutOfRangeException();
+        if (value < FloatMinValue) throw new ArgumentOutOfRangeException();
+        return (float)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
     
     private static double ConvertToDoubleSaturating(SDecimal value)
     {
@@ -491,11 +649,61 @@ public struct SDecimal : INumber<SDecimal>
         return value.Mantissa * Math.Pow(10, value.Exponent);
     }
 
-    private static double ConvertToDoubleUnchecked(SDecimal value)
+    private static double ConvertToDoubleChecked(SDecimal value)
     {
         if (IsPositiveInfinity(value)) return double.PositiveInfinity;
         if (IsNegativeInfinity(value)) return double.NegativeInfinity;
+        if (value > DoubleMaxValue) throw new ArgumentOutOfRangeException();
+        if (value < DoubleMinValue) throw new ArgumentOutOfRangeException();
         return value.Mantissa * Math.Pow(10, value.Exponent);
+    }
+
+    private static int ConvertToIntSaturating(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to int");
+        if (value > Int32MaxValue) return int.MaxValue;
+        if (value < Int32MinValue) return int.MinValue;
+        return (int)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+
+    private static int ConvertToIntChecked(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to int");
+        if (value > Int32MaxValue) throw new ArgumentOutOfRangeException();
+        if (value < Int32MinValue) throw new ArgumentOutOfRangeException();
+        return (int)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+    
+    private static uint ConvertToUIntSaturating(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to uint");
+        if (value > UInt32MaxValue) return uint.MaxValue;
+        if (value < UInt32MinValue) return uint.MinValue;
+        return (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+
+    private static uint ConvertToUIntChecked(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to uint");
+        if (value > UInt32MaxValue) throw new ArgumentOutOfRangeException();
+        if (value < UInt32MinValue) throw new ArgumentOutOfRangeException();
+        return (uint)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+
+    private static long ConvertToLongSaturating(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to long");
+        if (value > Int64MaxValue) return long.MaxValue;
+        if (value < Int64MinValue) return long.MinValue;
+        return (long)(value.Mantissa * Math.Pow(10, value.Exponent));
+    }
+
+    private static long ConvertToLongChecked(SDecimal value)
+    {
+        if (IsInfinity(value)) throw new ArgumentException("Cannot convert infinite scientific decimal to long");
+        if (value > Int64MaxValue) throw new ArgumentOutOfRangeException();
+        if (value < Int64MinValue) throw new ArgumentOutOfRangeException();
+        return (long)(value.Mantissa * Math.Pow(10, value.Exponent));
     }
     
     static bool INumberBase<SDecimal>.TryConvertFromChecked<TOther>(TOther value, out SDecimal result)
