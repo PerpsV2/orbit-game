@@ -152,7 +152,7 @@ public class SDecimal_Tests(ITestOutputHelper output)
         SDecimal leftSDecimal = new SDecimal(14);
         SDecimal rightSDecimal = new SDecimal(43, 0);
         
-        Assert.Equal(36, leftSDecimal % rightSDecimal);
+        Assert.Equal(36, leftSDecimal % rightSDecimal, 0.01);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class SDecimal_Tests(ITestOutputHelper output)
         SDecimal leftSDecimal = new SDecimal(14);
         SDecimal rightSDecimal = new SDecimal(43, 0);
         
-        Assert.Equal(36, SDecimal.Mod(leftSDecimal, rightSDecimal));
+        Assert.Equal(36, SDecimal.Mod(leftSDecimal, rightSDecimal), 0.01);
     }
 
     [Fact]

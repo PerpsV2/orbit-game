@@ -108,6 +108,18 @@ public struct SDecimal : INumber<SDecimal>
         _infinite = true;
     }
 
+    private SDecimal(SDecimal value)
+    {
+        if (IsInfinity(value)) this = IsPositive(value) ? PositiveInfinity : NegativeInfinity;
+        else
+        {
+            Mantissa = value.Mantissa;
+            Exponent = value.Exponent;
+        }
+
+        Normalize();
+    }
+
     /// <summary>
     /// Normalizes this number by adjusting the exponent so that the mantissa is 1-digit long.
     /// When normalizing zero, the exponent is also set to zero.
@@ -260,7 +272,7 @@ public struct SDecimal : INumber<SDecimal>
         if (IsInfinity(dividend)) throw new ArithmeticException("Cannot calculate the remainder of infinity");
         SDecimal quotient = dividend / divisor;
         if (IsPositive(quotient)) return dividend - divisor * Floor(quotient);
-        return dividend - divisor * Ceiling(quotient);
+        return new(dividend - divisor * Ceiling(quotient));
     }
 
     /// <summary>
@@ -275,7 +287,7 @@ public struct SDecimal : INumber<SDecimal>
     {
         if (mod == 0) throw new DivideByZeroException("Cannot modulate by zero");
         if (IsInfinity(value)) throw new ArithmeticException("Cannot modulate infinity");
-        return value - mod * Floor(value / mod);
+        return new(value - mod * Floor(value / mod));
     }
 
     /// <summary>
@@ -404,8 +416,7 @@ public struct SDecimal : INumber<SDecimal>
     /// <returns>The value rounded to the nearest integer.</returns>
     public static SDecimal Round(SDecimal value, MidpointRounding mode = MidpointRounding.ToEven)
     {
-        if (IsInfinity(value)) return value;
-        if (value.Mantissa == 0) return value;
+        if (IsInfinity(value) || value.Mantissa == 0) return value;
         if (value.Exponent < -1) return 0;
         if (value.Exponent == -1) return new(double.Round(value.Mantissa * 0.1, mode), 0);
         return new(double.Round(value.Mantissa, Math.Clamp(value.Exponent, 0, 15), mode), value.Exponent);
@@ -418,8 +429,7 @@ public struct SDecimal : INumber<SDecimal>
     /// <returns>The value rounded down to an integer.</returns>
     public static SDecimal Floor(SDecimal value)
     {
-        if (IsInfinity(value)) return value;
-        if (value.Mantissa == 0) return value;
+        if (IsInfinity(value) || value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff < Zero) return value - One - roundDiff;
         return value - roundDiff;
@@ -432,8 +442,7 @@ public struct SDecimal : INumber<SDecimal>
     /// <returns>The value rounded up to an integer.</returns>
     public static SDecimal Ceiling(SDecimal value)
     {
-        if (IsInfinity(value)) return value;
-        if (value.Mantissa == 0) return value;
+        if (IsInfinity(value) || value.Mantissa == 0) return value;
         SDecimal roundDiff = value - Round(value);
         if (roundDiff > Zero) return value + One - roundDiff;
         return value - roundDiff;
@@ -513,7 +522,8 @@ public struct SDecimal : INumber<SDecimal>
     {
         if (IsInfinity(left)) return IsPositive(left);
         if (IsInfinity(right)) return IsNegative(right);
-        return IsPositive(left - right);
+        SDecimal difference = left - right;
+        return IsPositive(difference) && difference != Zero;
     }
 
     public static bool operator >=(SDecimal left, SDecimal right)
@@ -523,7 +533,8 @@ public struct SDecimal : INumber<SDecimal>
     {
         if (IsInfinity(left)) return IsNegative(left);
         if (IsInfinity(right)) return IsPositive(right);
-        return IsPositive(right - left);
+        SDecimal difference = right - left;
+        return IsPositive(difference) && difference != Zero;
     }
 
     public static bool operator <=(SDecimal left, SDecimal right)
