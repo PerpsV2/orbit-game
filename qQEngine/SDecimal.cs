@@ -477,7 +477,7 @@ public struct SDecimal : INumber<SDecimal>
     public static SDecimal Clamp(SDecimal value, SDecimal min, SDecimal max)
     {
         if ((IsInfinity(min) && IsInfinity(max) && IsPositive(min) == IsPositive(max)) || max < min)
-            throw new ArgumentOutOfRangeException("SDecimal clamp maximum cannot be less than the minimum");
+            throw new ArgumentOutOfRangeException(nameof(max), "SDecimal clamp maximum cannot be less than the minimum");
         return value < min ? min : value > max ? max : value;
     }
 
