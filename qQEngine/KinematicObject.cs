@@ -71,9 +71,4 @@ public abstract class KinematicObject(string identifier, SpatialInfo spatialInfo
     {
         return newOriginObject.WorldToObjectSpace(ObjectToWorldSpace(point));
     }
-
-    /// <summary>
-    /// Factory class for KinematicObject.
-    /// </summary>
-    public abstract class KinematicObjectTemplate;
 }
