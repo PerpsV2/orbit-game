@@ -36,30 +36,7 @@ public class Planet : Body, IGameDrawable
 
     public void GenerateTerrainCollider()
     {
-        var elevationPoints = new List<(double, double)>();
-
-        foreach (var ship in OrbitGame.Hierarchy.GetObjectsOfType<Ship>())
-        {
-            if (ship.Parent == this)
-            {
-                SDecimal distanceSquared = (ship.Position - Position).MagnitudeSquared();
-                double shipAngle = (ship.Position - Position).Direction();
-                double angleSpan = Math.Acos((double)((2 * distanceSquared - Math.Pow(ship.Collider.MaxRadius, 2)) /
-                                                      (2 * distanceSquared)));
-                var points1 = elevationPoints;
-                Utils.IterateAngleRange(shipAngle - angleSpan, shipAngle + angleSpan, angleSpan * 2 / 5, (_, angle) => {
-                    points1.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
-                });
-            }
-        }
-
-        var points2 = elevationPoints;
-        Utils.IterateAngleRange(0, Math.Tau, Math.Tau / 10, (_, angle) => {
-            points2.Add((angle, (double)Radius + GetElevationAtPoint(angle)));
-        });
-        
-        var elevationPointsArray = elevationPoints.OrderBy(x => x.Item1).ToArray();
-        ObjectInfo.Collider = new TerrainCollider(elevationPointsArray);
+        return;
     }
 
     private void DrawTerrain()
@@ -263,7 +240,6 @@ public class Planet : Body, IGameDrawable
                 OrbitMesh = _orbitMesh
             };
             Planet planet = new Planet(identifier, spatialInfo, objectInfo, mass, radius, colour, parent, seed);
-            OrbitGame.Hierarchy.AddObject(planet);
             return planet;
         }
     }

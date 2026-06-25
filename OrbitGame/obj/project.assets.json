@@ -839,6 +839,16 @@
             "related": ".xml"
           }
         }
+      },
+      "qQEngine/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/qQEngine.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/qQEngine.dll": {}
+        }
       }
     }
   },
@@ -2731,6 +2741,11 @@
         "xunit.extensibility.execution.2.9.3.nupkg.sha512",
         "xunit.extensibility.execution.nuspec"
       ]
+    },
+    "qQEngine/1.0.0": {
+      "type": "project",
+      "path": "../qQEngine/qQEngine.csproj",
+      "msbuildProject": "../qQEngine/qQEngine.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -2738,6 +2753,7 @@
       "BenchmarkDotNet >= 0.15.8",
       "MonoGame.Content.Builder.Task >= 3.8.*",
       "MonoGame.Framework.DesktopGL >= 3.8.*",
+      "qQEngine >= 1.0.0",
       "xunit.extensibility.execution >= 2.9.3"
     ]
   },
@@ -2772,7 +2788,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\qQEngine\\qQEngine.csproj": {
+              "projectPath": "C:\\Users\\josep\\RiderProjects\\monogame-orbit-game\\qQEngine\\qQEngine.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

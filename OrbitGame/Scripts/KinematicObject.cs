@@ -92,7 +92,7 @@ public abstract class KinematicObject
 
     public void Destroy()
     {
-        OrbitGame.Hierarchy.RemoveObject(Identifier);
+        return;
     }
 
     /// <summary>

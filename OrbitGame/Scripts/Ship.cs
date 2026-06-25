@@ -100,24 +100,7 @@ public class Ship : Body, IGameDrawable
     
     public sealed override void GenerateOrbitPath(SDecimal time)
     {
-        if (Parent == null)
-            throw new NullReferenceException($"Ship \"{Identifier}\" has no parent");
-        
-        SDecimal? parentSOIRadius = Parent.OrbitPath.GetSphereOfInfluenceRadius();
-        if (parentSOIRadius != null)
-            if ((Position - Parent.Position).Magnitude() > parentSOIRadius)
-                Parent = Parent.Parent ?? throw new ArgumentException("Parent with SOI has no parent itself.");
-        
-        foreach (Planet planet in OrbitGame.Hierarchy.GetObjectsOfType<Planet>())
-        {
-            if (planet == Parent) continue;
-            SDecimal? bodySOIRadius = planet.OrbitPath.GetSphereOfInfluenceRadius();
-            if (bodySOIRadius != null)
-                if ((Position - planet.Position).Magnitude() < bodySOIRadius)
-                    Parent = planet;
-        }
-        
-        base.GenerateOrbitPath(time);
+        return;
     }
 
     public void UpdatePosition_Landed()
@@ -193,7 +176,6 @@ public class Ship : Body, IGameDrawable
                 MarkerMesh = _markerMesh
             };
             Ship ship = new Ship(identifier, spatialInfo, objectInfo, _maximumRadius, mass, colour, parent);
-            OrbitGame.Hierarchy.AddObject(ship);
             return ship;
         }
     }

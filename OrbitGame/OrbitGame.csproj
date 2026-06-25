@@ -36,4 +36,7 @@
       <ClCompile Include="Content\effects\orbitEffect.fx" />
       <ClCompile Include="Content\effects\terrainEffect.fx" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\qQEngine\qQEngine.csproj" />
+    </ItemGroup>
 </Project>

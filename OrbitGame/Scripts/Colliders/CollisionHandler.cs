@@ -13,23 +13,7 @@ public class CollisionHandler
 {
     public void ResolveCollisions()
     {
-        Body[] bodies = OrbitGame.Hierarchy.GetObjectsOfType<Body>();
-        Ship[] ships = OrbitGame.Hierarchy.GetObjectsOfType<Ship>();
-        Planet[] planets = OrbitGame.Hierarchy.GetObjectsOfType<Planet>();
-        
-        List<Task> tasks = new List<Task>();
-
-        SDecimal maxShipRadius = ships.MaxBy(x => x.Collider.MaxRadius)?.Collider.MaxRadius ?? 0;
-        foreach (var reference in ships) 
-            foreach (var incident in OrbitGame.Hierarchy.GetObjectsInRadius(reference.Position, 
-                         reference.Collider.MaxRadius + maxShipRadius).OfType<Ship>())
-                tasks.Add(Task.Run(() => { if (incident != reference) ResolvePhysicsCollision(reference, incident); }));
-        
-        foreach (var reference in ships)
-            foreach (var incident in planets)
-                tasks.Add(Task.Run(() => { BodyPlanetTerrainCollision(reference, incident); }));
-        
-        Task.WaitAll(tasks.ToArray());
+        return;
     }
 
     public static void ResolveTerrainCollision(Body body, Planet planet)
