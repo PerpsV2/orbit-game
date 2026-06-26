@@ -66,13 +66,13 @@ public class ConvexCollider : CompactCollider
             }
         }
         
-        DrawDebug.Add(() =>
+        /*DrawDebug.Add(() =>
         {
             Camera cam = OrbitGame.Camera;
             IGraphicsHandler g = OrbitGame.Graphics;
             
             g.SD_DrawLineR(cam, point, minPenetrationVector, Color.Purple);
-        });
+        });*/
 
         return new PointCollision(minPenetrationVector);
     }

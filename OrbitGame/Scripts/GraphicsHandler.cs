@@ -10,6 +10,25 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
 {
     private GraphicsDevice GraphicsDevice => spriteBatch.GraphicsDevice;
     
+    private static readonly CircularMesh CircleMesh = new ();
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, Color colour)
+    {
+        foreach (var occluder in body.Occluder.Occluders)
+        {
+            DrawCircle(camera.ConvertToScreenCoordinates(occluder.LocalPosition) + 
+                       camera.ConvertToScreenCoordinates(body.Position), 
+                camera.ConvertToScreenDistance(occluder.Radius), colour);
+        }
+    }
+
+    public void DrawCircle(Vector2 center, float radius, Color colour)
+    {
+        Matrix transform = Matrix.CreateScale(radius, radius, 1) *
+                           Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0));
+        Effect effect = Effects.CircleEffect ?? throw new NullReferenceException("Effect not initialized yet");;
+        DrawMesh(CircleMesh, transform, new Dictionary<string, object>{{"Colour", colour.ToVector4()}}, effect);
+    }
+
     public void DrawPoly(List<Vector2> points, Color colour)
     {
         if (points.Count < 3) return;

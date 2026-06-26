@@ -41,7 +41,7 @@ public class Planet : Body, IGameDrawable
 
     private void DrawTerrain()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
         Utils.GetMinAngleRange(out double minAngle, out double maxAngle, 
@@ -70,12 +70,12 @@ public class Planet : Body, IGameDrawable
             );
         });
         
-        graphicsDevice.DrawPoly(terrainMeshVertices, Colour);
+        graphicsDevice.DrawPoly(terrainMeshVertices, Colour);*/
     }
 
     public void DrawZoomedIn()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
         Vec2Double screenPosition = (Vec2Double)camera.SD_ConvertToScreenCoordinates(Position);
@@ -139,12 +139,12 @@ public class Planet : Body, IGameDrawable
         intersectionPoints = intersectionPoints.GroupBy(z => z).Select(z => z.First()).ToList();
         var polyPoints = intersectionPoints.Select(v => new Vector2((float)v.X, (float)v.Y)).ToList();
         
-        graphicsDevice.DrawPoly(polyPoints, Colour);
+        graphicsDevice.DrawPoly(polyPoints, Colour);*/
     }
 
     public void Draw()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         DrawSphereOfInfluence();
@@ -165,7 +165,7 @@ public class Planet : Body, IGameDrawable
             graphicsDevice.DrawLine(screenPosition + new Vector2(0, -10), screenPosition + new Vector2(10, 0),
                 Colour);
         }
-        else DrawTerrain();
+        else DrawTerrain();*/
 
         // otherwise draw the planet as a circle
         /*else
@@ -188,7 +188,7 @@ public class Planet : Body, IGameDrawable
 
     private void DrawSphereOfInfluence()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         if (OrbitPath.IsEmpty()) return;
@@ -203,7 +203,7 @@ public class Planet : Body, IGameDrawable
         graphicsDevice.DrawMesh(Mesh, transform, new()
         {
             {"Colour", soiColour.ToVector4()}
-        });
+        });*/
     }
 
     public sealed override void GenerateOrbitPath(SDecimal time)

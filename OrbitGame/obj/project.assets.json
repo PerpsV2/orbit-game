@@ -843,6 +843,9 @@
       "qQEngine/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "MonoGame.Framework.DesktopGL": "3.8.4.1"
+        },
         "compile": {
           "bin/placeholder/qQEngine.dll": {}
         },

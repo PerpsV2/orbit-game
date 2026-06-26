@@ -53,7 +53,7 @@ public class Ship : Body, IGameDrawable
 
     public void Draw()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         Vector2 screenPosition = camera.ConvertToScreenCoordinates(Position);
@@ -90,7 +90,7 @@ public class Ship : Body, IGameDrawable
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(-10, 0), iconAngle),
                 screenPosition + (Vector2)Vec2<SDecimal>.RotatePoint(new(5, 8), iconAngle)
             ], colour);
-        }
+        }*/
     }
 
     public void DrawCollider()

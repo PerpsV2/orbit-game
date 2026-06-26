@@ -1,5 +1,10 @@
 namespace qQEngine;
 
+public static class Options
+{
+    public static (int width, int height) ScreenSize = (400, 400);
+}
+
 public static class Constants
 {
     public static SDecimal G { get; private set; } = new(6.6743, -11);

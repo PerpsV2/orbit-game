@@ -30,22 +30,22 @@ public class OrbitGame : Game
         /// <summary>
         /// In-game time used for physics calculations.
         /// </summary>
-        public static SDecimal PhysicsTime = 0;
+        public static qQEngine.SDecimal PhysicsTime = 0;
     
         /// <summary>
         /// In-game time step.
         /// </summary>
-        public static SDecimal PhysicsTimeStep = Options.DefaultTimeStep;
+        public static qQEngine.SDecimal PhysicsTimeStep = Options.DefaultTimeStep;
 
         /// <summary>
         /// Real time since last update call.
         /// </summary>
-        public static SDecimal DeltaRealTime = 0;
+        public static qQEngine.SDecimal DeltaRealTime = 0;
 
         /// <summary>
         /// Physics time since last update call.
         /// </summary>
-        public static SDecimal DeltaPhysicsTime = 0;
+        public static qQEngine.SDecimal DeltaPhysicsTime = 0;
 
         /// <summary>
         /// DateTime time at last update call.
@@ -55,7 +55,7 @@ public class OrbitGame : Game
         /// <summary>
         /// Real time passed since game started.
         /// </summary>
-        public static SDecimal RealTime = 0;
+        public static qQEngine.SDecimal RealTime = 0;
 
         /// <summary>
         /// Number of frames so far this second.
@@ -83,7 +83,7 @@ public class OrbitGame : Game
     }
     
     public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
-    public static Camera Camera = new("Camera", new(Vec2<SDecimal>.Zero, 0),
+    public static qQEngine.Camera Camera = new("Camera", new(Vec2.Zero, 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -113,6 +113,8 @@ public class OrbitGame : Game
             position: new Vec2(),
             velocity: new Vec2()
         ));
+        testBody.Occluder = new CompoundOccluder();
+        testBody.Occluder.Occluders.Add(new CircularOccluder(1, Vec2.Zero));
 
         #endregion
         
@@ -146,11 +148,11 @@ public class OrbitGame : Game
     
     KeyboardState _lastKeyboardState;
 
-    private void HandleInput(SDecimal dt)
+    private void HandleInput(qQEngine.SDecimal dt)
     {
         MouseHandler.HandleMouseEvents();
         
-        SDecimal camSpeed = Camera.Height * Options.CamMoveSpeed * dt;
+        qQEngine.SDecimal camSpeed = Camera.Height * Options.CamMoveSpeed * dt;
         KeyboardState keyboardState = Keyboard.GetState();
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
@@ -182,8 +184,7 @@ public class OrbitGame : Game
 
     protected override void Update(GameTime gameTime)
     {
-        UpdateFrame?.Invoke(this, new UpdateEventArgs(GameState.PhysicsTime));
-        
+        //UpdateFrame?.Invoke(this, new UpdateEventArgs(GameState.PhysicsTime));
         GameState.DeltaRealTime = (DateTime.Now - GameState.PreviousDateTime).TotalSeconds;
         GameState.PreviousDateTime = DateTime.Now;
         GameState.DeltaPhysicsTime = GameState.DeltaRealTime * GameState.PhysicsTimeStep;
@@ -225,6 +226,11 @@ public class OrbitGame : Game
         
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
 
+        foreach (var body in Bodies)
+        {
+            Graphics.DrawBody(Camera, body, Color.Black);
+        }
+        
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();
         

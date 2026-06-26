@@ -10,6 +10,7 @@ public class Body(string identifier, SpatialInfo spatialInfo)
 {
     public SDecimal Mass { get; set; }
     public SDecimal Charge { get; set; }
+    public CompoundOccluder Occluder { get; set; }
     
     /// <summary>
     /// Calculate the gravitational acceleration caused by the mass of another body.

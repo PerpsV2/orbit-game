@@ -30,16 +30,16 @@ public class ManeuverNode : IGameDrawable
 
     private void ManeuverNode_MouseDown(object? sender, MouseEventArgs e)
     {
-        if (this != SelectedNode) return;
+        /*if (this != SelectedNode) return;
         Camera camera = OrbitGame.Camera;
         Vector2 nodeScreenPosition = camera.ConvertToScreenCoordinates(Point.GetWorldPosition());
         Vector2 mouseDisplacement = e.Position - nodeScreenPosition;
-        _velocity += new Vec2Double(mouseDisplacement.X, mouseDisplacement.Y);
+        _velocity += new Vec2Double(mouseDisplacement.X, mouseDisplacement.Y);*/
     }
 
     private void ManeuverNode_MouseClickDown(object? sender, MouseEventArgs e)
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
         SDecimal mouseDistanceSquared = (Point.GetWorldPosition() - mouseWorldPosition).MagnitudeSquared();
 
@@ -48,7 +48,7 @@ public class ManeuverNode : IGameDrawable
             _minMouseDistanceToNode = mouseDistanceSquared;
             float screenMouseDistanceToOrbit = camera.ConvertToScreenDistance(SDecimal.Sqrt(mouseDistanceSquared));
             SelectedNode = screenMouseDistanceToOrbit < 10 ? this : null;
-        }
+        }*/
     }
 
     public KeplerOrbit GenerateAppliedKeplerOrbit(SDecimal currentTime)
@@ -64,7 +64,7 @@ public class ManeuverNode : IGameDrawable
 
     public void Draw()
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
 
         Color nodeColour = this == SelectedNode ? Color.Chartreuse : Color.GreenYellow;
@@ -74,7 +74,7 @@ public class ManeuverNode : IGameDrawable
         Vector2 nodeHandleScreenOffset = (Vector2)_velocity.Normalize() * float.Log10((float)_velocity.Magnitude()) * 10;
         graphicsDevice.DrawLineR(nodeScreenPosition, nodeHandleScreenOffset, nodeColour);
         graphicsDevice.DrawText(OrbitGame.DefaultFont, ((double)_velocity.Magnitude()).ToString("N0"),
-            nodeScreenPosition + nodeHandleScreenOffset, new Vector2(0.5f), 0, nodeColour);
+            nodeScreenPosition + nodeHandleScreenOffset, new Vector2(0.5f), 0, nodeColour);*/
     }
 
     public void DrawCollider()

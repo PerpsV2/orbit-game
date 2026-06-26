@@ -9,8 +9,8 @@ public static class Options
 {
     // initial states
     public static readonly (int width, int height) ScreenSize = (800, 600);
-    public static readonly SDecimal DefaultZoomScale = new(1);
-    public static readonly SDecimal DefaultTimeStep = 1;
+    public static readonly qQEngine.SDecimal DefaultZoomScale = new(0);
+    public static readonly qQEngine.SDecimal DefaultTimeStep = 1;
     
     // debug options
     public static readonly bool EnablePhysics = true;
@@ -46,7 +46,7 @@ public static class Options
     public static readonly Keys FastForwardKey = Keys.T;
     public static readonly Keys ChangeCameraSchemeKey = Keys.C;
 
-    public static readonly Color BackgroundColour = Color.Black;
+    public static readonly Color BackgroundColour = new(100, 100, 100);
 
     public const double EaseFastForwardStartTime = 0.2;
     public const double EaseFastForwardEndTime = 0.2;

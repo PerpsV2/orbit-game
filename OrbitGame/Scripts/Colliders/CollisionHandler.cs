@@ -52,7 +52,7 @@ public class CollisionHandler
             body.Position += c.PenetrationVector;
         }
 
-        if (Options.EnablePhysicsCollisionDebug)
+        /*if (Options.EnablePhysicsCollisionDebug)
             DrawDebug.Add(() => {
                 var g = OrbitGame.Graphics;
                 var cam = OrbitGame.Camera;
@@ -63,7 +63,7 @@ public class CollisionHandler
                     g.SD_DrawPoint(cam, body.Position + point, Color.Red);
                 g.SD_DrawLineR(cam, body.Position + cPr, relV, Color.Yellow);
                 g.SD_DrawLineR(cam, body.Position + cPr, cNormal * (j / body.Mass), Color.Orange);
-            });
+            });*/
     }
     
     public static void ResolvePhysicsCollision(Body reference, Body incident)
@@ -147,7 +147,7 @@ public class CollisionHandler
             else if (incidentCollider.Fixed) reference.Position += c1.PenetrationVector;
         }
 
-        if (Options.EnablePhysicsCollisionDebug)
+        /*if (Options.EnablePhysicsCollisionDebug)
             DrawDebug.Add(() => {
                 var g = OrbitGame.Graphics;
                 var cam = OrbitGame.Camera;
@@ -158,7 +158,7 @@ public class CollisionHandler
                     g.SD_DrawPoint(cam, reference.Position + point, Color.Red);
                 g.SD_DrawLineR(cam, reference.Position + cPr, relV, Color.Yellow);
                 g.SD_DrawLineR(cam, reference.Position + cPr, cNormal * (j / reference.Mass), Color.Orange);
-            });
+            });*/
     }
 
     public static void BodyPlanetTerrainCollision(Body reference, Body incident)

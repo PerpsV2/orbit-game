@@ -136,6 +136,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "MonoGame.Framework.DesktopGL": {
+              "target": "Package",
+              "version": "[3.8.4.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

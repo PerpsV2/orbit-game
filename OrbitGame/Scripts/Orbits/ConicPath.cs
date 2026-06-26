@@ -138,7 +138,7 @@ public class ConicPath
     
     private void KeplerOrbitPath_MouseHover(object? sender, MouseEventArgs e)
     {
-        if (!_onScreen || !MouseDetectionEnabled) return;
+        /*if (!_onScreen || !MouseDetectionEnabled) return;
         Camera camera = OrbitGame.Camera;
         Vec2<SDecimal> mouseWorldPosition = camera.ConvertToWorldCoordinates(e.Position);
         double closestOrbitPointTrueAnomaly = GetClosestOrbitPoint(
@@ -157,7 +157,7 @@ public class ConicPath
                 else HoverPoint = null;
             }
             else HoverPoint = null;
-        }
+        }*/
     }
 
     private void KeplerOrbitPath_MouseDown(object? sender, MouseEventArgs e)
@@ -169,7 +169,7 @@ public class ConicPath
 
     private void DrawSelectedOrbitPoint(KeplerOrbit orbit, Color colour)
     {
-        Camera camera = OrbitGame.Camera;
+        /*Camera camera = OrbitGame.Camera;
         IGraphicsHandler graphicsDevice = OrbitGame.Graphics;
         
         if (HoverPoint != null)
@@ -189,12 +189,12 @@ public class ConicPath
                 Vec2<SDecimal> orbitPointPosition = orbit.Parent.Position + orbitalPosition;
                 graphicsDevice.SD_DrawPoint(camera, orbitPointPosition, Color.Red);
             }
-        }
+        }*/
     }
 
     public void Draw()
     {
-        if (Orbit == null)
+        /*if (Orbit == null)
         {
             _onScreen = false;
             return;
@@ -252,7 +252,7 @@ public class ConicPath
             Vector2 end = camera.ConvertToScreenCoordinates(orbit.GetOrbitPositionFromWorldAngle(maxAngle) + orbit.Parent.Position);
             graphics.DrawLine(start, end, _colour);
             return;
-        }*/
+        }#1#
 
         float drawnStartAngle = 0;
         float drawnEndAngle = (float)Math.Tau;
@@ -285,6 +285,6 @@ public class ConicPath
             { "TexelSize", new Vector2(0.5f, 0.5f) }
         }, Effects.OrbitEffect);
 
-        DrawSelectedOrbitPoint(orbit, _colour);
+        DrawSelectedOrbitPoint(orbit, _colour);*/
     }
 }

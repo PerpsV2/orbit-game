@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -19,6 +20,11 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawLineCall> DrawLineCalls = [];
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
+
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, Color colour)
+    {
+        throw new NotImplementedException();
+    }
     
     public void DrawPoly(List<Vector2> points, Color colour)
     {
