@@ -10,23 +10,47 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
 {
     private GraphicsDevice GraphicsDevice => spriteBatch.GraphicsDevice;
     
-    private static readonly CircularMesh CircleMesh = new ();
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, Color colour)
+    private static readonly CircularMesh CircleMesh = new();
+    private static readonly ScreenMesh ScreenMesh = new();
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
     {
-        foreach (var occluder in body.Occluder.Occluders)
-        {
-            DrawCircle(camera.ConvertToScreenCoordinates(occluder.LocalPosition) + 
-                       camera.ConvertToScreenCoordinates(body.Position), 
-                camera.ConvertToScreenDistance(occluder.Radius), colour);
-        }
+        Vector2 lightOrigin = camera.ConvertToScreenCoordinates(body.Position + emitterOffset);
+        float distanceScale = 1 / camera.ConvertToScreenDistance(1);
+        Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object> {
+            {"Colour", Color.White.ToVector4() * (float)body.Luminosity},
+            {"LightCenter", lightOrigin},
+            {"LightRadius", camera.ConvertToScreenDistance(1)},
+            {"DistanceScale", distanceScale},
+            {"ScreenWidth", Options.ScreenSize.width},
+            {"ScreenHeight", Options.ScreenSize.height},
+            {"MaskTexture", occlusionMask},
+            {"OccluderCenter", camera.ConvertToScreenCoordinates(body.Position + new qQEngine.Vec2(2, 2))},
+            {"OccluderRadius", camera.ConvertToScreenDistance(0.5)}
+        }, effect);
     }
 
     public void DrawCircle(Vector2 center, float radius, Color colour)
     {
         Matrix transform = Matrix.CreateScale(radius, radius, 1) *
                            Matrix.CreateTranslation(new Vector3(center.X, center.Y, 0));
-        Effect effect = Effects.CircleEffect ?? throw new NullReferenceException("Effect not initialized yet");;
+        Effect effect = Effects.CircleEffect ?? throw new NullReferenceException("Effect not initialized yet");
         DrawMesh(CircleMesh, transform, new Dictionary<string, object>{{"Colour", colour.ToVector4()}}, effect);
+    }
+
+    public void DrawLighting(Vector2 lightOrigin, float distanceScale)
+    {
+        RenderTarget2D lightingMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
+        GraphicsDevice.SetRenderTarget(lightingMask);
+        spriteBatch.Begin();
+        spriteBatch.End();
+        Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        {
+            {"Colour", Color.Red.ToVector4()},
+            {"LightOrigin", lightOrigin},
+            {"DistanceScale", distanceScale}
+        }, effect);
     }
 
     public void DrawPoly(List<Vector2> points, Color colour)

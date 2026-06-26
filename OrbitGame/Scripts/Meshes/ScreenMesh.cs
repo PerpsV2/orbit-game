@@ -18,9 +18,9 @@ public class ScreenMesh : IMesh
         int screenHeight = Options.ScreenSize.height;
         VertexPositionTexture[] vertices = [
             new (new Vector3(0, 0, 0), new Vector2(0, 0)),
-            new (new Vector3(0, screenHeight, 0), new Vector2(0, screenHeight)),
-            new (new Vector3(screenWidth, 0, 0), new Vector2(screenWidth, 0)),
-            new (new Vector3(screenWidth, screenHeight, 0), new Vector2(screenWidth, screenHeight)),
+            new (new Vector3(0, screenHeight, 0), new Vector2(0, 1)),
+            new (new Vector3(screenWidth, 0, 0), new Vector2(1, 0)),
+            new (new Vector3(screenWidth, screenHeight, 0), new Vector2(1, 1)),
         ];
 
         int[] indices = [0, 1, 2, 2, 1, 3];

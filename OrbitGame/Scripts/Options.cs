@@ -24,7 +24,7 @@ public static class Options
 
     public static readonly double CamMoveSpeed = 1;
     public static readonly double CamRotateSpeed = 1;
-    public static readonly double CamZoomSpeed = 0.05;
+    public static readonly double CamZoomSpeed = 4;
     
     public static readonly Keys MoveUpKey = Keys.Up;
     public static readonly Keys MoveDownKey = Keys.Down;
@@ -46,7 +46,7 @@ public static class Options
     public static readonly Keys FastForwardKey = Keys.T;
     public static readonly Keys ChangeCameraSchemeKey = Keys.C;
 
-    public static readonly Color BackgroundColour = new(100, 100, 100);
+    public static readonly Color BackgroundColour = Color.Black;
 
     public const double EaseFastForwardStartTime = 0.2;
     public const double EaseFastForwardEndTime = 0.2;

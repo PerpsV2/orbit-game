@@ -21,11 +21,16 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
 
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, Color colour)
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
     {
         throw new NotImplementedException();
     }
-    
+
+    public void DrawCircle(Vector2 center, float radius, Color colour)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DrawPoly(List<Vector2> points, Color colour)
     {
         DrawPolyCalls.Add(new DrawPolyCall(points, colour));

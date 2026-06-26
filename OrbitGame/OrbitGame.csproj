@@ -33,6 +33,7 @@
     <ItemGroup>
       <ClCompile Include="Content\effects\circleEffect.fx" />
       <ClCompile Include="Content\effects\defaultEffect.fx" />
+      <ClCompile Include="Content\effects\lightingEffect.fx" />
       <ClCompile Include="Content\effects\orbitEffect.fx" />
       <ClCompile Include="Content\effects\terrainEffect.fx" />
     </ItemGroup>

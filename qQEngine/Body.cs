@@ -10,6 +10,7 @@ public class Body(string identifier, SpatialInfo spatialInfo)
 {
     public SDecimal Mass { get; set; }
     public SDecimal Charge { get; set; }
+    public SDecimal Luminosity { get; set; }
     public CompoundOccluder Occluder { get; set; }
     
     /// <summary>

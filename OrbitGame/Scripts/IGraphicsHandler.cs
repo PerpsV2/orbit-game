@@ -6,7 +6,8 @@ namespace OrbitGame;
 
 public interface IGraphicsHandler
 {
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, Color colour);
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset);
+    public void DrawCircle(Vector2 center, float radius, Color colour);
     public void DrawPoly(List<Vector2> points, Color colour);
     public void DrawPath(IEnumerable<Vector2> points, Color colour);
     public void SD_DrawPath(Camera camera, IEnumerable<Vec2<SDecimal>> points, Color colour);

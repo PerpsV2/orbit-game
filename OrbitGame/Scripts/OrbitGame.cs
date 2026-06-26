@@ -21,6 +21,7 @@ public static class Effects
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
+    public static Effect? LightingEffect;
 }
 
 public class OrbitGame : Game
@@ -80,6 +81,8 @@ public class OrbitGame : Game
         _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+        IsFixedTimeStep = true;
+        TargetElapsedTime = TimeSpan.FromSeconds(1d / 180d);
     }
     
     public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
@@ -113,8 +116,11 @@ public class OrbitGame : Game
             position: new Vec2(),
             velocity: new Vec2()
         ));
+        testBody.Luminosity = 10;
         testBody.Occluder = new CompoundOccluder();
-        testBody.Occluder.Occluders.Add(new CircularOccluder(1, Vec2.Zero));
+        testBody.Occluder.Occluders.Add(new CircularOccluder(200, Vec2.Zero));
+        testBody.Occluder.Occluders.Add(new CircularOccluder(1, new Vec2(1, 1)));
+        testBody.Occluder.IsEmitter = true;
 
         #endregion
         
@@ -124,8 +130,8 @@ public class OrbitGame : Game
         base.Initialize();
     }
 
-    private ScreenMesh _screenMesh;
-
+    private RenderTarget2D _occlusionMask;
+    private RenderTarget2D _lightingMask;
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -139,9 +145,11 @@ public class OrbitGame : Game
         Effects.CircleEffect.Parameters["Projection"].SetValue(projection);
         Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
         Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
-            
-        _screenMesh = new ScreenMesh();
-        _screenMesh.GenerateBuffers(GraphicsDevice);
+        Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
+        Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
+
+        _occlusionMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
+        _lightingMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
         
         DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
     }
@@ -153,6 +161,7 @@ public class OrbitGame : Game
         MouseHandler.HandleMouseEvents();
         
         qQEngine.SDecimal camSpeed = Camera.Height * Options.CamMoveSpeed * dt;
+        qQEngine.SDecimal zoomSpeed = Options.CamZoomSpeed * dt;
         KeyboardState keyboardState = Keyboard.GetState();
 
         if (keyboardState.IsKeyDown(Options.FocusKey))
@@ -172,12 +181,17 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.MoveLeftKey)) Camera.MovePerpendicular(-camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveRightKey)) Camera.MovePerpendicular(camSpeed);
 
-        if (keyboardState.IsKeyDown(Options.ZoomOutKey)) Camera.ScaleZoom(1 + Options.CamZoomSpeed);
-        if (keyboardState.IsKeyDown(Options.ZoomInKey)) Camera.ScaleZoom(1 - Options.CamZoomSpeed);
+        if (keyboardState.IsKeyDown(Options.ZoomOutKey)) Camera.ScaleZoom(1 + zoomSpeed);
+        if (keyboardState.IsKeyDown(Options.ZoomInKey)) Camera.ScaleZoom(1 - zoomSpeed);
 
         float camRotateSpeed = (float)(Options.CamRotateSpeed * dt);
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
+
+        if (keyboardState.IsKeyDown(Keys.I)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(0, 1) * dt;
+        if (keyboardState.IsKeyDown(Keys.J)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(1, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.K)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(0, 1) * dt;
+        if (keyboardState.IsKeyDown(Keys.L)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(1, 0) * dt;
         
         _lastKeyboardState = keyboardState;
     }
@@ -205,11 +219,34 @@ public class OrbitGame : Game
         RasterizerState rasterizerState = new RasterizerState();
         rasterizerState.CullMode = CullMode.None;
         GraphicsDevice.RasterizerState = rasterizerState;
-
-        GraphicsDevice.Clear(Options.BackgroundColour);
-
+        
+        GraphicsDevice.SetRenderTarget(_occlusionMask);
+        GraphicsDevice.Clear(Color.Transparent);
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-
+        foreach (var body in Bodies)
+        {
+            foreach (var occluder in body.Occluder.Occluders)
+            {
+                Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(body.Position + occluder.LocalPosition),
+                    Camera.ConvertToScreenDistance(occluder.Radius), Color.White);
+            }
+        }
+        _spriteBatch.End();
+        
+        GraphicsDevice.SetRenderTarget(_lightingMask);
+        GraphicsDevice.Clear(Color.Transparent);
+        GraphicsDevice.RasterizerState = rasterizerState;
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+        foreach (var body in Bodies)
+        {
+            Graphics.DrawBody(Camera, body, _occlusionMask, Color.Black, Vec2.Zero);
+        }
+        _spriteBatch.End();
+        
+        GraphicsDevice.SetRenderTarget(null);
+        GraphicsDevice.Clear(Options.BackgroundColour);
+        GraphicsDevice.RasterizerState = rasterizerState;
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
         if (Options.DisplayFPS)
             _spriteBatch.DrawString(DefaultFont, GameState.FramesPerSecond.ToString(), Vector2.Zero, Color.White);
         
@@ -225,10 +262,15 @@ public class OrbitGame : Game
         }
         
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
-
+        
+        _spriteBatch.Draw(_lightingMask, Vector2.Zero, Color.White);
         foreach (var body in Bodies)
         {
-            Graphics.DrawBody(Camera, body, Color.Black);
+            foreach (var occluder in body.Occluder.Occluders)
+            {
+                Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(body.Position + occluder.LocalPosition),
+                    Camera.ConvertToScreenDistance(occluder.Radius), Color.Black);
+            }
         }
         
         DrawDebug.Draw();
