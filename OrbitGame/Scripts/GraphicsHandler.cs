@@ -30,6 +30,11 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         }, effect);
     }
 
+    public void DrawScreenMesh(Dictionary<string, object> shaderParameters, Effect? effect)
+    {
+        DrawMesh(ScreenMesh, Matrix.Identity, shaderParameters, effect);
+    }
+
     public void DrawCircle(Vector2 center, float radius, Color colour)
     {
         Matrix transform = Matrix.CreateScale(radius, radius, 1) *

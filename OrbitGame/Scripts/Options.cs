@@ -9,7 +9,7 @@ public static class Options
 {
     // initial states
     public static readonly (int width, int height) ScreenSize = (800, 600);
-    public static readonly qQEngine.SDecimal DefaultZoomScale = new(0);
+    public static readonly qQEngine.SDecimal DefaultZoomScale = new(-1);
     public static readonly qQEngine.SDecimal DefaultTimeStep = 1;
     
     // debug options

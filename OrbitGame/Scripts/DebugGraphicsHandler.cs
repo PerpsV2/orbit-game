@@ -76,6 +76,11 @@ public class DebugGraphicsHandler : IGraphicsHandler
         DrawPoint(camera.ConvertToScreenCoordinates(position), colour);
     }
 
+    public void DrawScreenMesh(Dictionary<string, object> shaderParameters, Effect? effect)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DrawMesh(IMesh mesh, Matrix transform, Dictionary<string, object> shaderParameters, Effect? effect)
     {
         DrawMeshCalls.Add(new DrawMeshCall(mesh, transform, shaderParameters));

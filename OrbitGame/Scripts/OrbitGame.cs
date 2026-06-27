@@ -22,6 +22,7 @@ public static class Effects
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
     public static Effect? LightingEffect;
+    public static Effect? GaussianBlurEffect;
 }
 
 public class OrbitGame : Game
@@ -68,17 +69,16 @@ public class OrbitGame : Game
         /// </summary>
         public static int FramesPerSecond;
     }
-    
-    private GraphicsDeviceManager _graphics;
+
     private SpriteBatch _spriteBatch;
 
 #pragma warning disable CS8618, CS9264
     public OrbitGame()
 #pragma warning restore CS8618, CS9264
     {
-        _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
-        _graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
+        GraphicsDeviceManager graphics = new GraphicsDeviceManager(this);
+        graphics.PreferredBackBufferWidth = Options.ScreenSize.width;
+        graphics.PreferredBackBufferHeight = Options.ScreenSize.height;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         IsFixedTimeStep = true;
@@ -147,9 +147,11 @@ public class OrbitGame : Game
         Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
         Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
         Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
+        Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
+        Effects.GaussianBlurEffect.Parameters["Projection"].SetValue(projection);
 
         _occlusionMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
-        _lightingMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
+        _lightingMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
         
         DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
     }
@@ -263,15 +265,10 @@ public class OrbitGame : Game
         
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
-        _spriteBatch.Draw(_lightingMask, Vector2.Zero, Color.White);
-        foreach (var body in Bodies)
-        {
-            foreach (var occluder in body.Occluder.Occluders)
-            {
-                Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(body.Position + occluder.LocalPosition),
-                    Camera.ConvertToScreenDistance(occluder.Radius), Color.Black);
-            }
-        }
+        Graphics.DrawScreenMesh(new Dictionary<string, object> {
+            {"SpriteTexture", _lightingMask},
+            {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
+        }, Effects.GaussianBlurEffect);
         
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();

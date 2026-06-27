@@ -7,7 +7,7 @@
     #define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-#define SAMPLES 4
+#define SAMPLES 8
 #define TAU 6.28318
 
 matrix Projection;
@@ -76,19 +76,18 @@ float Rand(float2 uv)
 float4 BasicColourPS(VertexShaderOutput input) : COLOR
 {
     float4 maskColour = tex2D(MaskTextureSampler, input.TexCoords);
-    float rand = Rand(input.TexCoords);
     float4 result = float4(0, 0, 0, 0);
+    float rand = Rand(input.TexCoords);
     for (int i = 0; i < SAMPLES; i++) {
         float2 lightOrigin = LightCenter + float2(LightRadius * cos(rand * TAU), LightRadius * sin(rand * TAU));
         float2 diffVector = float2(input.TexCoords.x * ScreenWidth, input.TexCoords.y * ScreenHeight) - lightOrigin;
         float distance = length(diffVector);
         float2 direction = diffVector / distance;
-        float4 baseColour = Colour / pow(distance * DistanceScale, 2) / SAMPLES;
         float occlusion = CalculateOcclusion(lightOrigin, direction, distance);
-        result += float4(baseColour.r, baseColour.g, baseColour.b, baseColour.a) * occlusion;
-        rand = Rand(input.TexCoords * rand);
+        result += Colour * occlusion / SAMPLES / pow(distance * DistanceScale, 2);
+        rand += TAU / SAMPLES;
     }
-    return float4(result.r, result.g, result.b, result.a) * maskColour.a;
+    return float4(saturate(result.r), saturate(result.g), saturate(result.b), saturate(result.a)) * maskColour.a;
 }
 
 technique BasicColorDrawing
