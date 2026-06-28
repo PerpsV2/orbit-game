@@ -21,7 +21,7 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
 
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, qQEngine.Body[] occluders, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
     {
         throw new NotImplementedException();
     }

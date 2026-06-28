@@ -118,13 +118,24 @@ public class OrbitGame : Game
         ));
         testBody.Luminosity = 10;
         testBody.Occluder = new CompoundOccluder();
-        testBody.Occluder.Occluders.Add(new CircularOccluder(200, Vec2.Zero));
-        testBody.Occluder.Occluders.Add(new CircularOccluder(1, new Vec2(1, 1)));
+        testBody.Occluder.Occluders.Add(new CircularOccluder(1, new Vec2(2, 2)));
+        testBody.Occluder.Occluders.Add(new CircularOccluder(3, new Vec2(1, 1)));
         testBody.Occluder.IsEmitter = true;
-
+        testBody.Occluder.Colour = Color.Red;
+        
+        qQEngine.Body testBody2 = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
+            position: new Vec2(5, 5),
+            velocity: new Vec2()
+        ));
+        testBody2.Luminosity = 10;
+        testBody2.Occluder = new CompoundOccluder();
+        testBody2.Occluder.Occluders.Add(new CircularOccluder(1, new Vec2(10, 10)));
+        testBody2.Occluder.IsEmitter = true;
+        testBody2.Occluder.Colour = Color.Green;
         #endregion
         
         Bodies.Add(testBody);
+        Bodies.Add(testBody2);
         Camera.Focus();
 
         base.Initialize();
@@ -190,10 +201,15 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
-        if (keyboardState.IsKeyDown(Keys.I)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(0, 1) * dt;
-        if (keyboardState.IsKeyDown(Keys.J)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(1, 0) * dt;
-        if (keyboardState.IsKeyDown(Keys.K)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(0, 1) * dt;
-        if (keyboardState.IsKeyDown(Keys.L)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(1, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.I)) Bodies[0].Occluder.Occluders[0].LocalPosition += new Vec2(0, 5) * dt;
+        if (keyboardState.IsKeyDown(Keys.J)) Bodies[0].Occluder.Occluders[0].LocalPosition -= new Vec2(5, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.K)) Bodies[0].Occluder.Occluders[0].LocalPosition -= new Vec2(0, 5) * dt;
+        if (keyboardState.IsKeyDown(Keys.L)) Bodies[0].Occluder.Occluders[0].LocalPosition += new Vec2(5, 0) * dt;
+        
+        if (keyboardState.IsKeyDown(Keys.T)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(0, 5) * dt;
+        if (keyboardState.IsKeyDown(Keys.F)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(5, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.G)) Bodies[0].Occluder.Occluders[1].LocalPosition -= new Vec2(0, 5) * dt;
+        if (keyboardState.IsKeyDown(Keys.H)) Bodies[0].Occluder.Occluders[1].LocalPosition += new Vec2(5, 0) * dt;
         
         _lastKeyboardState = keyboardState;
     }
@@ -223,25 +239,27 @@ public class OrbitGame : Game
         GraphicsDevice.RasterizerState = rasterizerState;
         
         GraphicsDevice.SetRenderTarget(_occlusionMask);
-        GraphicsDevice.Clear(Color.Transparent);
+        GraphicsDevice.Clear(Color.White);
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
         foreach (var body in Bodies)
         {
             foreach (var occluder in body.Occluder.Occluders)
             {
-                Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(body.Position + occluder.LocalPosition),
-                    Camera.ConvertToScreenDistance(occluder.Radius), Color.White);
+                Graphics.DrawCircle(
+                    Camera.ConvertToScreenCoordinates(body.Position + occluder.LocalPosition),
+                    Camera.ConvertToScreenDistance(occluder.Radius), Color.White
+                );
             }
         }
         _spriteBatch.End();
         
         GraphicsDevice.SetRenderTarget(_lightingMask);
-        GraphicsDevice.Clear(Color.Transparent);
+        GraphicsDevice.Clear(Color.Black);
         GraphicsDevice.RasterizerState = rasterizerState;
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
         foreach (var body in Bodies)
         {
-            Graphics.DrawBody(Camera, body, _occlusionMask, Color.Black, Vec2.Zero);
+            Graphics.DrawBody(Camera, body, Bodies.ToArray(), _occlusionMask, body.Occluder.Colour, Vec2.Zero);
         }
         _spriteBatch.End();
         

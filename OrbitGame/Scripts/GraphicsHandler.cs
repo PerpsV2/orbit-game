@@ -12,21 +12,36 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     
     private static readonly CircularMesh CircleMesh = new();
     private static readonly ScreenMesh ScreenMesh = new();
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
+    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, qQEngine.Body[] occluders,
+        RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
     {
+        int numOccluders = 0;
+        List<Vector2> occluderCenters = new List<Vector2>();
+        List<float> occluderRadii = new List<float>();
+        foreach (var b in occluders)
+        {
+            foreach (var occluder in b.Occluder.Occluders)
+            {
+                occluderCenters.Add(camera.ConvertToScreenCoordinates(b.Position + occluder.LocalPosition));
+                occluderRadii.Add(camera.ConvertToScreenDistance(occluder.Radius));
+                numOccluders++;
+            }
+        }
+
         Vector2 lightOrigin = camera.ConvertToScreenCoordinates(body.Position + emitterOffset);
         float distanceScale = 1 / camera.ConvertToScreenDistance(1);
         Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object> {
-            {"Colour", Color.White.ToVector4() * (float)body.Luminosity},
+            {"Colour", colour.ToVector4() * (float)body.Luminosity},
             {"LightCenter", lightOrigin},
             {"LightRadius", camera.ConvertToScreenDistance(1)},
             {"DistanceScale", distanceScale},
             {"ScreenWidth", Options.ScreenSize.width},
             {"ScreenHeight", Options.ScreenSize.height},
             {"MaskTexture", occlusionMask},
-            {"OccluderCenter", camera.ConvertToScreenCoordinates(body.Position + new qQEngine.Vec2(2, 2))},
-            {"OccluderRadius", camera.ConvertToScreenDistance(0.5)}
+            {"OccluderCenters", occluderCenters.ToArray()},
+            {"OccluderRadii", occluderRadii.ToArray()},
+            {"Occluders", numOccluders}
         }, effect);
     }
 

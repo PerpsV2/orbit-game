@@ -9,6 +9,7 @@
 
 #define SAMPLES 8
 #define TAU 6.28318
+#define MAX_OCCLUDERS 8
 
 matrix Projection;
 matrix World;
@@ -26,8 +27,9 @@ sampler2D MaskTextureSampler = sampler_state
     Texture = <MaskTexture>;
 };
 
-float2 OccluderCenter;
-float OccluderRadius;
+float4 OccluderCenters[MAX_OCCLUDERS];
+float4 OccluderRadii[MAX_OCCLUDERS];
+int Occluders;
 
 struct VertexShaderInput
 {
@@ -60,7 +62,11 @@ float CalculateOcclusion(float2 origin, float2 direction, float distance)
 {
     float2 ray = origin;
     while (true) {
-        float sdfDistance = SDFCircle(ray, OccluderCenter, OccluderRadius);
+        float sdfDistance = SDFCircle(ray, OccluderCenters[0], OccluderRadii[0]);
+        for (int i = 1; i < Occluders; i++) 
+        {
+            sdfDistance = min(sdfDistance, SDFCircle(ray, OccluderCenters[i], OccluderRadii[i]));
+        }
         if (sdfDistance <= 0) return 0;
         ray += direction * sdfDistance;
         if (length(ray - origin) >= distance) return 1;
@@ -70,7 +76,7 @@ float CalculateOcclusion(float2 origin, float2 direction, float distance)
 
 float Rand(float2 uv)
 {
-    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453123);
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453123) / 6;
 }
 
 float4 BasicColourPS(VertexShaderOutput input) : COLOR
@@ -87,7 +93,7 @@ float4 BasicColourPS(VertexShaderOutput input) : COLOR
         result += Colour * occlusion / SAMPLES / pow(distance * DistanceScale, 2);
         rand += TAU / SAMPLES;
     }
-    return float4(saturate(result.r), saturate(result.g), saturate(result.b), saturate(result.a)) * maskColour.a;
+    return float4(saturate(result.r), saturate(result.g), saturate(result.b), saturate(result.a)) * maskColour;
 }
 
 technique BasicColorDrawing
