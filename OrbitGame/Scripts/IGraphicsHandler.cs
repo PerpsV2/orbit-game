@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using qQEngine;
 
 namespace OrbitGame;
 
 public interface IGraphicsHandler
 {
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, qQEngine.Body[] occluders, 
-        RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset);
+    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D occluderMask);
+    public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, qQEngine.IOccluder occluder, Color colour);
     public void DrawCircle(Vector2 center, float radius, Color colour);
     public void DrawPoly(List<Vector2> points, Color colour);
     public void DrawPath(IEnumerable<Vector2> points, Color colour);

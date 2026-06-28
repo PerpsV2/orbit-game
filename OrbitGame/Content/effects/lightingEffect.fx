@@ -9,27 +9,22 @@
 
 #define SAMPLES 8
 #define TAU 6.28318
-#define MAX_OCCLUDERS 8
 
 matrix Projection;
 matrix World;
-float4 Colour;
 
 float2 LightCenter;
-float LightRadius;
+float4 LightColour;
+//float LightRadius;
 float DistanceScale;
-float ScreenWidth;
-float ScreenHeight;
 
-texture2D MaskTexture;
-sampler2D MaskTextureSampler = sampler_state 
+float2 ScreenSize;
+
+texture2D OccluderMask;
+sampler2D OccluderMaskSampler = sampler_state 
 {
-    Texture = <MaskTexture>;
+    Texture = <OccluderMask>;
 };
-
-float4 OccluderCenters[MAX_OCCLUDERS];
-float4 OccluderRadii[MAX_OCCLUDERS];
-int Occluders;
 
 struct VertexShaderInput
 {
@@ -53,47 +48,11 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float SDFCircle(float2 pos, float2 center, float radius) 
+float4 MainPS(VertexShaderOutput input) : COLOR
 {
-    return length(pos - center) - radius;
-}
-
-float CalculateOcclusion(float2 origin, float2 direction, float distance) 
-{
-    float2 ray = origin;
-    while (true) {
-        float sdfDistance = SDFCircle(ray, OccluderCenters[0], OccluderRadii[0]);
-        for (int i = 1; i < Occluders; i++) 
-        {
-            sdfDistance = min(sdfDistance, SDFCircle(ray, OccluderCenters[i], OccluderRadii[i]));
-        }
-        if (sdfDistance <= 0) return 0;
-        ray += direction * sdfDistance;
-        if (length(ray - origin) >= distance) return 1;
-    }
-    return 0;
-}
-
-float Rand(float2 uv)
-{
-    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453123) / 6;
-}
-
-float4 BasicColourPS(VertexShaderOutput input) : COLOR
-{
-    float4 maskColour = tex2D(MaskTextureSampler, input.TexCoords);
-    float4 result = float4(0, 0, 0, 0);
-    float rand = Rand(input.TexCoords);
-    for (int i = 0; i < SAMPLES; i++) {
-        float2 lightOrigin = LightCenter + float2(LightRadius * cos(rand * TAU), LightRadius * sin(rand * TAU));
-        float2 diffVector = float2(input.TexCoords.x * ScreenWidth, input.TexCoords.y * ScreenHeight) - lightOrigin;
-        float distance = length(diffVector);
-        float2 direction = diffVector / distance;
-        float occlusion = CalculateOcclusion(lightOrigin, direction, distance);
-        result += Colour * occlusion / SAMPLES / pow(distance * DistanceScale, 2);
-        rand += TAU / SAMPLES;
-    }
-    return float4(saturate(result.r), saturate(result.g), saturate(result.b), saturate(result.a)) * maskColour;
+    float2 diffVector = float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter;
+    float distance = length(diffVector);
+    return saturate(LightColour / pow(distance * DistanceScale, 2));
 }
 
 technique BasicColorDrawing
@@ -101,6 +60,6 @@ technique BasicColorDrawing
     pass P0
     {
         VertexShader = compile VS_SHADERMODEL MainVS();
-        PixelShader = compile PS_SHADERMODEL BasicColourPS();
+        PixelShader = compile PS_SHADERMODEL MainPS();
     }
 };

@@ -2,5 +2,5 @@ namespace qQEngine;
 
 public interface IOccluder
 {
-    public Vec2 LocalPosition { get; set; }
+    public Vec2Double LocalPosition { get; set; }
 }

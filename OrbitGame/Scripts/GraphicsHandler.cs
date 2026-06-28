@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using qQEngine;
 
 namespace OrbitGame;
 
@@ -12,10 +13,20 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     
     private static readonly CircularMesh CircleMesh = new();
     private static readonly ScreenMesh ScreenMesh = new();
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, qQEngine.Body[] occluders,
-        RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
+    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D occluderMask)
     {
-        int numOccluders = 0;
+        Vector2 lightOrigin = camera.ConvertToScreenCoordinates(light.Position);
+        float distanceScale = 1 / camera.ConvertToScreenDistance(1);
+        Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        {
+            {"LightColour", light.Colour.ToVector4() * (float)light.Luminosity},
+            {"LightCenter", lightOrigin},
+            {"DistanceScale", distanceScale},
+            {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)}
+        }, effect);
+        
+        /*int numOccluders = 0;
         List<Vector2> occluderCenters = new List<Vector2>();
         List<float> occluderRadii = new List<float>();
         foreach (var b in occluders)
@@ -42,7 +53,14 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             {"OccluderCenters", occluderCenters.ToArray()},
             {"OccluderRadii", occluderRadii.ToArray()},
             {"Occluders", numOccluders}
-        }, effect);
+        }, effect);*/
+    }
+
+    public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, IOccluder occluder, Color colour)
+    {
+        if (occluder is CircularOccluder o)
+            DrawCircle(camera.ConvertToScreenCoordinates(position + o.LocalPosition), 
+                camera.ConvertToScreenDistance(o.Radius), colour);
     }
 
     public void DrawScreenMesh(Dictionary<string, object> shaderParameters, Effect? effect)

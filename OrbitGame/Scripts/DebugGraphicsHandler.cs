@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using qQEngine;
 
 namespace OrbitGame;
 
@@ -21,7 +22,12 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
 
-    public void DrawBody(qQEngine.Camera camera, qQEngine.Body body, qQEngine.Body[] occluders, RenderTarget2D occlusionMask, Color colour, qQEngine.Vec2 emitterOffset)
+    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D occluderMask)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, IOccluder occluder, Color colour)
     {
         throw new NotImplementedException();
     }

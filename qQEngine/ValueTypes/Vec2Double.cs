@@ -89,8 +89,8 @@ public readonly struct Vec2Double(double x, double y) : IEquatable<Vec2Double>
         => new(a.X * b, a.Y * b);
     public static Vec2Double operator /(Vec2Double a, double b)
         => new(a.X / b, a.Y / b);
-    public static Vec2 operator *(Vec2Double a, SDecimal b)
-        => new(a.X * b, a.Y * b);
+    public static Vec2Double operator *(Vec2Double a, SDecimal b)
+        => new((double)(a.X * b), (double)(a.Y * b));
     public static bool operator ==(Vec2Double left, Vec2Double right)
         => left.Equals(right);
     public static bool operator !=(Vec2Double left, Vec2Double right)

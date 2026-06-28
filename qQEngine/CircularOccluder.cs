@@ -2,7 +2,7 @@ namespace qQEngine;
 
 public class CircularOccluder : IOccluder
 {
-    public Vec2 LocalPosition { get; set; }
+    public Vec2Double LocalPosition { get; set; }
 
     public SDecimal Radius { get; set; }
     
@@ -11,7 +11,7 @@ public class CircularOccluder : IOccluder
         Radius = radius;
     }
 
-    public CircularOccluder(SDecimal radius, Vec2 position)
+    public CircularOccluder(SDecimal radius, Vec2Double position)
         : this(radius)
     {
         LocalPosition = position;
