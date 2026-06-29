@@ -22,6 +22,11 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
 
+    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, qQEngine.Body occluder)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D occluderMask)
     {
         throw new NotImplementedException();

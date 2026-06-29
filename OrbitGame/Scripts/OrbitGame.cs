@@ -21,6 +21,7 @@ public static class Effects
     public static Effect? DefaultEffect;
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
+    public static Effect? ShadowEffect;
     public static Effect? LightingEffect;
     public static Effect? GaussianBlurEffect;
 }
@@ -118,6 +119,10 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, qQEngine.Vec2Double.Zero));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(3, new qQEngine.Vec2Double(2, 2)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(7, 7)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1.2, new qQEngine.Vec2Double(5, -3)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1.5, new qQEngine.Vec2Double(3, 8)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(0.63, new qQEngine.Vec2Double(-4, -4)));
 
         qQEngine.Body secondOccluder = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
             position: new Vec2(5, 5), velocity: new Vec2()
@@ -126,7 +131,7 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(2, 2), velocity: new Vec2()
-        ), 100, new Color(255, 120, 100));
+        ), 1100, new Color(255, 120, 100));
         
         #endregion
         
@@ -140,8 +145,8 @@ public class OrbitGame : Game
         base.Initialize();
     }
 
-    private RenderTarget2D _occluderMask;
-    private RenderTarget2D _lightingMask;
+    private RenderTarget2D _shadowMask;
+    private RenderTarget2D _lightingRenderTarget;
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -155,13 +160,15 @@ public class OrbitGame : Game
         Effects.CircleEffect.Parameters["Projection"].SetValue(projection);
         Effects.OrbitEffect = Content.Load<Effect>("effects/orbitEffect");
         Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
+        Effects.ShadowEffect = Content.Load<Effect>("effects/shadowEffect");
+        Effects.ShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
         Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
         Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
         Effects.GaussianBlurEffect.Parameters["Projection"].SetValue(projection);
 
-        _occluderMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
-        _lightingMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
+        _shadowMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
+        _lightingRenderTarget = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
         
         DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
     }
@@ -231,25 +238,26 @@ public class OrbitGame : Game
         RasterizerState rasterizerState = new RasterizerState();
         rasterizerState.CullMode = CullMode.None;
         GraphicsDevice.RasterizerState = rasterizerState;
-        
-        GraphicsDevice.SetRenderTarget(_occluderMask);
-        GraphicsDevice.Clear(Color.White);
-        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-        foreach (var body in Bodies)
-            foreach (var occluder in body.Occluder.Occluders)
-                Graphics.DrawOccluder(Camera, body.Position, occluder, Color.Black);
-        _spriteBatch.End();
-        
-        GraphicsDevice.SetRenderTarget(_lightingMask);
-        GraphicsDevice.Clear(Color.Black);
-        GraphicsDevice.RasterizerState = rasterizerState;
-        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+
         foreach (var kinematicObject in KinematicObjects)
         {
             if (kinematicObject is CircularLight light)
-                Graphics.DrawLighting(Camera, light, _occluderMask);
+            {
+                GraphicsDevice.SetRenderTarget(_shadowMask);
+                GraphicsDevice.Clear(Color.White);
+                _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+                foreach (var body in Bodies)
+                    Graphics.DrawShadowMask(Camera, light, body);
+                _spriteBatch.End();
+                
+                GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
+                GraphicsDevice.Clear(Color.Black);
+                GraphicsDevice.RasterizerState = rasterizerState;
+                _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+                Graphics.DrawLighting(Camera, light, _shadowMask);
+                _spriteBatch.End();
+            }
         }
-        _spriteBatch.End();
         
         GraphicsDevice.SetRenderTarget(null);
         GraphicsDevice.Clear(Options.BackgroundColour);
@@ -272,7 +280,7 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _lightingMask},
+            {"SpriteTexture", _lightingRenderTarget},
             {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
         

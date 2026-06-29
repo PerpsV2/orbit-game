@@ -13,47 +13,37 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     
     private static readonly CircularMesh CircleMesh = new();
     private static readonly ScreenMesh ScreenMesh = new();
-    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D occluderMask)
+    
+    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, qQEngine.Body occluderBody)
     {
-        Vector2 lightOrigin = camera.ConvertToScreenCoordinates(light.Position);
-        float distanceScale = 1 / camera.ConvertToScreenDistance(1);
+        Effect effect = Effects.ShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        foreach (var occluder in occluderBody.Occluder.Occluders)
+        {
+            if (occluder is CircularOccluder o)
+            {
+                DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+                {
+                    { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+                    { "LightRadius", camera.ConvertToScreenDistance(3) },
+                    { "OccluderCenter", camera.ConvertToScreenCoordinates(occluderBody.Position + o.LocalPosition) },
+                    { "OccluderRadius", camera.ConvertToScreenDistance(o.Radius) },
+                    { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+                }, effect);
+            }
+        }
+    }
+
+    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask)
+    {
         Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
         {
             {"LightColour", light.Colour.ToVector4() * (float)light.Luminosity},
-            {"LightCenter", lightOrigin},
-            {"DistanceScale", distanceScale},
-            {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)}
+            {"LightCenter", camera.ConvertToScreenCoordinates(light.Position)},
+            {"DistanceScale", 1 / camera.ConvertToScreenDistance(1)},
+            {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)},
+            {"ShadowMask", shadowMask}
         }, effect);
-        
-        /*int numOccluders = 0;
-        List<Vector2> occluderCenters = new List<Vector2>();
-        List<float> occluderRadii = new List<float>();
-        foreach (var b in occluders)
-        {
-            foreach (var occluder in b.Occluder.Occluders)
-            {
-                occluderCenters.Add(camera.ConvertToScreenCoordinates(b.Position + occluder.LocalPosition));
-                occluderRadii.Add(camera.ConvertToScreenDistance(occluder.Radius));
-                numOccluders++;
-            }
-        }
-
-        Vector2 lightOrigin = camera.ConvertToScreenCoordinates(body.Position + emitterOffset);
-        float distanceScale = 1 / camera.ConvertToScreenDistance(1);
-        Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object> {
-            {"Colour", colour.ToVector4() * (float)body.Luminosity},
-            {"LightCenter", lightOrigin},
-            {"LightRadius", camera.ConvertToScreenDistance(1)},
-            {"DistanceScale", distanceScale},
-            {"ScreenWidth", Options.ScreenSize.width},
-            {"ScreenHeight", Options.ScreenSize.height},
-            {"MaskTexture", occlusionMask},
-            {"OccluderCenters", occluderCenters.ToArray()},
-            {"OccluderRadii", occluderRadii.ToArray()},
-            {"Occluders", numOccluders}
-        }, effect);*/
     }
 
     public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, IOccluder occluder, Color colour)
