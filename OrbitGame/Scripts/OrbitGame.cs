@@ -127,11 +127,14 @@ public class OrbitGame : Game
         qQEngine.Body secondOccluder = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
             position: new Vec2(5, 5), velocity: new Vec2()
         ));
-        secondOccluder.Occluder.Occluders.Add(new CircularOccluder(1, qQEngine.Vec2Double.Zero));
+        //secondOccluder.Occluder.Occluders.Add(new CircularOccluder(1, qQEngine.Vec2Double.Zero));
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(2, 2), velocity: new Vec2()
-        ), 1100, new Color(255, 120, 100));
+        ), 10000, new Color(255, 120, 100));
+        CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
+            position: new Vec2(200, 200), velocity: new Vec2()
+        ), 10000, new Color(120, 255, 100));
         
         #endregion
         
@@ -167,7 +170,7 @@ public class OrbitGame : Game
         Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
         Effects.GaussianBlurEffect.Parameters["Projection"].SetValue(projection);
 
-        _shadowMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
+        _shadowMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
         _lightingRenderTarget = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
         
         DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
@@ -207,10 +210,10 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.RotateLeftKey)) Camera.RotateBy(-camRotateSpeed);
         if (keyboardState.IsKeyDown(Options.RotateRightKey)) Camera.RotateBy(camRotateSpeed);
 
-        if (keyboardState.IsKeyDown(Keys.I)) Bodies[0].Position += new qQEngine.Vec2Double(0, 5) * dt;
-        if (keyboardState.IsKeyDown(Keys.J)) Bodies[0].Position -= new qQEngine.Vec2Double(5, 0) * dt;
-        if (keyboardState.IsKeyDown(Keys.K)) Bodies[0].Position -= new qQEngine.Vec2Double(0, 5) * dt;
-        if (keyboardState.IsKeyDown(Keys.L)) Bodies[0].Position += new qQEngine.Vec2Double(5, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.I)) Bodies[0].Position += new qQEngine.Vec2Double(0, 50) * dt;
+        if (keyboardState.IsKeyDown(Keys.J)) Bodies[0].Position -= new qQEngine.Vec2Double(50, 0) * dt;
+        if (keyboardState.IsKeyDown(Keys.K)) Bodies[0].Position -= new qQEngine.Vec2Double(0, 50) * dt;
+        if (keyboardState.IsKeyDown(Keys.L)) Bodies[0].Position += new qQEngine.Vec2Double(50, 0) * dt;
         
         _lastKeyboardState = keyboardState;
     }
@@ -251,7 +254,7 @@ public class OrbitGame : Game
                 _spriteBatch.End();
                 
                 GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
-                GraphicsDevice.Clear(Color.Black);
+                GraphicsDevice.Clear(Color.Transparent);
                 GraphicsDevice.RasterizerState = rasterizerState;
                 _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
                 Graphics.DrawLighting(Camera, light, _shadowMask);
@@ -280,7 +283,7 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _shadowMask},
+            {"SpriteTexture", _lightingRenderTarget},
             {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
         

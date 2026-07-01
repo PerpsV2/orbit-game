@@ -24,7 +24,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                 DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
                 {
                     { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
-                    { "LightRadius", camera.ConvertToScreenDistance(3) },
+                    { "LightRadius", camera.ConvertToScreenDistance(70) },
                     { "OccluderCenter", camera.ConvertToScreenCoordinates(occluderBody.Position + o.LocalPosition) },
                     { "OccluderRadius", camera.ConvertToScreenDistance(o.Radius) },
                     { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
