@@ -33,7 +33,8 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         }
     }
 
-    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask)
+    public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask,
+        RenderTarget2D occluderMask)
     {
         Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
@@ -42,7 +43,8 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             {"LightCenter", camera.ConvertToScreenCoordinates(light.Position)},
             {"DistanceScale", 1 / camera.ConvertToScreenDistance(1)},
             {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)},
-            {"ShadowMask", shadowMask}
+            {"ShadowMask", shadowMask},
+            {"OccluderMask", occluderMask}
         }, effect);
     }
 
