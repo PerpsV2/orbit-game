@@ -117,15 +117,15 @@ public class OrbitGame : Game
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
             position: new Vec2(), velocity: new Vec2()
         ));
-        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(12000, 0)));
-        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(12500, 10)));
-        /*for (int i = 0; i < 200; ++i)
+        //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(12000, 0)));
+        //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(12500, 10)));
+        for (int i = 0; i < 200; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 300 + 70;
-            multiOccluder.Occluder.Occluders.Add(new CircularOccluder(_rnd.NextDouble() * 30, 
+            multiOccluder.Occluder.Occluders.Add(new CircularOccluder(_rnd.NextDouble() * 3, 
                 qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
-        }*/
+        }
 
         qQEngine.Body secondOccluder = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
             position: new Vec2(5, 5), velocity: new Vec2()
@@ -134,10 +134,10 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(2, 2), velocity: new Vec2()
-        ), 10000000, new Color(255, 120, 100));
+        ), 10000, new Color(255, 120, 100));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(200, 200), velocity: new Vec2()
-        ), 10000000, new Color(120, 255, 100));
+        ), 10000, new Color(120, 255, 100));
         
         #endregion
         
@@ -247,16 +247,16 @@ public class OrbitGame : Game
         rasterizerState.CullMode = CullMode.None;
         
         GraphicsDevice.SetRenderTarget(_occluderMask);
-        GraphicsDevice.Clear(Color.Black);
+        GraphicsDevice.Clear(Color.White);
         GraphicsDevice.RasterizerState = rasterizerState;
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-        foreach (var body in Bodies)
+        /*foreach (var body in Bodies)
         foreach (var occluder in body.Occluder.Occluders)
             if (occluder is CircularOccluder o)
                 Graphics.DrawCircle(
                     Camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition),
                     Camera.ConvertToScreenDistance(o.Radius), Color.White
-                );
+                );*/
         _spriteBatch.End();
 
         foreach (var kinematicObject in KinematicObjects)

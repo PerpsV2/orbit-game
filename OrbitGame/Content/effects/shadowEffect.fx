@@ -9,6 +9,7 @@
 
 #define SAMPLES 10
 #define TAU 6.28318
+#define HPI 1.57079
 
 matrix Projection;
 matrix World;
@@ -52,20 +53,6 @@ float Rand(float2 uv)
     return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float CalculateOcclusionRay(float2 lightOrigin, float2 lightDestination) {
-    float2 ray = lightDestination;
-    float2 diffVector = lightDestination - lightOrigin;
-    float distance = length(diffVector);
-    float2 direction = diffVector / distance;
-    while (true) {
-        float sdfDistance = SDFCircle(ray, OccluderCenter, OccluderRadius);
-        if (sdfDistance <= 0) return 1;
-        ray -= direction * sdfDistance;
-        if (length(ray - lightDestination) >= distance) return 0;
-    }
-    return 1;
-}
-
 float Modulo(float left, float right) {
     return left - right * floor(left / right);
 }
@@ -88,10 +75,29 @@ float CalculateAngleIntervalIntersectionAmount(float2 interval1, float2 interval
     return d1 + d2 + d3 + d4;
 }
 
+float CalculateOccluderOcclusion(float2 pixel) 
+{
+    float m1 = (pixel.y - LightCenter.y) / (pixel.x - LightCenter.x);
+    float c1 = m1 * OccluderCenter.x - OccluderCenter.y;
+    float smallCircleRadius = OccluderRadius * sin(acos(abs(-m1 * pixel.x + pixel.y + c1) / (OccluderRadius * sqrt(m1 * m1 + 1))));
+    float m2 = - (pixel.x - LightCenter.x) / (pixel.y - LightCenter.y);
+    float c2 = m2 * OccluderCenter.x - OccluderCenter.y;
+    float g = sign(LightCenter.y - pixel.y) * (-m2 * pixel.x + pixel.y + c2) / (smallCircleRadius * sqrt(m2 * m2 + 1));
+    float a = acos(g);
+    float2 xzSurfacePosition = float2(length(OccluderCenter - LightCenter) + OccluderRadius * cos(a), OccluderRadius * sin(a));
+    float2 xzLightPosition = float2(0, 0);
+    float2 lightTangentAngles = CalculateTangentIntersectionAtanAngle(xzLightPosition, LightRadius, xzSurfacePosition);
+    float2 occluderTangentAngles = float2(Modulo(a - HPI, TAU), Modulo(a + HPI, TAU));
+    if (occluderTangentAngles.y < occluderTangentAngles.x) occluderTangentAngles.y += TAU;
+    float intersectionAngle = CalculateAngleIntervalIntersectionAmount(lightTangentAngles, occluderTangentAngles);
+    float lightConeAngle = lightTangentAngles.y - lightTangentAngles.x;
+    return intersectionAngle / lightConeAngle;
+}
+
 float CalculateOcclusion(float2 tex) 
 {
     float2 pixel = float2(tex.x * ScreenSize.x, tex.y * ScreenSize.y);
-    if (SDFCircle(pixel, OccluderCenter, OccluderRadius) <= 0) return 0;
+    if (SDFCircle(pixel, OccluderCenter, OccluderRadius) <= 0) return CalculateOccluderOcclusion(pixel);
     
     float2 lightOccluderDiff = OccluderCenter - LightCenter;
     float lightOccluderDist = length(lightOccluderDiff);
