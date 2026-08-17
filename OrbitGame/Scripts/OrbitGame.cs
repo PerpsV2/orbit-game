@@ -119,7 +119,7 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
-        for (int i = 0; i < 200; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 300 + 70;

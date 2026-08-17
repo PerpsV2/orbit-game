@@ -44,16 +44,6 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float csc(float a) 
-{
-    return 1.0 / sin(a);
-}
-
-float cot(float a) 
-{
-    return 1.0 / tan(a);
-}
-
 float CalculateAngleIntervalIntersectionAmount(float2 interval1, float2 interval2) {
     float d1 = max(0, min(TAU, min(interval1.y, interval2.y)) - max(interval1.x, interval2.x));
     float d2 = max(0, min(min(interval1.y, TAU), max(0, interval2.y - TAU)) - max(interval1.x, 0));
@@ -62,64 +52,44 @@ float CalculateAngleIntervalIntersectionAmount(float2 interval1, float2 interval
     return d1 + d2 + d3 + d4;
 }
 
-float CalculatePixelHeight(float2 pixel) {
-    float pixelOccluderDistance = length(OccluderCenter - pixel);
-    float pixelZ = 0;
-    if (pixelOccluderDistance < OccluderRadius)
-        pixelZ = 1.0001 * OccluderRadius * sin(acos(pixelOccluderDistance / OccluderRadius));
-    return pixelZ;
+float Mod(float value, float mod) 
+{
+    return value - mod * floor(value / mod);
 }
 
 float CalculateOcclusion(float2 tex) 
 {
     float2 pixel = float2(tex.x * ScreenSize.x, tex.y * ScreenSize.y);
-    float pixelOccluderDistance = length(OccluderCenter - pixel);
-    float pixelZ = 0;
-    if (pixelOccluderDistance < OccluderRadius)
-        pixelZ = 1.0001 * OccluderRadius * sin(acos(pixelOccluderDistance / OccluderRadius));
-    float3 lightPos = float3(LightCenter.x - pixel.x, LightCenter.y - pixel.y, -pixelZ);
-    float3 occluderPos = float3(OccluderCenter.x - pixel.x, OccluderCenter.y - pixel.y, -pixelZ);
     
-    if (length(lightPos) < LightRadius) return 0;
-    if (length(occluderPos) < OccluderRadius) return 1;
+    float2 occluderPosition = OccluderCenter - pixel;
+    float2 lightPosition = LightCenter - pixel;
     
-    float lightAngularRadius = asin(LightRadius / length(lightPos));
-    float lightSolidAngle = TAU * (1 - cos(lightAngularRadius));
-    float occluderAngularRadius = asin(OccluderRadius / length(occluderPos));
-    float occluderSolidAngle = TAU * (1 - cos(occluderAngularRadius));
+    float lightDistance = length(lightPosition);
+    float occluderDistance = length(occluderPosition);
     
-    float lightAzimuthAngle = atan2(lightPos.y, lightPos.x);
-    float lightAltitudeAngle = acos(lightPos.z / length(lightPos));
-    float occluderAzimuthAngle = atan2(occluderPos.y, occluderPos.x);
-    float occluderAltitudeAngle = acos(occluderPos.z / length(occluderPos));
+    if (lightDistance < occluderDistance) return 0;
+    if (occluderDistance < OccluderRadius) return 1;
     
-    float angleDifference = acos(
-        cos(lightAltitudeAngle) * cos(occluderAltitudeAngle) + 
-        sin(lightAltitudeAngle) * sin(occluderAltitudeAngle) * cos(lightAzimuthAngle - occluderAzimuthAngle)
-        );
+    float lightCenterAngle = atan2(lightPosition.y, lightPosition.x);
+    float occluderCenterAngle = atan2(occluderPosition.y, occluderPosition.x);
     
-    float s = 0.5 * (lightAngularRadius + occluderAngularRadius + angleDifference);
-    float k = sqrt((sin(s - lightAngularRadius) * sin(s - occluderAngularRadius) * sin(s - angleDifference)) / sin(s));
-    float A = 2 * atan(k / sin(s - lightAngularRadius));
-    float B = 2 * atan(k / sin(s - occluderAngularRadius));
-    float C = 2 * atan(k / sin(s - angleDifference));
-    float delta1 = A + B + C - PI;
-    float delta2 = A + B + C - PI;
-    float area1 = 2 * B * (1 - cos(lightAngularRadius));
-    float area2 = 2 * A * (1 - cos(occluderAngularRadius));
-    float eclipseSolidAngle = area1 + area2 - (delta1 + delta2);
+    float lightAngularRadius = asin(LightRadius / lightDistance);
+    float occluderAngularRadius = asin(OccluderRadius / occluderDistance);
     
-    if (angleDifference >= lightAngularRadius + occluderAngularRadius) return 0;
-    else if (angleDifference <= lightAngularRadius - occluderAngularRadius) 
-        return 1 - (lightSolidAngle - occluderSolidAngle) / lightSolidAngle;
-    else if (angleDifference <= occluderAngularRadius - lightAngularRadius) return 1;
-    else return 1 - (lightSolidAngle - eclipseSolidAngle) / lightSolidAngle;
+    float2 occluderInterval = float2(Mod(occluderCenterAngle - occluderAngularRadius, TAU), Mod(occluderCenterAngle + occluderAngularRadius, TAU));
+    if (occluderInterval.x > occluderInterval.y) occluderInterval.y += TAU;
+    
+    float2 lightInterval = float2(Mod(lightCenterAngle - lightAngularRadius, TAU), Mod(lightCenterAngle + lightAngularRadius, TAU));
+    if (lightInterval.x > lightInterval.y) lightInterval.y += TAU;
+    
+    float intersection = CalculateAngleIntervalIntersectionAmount(occluderInterval, lightInterval);
+    float occlusion = intersection / (lightInterval.y - lightInterval.x);
+    return occlusion;
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float occlusion = CalculateOcclusion(input.TexCoords);
-    float pixelZ = CalculatePixelHeight(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y));
     return float4(0, 0, 0, saturate(occlusion));
 }
 
