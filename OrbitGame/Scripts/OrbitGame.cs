@@ -87,7 +87,7 @@ public class OrbitGame : Game
     }
     
     public static IGraphicsHandler Graphics = new DebugGraphicsHandler();
-    public static qQEngine.Camera Camera = new("Camera", new qQEngine.SpatialInfo(new qQEngine.Vec2Double(12000, 10), 0),
+    public static qQEngine.Camera Camera = new("Camera", new qQEngine.SpatialInfo(new qQEngine.Vec2Double(1200, 0), 0),
         Options.ScreenSize.width * Options.DefaultZoomScale,
         Options.ScreenSize.height * Options.DefaultZoomScale
     );
@@ -117,8 +117,8 @@ public class OrbitGame : Game
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
             position: new Vec2(), velocity: new Vec2()
         ));
-        //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(12000, 0)));
-        //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(12500, 10)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
+        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
         for (int i = 0; i < 200; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
@@ -126,6 +126,7 @@ public class OrbitGame : Game
             multiOccluder.Occluder.Occluders.Add(new CircularOccluder(_rnd.NextDouble() * 3, 
                 qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
+        //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
         qQEngine.Body secondOccluder = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
             position: new Vec2(5, 5), velocity: new Vec2()
@@ -134,10 +135,10 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(2, 2), velocity: new Vec2()
-        ), 10000, new Color(255, 120, 100));
+        ), 100000, new Color(255, 120, 100));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(200, 200), velocity: new Vec2()
-        ), 10000, new Color(120, 255, 100));
+        ), 100000, new Color(120, 255, 100));
         
         #endregion
         
@@ -250,13 +251,13 @@ public class OrbitGame : Game
         GraphicsDevice.Clear(Color.White);
         GraphicsDevice.RasterizerState = rasterizerState;
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-        /*foreach (var body in Bodies)
+        foreach (var body in Bodies)
         foreach (var occluder in body.Occluder.Occluders)
             if (occluder is CircularOccluder o)
                 Graphics.DrawCircle(
                     Camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition),
                     Camera.ConvertToScreenDistance(o.Radius), Color.White
-                );*/
+                );
         _spriteBatch.End();
 
         foreach (var kinematicObject in KinematicObjects)

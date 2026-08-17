@@ -52,9 +52,9 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float distance = length(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter);
-    return saturate(LightColour / pow(distance * DistanceScale, 2)) * 
+    return saturate(LightColour / pow(distance * DistanceScale, 2) * 
         tex2D(ShadowMaskSampler, input.TexCoords) * 
-        tex2D(OccluderMaskSampler, input.TexCoords);
+        tex2D(OccluderMaskSampler, input.TexCoords));
 }
 
 technique BasicColorDrawing

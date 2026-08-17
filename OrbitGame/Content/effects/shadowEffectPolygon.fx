@@ -18,7 +18,7 @@ matrix World;
 float2 LightCenter;
 float LightRadius;
 float2 OccluderCenter;
-float OccluderRadius;
+
 
 float2 ScreenSize;
 
@@ -44,30 +44,12 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float csc(float a) 
-{
-    return 1.0 / sin(a);
-}
-
-float cot(float a) 
-{
-    return 1.0 / tan(a);
-}
-
 float CalculateAngleIntervalIntersectionAmount(float2 interval1, float2 interval2) {
     float d1 = max(0, min(TAU, min(interval1.y, interval2.y)) - max(interval1.x, interval2.x));
     float d2 = max(0, min(min(interval1.y, TAU), max(0, interval2.y - TAU)) - max(interval1.x, 0));
     float d3 = max(0, min(max(0, interval1.y - TAU), min(interval2.y, TAU)) - max(0, interval2.x));
     float d4 = max(0, min(max(0, interval1.y - TAU), max(0, interval2.y - TAU)));
     return d1 + d2 + d3 + d4;
-}
-
-float CalculatePixelHeight(float2 pixel) {
-    float pixelOccluderDistance = length(OccluderCenter - pixel);
-    float pixelZ = 0;
-    if (pixelOccluderDistance < OccluderRadius)
-        pixelZ = 1.0001 * OccluderRadius * sin(acos(pixelOccluderDistance / OccluderRadius));
-    return pixelZ;
 }
 
 float CalculateOcclusion(float2 tex) 
