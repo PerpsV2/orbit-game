@@ -18,4 +18,5 @@
 /build:effects/orbitEffect.fx
 /build:effects/lightingEffect.fx
 /build:effects/shadowEffect.fx
+/build:effects/polyShadowEffect.fx
 /build:effects/gaussianBlurEffect.fx

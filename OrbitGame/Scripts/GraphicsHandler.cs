@@ -16,19 +16,33 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     
     public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, qQEngine.Body occluderBody)
     {
-        Effect effect = Effects.ShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
         foreach (var occluder in occluderBody.Occluder.Occluders)
         {
-            if (occluder is CircularOccluder o)
+            switch (occluder)
             {
-                DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
-                {
-                    { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
-                    { "LightRadius", camera.ConvertToScreenDistance(70) },
-                    { "OccluderCenter", camera.ConvertToScreenCoordinates(occluderBody.Position + o.LocalPosition) },
-                    { "OccluderRadius", camera.ConvertToScreenDistance(o.Radius) },
-                    { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
-                }, effect);
+                case CircularOccluder o:
+                    Effect shadowEffect = Effects.ShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+                    DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+                    {
+                        { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+                        { "LightRadius", camera.ConvertToScreenDistance(70) },
+                        { "OccluderCenter", camera.ConvertToScreenCoordinates(occluderBody.Position + o.LocalPosition) },
+                        { "OccluderRadius", camera.ConvertToScreenDistance(o.Radius) },
+                        { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+                    }, shadowEffect);
+                    break;
+                
+                case PolyOccluder o:
+                    Effect polyShadowEffect = Effects.PolyShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+                    DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+                    {
+                        { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+                        { "LightRadius", camera.ConvertToScreenDistance(70) },
+                        { "OccluderVertices", o.Vertices.Select(x => camera.ConvertToScreenCoordinates(occluderBody.Position + x + o.LocalPosition)).ToArray() },
+                        { "VerticesActiveCount", o.Vertices.Count },
+                        { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+                    }, polyShadowEffect);
+                    break;
             }
         }
     }

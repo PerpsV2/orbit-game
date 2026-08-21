@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -22,6 +23,7 @@ public static class Effects
     public static Effect? CircleEffect;
     public static Effect? OrbitEffect;
     public static Effect? ShadowEffect;
+    public static Effect? PolyShadowEffect;
     public static Effect? LightingEffect;
     public static Effect? GaussianBlurEffect;
 }
@@ -119,6 +121,14 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
+        multiOccluder.Occluder.Occluders.Add(new PolyOccluder([
+            new qQEngine.Vec2Double(30, 0),
+            new qQEngine.Vec2Double(27.5, -52),
+            new qQEngine.Vec2Double(57, 37.25),
+            new qQEngine.Vec2Double(32.5, 97.25),
+            new qQEngine.Vec2Double(22.5, 15.5),
+            new qQEngine.Vec2Double(-34.5,-49.5),
+            ], new qQEngine.Vec2Double(0, 500)));
         for (int i = 0; i < 1; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
@@ -170,6 +180,8 @@ public class OrbitGame : Game
         Effects.OrbitEffect.Parameters["Projection"].SetValue(projection);
         Effects.ShadowEffect = Content.Load<Effect>("effects/shadowEffect");
         Effects.ShadowEffect.Parameters["Projection"].SetValue(projection);
+        Effects.PolyShadowEffect = Content.Load<Effect>("effects/polyShadowEffect");
+        Effects.PolyShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
         Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
         Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
@@ -305,6 +317,9 @@ public class OrbitGame : Game
             {"SpriteTexture", _lightingRenderTarget},
             {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
+
+        PolyOccluder test = (PolyOccluder)Bodies[0].Occluder.Occluders[^2];
+        Graphics.DrawPoly(test.Vertices.Select(x => Camera.ConvertToScreenCoordinates(x + test.LocalPosition + Bodies[0].Position)).ToList(), Color.Red);
         
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();
