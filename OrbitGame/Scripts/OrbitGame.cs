@@ -314,7 +314,7 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _lightingRenderTarget},
+            {"SpriteTexture", _shadowMask},
             {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 

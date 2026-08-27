@@ -56,9 +56,9 @@ float Mod(float value, float mod)
     return value - mod * floor(value / mod);
 }
 
-float GetOccluderVertexAngle(int index, float2 pixel) 
+float GetOccluderVertexAngle(float2 vertexPosition) 
 {
-    return Mod(atan2(OccluderVertices[index].y - pixel.y, OccluderVertices[index].x - pixel.x), TAU);
+    return Mod(atan2(vertexPosition.y, vertexPosition.x), TAU);
 }
 
 float GetAngleDifference(float start, float end)
@@ -71,14 +71,14 @@ float2 CalculateOccluderInterval(float2 pixel)
 {
     float minAngle = 0;
     float maxAngle = 0;
-    float startAngle = GetOccluderVertexAngle(0, pixel);
+    float startAngle = GetOccluderVertexAngle(OccluderVertices[0] - pixel);
     float currAngle = startAngle;
     float nextAngle;
     float angleOffset = 0;
     for (int currIndex = 0; currIndex < VerticesActiveCount; ++currIndex) 
     {
         int nextIndex = Mod(currIndex + 1, VerticesActiveCount);
-        nextAngle = GetOccluderVertexAngle(nextIndex, pixel);
+        nextAngle = GetOccluderVertexAngle(OccluderVertices[nextIndex] - pixel);
         angleOffset += GetAngleDifference(currAngle, nextAngle);
         currAngle = nextAngle;
         if (angleOffset < minAngle) minAngle = angleOffset;
@@ -101,12 +101,15 @@ float CalculateOcclusion(float2 tex)
     float lightCenterAngle = atan2(lightPosition.y, lightPosition.x);
     float lightAngularRadius = asin(LightRadius / lightDistance);
     
-    //float2 occluderPosition = OccluderVertices[0] - pixel;
-    //float occluderDistance = length(occluderPosition);
-    //float occluderCenterAngle = atan2(occluderPosition.y, occluderPosition.x);
-    //float occluderAngularRadius = asin(length(OccluderVertices[VerticesActiveCount - 1] - OccluderVertices[0]) / occluderDistance);
-    
     float2 occluderInterval = CalculateOccluderInterval(pixel);
+    float occluderMinDistance = 10000;
+    for (int i = 0; i < VerticesActiveCount; ++i) 
+    {
+        float vertexDistance = length(OccluderVertices[i] - pixel);
+        if (vertexDistance < occluderMinDistance) occluderMinDistance = vertexDistance;
+    }
+    
+    if (occluderMinDistance >= lightDistance + LightRadius) return 0;
     
     float2 lightInterval = float2(Mod(lightCenterAngle - lightAngularRadius, TAU), Mod(lightCenterAngle + lightAngularRadius, TAU));
     if (lightInterval.x > lightInterval.y) lightInterval.y += TAU;
