@@ -121,20 +121,18 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
-        multiOccluder.Occluder.Occluders.Add(new PolyOccluder([
-            new qQEngine.Vec2Double(30, 0),
-            new qQEngine.Vec2Double(27.5, -52),
-            new qQEngine.Vec2Double(57, 37.25),
-            new qQEngine.Vec2Double(32.5, 97.25),
-            new qQEngine.Vec2Double(22.5, 15.5),
-            new qQEngine.Vec2Double(-34.5,-49.5),
-            ], new qQEngine.Vec2Double(0, 500)));
-        for (int i = 0; i < 1; ++i)
+        for (int i = 0; i < 100; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 300 + 70;
-            multiOccluder.Occluder.Occluders.Add(new CircularOccluder(_rnd.NextDouble() * 3, 
-                qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
+            multiOccluder.Occluder.Occluders.Add(new PolyOccluder([
+                    new qQEngine.Vec2Double(3, 0),
+                    new qQEngine.Vec2Double(2.75, -5.2),
+                    new qQEngine.Vec2Double(5.7, 3.725),
+                    new qQEngine.Vec2Double(1.25, 9.725),
+                    new qQEngine.Vec2Double(2.25, 1.55),
+                    new qQEngine.Vec2Double(-3.45,-4.95),
+                ], qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
         //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
@@ -314,12 +312,16 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _shadowMask},
+            {"SpriteTexture", _lightingRenderTarget},
             {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 
-        PolyOccluder test = (PolyOccluder)Bodies[0].Occluder.Occluders[^2];
-        Graphics.DrawPoly(test.Vertices.Select(x => Camera.ConvertToScreenCoordinates(x + test.LocalPosition + Bodies[0].Position)).ToList(), Color.Red);
+        foreach (var occluder in Bodies[0].Occluder.Occluders)
+            if (occluder is PolyOccluder o)
+                Graphics.DrawPoly(o.Vertices.Select(x => Camera.ConvertToScreenCoordinates(x + o.LocalPosition + Bodies[0].Position)).ToList(), Color.Red);
+        
+        CircularLight test2 = (CircularLight)KinematicObjects[^1];
+        Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(test2.Position), Camera.ConvertToScreenDistance(70), Color.Lavender);
         
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();

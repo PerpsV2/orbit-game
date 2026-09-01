@@ -7,7 +7,6 @@
     #define PS_SHADERMODEL ps_4_0_level_9_1
 #endif
 
-#define SAMPLES 10
 #define PI 3.14159265359
 #define TAU 6.28318530718
 
@@ -43,80 +42,122 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float CalculateAngleIntervalIntersectionAmount(float2 interval1, float2 interval2) {
-    float d1 = max(0, min(TAU, min(interval1.y, interval2.y)) - max(interval1.x, interval2.x));
-    float d2 = max(0, min(min(interval1.y, TAU), max(0, interval2.y - TAU)) - max(interval1.x, 0));
-    float d3 = max(0, min(max(0, interval1.y - TAU), min(interval2.y, TAU)) - max(0, interval2.x));
-    float d4 = max(0, min(max(0, interval1.y - TAU), max(0, interval2.y - TAU)));
-    return d1 + d2 + d3 + d4;
-}
-
 float Mod(float value, float mod) 
 {
     return value - mod * floor(value / mod);
 }
 
-float GetOccluderVertexAngle(float2 vertexPosition) 
+float Wrap(float value)
 {
-    return Mod(atan2(vertexPosition.y, vertexPosition.x), TAU);
+    if (value >= 0 && value < TAU) return value;
+    return Mod(value, TAU);
 }
 
-float GetAngleDifference(float start, float end)
+bool IsInFrontLight(float2 p, float2 v, float lightDistance, float tangentAngle1, float tangentAngle2) 
 {
-    if (Mod(start - end, TAU) >= PI) return Mod(end - start, TAU);
-    return -Mod(start - end, TAU);
-}
-
-float2 CalculateOccluderInterval(float2 pixel)
-{
-    float minAngle = 0;
-    float maxAngle = 0;
-    float startAngle = GetOccluderVertexAngle(OccluderVertices[0] - pixel);
-    float currAngle = startAngle;
-    float nextAngle;
-    float angleOffset = 0;
-    for (int currIndex = 0; currIndex < VerticesActiveCount; ++currIndex) 
-    {
-        int nextIndex = Mod(currIndex + 1, VerticesActiveCount);
-        nextAngle = GetOccluderVertexAngle(OccluderVertices[nextIndex] - pixel);
-        angleOffset += GetAngleDifference(currAngle, nextAngle);
-        currAngle = nextAngle;
-        if (angleOffset < minAngle) minAngle = angleOffset;
-        if (angleOffset > maxAngle) maxAngle = angleOffset;
+    float pointAngle = Wrap(atan2(v.y, v.x));
+    
+    if (Wrap(pointAngle - tangentAngle2) <= Wrap(tangentAngle1 - tangentAngle2)) {
+        return pow(v.x - LightCenter.x + p.x, 2) + pow(v.y - LightCenter.y + p.y, 2) >= LightRadius * LightRadius &&
+               pow(v.x, 2) + pow(v.y, 2) <= pow(lightDistance, 2) - LightRadius * LightRadius;
     }
-    
-    minAngle = Mod(startAngle + minAngle, TAU);
-    maxAngle = Mod(startAngle + maxAngle, TAU);
-    if (minAngle > maxAngle) maxAngle += TAU;
-    
-    return float2(minAngle, maxAngle);
+    return true;
+}
+
+bool IntervalIsSubset(float s1, float e1, float s2, float e2)
+{
+    float a = Wrap(s1 - s2);
+    float b = Wrap(e2 - s2);
+    float w = Wrap(e1 - s1);
+    return a <= b && a + w <= b;
+}
+
+bool IntervalIsDisjoint(float s1, float e1, float s2, float e2)
+{
+    float a = Wrap(s1 - s2);
+    float b = Wrap(e2 - s2);
+    float w = Wrap(e1 - s1);
+    return a >= b && a + w <= TAU;
+}
+
+bool AngleInAngularInterval(float angle, float start, float end)
+{
+    if (start < end) return start <= angle && angle <= end;
+    else return angle >= start || angle <= end;
 }
 
 float CalculateOcclusion(float2 tex) 
 {
     float2 pixel = float2(tex.x * ScreenSize.x, tex.y * ScreenSize.y);
     
-    float2 lightPosition = LightCenter - pixel;
-    float lightDistance = length(lightPosition);
-    float lightCenterAngle = atan2(lightPosition.y, lightPosition.x);
-    float lightAngularRadius = asin(LightRadius / lightDistance);
+    float2 lightRelPos = LightCenter - pixel;
+    float lightDistance = length(lightRelPos);
+    float lightHalfAngularRadius = asin(LightRadius / lightDistance);
     
-    float2 occluderInterval = CalculateOccluderInterval(pixel);
-    float occluderMinDistance = 10000;
-    for (int i = 0; i < VerticesActiveCount; ++i) 
-    {
-        float vertexDistance = length(OccluderVertices[i] - pixel);
-        if (vertexDistance < occluderMinDistance) occluderMinDistance = vertexDistance;
+    float lightCenterAngle = Wrap(atan2(lightRelPos.y, lightRelPos.x));
+    float tangentAngle1 = Wrap(lightCenterAngle + lightHalfAngularRadius);
+    float tangentAngle2 = Wrap(lightCenterAngle - lightHalfAngularRadius);
+    
+    float midAngle1 = lightHalfAngularRadius * 2;
+    float midAngle2 = lightHalfAngularRadius * 2;
+    
+    float topAngle = 0;
+    float bottomAngle = 0;
+    
+    for (int c = 0; c < VerticesActiveCount; ++c) {
+        int n = Mod(c + 1, VerticesActiveCount);
+        float2 p1 = OccluderVertices[c] - pixel;
+        float2 p2 = OccluderVertices[n] - pixel;
+        
+        float pointAngle1 = Wrap(atan2(p1.y, p1.x));
+        float pointAngle2 = Wrap(atan2(p2.y, p2.x));
+        
+        if (Wrap(pointAngle1 - pointAngle2) > PI) 
+        {
+            float temp = pointAngle1;
+            pointAngle1 = pointAngle2;
+            pointAngle2 = temp;
+        }
+        
+        if (!IsInFrontLight(pixel, p2, lightDistance, tangentAngle1, tangentAngle2) || 
+            !IsInFrontLight(pixel, p1, lightDistance, tangentAngle1, tangentAngle2)) continue;
+            
+        if (IntervalIsSubset(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1)) return 1;
+
+        if (IntervalIsSubset(pointAngle2, pointAngle1, tangentAngle2, tangentAngle1)) {
+            float m1 = Wrap(tangentAngle1 - pointAngle1);
+            float m2 = Wrap(pointAngle2 - tangentAngle2);
+            
+            if (m1 < midAngle1) midAngle1 = m1;
+            if (m2 < midAngle2) midAngle2 = m2;
+        }
+        
+        else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1)) {
+            if (AngleInAngularInterval(pointAngle1, tangentAngle2, tangentAngle1)) {
+                float m = Wrap(pointAngle1 - tangentAngle2);
+                if (m > bottomAngle) bottomAngle = m;
+            }
+            else {
+                float m = Wrap(tangentAngle1 - pointAngle2);
+                if (m > topAngle) topAngle = m;
+            }
+        }
     }
     
-    if (occluderMinDistance >= lightDistance + LightRadius) return 0;
+    if (midAngle1 < topAngle) {
+        topAngle = 0;
+        midAngle1 = 0;
+    }
     
-    float2 lightInterval = float2(Mod(lightCenterAngle - lightAngularRadius, TAU), Mod(lightCenterAngle + lightAngularRadius, TAU));
-    if (lightInterval.x > lightInterval.y) lightInterval.y += TAU;
+    if (midAngle2 < bottomAngle) {
+        bottomAngle = 0;
+        midAngle2 = 0;
+    }
     
-    float intersection = CalculateAngleIntervalIntersectionAmount(occluderInterval, lightInterval);
-    float occlusion = intersection / (lightInterval.y - lightInterval.x);
-    return occlusion;
+    midAngle2 = lightHalfAngularRadius * 2 - midAngle2;
+    
+    float occludedAngle = topAngle + bottomAngle + max(midAngle2 - midAngle1, 0);
+    return occludedAngle / (2 * lightHalfAngularRadius);
 }
 
 float4 MainPS(VertexShaderOutput input) : COLOR
