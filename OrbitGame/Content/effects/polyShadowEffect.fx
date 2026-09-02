@@ -83,7 +83,7 @@ bool IntervalIsDisjoint(float s1, float e1, float s2, float e2)
 bool AngleInAngularInterval(float angle, float start, float end)
 {
     if (start < end) return start <= angle && angle <= end;
-    else return angle >= start || angle <= end;
+    return angle >= start || angle <= end;
 }
 
 float CalculateOcclusion(float2 tex) 

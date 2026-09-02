@@ -27,6 +27,11 @@ public class DebugGraphicsHandler : IGraphicsHandler
         throw new NotImplementedException();
     }
 
+    public void DrawShadowMask2(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    {
+        throw new NotImplementedException();
+    }
+
     public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask,
         RenderTarget2D occluderMask)
     {

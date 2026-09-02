@@ -24,6 +24,7 @@ public static class Effects
     public static Effect? OrbitEffect;
     public static Effect? ShadowEffect;
     public static Effect? PolyShadowEffect;
+    public static Effect? GlobalShadowEffect;
     public static Effect? LightingEffect;
     public static Effect? GaussianBlurEffect;
 }
@@ -121,7 +122,7 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < 15; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 300 + 70;
@@ -142,7 +143,7 @@ public class OrbitGame : Game
         //secondOccluder.Occluder.Occluders.Add(new CircularOccluder(1, qQEngine.Vec2Double.Zero));
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
-            position: new Vec2(2, 2), velocity: new Vec2()
+            position: new Vec2(0, 0), velocity: new Vec2()
         ), 100000, new Color(255, 120, 100));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(200, 200), velocity: new Vec2()
@@ -180,6 +181,8 @@ public class OrbitGame : Game
         Effects.ShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.PolyShadowEffect = Content.Load<Effect>("effects/polyShadowEffect");
         Effects.PolyShadowEffect.Parameters["Projection"].SetValue(projection);
+        Effects.GlobalShadowEffect = Content.Load<Effect>("effects/globalShadowEffect");
+        Effects.GlobalShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
         Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
         Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
@@ -278,8 +281,7 @@ public class OrbitGame : Game
                 GraphicsDevice.Clear(Color.White);
                 GraphicsDevice.RasterizerState = rasterizerState;
                 _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-                foreach (var body in Bodies)
-                    Graphics.DrawShadowMask(Camera, light, body);
+                Graphics.DrawShadowMask2(Camera, light, Bodies);
                 _spriteBatch.End();
                 
                 GraphicsDevice.SetRenderTarget(_lightingRenderTarget);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Perfolizer.Horology;
 using qQEngine;
 
 namespace OrbitGame;
@@ -45,6 +46,41 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                     break;
             }
         }
+    }
+
+    public void DrawShadowMask2(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    {
+        List<Vector4> occluderLineData = new();
+        foreach (var body in bodies)
+        {
+            foreach (var occluder in body.Occluder.Occluders)
+            {
+                if (occluder is PolyOccluder o)
+                {
+                    for (int i = 0; i < o.Vertices.Count; i++)
+                    {
+                        int n = (i + 1) % o.Vertices.Count;
+                        Vector2 segStart = camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition + o.Vertices[i]);
+                        Vector2 segEnd = camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition + o.Vertices[n]);
+                        occluderLineData.Add(new Vector4(segStart.X, segStart.Y, segEnd.X, segEnd.Y));
+                    }
+                }
+            }
+        }
+
+        Vector4[] occluderLineDataArray = occluderLineData.ToArray();
+        Texture2D occluderLineDataTexture = new Texture2D(GraphicsDevice, occluderLineDataArray.Length, 1, false, SurfaceFormat.Vector4);
+        occluderLineDataTexture.SetData(occluderLineDataArray);
+        
+        Effect globalShadowEffect = Effects.GlobalShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        {
+            { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+            { "LightRadius", camera.ConvertToScreenDistance(70) },
+            { "OccluderTextureBuffer", occluderLineDataTexture},
+            { "OccluderCount", occluderLineDataArray.Length },
+            { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+        }, globalShadowEffect);
     }
 
     public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask,

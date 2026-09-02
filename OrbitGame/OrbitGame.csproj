@@ -35,6 +35,7 @@
       <ClCompile Include="Content\effects\defaultEffect.fx" />
       <ClCompile Include="Content\effects\gaussianBlurEffect.fx" />
       <ClCompile Include="Content\effects\lightingEffect.fx" />
+      <ClCompile Include="Content\effects\globalShadowEffect.fx" />
       <ClCompile Include="Content\effects\orbitEffect.fx" />
       <ClCompile Include="Content\effects\shadowEffect.fx" />
       <ClCompile Include="Content\effects\terrainEffect.fx" />

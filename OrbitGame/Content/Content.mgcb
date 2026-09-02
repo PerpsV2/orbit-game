@@ -19,4 +19,5 @@
 /build:effects/lightingEffect.fx
 /build:effects/shadowEffect.fx
 /build:effects/polyShadowEffect.fx
+/build:effects/globalShadowEffect.fx
 /build:effects/gaussianBlurEffect.fx
