@@ -3,8 +3,8 @@
     #define VS_SHADERMODEL vs_3_0
     #define PS_SHADERMODEL ps_3_0
 #else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
+    #define VS_SHADERMODEL vs_5_0
+    #define PS_SHADERMODEL ps_5_0
 #endif
 
 #define PI 3.14159265359
@@ -16,11 +16,7 @@ matrix World;
 float2 LightCenter;
 float LightRadius;
 
-Texture2D OccluderTextureBuffer;
-SamplerState OccluderTextureSampler 
-{
-    Texture = <OccluderTextureBuffer>;
-};
+RWStructuredBuffer<float4> OccluderSegmentBuffer : register(u0);
 int OccluderCount;
 
 float2 ScreenSize;
@@ -95,7 +91,7 @@ float CalculateOcclusion(float2 tex)
     {
         if (!occluded)
         {
-            float4 v = tex2D(OccluderTextureSampler, float2(1.0 / OccluderCount * (i + 0.5), 0.5));
+            float4 v = OccluderSegmentBuffer[i];
         
             float2 lineStart = float2(v.x, v.y) - pixel;
             float2 lineEnd = float2(v.z, v.w) - pixel;
@@ -138,39 +134,15 @@ float CalculateOcclusion(float2 tex)
                     }
                     else
                     {
-                        float m1 = Wrap(pointAngle2 - tangentAngle2);
+                        float m2 = Wrap(pointAngle2 - tangentAngle2);
                         intersectionAngle1 = lightHalfAngularRadius * 2;
-                        if (m1 < intersectionAngle2) intersectionAngle2 = m1;
+                        if (m2 < intersectionAngle2) intersectionAngle2 = m2;
                     }
                 }
             }
-        
-            /*if (IntervalIsSubset(pointAngle2, pointAngle1, tangentAngle2, tangentAngle1))
-            {
-                float m1 = Wrap(pointAngle1 - tangentAngle2);
-                float m2 = Wrap(pointAngle2 - tangentAngle2);
-                
-                if (m1 > intersectionAngle1) intersectionAngle1 = m1;
-                if (m2 < intersectionAngle2) intersectionAngle2 = m2;
-                continue;
-            }*/
-        
-            /*if (Wrap(tangentAngle2 - pointAngle2) <= PI)
-            {
-                float m1 = Wrap(pointAngle1 - tangentAngle2);
-                if (m1 > intersectionAngle1) intersectionAngle1 = m1;
-                intersectionAngle2 = 0;
-            }
-            else
-            {
-                float m1 = Wrap(pointAngle2 - tangentAngle2);
-                intersectionAngle1 = lightHalfAngularRadius * 2;
-                if (m1 < intersectionAngle2) intersectionAngle2 = m1;
-            }*/
         }
     }
     
-    //if (occlusion != 1) return max(intersectionAngle1 - intersectionAngle2, 0) / (lightHalfAngularRadius * 2);
     float occlusion;
     if (occluded) occlusion = 1;
     else occlusion = max(intersectionAngle1 - intersectionAngle2, 0) / (lightHalfAngularRadius * 2);
