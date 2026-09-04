@@ -1,22 +1,13 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 matrix Projection;
 matrix World;
 
 float2 TexelSize;
 
-texture2D SpriteTexture;
-sampler2D SpriteTextureSampler = sampler_state
-{
-    Texture = <SpriteTexture>;
-};
+Texture2D SpriteTexture;
+SamplerState SpriteTextureSampler;
 
 struct VertexShaderInput
 {
@@ -45,34 +36,34 @@ float2 Texel(int x, int y)
     return float2(TexelSize.x * x, TexelSize.y * y);
 }
 
-float4 BasicColourPS(VertexShaderOutput input) : COLOR
+float4 BasicColourPS(VertexShaderOutput input) : SV_TARGET
 {
     return
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-2, -2)) / 273 * 1 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-2, -1)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-2,  0)) / 273 * 7 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-2,  1)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-2,  2)) / 273 * 1 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-1, -2)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-1, -1)) / 273 * 16 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-1,  0)) / 273 * 26 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-1,  1)) / 273 * 16 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel(-1,  2)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 0, -2)) / 273 * 7 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 0, -1)) / 273 * 26 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 0,  0)) / 273 * 41 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 0,  1)) / 273 * 26 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 0,  2)) / 273 * 7 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 1, -2)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 1, -1)) / 273 * 16 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 1,  0)) / 273 * 26 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 1,  1)) / 273 * 16 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 1,  2)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 2, -2)) / 273 * 1 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 2, -1)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 2,  0)) / 273 * 7 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 2,  1)) / 273 * 4 +
-    tex2D(SpriteTextureSampler, input.TexCoords + Texel( 2,  2)) / 273 * 1;
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2, -2)) / 273 * 1 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2, -1)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2,  0)) / 273 * 7 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2,  1)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2,  2)) / 273 * 1 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-1, -2)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-1, -1)) / 273 * 16 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-1,  0)) / 273 * 26 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-1,  1)) / 273 * 16 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-1,  2)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 0, -2)) / 273 * 7 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 0, -1)) / 273 * 26 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 0,  0)) / 273 * 41 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 0,  1)) / 273 * 26 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 0,  2)) / 273 * 7 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 1, -2)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 1, -1)) / 273 * 16 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 1,  0)) / 273 * 26 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 1,  1)) / 273 * 16 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 1,  2)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2, -2)) / 273 * 1 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2, -1)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  0)) / 273 * 7 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  1)) / 273 * 4 +
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  2)) / 273 * 1;
 }
 
 technique BasicColorDrawing

@@ -1,21 +1,12 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 matrix Projection;
 matrix World;
 float4 Colour;
 
-texture2D SpriteTexture;
-sampler2D SpriteTextureSampler = sampler_state
-{
-    Texture = <SpriteTexture>;
-};
+Texture2D SpriteTexture;
+sampler SpriteTextureSampler;
 
 struct VertexShaderInput
 {
@@ -39,14 +30,14 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float4 BasicColourPS(VertexShaderOutput input) : COLOR
+float4 BasicColourPS(VertexShaderOutput input) : SV_TARGET
 {
     return Colour;
 }
 
-float4 RenderTargetPS(VertexShaderOutput input) : COLOR 
+float4 RenderTargetPS(VertexShaderOutput input) : SV_TARGET 
 {
-    return tex2D(SpriteTextureSampler, input.TexCoords);
+    return SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords);
 }
 
 technique BasicColorDrawing

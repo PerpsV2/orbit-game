@@ -1,11 +1,5 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 matrix Projection;
 matrix World;
@@ -15,17 +9,11 @@ float4 LightColour;
 float DistanceScale;
 float2 ScreenSize;
 
-texture2D ShadowMask;
-sampler2D ShadowMaskSampler = sampler_state 
-{
-    Texture = <ShadowMask>;
-};
+Texture2D ShadowMask;
+SamplerState ShadowMaskSampler;
 
-texture2D OccluderMask;
-sampler2D OccluderMaskSampler = sampler_state 
-{
-    Texture = <OccluderMask>;
-};
+Texture2D OccluderMask;
+SamplerState OccluderMaskSampler;
 
 struct VertexShaderInput
 {
@@ -49,12 +37,12 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float4 MainPS(VertexShaderOutput input) : COLOR
+float4 MainPS(VertexShaderOutput input) : SV_TARGET
 {
     float distance = length(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter);
     return saturate(LightColour / pow(distance * DistanceScale, 2) * 
-        tex2D(ShadowMaskSampler, input.TexCoords) * 
-        tex2D(OccluderMaskSampler, input.TexCoords));
+        ShadowMask.Sample(ShadowMaskSampler, input.TexCoords) * 
+        OccluderMask.Sample(OccluderMaskSampler, input.TexCoords));
 }
 
 technique BasicColorDrawing

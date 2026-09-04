@@ -10,6 +10,10 @@
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
       <PackageReference Include="BenchmarkDotNet.Annotations" Version="0.15.8" />
+      <PackageReference Include="MonoGame.Framework.Native" Version="3.8.5.1" />
+      <PackageReference Include="MonoGame.Runtime.Linux.Vulkan" Version="3.8.5.1" />
+      <PackageReference Include="MonoGame.Runtime.Mac.Vulkan" Version="3.8.5.1" />
+      <PackageReference Include="MonoGame.Runtime.Windows.Vulkan" Version="3.8.5.1" />
     </ItemGroup>
 
     <ItemGroup>

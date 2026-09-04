@@ -1,11 +1,5 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 matrix Projection;
 matrix World;
@@ -33,7 +27,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
-float4 MainPS(VertexShaderOutput input) : COLOR
+float4 MainPS(VertexShaderOutput input) : SV_TARGET
 {
     if (length(input.TexCoords) < 1) {
         return Colour;

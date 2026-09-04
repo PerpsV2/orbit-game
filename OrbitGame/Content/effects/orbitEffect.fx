@@ -1,11 +1,5 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_4_0_level_9_1
-    #define PS_SHADERMODEL ps_4_0_level_9_1
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 #define TAU 6.28318530718
 
@@ -77,7 +71,7 @@ bool WithinLineOfSymmetry(float2 coords) {
     else return coords.y < tan(modAngle) * coords.x;
 }
 
-float4 EllipsePS(VertexShaderOutput input) : COLOR
+float4 EllipsePS(VertexShaderOutput input) : SV_TARGET
 {
     if (Eccentricity > 1) {
         float2 centerCoords = input.TexCoords - Center;

@@ -3,21 +3,68 @@
 
 /outputDir:bin/$(Platform)
 /intermediateDir:obj/$(Platform)
-/platform:DesktopGL
+/platform:DesktopVK
 /config:
-/profile:HiDef
+/profile:Reach
 /compress:False
 
 #-------------------------------- References --------------------------------#
 
 
 #---------------------------------- Content ---------------------------------#
-/build:fonts/defaultFont.spritefont
-/build:effects/defaultEffect.fx
+
+#begin effects/circleEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
 /build:effects/circleEffect.fx
-/build:effects/orbitEffect.fx
-/build:effects/lightingEffect.fx
-/build:effects/shadowEffect.fx
-/build:effects/polyShadowEffect.fx
-/build:effects/globalShadowEffect.fx
+
+#begin effects/defaultEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/defaultEffect.fx
+
+#begin effects/gaussianBlurEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
 /build:effects/gaussianBlurEffect.fx
+
+#begin effects/globalShadowEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/globalShadowEffect.fx
+
+#begin effects/lightingEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/lightingEffect.fx
+
+#begin effects/orbitEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/orbitEffect.fx
+
+#begin effects/polyShadowEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/polyShadowEffect.fx
+
+#begin effects/shadowEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/shadowEffect.fx
+
+#begin fonts/defaultFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:fonts/defaultFont.spritefont
+

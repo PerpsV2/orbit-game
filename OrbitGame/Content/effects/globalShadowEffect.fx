@@ -1,11 +1,5 @@
-#if OPENGL
-    #define SV_POSITION POSITION
-    #define VS_SHADERMODEL vs_3_0
-    #define PS_SHADERMODEL ps_3_0
-#else
-    #define VS_SHADERMODEL vs_5_0
-    #define PS_SHADERMODEL ps_5_0
-#endif
+#define VS_SHADERMODEL vs_6_0
+#define PS_SHADERMODEL ps_6_0
 
 #define PI 3.14159265359
 #define TAU 6.28318530718
@@ -16,7 +10,9 @@ matrix World;
 float2 LightCenter;
 float LightRadius;
 
-RWStructuredBuffer<float4> OccluderSegmentBuffer : register(u0);
+Texture2D OccluderTextureBuffer;
+SamplerState OccluderTextureSampler;
+
 int OccluderCount;
 
 float2 ScreenSize;
@@ -91,7 +87,7 @@ float CalculateOcclusion(float2 tex)
     {
         if (!occluded)
         {
-            float4 v = OccluderSegmentBuffer[i];
+            float4 v = OccluderTextureBuffer.Sample(OccluderTextureSampler, float2(1.0 / OccluderCount * (i + 0.5), 0.5));
         
             float2 lineStart = float2(v.x, v.y) - pixel;
             float2 lineEnd = float2(v.z, v.w) - pixel;
@@ -149,7 +145,7 @@ float CalculateOcclusion(float2 tex)
     return occlusion;
 }
 
-float4 MainPS(VertexShaderOutput input) : COLOR
+float4 MainPS(VertexShaderOutput input) : SV_TARGET
 {
     float occlusion = CalculateOcclusion(input.TexCoords);
     return float4(0, 0, 0, saturate(occlusion));

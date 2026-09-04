@@ -62,10 +62,6 @@
               "target": "Package",
               "version": "[3.8.*, )"
             },
-            "MonoGame.Framework.DesktopGL": {
-              "target": "Package",
-              "version": "[3.8.*, )"
-            },
             "xunit.extensibility.execution": {
               "target": "Package",
               "version": "[2.9.3, )"
@@ -137,9 +133,21 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
-            "MonoGame.Framework.DesktopGL": {
+            "MonoGame.Framework.Native": {
               "target": "Package",
-              "version": "[3.8.4.1, )"
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Linux.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Mac.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Windows.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
             }
           },
           "imports": [
