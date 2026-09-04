@@ -11,7 +11,7 @@ namespace OrbitGame;
 /// </summary>
 public class PolyMesh : IMesh
 {
-    private VertexPositionColor[]? _vertices;
+    private VertexPositionTexture[]? _vertices;
     private int[]? _indices;
     
     private VertexBuffer? _vertexBuffer;
@@ -30,9 +30,9 @@ public class PolyMesh : IMesh
     {
         if (_points.Length == 0) return;
         
-        _vertices = new VertexPositionColor[_points.Length];
+        _vertices = new VertexPositionTexture[_points.Length];
         for (int i = 0; i < _vertices.Length; i++)
-            _vertices[i] = new VertexPositionColor(new Vector3(_points[i].X, _points[i].Y, 0), Color.White);
+            _vertices[i] = new VertexPositionTexture(new Vector3(_points[i].X, _points[i].Y, 0), Vector2.Zero);
         
         _indices = new int[(_vertices.Length - 2) * 3];
         for (int i = 0; i < _vertices.Length - 2; i++)

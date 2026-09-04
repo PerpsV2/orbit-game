@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "C#: OrbitGame Debug",
+        "name": "C#: MonoGameVulkanTestProject Debug",
         "type": "dotnet",
         "request": "launch",
-        "projectPath": "${workspaceFolder}/OrbitGame.csproj"
+        "projectPath": "${workspaceFolder}/MonoGameVulkanTestProject.csproj"
       }
     ],
   }

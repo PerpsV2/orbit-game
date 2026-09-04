@@ -5,13 +5,12 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
-        <Nullable>enable</Nullable>
-        <LangVersion>13</LangVersion>
+        <MonoGamePlatform>DesktopVK</MonoGamePlatform>
+        <RootNamespace>MonoGameVulkanTestProject</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>Icon.ico</ApplicationIcon>
-        <MonoGamePlatform>DesktopVK</MonoGamePlatform>
     </PropertyGroup>
     <ItemGroup>
         <None Remove="Icon.ico"/>
@@ -26,21 +25,17 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+        <PackageReference Include="BenchmarkDotNet" Version="0.16.0-preview.1" />
+        <PackageReference Include="MonoGame.Framework.Native" Version="3.8.5.1"/>
+        <PackageReference Include="MonoGame.Runtime.Windows.Vulkan" Version="3.8.5.1"/>
+        <PackageReference Include="MonoGame.Runtime.Mac.Vulkan" Version="3.8.5.1"/>
+        <PackageReference Include="MonoGame.Runtime.Linux.Vulkan" Version="3.8.5.1"/>
         <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
-        <PackageReference Include="xunit.extensibility.execution" Version="2.9.3" />
-    </ItemGroup>
-    <ItemGroup>
-      <ClCompile Include="Content\effects\circleEffect.fx" />
-      <ClCompile Include="Content\effects\defaultEffect.fx" />
-      <ClCompile Include="Content\effects\gaussianBlurEffect.fx" />
-      <ClCompile Include="Content\effects\lightingEffect.fx" />
-      <ClCompile Include="Content\effects\globalShadowEffect.fx" />
-      <ClCompile Include="Content\effects\orbitEffect.fx" />
-      <ClCompile Include="Content\effects\shadowEffect.fx" />
-      <ClCompile Include="Content\effects\terrainEffect.fx" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\qQEngine\qQEngine.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <ClCompile Include="Content\effects\test.fx" />
     </ItemGroup>
 </Project>

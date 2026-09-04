@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Perfolizer.Horology;
 using qQEngine;
 
 namespace OrbitGame;
@@ -137,9 +136,9 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     {
         if (points.Count < 3) return;
         
-        var vertices = new VertexPositionColor[points.Count];
+        var vertices = new VertexPositionTexture[points.Count];
         for (int i = 0; i < vertices.Length; i++)
-            vertices[i] = new VertexPositionColor(new Vector3(points[i].X, points[i].Y, 0), Color.White);
+            vertices[i] = new VertexPositionTexture(new Vector3(points[i].X, points[i].Y, 0), Vector2.Zero);
         
         var indices = new int[(vertices.Length - 2) * 3];
         for (int i = 0; i < vertices.Length - 2; i++)

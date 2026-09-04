@@ -56,15 +56,27 @@
           "dependencies": {
             "BenchmarkDotNet": {
               "target": "Package",
-              "version": "[0.15.8, )"
+              "version": "[0.16.0-preview.1, )"
             },
             "MonoGame.Content.Builder.Task": {
               "target": "Package",
               "version": "[3.8.*, )"
             },
-            "xunit.extensibility.execution": {
+            "MonoGame.Framework.Native": {
               "target": "Package",
-              "version": "[2.9.3, )"
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Linux.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Mac.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
+            },
+            "MonoGame.Runtime.Windows.Vulkan": {
+              "target": "Package",
+              "version": "[3.8.5.1, )"
             }
           },
           "imports": [

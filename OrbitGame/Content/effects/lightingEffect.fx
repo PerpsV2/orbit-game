@@ -9,11 +9,11 @@ float4 LightColour;
 float DistanceScale;
 float2 ScreenSize;
 
-Texture2D ShadowMask;
-SamplerState ShadowMaskSampler;
+Texture2D ShadowMask : register(t0);;
+SamplerState ShadowMaskSampler : register(s0);;
 
-Texture2D OccluderMask;
-SamplerState OccluderMaskSampler;
+Texture2D OccluderMask : register(t1);;
+SamplerState OccluderMaskSampler : register(s1);;
 
 struct VertexShaderInput
 {

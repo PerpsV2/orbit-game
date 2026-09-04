@@ -6,8 +6,8 @@ matrix World;
 
 float2 TexelSize;
 
-Texture2D SpriteTexture;
-SamplerState SpriteTextureSampler;
+Texture2D SpriteTexture : register(t0);;
+SamplerState SpriteTextureSampler : register(s0);;
 
 struct VertexShaderInput
 {

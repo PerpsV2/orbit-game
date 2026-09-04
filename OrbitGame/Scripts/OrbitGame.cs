@@ -122,10 +122,10 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
-        for (int i = 0; i < 15; ++i)
+        for (int i = 0; i < 128; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
-            double randDistance = _rnd.NextDouble() * 300 + 70;
+            double randDistance = _rnd.NextDouble() * 600 + 70;
             multiOccluder.Occluder.Occluders.Add(new PolyOccluder([
                     new qQEngine.Vec2Double(3, 0),
                     new qQEngine.Vec2Double(2.75, -5.2),
@@ -146,8 +146,11 @@ public class OrbitGame : Game
             position: new Vec2(0, 0), velocity: new Vec2()
         ), 100000, new Color(255, 120, 100));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
-            position: new Vec2(200, 200), velocity: new Vec2()
+            position: new Vec2(500, 500), velocity: new Vec2()
         ), 100000, new Color(120, 255, 100));
+        CircularLight thirdLight = new CircularLight("John Light", new qQEngine.SpatialInfo(
+            position: new Vec2(0, 1000), velocity: new Vec2()
+        ), 100000, new Color(100, 100, 255));
         
         #endregion
         
@@ -273,6 +276,8 @@ public class OrbitGame : Game
                 );
         _spriteBatch.End();
 
+        bool t = false;
+        
         foreach (var kinematicObject in KinematicObjects)
         {
             if (kinematicObject is CircularLight light)
@@ -323,7 +328,7 @@ public class OrbitGame : Game
                 Graphics.DrawPoly(o.Vertices.Select(x => Camera.ConvertToScreenCoordinates(x + o.LocalPosition + Bodies[0].Position)).ToList(), Color.Red);
         
         CircularLight test2 = (CircularLight)KinematicObjects[^1];
-        Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(test2.Position), Camera.ConvertToScreenDistance(70), Color.Lavender);
+        //Graphics.DrawCircle(Camera.ConvertToScreenCoordinates(test2.Position), Camera.ConvertToScreenDistance(70), Color.Lavender);
         
         DrawDebug.Draw();
         DrawDebug.ClearBuffer();

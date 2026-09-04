@@ -4,14 +4,18 @@
 #define PI 3.14159265359
 #define TAU 6.28318530718
 
+#define MAX_DISJOINT_INTERVALS 16
+
+#define EPSILON 0.0001f
+
 matrix Projection;
 matrix World;
 
 float2 LightCenter;
 float LightRadius;
 
-Texture2D OccluderTextureBuffer;
-SamplerState OccluderTextureSampler;
+Texture2D OccluderTextureBuffer : register(t0);;
+SamplerState OccluderTextureSampler : register(t0);;
 
 int OccluderCount;
 
@@ -66,6 +70,58 @@ bool IntervalIsDisjoint(float s1, float e1, float s2, float e2)
     return a >= b && a + w <= TAU;
 }
 
+bool IntervalIntersects(float s1, float e1, float s2, float e2)
+{
+    return max(s1, s2) <= min(e1, e2);
+}
+
+int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
+{
+    for (int i = 0; i < numIntervals - 1; ++i)
+    {
+        for (int j = i + 1; j > 0; --j)
+        {
+            if (intervals[j - 1].x > intervals[j].x)
+            {
+                float2 temp = intervals[j - 1];
+                intervals[j - 1] = intervals[j];
+                intervals[j] = temp;
+            }
+        }
+    }
+    
+    int c = 0;
+    int i = 1;
+    while (i < numIntervals)
+    {
+        if (intervals[i].x <= intervals[c].y || abs(intervals[i].x - intervals[c].y) < EPSILON)
+        {
+            intervals[c].y = max(intervals[c].y, intervals[i].y);
+        }
+        else
+        {
+            c++;
+            intervals[c] = intervals[i];
+        }
+        i++;
+    }
+    
+    return c + 1;
+}
+
+bool IsFullInterval(float2 interval, float lightHalfAngularRadius)
+{
+    return interval.x <= 0 && (abs(interval.y - 2 * lightHalfAngularRadius) < EPSILON || interval.y >= 2 * lightHalfAngularRadius);
+}
+
+float GetIntervalLength(float2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
+{
+    float total = 0;
+    for (int i = 0; i < numIntervals; ++i)
+        total += intervals[i].y - intervals[i].x;
+    return total;
+}
+
 float CalculateOcclusion(float2 tex)
 {
     float2 pixel = float2(tex.x * ScreenSize.x, tex.y * ScreenSize.y);
@@ -80,8 +136,8 @@ float CalculateOcclusion(float2 tex)
     
     bool occluded = false;
     
-    float intersectionAngle1 = 0;
-    float intersectionAngle2 = lightHalfAngularRadius * 2;
+    float2 intervals[MAX_DISJOINT_INTERVALS];
+    int numIntervals = 0;
     
     for (int i = 0; i < OccluderCount; i++)
     {
@@ -116,23 +172,28 @@ float CalculateOcclusion(float2 tex)
                 {
                     float m1 = Wrap(pointAngle1 - tangentAngle2);
                     float m2 = Wrap(pointAngle2 - tangentAngle2);
-                
-                    if (m1 > intersectionAngle1) intersectionAngle1 = m1;
-                    if (m2 < intersectionAngle2) intersectionAngle2 = m2;
+                    
+                    intervals[numIntervals++] = float2(m2, m1);
+                    numIntervals = AddInterval(intervals, numIntervals);
+                    if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
                 }
                 else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1))
                 {
                     if (Wrap(tangentAngle2 - pointAngle2) <= PI)
                     {
                         float m1 = Wrap(pointAngle1 - tangentAngle2);
-                        if (m1 > intersectionAngle1) intersectionAngle1 = m1;
-                        intersectionAngle2 = 0;
+                        
+                        intervals[numIntervals++] = float2(0, m1);
+                        numIntervals = AddInterval(intervals, numIntervals);
+                        if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
                     }
                     else
                     {
                         float m2 = Wrap(pointAngle2 - tangentAngle2);
-                        intersectionAngle1 = lightHalfAngularRadius * 2;
-                        if (m2 < intersectionAngle2) intersectionAngle2 = m2;
+                        
+                        intervals[numIntervals++] = float2(m2, lightHalfAngularRadius * 2);
+                        numIntervals = AddInterval(intervals, numIntervals);
+                        if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
                     }
                 }
             }
@@ -141,7 +202,8 @@ float CalculateOcclusion(float2 tex)
     
     float occlusion;
     if (occluded) occlusion = 1;
-    else occlusion = max(intersectionAngle1 - intersectionAngle2, 0) / (lightHalfAngularRadius * 2);
+    //if (GetIntervalLength(intervals, numIntervals, lightHalfAngularRadius * 2) > lightHalfAngularRadius * 2) return 0;
+    else occlusion = GetIntervalLength(intervals, numIntervals) / (lightHalfAngularRadius * 2);
     return occlusion;
 }
 
