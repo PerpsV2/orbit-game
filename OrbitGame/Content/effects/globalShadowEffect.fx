@@ -4,9 +4,11 @@
 #define PI 3.14159265359
 #define TAU 6.28318530718
 
-#define MAX_DISJOINT_INTERVALS 16
+#define MAX_DISJOINT_INTERVALS 8
 
 #define EPSILON 0.0001f
+
+#define CSWAP(i, j) if (intervals[i].x > intervals[j].x) { float2 temp = intervals[i]; intervals[i] = intervals[j]; intervals[j] = temp; }
 
 matrix Projection;
 matrix World;
@@ -75,17 +77,128 @@ bool IntervalIntersects(float s1, float e1, float s2, float e2)
     return max(s1, s2) <= min(e1, e2);
 }
 
-int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
+void SortIntervals2(inout float2 intervals[MAX_DISJOINT_INTERVALS])
 {
-    for (int i = 0; i < numIntervals - 1; ++i)
+    CSWAP(0, 1);
+}
+
+void SortIntervals3(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 2);
+    CSWAP(0, 1);
+    CSWAP(1, 2);
+}
+
+void SortIntervals4(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 2); CSWAP(1, 3);
+    CSWAP(0, 1); CSWAP(2, 3);
+    CSWAP(1, 2);
+}
+
+void SortIntervals5(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 3); CSWAP(1, 4);
+    CSWAP(0, 2); CSWAP(1, 3);
+    CSWAP(0, 1); CSWAP(2, 4);
+    CSWAP(1, 2); CSWAP(3, 4);
+    CSWAP(2, 3);
+}
+
+void SortIntervals6(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 5); CSWAP(1, 3); CSWAP(2, 4);
+    CSWAP(1, 2); CSWAP(3, 4);
+    CSWAP(0, 3); CSWAP(2, 5);
+    CSWAP(0, 1); CSWAP(2, 3); CSWAP(4, 5);
+    CSWAP(1, 2); CSWAP(3, 4);
+}
+
+void SortIntervals7(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 6); CSWAP(2, 3); CSWAP(4, 5);
+    CSWAP(0, 2); CSWAP(1, 4); CSWAP(3, 6);
+    CSWAP(0, 1); CSWAP(2, 5); CSWAP(3, 4);
+    CSWAP(1, 2); CSWAP(4, 6);
+    CSWAP(2, 3); CSWAP(4, 5);
+    CSWAP(1, 2); CSWAP(3, 4); CSWAP(5, 6);
+}
+
+void SortIntervals8(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    CSWAP(0, 2); CSWAP(1, 3); CSWAP(4, 6); CSWAP(5, 7);
+    CSWAP(0, 4); CSWAP(1, 5); CSWAP(2, 6); CSWAP(3, 7);
+    CSWAP(0, 1); CSWAP(2, 3); CSWAP(4, 5); CSWAP(6, 7);
+    CSWAP(2, 4); CSWAP(3, 5);
+    CSWAP(1, 4); CSWAP(3, 6);
+    CSWAP(1, 2); CSWAP(3, 4); CSWAP(5, 6);
+}
+
+void SortIntervals9(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals10(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals11(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals12(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals13(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals14(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals15(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+void SortIntervals16(inout float2 intervals[MAX_DISJOINT_INTERVALS])
+{
+    
+}
+
+int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], float2 newInterval, int numIntervals)
+{
+    if (numIntervals >= MAX_DISJOINT_INTERVALS - 1) return MAX_DISJOINT_INTERVALS - 1;
+    
+    if (numIntervals == 0)
     {
-        for (int j = i + 1; j > 0; --j)
+        intervals[0] = newInterval;
+        numIntervals++;
+    }
+    else if (newInterval.x > intervals[numIntervals - 1].x)
+    {
+        intervals[numIntervals] = newInterval;
+        numIntervals++;
+    }
+    else
+    {
+        for (int i = 0; i < numIntervals; i++)
         {
-            if (intervals[j - 1].x > intervals[j].x)
+            if (newInterval.x < intervals[i].x)
             {
-                float2 temp = intervals[j - 1];
-                intervals[j - 1] = intervals[j];
-                intervals[j] = temp;
+                for (int j = numIntervals; j > i; j--)
+                    intervals[j] = intervals[j - 1];
+                intervals[i] = newInterval;
+                numIntervals++;
+                break;
             }
         }
     }
@@ -95,9 +208,7 @@ int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
     while (i < numIntervals)
     {
         if (intervals[i].x <= intervals[c].y || abs(intervals[i].x - intervals[c].y) < EPSILON)
-        {
             intervals[c].y = max(intervals[c].y, intervals[i].y);
-        }
         else
         {
             c++;
@@ -106,7 +217,7 @@ int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
         i++;
     }
     
-    return c + 1;
+    return min(c + 1, MAX_DISJOINT_INTERVALS);
 }
 
 bool IsFullInterval(float2 interval, float lightHalfAngularRadius)
@@ -120,6 +231,15 @@ float GetIntervalLength(float2 intervals[MAX_DISJOINT_INTERVALS], int numInterva
     for (int i = 0; i < numIntervals; ++i)
         total += intervals[i].y - intervals[i].x;
     return total;
+}
+
+bool IsInFrontLight(float2 v, float2 p, float pointAngle, float tangentAngle1, float tangentAngle2, float lightDistance)
+{
+    if (Wrap(pointAngle - tangentAngle2) > Wrap(tangentAngle1 - tangentAngle2)) return true;
+    float a = v.x - LightCenter.x + p.x;
+    float b = v.y - LightCenter.y + p.y;
+    return v.x * v.x + v.y * v.y <= lightDistance * lightDistance - LightRadius * LightRadius && 
+        a * a + b * b >= LightRadius * LightRadius;
 }
 
 float CalculateOcclusion(float2 tex)
@@ -158,14 +278,8 @@ float CalculateOcclusion(float2 tex)
                 pointAngle2 = temp;
             }
         
-            if ((
-                Wrap(pointAngle1 - tangentAngle2) > Wrap(tangentAngle1 - tangentAngle2) && 
-                Wrap(pointAngle2 - tangentAngle2) > Wrap(tangentAngle1 - tangentAngle2)
-                ) || (
-                    pow(lineStart.x, 2) + pow(lineStart.y, 2) <= lightDistance * lightDistance - LightRadius * LightRadius &&
-                    pow(lineEnd.x, 2) + pow(lineEnd.y, 2) <= lightDistance * lightDistance - LightRadius * LightRadius && 
-                    pow(lineStart.x - LightCenter.x + pixel.x, 2) + pow(lineStart.y - LightCenter.y + pixel.y, 2) >= LightRadius * LightRadius &&
-                    pow(lineEnd.x - LightCenter.x + pixel.x, 2) + pow(lineEnd.y - LightCenter.y + pixel.y, 2) >= LightRadius * LightRadius))
+            if (IsInFrontLight(lineStart, pixel, pointAngle1, tangentAngle1, tangentAngle2, lightDistance) &&
+                IsInFrontLight(lineEnd, pixel, pointAngle2, tangentAngle1, tangentAngle2, lightDistance))
             {
                 if (IntervalIsSubset(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1)) occluded = true;
                 else if (IntervalIsSubset(pointAngle2, pointAngle1, tangentAngle2, tangentAngle1))
@@ -173,9 +287,7 @@ float CalculateOcclusion(float2 tex)
                     float m1 = Wrap(pointAngle1 - tangentAngle2);
                     float m2 = Wrap(pointAngle2 - tangentAngle2);
                     
-                    intervals[numIntervals++] = float2(m2, m1);
-                    numIntervals = AddInterval(intervals, numIntervals);
-                    if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
+                    numIntervals = AddInterval(intervals, float2(m2, m1), numIntervals);
                 }
                 else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1))
                 {
@@ -183,26 +295,22 @@ float CalculateOcclusion(float2 tex)
                     {
                         float m1 = Wrap(pointAngle1 - tangentAngle2);
                         
-                        intervals[numIntervals++] = float2(0, m1);
-                        numIntervals = AddInterval(intervals, numIntervals);
-                        if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
+                        numIntervals = AddInterval(intervals, float2(0, m1), numIntervals);
                     }
                     else
                     {
                         float m2 = Wrap(pointAngle2 - tangentAngle2);
                         
-                        intervals[numIntervals++] = float2(m2, lightHalfAngularRadius * 2);
-                        numIntervals = AddInterval(intervals, numIntervals);
-                        if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
+                        numIntervals = AddInterval(intervals, float2(m2, lightHalfAngularRadius * 2), numIntervals);
                     }
                 }
+                if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
             }
         }
     }
     
     float occlusion;
     if (occluded) occlusion = 1;
-    //if (GetIntervalLength(intervals, numIntervals, lightHalfAngularRadius * 2) > lightHalfAngularRadius * 2) return 0;
     else occlusion = GetIntervalLength(intervals, numIntervals) / (lightHalfAngularRadius * 2);
     return occlusion;
 }

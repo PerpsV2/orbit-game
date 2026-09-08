@@ -122,18 +122,22 @@ public class OrbitGame : Game
         ));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
         multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
+        List<qQEngine.Vec2Double> occluderVertices = [
+            new (3, 0),
+            new (2.75, -5.2),
+            new (5.7, 3.725),
+            new (1.25, 9.725),
+            new (2.25, 1.55),
+            new (-3.45,-4.95),
+        ];
+
+        occluderVertices = occluderVertices.Select(x => x / 10).ToList();
+        
         for (int i = 0; i < 128; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
-            double randDistance = _rnd.NextDouble() * 600 + 70;
-            multiOccluder.Occluder.Occluders.Add(new PolyOccluder([
-                    new qQEngine.Vec2Double(3, 0),
-                    new qQEngine.Vec2Double(2.75, -5.2),
-                    new qQEngine.Vec2Double(5.7, 3.725),
-                    new qQEngine.Vec2Double(1.25, 9.725),
-                    new qQEngine.Vec2Double(2.25, 1.55),
-                    new qQEngine.Vec2Double(-3.45,-4.95),
-                ], qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
+            double randDistance = _rnd.NextDouble() * 150 + 90;
+            multiOccluder.Occluder.Occluders.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
         //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
@@ -144,7 +148,7 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(0, 0), velocity: new Vec2()
-        ), 100000, new Color(255, 120, 100));
+        ), 100000, new Color(255, 255, 255));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(500, 500), velocity: new Vec2()
         ), 100000, new Color(120, 255, 100));
@@ -275,8 +279,6 @@ public class OrbitGame : Game
                     Camera.ConvertToScreenDistance(o.Radius), Color.White
                 );
         _spriteBatch.End();
-
-        bool t = false;
         
         foreach (var kinematicObject in KinematicObjects)
         {

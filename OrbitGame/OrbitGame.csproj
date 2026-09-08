@@ -35,7 +35,4 @@
     <ItemGroup>
       <ProjectReference Include="..\qQEngine\qQEngine.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <ClCompile Include="Content\effects\test.fx" />
-    </ItemGroup>
 </Project>
