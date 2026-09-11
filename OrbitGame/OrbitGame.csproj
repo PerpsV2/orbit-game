@@ -30,7 +30,7 @@
         <PackageReference Include="MonoGame.Runtime.Windows.Vulkan" Version="3.8.5.1"/>
         <PackageReference Include="MonoGame.Runtime.Mac.Vulkan" Version="3.8.5.1"/>
         <PackageReference Include="MonoGame.Runtime.Linux.Vulkan" Version="3.8.5.1"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*"/>
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.5.1" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\qQEngine\qQEngine.csproj" />

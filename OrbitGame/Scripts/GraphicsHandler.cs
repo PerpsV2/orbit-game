@@ -50,6 +50,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     public void DrawShadowMask2(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
     {
         List<Vector4> occluderLineData = new();
+        List<Vector4> circularOccluderData = new();
         foreach (var body in bodies)
         {
             foreach (var occluder in body.Occluder.Occluders)
@@ -64,12 +65,23 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                         occluderLineData.Add(new Vector4(segStart.X, segStart.Y, segEnd.X, segEnd.Y));
                     }
                 }
+
+                if (occluder is CircularOccluder c)
+                {
+                    Vector2 center = camera.ConvertToScreenCoordinates(body.Position + c.LocalPosition);
+                    float radius = camera.ConvertToScreenDistance(c.Radius);
+                    circularOccluderData.Add(new Vector4(center.X, center.Y, radius, 0));
+                }
             }
         }
 
         Vector4[] occluderLineDataArray = occluderLineData.ToArray();
         Texture2D occluderLineDataTexture = new Texture2D(GraphicsDevice, occluderLineDataArray.Length, 1, false, SurfaceFormat.Vector4);
         occluderLineDataTexture.SetData(occluderLineDataArray);
+
+        Vector4[] cOccluderDataArray = circularOccluderData.ToArray();
+        Texture2D cOccluderDataTexture = new Texture2D(GraphicsDevice, cOccluderDataArray.Length, 1, false, SurfaceFormat.Vector4);
+        cOccluderDataTexture.SetData(cOccluderDataArray);
         
         Effect globalShadowEffect = Effects.GlobalShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
@@ -78,6 +90,8 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             { "LightRadius", camera.ConvertToScreenDistance(70) },
             { "OccluderTextureBuffer", occluderLineDataTexture},
             { "OccluderCount", occluderLineDataArray.Length },
+            { "COccluderTextureBuffer", cOccluderDataTexture },
+            { "COccluderCount", cOccluderDataArray.Length },
             { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
         }, globalShadowEffect);
     }

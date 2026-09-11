@@ -133,11 +133,19 @@ public class OrbitGame : Game
 
         occluderVertices = occluderVertices.Select(x => x / 10).ToList();
         
-        for (int i = 0; i < 128; ++i)
+        for (int i = 0; i < 1; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 150 + 90;
             multiOccluder.Occluder.Occluders.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
+        }
+
+        for (int i = 0; i < 16; ++i)
+        {
+            double randAngle = _rnd.NextDouble() * Math.Tau / 10;
+            double randDistance = _rnd.NextDouble() * 130 + 120;
+            double randRadius = _rnd.NextDouble() * 0.5 + 0.1;
+            multiOccluder.Occluder.Occluders.Add(new CircularOccluder(randRadius, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
         //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
