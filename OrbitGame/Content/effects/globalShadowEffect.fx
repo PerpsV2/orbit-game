@@ -8,8 +8,6 @@
 
 #define EPSILON 0.0001f
 
-#define CSWAP(i, j) if (intervals[i].x > intervals[j].x) { float2 temp = intervals[i]; intervals[i] = intervals[j]; intervals[j] = temp; }
-
 matrix Projection;
 matrix World;
 
@@ -82,23 +80,16 @@ bool IntervalIntersects(float s1, float e1, float s2, float e2)
 
 int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], float2 newInterval, int numIntervals)
 {
-    if (numIntervals >= MAX_DISJOINT_INTERVALS - 1) return numIntervals;
+    if (numIntervals >= MAX_DISJOINT_INTERVALS - 1) return numIntervals;    
     
-    if (numIntervals == 0 || newInterval.x > intervals[numIntervals].x) intervals[numIntervals++] = newInterval;
-    else
+    int i = numIntervals - 1;
+    while (i >= 0 && intervals[i].x > newInterval.x)
     {
-        for (int i = 0; i < numIntervals; ++i)
-        {
-            if (newInterval.x < intervals[i].x)
-            {
-                numIntervals++;
-                for (int j = numIntervals; j > i; j--)
-                    intervals[j] = intervals[j - 1];
-                intervals[i] = newInterval;
-                break;
-            }
-        }
+        intervals[i + 1] = intervals[i];
+        i--;
     }
+    intervals[i + 1] = newInterval;
+    numIntervals++;
     
     int c = 0;
     int j = 1;
