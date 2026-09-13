@@ -140,9 +140,9 @@ public class OrbitGame : Game
             multiOccluder.Occluder.Occluders.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
 
-        for (int i = 0; i < 16; ++i)
+        for (int i = 0; i < 128; ++i)
         {
-            double randAngle = _rnd.NextDouble() * Math.Tau / 10;
+            double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 130 + 120;
             double randRadius = _rnd.NextDouble() * 0.5 + 0.1;
             multiOccluder.Occluder.Occluders.Add(new CircularOccluder(randRadius, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
@@ -329,8 +329,8 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _lightingRenderTarget},
-            {"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
+            {"SpriteTexture", _shadowMask},
+            //{"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 
         foreach (var occluder in Bodies[0].Occluder.Occluders)

@@ -82,15 +82,19 @@ int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], float2 newInterval
 {
     if (numIntervals >= MAX_DISJOINT_INTERVALS - 1) return numIntervals;    
     
-    int i = numIntervals - 1;
-    while (i >= 0 && intervals[i].x > newInterval.x)
+    if (numIntervals == 0) intervals[numIntervals++] = newInterval;
+    else
     {
-        intervals[i + 1] = intervals[i];
-        i--;
+        int i = numIntervals - 1;
+        while (i >= 0 && intervals[i].x > newInterval.x)
+        {
+            intervals[i + 1] = intervals[i];
+            i--;
+        }
+        intervals[i + 1] = newInterval;
+        numIntervals++;
     }
-    intervals[i + 1] = newInterval;
-    numIntervals++;
-    
+        
     int c = 0;
     int j = 1;
     while (j < numIntervals)
@@ -105,7 +109,7 @@ int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], float2 newInterval
         j++;
     }
     
-    return min(c + 1, MAX_DISJOINT_INTERVALS);
+    return c + 1;
 }
 
 bool IsFullInterval(float2 interval, float lightHalfAngularRadius)
@@ -142,15 +146,11 @@ float CalculateOcclusion(float2 tex)
     float tangentAngle1 = Wrap(lightCenterAngle + lightHalfAngularRadius);
     float tangentAngle2 = Wrap(lightCenterAngle - lightHalfAngularRadius);
     
-    bool occluded = false;
-    
     float2 intervals[MAX_DISJOINT_INTERVALS];
     int numIntervals = 0;
     
     for (int i = 0; i < COccluderCount; i++)
     {
-        if (occluded) continue;
-        
         float4 v = COccluderTextureBuffer.Sample(COccluderTextureSampler, float2(1.0 / COccluderCount * (i + 0.5), 0.5));
         
         float2 center = float2(v.x, v.y) - pixel;
@@ -162,16 +162,21 @@ float CalculateOcclusion(float2 tex)
         float occTangentAngle1 = Wrap(occluderCenterAngle + occHalfAngularRadius);
         float occTangentAngle2 = Wrap(occluderCenterAngle - occHalfAngularRadius);
         
-        if (occluderDistance + radius > lightDistance + LightRadius) continue;
+        if (!IsInFrontLight(center, pixel, occluderCenterAngle, 
+            Wrap(tangentAngle1 + occHalfAngularRadius), 
+            Wrap(tangentAngle2 - occHalfAngularRadius), 
+            lightDistance)) continue;
         
-        if (IntervalIsSubset(tangentAngle2, tangentAngle1, occTangentAngle2, occTangentAngle1)) occluded = true;
-        else if (IntervalIsSubset(occTangentAngle2, occTangentAngle1, tangentAngle2, tangentAngle1))
+        if (IntervalIsSubset(tangentAngle2, tangentAngle1, occTangentAngle2, occTangentAngle1)) return 1;
+        
+        if (IntervalIsSubset(occTangentAngle2, occTangentAngle1, tangentAngle2, tangentAngle1))
         {
             float m1 = Wrap(occTangentAngle1 - tangentAngle2);
             float m2 = Wrap(occTangentAngle2 - tangentAngle2);
                 
             numIntervals = AddInterval(intervals, float2(m2, m1), numIntervals);
         }
+        
         else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, occTangentAngle2, occTangentAngle1))
         {
             if (Wrap(tangentAngle2 - occTangentAngle2) <= PI)
@@ -185,13 +190,12 @@ float CalculateOcclusion(float2 tex)
                 numIntervals = AddInterval(intervals, float2(m2, lightHalfAngularRadius * 2), numIntervals);
             }
         }
-        if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
+        
+        if (numIntervals > 0 && IsFullInterval(intervals[0], lightHalfAngularRadius)) return 1;
     }
     
     for (int i = 0; i < OccluderCount; i++)
     {
-        if (occluded) continue;
-        
         float4 v = OccluderTextureBuffer.Sample(OccluderTextureSampler, float2(1.0 / OccluderCount * (i + 0.5), 0.5));
 
         float2 lineStart = float2(v.x, v.y) - pixel;
@@ -207,38 +211,37 @@ float CalculateOcclusion(float2 tex)
             pointAngle2 = temp;
         }
 
-        if (IsInFrontLight(lineStart, pixel, pointAngle1, tangentAngle1, tangentAngle2, lightDistance) &&
-            IsInFrontLight(lineEnd, pixel, pointAngle2, tangentAngle1, tangentAngle2, lightDistance))
+        if (!IsInFrontLight(lineStart, pixel, pointAngle1, tangentAngle1, tangentAngle2, lightDistance) ||
+            !IsInFrontLight(lineEnd, pixel, pointAngle2, tangentAngle1, tangentAngle2, lightDistance)) continue;
+            
+        if (IntervalIsSubset(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1)) return 1;
+        
+        if (IntervalIsSubset(pointAngle2, pointAngle1, tangentAngle2, tangentAngle1))
         {
-            if (IntervalIsSubset(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1)) occluded = true;
-            else if (IntervalIsSubset(pointAngle2, pointAngle1, tangentAngle2, tangentAngle1))
+            float m1 = Wrap(pointAngle1 - tangentAngle2);
+            float m2 = Wrap(pointAngle2 - tangentAngle2);
+            
+            numIntervals = AddInterval(intervals, float2(m2, m1), numIntervals);
+        }
+        
+        else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1))
+        {
+            if (Wrap(tangentAngle2 - pointAngle2) <= PI)
             {
                 float m1 = Wrap(pointAngle1 - tangentAngle2);
-                float m2 = Wrap(pointAngle2 - tangentAngle2);
-                
-                numIntervals = AddInterval(intervals, float2(m2, m1), numIntervals);
+                numIntervals = AddInterval(intervals, float2(0, m1), numIntervals);
             }
-            else if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, pointAngle2, pointAngle1))
+            else
             {
-                if (Wrap(tangentAngle2 - pointAngle2) <= PI)
-                {
-                    float m1 = Wrap(pointAngle1 - tangentAngle2);
-                    numIntervals = AddInterval(intervals, float2(0, m1), numIntervals);
-                }
-                else
-                {
-                    float m2 = Wrap(pointAngle2 - tangentAngle2);
-                    numIntervals = AddInterval(intervals, float2(m2, lightHalfAngularRadius * 2), numIntervals);
-                }
+                float m2 = Wrap(pointAngle2 - tangentAngle2);
+                numIntervals = AddInterval(intervals, float2(m2, lightHalfAngularRadius * 2), numIntervals);
             }
-            if (IsFullInterval(intervals[0], lightHalfAngularRadius)) occluded = true;
         }
+        
+        if (numIntervals > 0 && IsFullInterval(intervals[0], lightHalfAngularRadius)) return 1;
     }
     
-    float occlusion;
-    if (occluded) occlusion = 1;
-    else occlusion = GetIntervalLength(intervals, numIntervals) / (lightHalfAngularRadius * 2);
-    return occlusion;
+    return GetIntervalLength(intervals, numIntervals) / (lightHalfAngularRadius * 2);
 }
 
 float4 MainPS(VertexShaderOutput input) : SV_TARGET

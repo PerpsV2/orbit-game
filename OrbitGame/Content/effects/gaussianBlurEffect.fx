@@ -38,7 +38,8 @@ float2 Texel(int x, int y)
 
 float4 BasicColourPS(VertexShaderOutput input) : SV_TARGET
 {
-    return
+    return SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords);
+    /*return
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2, -2)) / 273 * 1 +
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2, -1)) / 273 * 4 +
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel(-2,  0)) / 273 * 7 +
@@ -63,7 +64,7 @@ float4 BasicColourPS(VertexShaderOutput input) : SV_TARGET
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2, -1)) / 273 * 4 +
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  0)) / 273 * 7 +
     SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  1)) / 273 * 4 +
-    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  2)) / 273 * 1;
+    SpriteTexture.Sample(SpriteTextureSampler, input.TexCoords + Texel( 2,  2)) / 273 * 1;*/
 }
 
 technique BasicColorDrawing
