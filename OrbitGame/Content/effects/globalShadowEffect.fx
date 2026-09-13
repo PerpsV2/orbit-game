@@ -6,7 +6,7 @@
 
 #define MAX_DISJOINT_INTERVALS 16
 
-#define EPSILON 0.0001f
+#define EPSILON 0.0001
 
 matrix Projection;
 matrix World;
@@ -82,18 +82,14 @@ int AddInterval(out float2 intervals[MAX_DISJOINT_INTERVALS], float2 newInterval
 {
     if (numIntervals >= MAX_DISJOINT_INTERVALS - 1) return numIntervals;    
     
-    if (numIntervals == 0) intervals[numIntervals++] = newInterval;
-    else
+    int i = numIntervals - 1;
+    while (i >= 0 && intervals[i].x > newInterval.x)
     {
-        int i = numIntervals - 1;
-        while (i >= 0 && intervals[i].x > newInterval.x)
-        {
-            intervals[i + 1] = intervals[i];
-            i--;
-        }
-        intervals[i + 1] = newInterval;
-        numIntervals++;
+        intervals[i + 1] = intervals[i];
+        i--;
     }
+    intervals[i + 1] = newInterval;
+    numIntervals++;
         
     int c = 0;
     int j = 1;

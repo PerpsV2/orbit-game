@@ -88,8 +88,8 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         {
             { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
             { "LightRadius", camera.ConvertToScreenDistance(70) },
-            { "OccluderTextureBuffer", occluderLineDataTexture},
-            { "OccluderCount", occluderLineDataArray.Length },
+            //{ "OccluderTextureBuffer", occluderLineDataTexture},
+            //{ "OccluderCount", occluderLineDataArray.Length },
             { "COccluderTextureBuffer", cOccluderDataTexture },
             { "COccluderCount", cOccluderDataArray.Length },
             { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
