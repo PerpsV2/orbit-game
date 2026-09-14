@@ -25,6 +25,7 @@ public static class Effects
     public static Effect? ShadowEffect;
     public static Effect? PolyShadowEffect;
     public static Effect? GlobalShadowEffect;
+    public static Effect? ExtrudedShadowEffect;
     public static Effect? LightingEffect;
     public static Effect? GaussianBlurEffect;
 }
@@ -120,8 +121,8 @@ public class OrbitGame : Game
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
             position: new Vec2(), velocity: new Vec2()
         ));
-        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
-        multiOccluder.Occluder.Occluders.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
+        multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
+        multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
         List<qQEngine.Vec2Double> occluderVertices = [
             new (3, 0),
             new (2.75, -5.2),
@@ -137,7 +138,7 @@ public class OrbitGame : Game
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 150 + 90;
-            multiOccluder.Occluder.Occluders.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
+            multiOccluder.Occluder.OccluderPrimitives.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
 
         for (int i = 0; i < 128; ++i)
@@ -145,7 +146,7 @@ public class OrbitGame : Game
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 130 + 120;
             double randRadius = _rnd.NextDouble() * 0.5 + 0.1;
-            multiOccluder.Occluder.Occluders.Add(new CircularOccluder(randRadius, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
+            multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(randRadius, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
         //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
@@ -156,7 +157,7 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(0, 0), velocity: new Vec2()
-        ), 100000, new Color(255, 255, 255));
+        ), 160000000, new Color(255, 255, 255));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(500, 500), velocity: new Vec2()
         ), 100000, new Color(120, 255, 100));
@@ -198,6 +199,8 @@ public class OrbitGame : Game
         Effects.PolyShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.GlobalShadowEffect = Content.Load<Effect>("effects/globalShadowEffect");
         Effects.GlobalShadowEffect.Parameters["Projection"].SetValue(projection);
+        Effects.ExtrudedShadowEffect = Content.Load<Effect>("effects/extrudedShadowEffect");
+        Effects.ExtrudedShadowEffect.Parameters["Projection"].SetValue(projection);
         Effects.LightingEffect = Content.Load<Effect>("effects/lightingEffect");
         Effects.LightingEffect.Parameters["Projection"].SetValue(projection);
         Effects.GaussianBlurEffect = Content.Load<Effect>("effects/gaussianBlurEffect");
@@ -280,7 +283,7 @@ public class OrbitGame : Game
         GraphicsDevice.RasterizerState = rasterizerState;
         _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
         foreach (var body in Bodies)
-        foreach (var occluder in body.Occluder.Occluders)
+        foreach (var occluder in body.Occluder.OccluderPrimitives)
             if (occluder is CircularOccluder o)
                 Graphics.DrawCircle(
                     Camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition),
@@ -296,7 +299,7 @@ public class OrbitGame : Game
                 GraphicsDevice.Clear(Color.White);
                 GraphicsDevice.RasterizerState = rasterizerState;
                 _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-                Graphics.DrawShadowMask2(Camera, light, Bodies);
+                Graphics.DrawShadowMask(Camera, light, Bodies);
                 _spriteBatch.End();
                 
                 GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
@@ -329,11 +332,11 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _shadowMask},
+            {"SpriteTexture", _lightingRenderTarget},
             //{"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 
-        foreach (var occluder in Bodies[0].Occluder.Occluders)
+        foreach (var occluder in Bodies[0].Occluder.OccluderPrimitives)
             if (occluder is PolyOccluder o)
                 Graphics.DrawPoly(o.Vertices.Select(x => Camera.ConvertToScreenCoordinates(x + o.LocalPosition + Bodies[0].Position)).ToList(), Color.Red);
         

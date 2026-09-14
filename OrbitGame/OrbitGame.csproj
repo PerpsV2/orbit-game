@@ -35,4 +35,7 @@
     <ItemGroup>
       <ProjectReference Include="..\qQEngine\qQEngine.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <ClCompile Include="Content\effects\extrudedShadowEffect.fx" />
+    </ItemGroup>
 </Project>

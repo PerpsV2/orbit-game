@@ -4,5 +4,5 @@ namespace qQEngine;
 
 public class CompoundOccluder
 {
-    public List<IOccluder> Occluders { get; set; } = new();
+    public List<IOccluder> OccluderPrimitives { get; set; } = new();
 }
