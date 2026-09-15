@@ -73,6 +73,9 @@ public class OrbitGame : Game
         /// Update loop FPS.
         /// </summary>
         public static int FramesPerSecond;
+
+        public static qQEngine.KinematicObject Tracking;
+        public static int TrackingIndex;
     }
 
     private SpriteBatch _spriteBatch;
@@ -114,12 +117,12 @@ public class OrbitGame : Game
     {
         Graphics = new GraphicsHandler(_spriteBatch);
         
-        Timer frameTimer = new Timer(UpdateFPS, null, 0, 1000);
+        Timer _ = new Timer(UpdateFPS, null, 0, 1000);
 
         #region Test Bodies
 
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
-            position: new Vec2(), velocity: new Vec2()
+            position: new Vec2(new qQEngine.SDecimal(7.3, 12), 0), velocity: new Vec2()
         ));
         multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(1, new qQEngine.Vec2Double(120, 0)));
         multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
@@ -134,36 +137,31 @@ public class OrbitGame : Game
 
         occluderVertices = occluderVertices.Select(x => x / 10).ToList();
         
-        for (int i = 0; i < 1; ++i)
+        multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(new qQEngine.SDecimal(2.3766, 6), qQEngine.Vec2Double.Zero));
+        
+        /*for (int i = 0; i < 1; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 150 + 90;
             multiOccluder.Occluder.OccluderPrimitives.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
 
-        for (int i = 0; i < 512; ++i)
+        for (int i = 0; i < 32; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 130 + 120;
             double randRadius = _rnd.NextDouble() * 0.5 + 0.1;
             multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(randRadius, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
-        }
+        }*/
         //multiOccluder.Occluder.Occluders.Add(new CircularOccluder(150, new qQEngine.Vec2Double(0, 100)));
 
         qQEngine.Body secondOccluder = new qQEngine.Body("Frug/Crowbar Tomboy", new qQEngine.SpatialInfo(
             position: new Vec2(5, 5), velocity: new Vec2()
         ));
-        //secondOccluder.Occluder.Occluders.Add(new CircularOccluder(1, qQEngine.Vec2Double.Zero));
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(0, 0), velocity: new Vec2()
-        ), 100000, new Color(255, 255, 255));
-        CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
-            position: new Vec2(500, 500), velocity: new Vec2()
-        ), 100000, new Color(120, 255, 100));
-        CircularLight thirdLight = new CircularLight("John Light", new qQEngine.SpatialInfo(
-            position: new Vec2(0, 1000), velocity: new Vec2()
-        ), 100000, new Color(100, 100, 255));
+        ), 100000, new Color(255, 255, 255), new qQEngine.SDecimal(6.957, 10));
         
         #endregion
         
@@ -172,7 +170,8 @@ public class OrbitGame : Game
         KinematicObjects.Add(light);
         Bodies.Add(multiOccluder);
         Bodies.Add(secondOccluder);
-        //Camera.Focus();
+
+        GameState.Tracking = KinematicObjects[0];
 
         base.Initialize();
     }
@@ -234,6 +233,14 @@ public class OrbitGame : Game
         if (keyboardState.IsKeyDown(Options.TimeWarpDownKey))
             if (_lastKeyboardState.IsKeyUp(Options.TimeWarpDownKey))
                 GameState.PhysicsTimeStep /= 10;
+        
+        if (keyboardState.IsKeyDown(Options.TrackNextBodyKey))
+            if (_lastKeyboardState.IsKeyUp(Options.TrackNextBodyKey))
+            {
+                GameState.TrackingIndex = (GameState.TrackingIndex + 1) % KinematicObjects.Count;
+                GameState.Tracking = KinematicObjects[GameState.TrackingIndex];
+                Camera.MovementScheme = new qQEngine.TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
+            }
         
         if (keyboardState.IsKeyDown(Options.MoveUpKey)) Camera.MoveParallel(camSpeed);
         if (keyboardState.IsKeyDown(Options.MoveDownKey)) Camera.MoveParallel(-camSpeed);

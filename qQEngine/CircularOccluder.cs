@@ -11,9 +11,9 @@ public class CircularOccluder : IOccluder
         Radius = radius;
     }
 
-    public CircularOccluder(SDecimal radius, Vec2Double position)
+    public CircularOccluder(SDecimal radius, Vec2Double localPosition)
         : this(radius)
     {
-        LocalPosition = position;
+        LocalPosition = localPosition;
     }
 }

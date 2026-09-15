@@ -34,7 +34,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                     
                     occluderData.Add(new Vector4(
                         angle,
-                        camera.ConvertToScreenDistance(70 * scaleFactor),
+                        camera.ConvertToScreenDistance(light.Radius * scaleFactor),
                         camera.ConvertToScreenDistance(c.Radius * scaleFactor),
                         0
                     ));
@@ -107,7 +107,6 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
     public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
     {
         Effect globalShadowEffect = Effects.GlobalShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        Effect extrudedShadowEffect = Effects.ExtrudedShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
         
         List<Vector4> occluderData = new();
         List<Vector4> extrudedOccluderData = new();
@@ -131,7 +130,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
 
                     extrudedOccluderData.Add(new Vector4(
                         angle,
-                        camera.ConvertToScreenDistance(70 * scaleFactor),
+                        camera.ConvertToScreenDistance(light.Radius * scaleFactor),
                         camera.ConvertToScreenDistance(c.Radius * scaleFactor),
                         0
                     ));
@@ -150,7 +149,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
-            { "LightRadius", camera.ConvertToScreenDistance(70) },
+            { "LightRadius", camera.ConvertToScreenDistance(light.Radius) },
             { "OccluderDataTexture", occluderDataTexture },
             { "ExtrudedOccluderDataTexture", extrudedOccluderDataTexture },
             { "OccluderCount", occluderDataArray.Length },
