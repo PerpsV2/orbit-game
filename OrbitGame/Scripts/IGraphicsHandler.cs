@@ -7,8 +7,9 @@ namespace OrbitGame;
 
 public interface IGraphicsHandler
 {
-    public void DrawShadowMask(qQEngine.Camera camera, qQEngine.CircularLight light, IEnumerable<qQEngine.Body> bodies);
+    public void DrawDetailedShadowMask(qQEngine.Camera camera, qQEngine.CircularLight light, IEnumerable<qQEngine.Body> bodies);
     public void DrawExtrudedShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies);
+    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies);
     public void DrawLighting(qQEngine.Camera camera, qQEngine.CircularLight light, RenderTarget2D shadowMask, RenderTarget2D occluderMask);
     public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, qQEngine.IOccluder occluder, Color colour);
     public void DrawCircle(Vector2 center, float radius, Color colour);

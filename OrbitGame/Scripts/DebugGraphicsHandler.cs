@@ -22,12 +22,17 @@ public class DebugGraphicsHandler : IGraphicsHandler
     public List<DrawPointCall> DrawPointCalls = [];
     public List<DrawMeshCall> DrawMeshCalls = [];
 
-    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    public void DrawDetailedShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
     {
         throw new NotImplementedException();
     }
 
     public void DrawExtrudedShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
     {
         throw new NotImplementedException();
     }

@@ -121,7 +121,7 @@ public class OrbitGame : Game
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
             position: new Vec2(), velocity: new Vec2()
         ));
-        multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(1, new qQEngine.Vec2Double(1200, 0)));
+        multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(1, new qQEngine.Vec2Double(120, 0)));
         multiOccluder.Occluder.OccluderPrimitives.Add(new CircularOccluder(25, new qQEngine.Vec2Double(1250, 10)));
         List<qQEngine.Vec2Double> occluderVertices = [
             new (3, 0),
@@ -141,7 +141,7 @@ public class OrbitGame : Game
             multiOccluder.Occluder.OccluderPrimitives.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
 
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 64; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 130 + 120;
@@ -157,7 +157,7 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(0, 0), velocity: new Vec2()
-        ), 100000, new Color(255, 255, 255));
+        ), 1200000000, new Color(255, 255, 255));
         CircularLight secondLight = new CircularLight("Always One Hundred", new qQEngine.SpatialInfo(
             position: new Vec2(500, 500), velocity: new Vec2()
         ), 100000, new Color(120, 255, 100));
@@ -305,8 +305,8 @@ public class OrbitGame : Game
                 GraphicsDevice.Clear(Color.White);
                 GraphicsDevice.RasterizerState = rasterizerState;
                 _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-                if (_shadowTypeToggle) Graphics.DrawShadowMask(Camera, light, Bodies);
-                else Graphics.DrawExtrudedShadowMask(Camera, light, Bodies);
+                if (_shadowTypeToggle) Graphics.DrawDetailedShadowMask(Camera, light, Bodies);
+                else Graphics.DrawShadowMask(Camera, light, Bodies);
                 _spriteBatch.End();
                 
                 GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
@@ -339,7 +339,7 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _shadowMask},
+            {"SpriteTexture", _lightingRenderTarget},
             //{"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 

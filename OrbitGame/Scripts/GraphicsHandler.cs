@@ -55,17 +55,17 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         }, extrudedShadowEffect);
     }
 
-    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    public void DrawDetailedShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
     {
         Effect globalShadowEffect = Effects.GlobalShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
         
-        List<Vector4> occluderLineData = new();
+        //List<Vector4> occluderLineData = new();
         List<Vector4> circularOccluderData = new();
         foreach (var body in bodies)
         {
             foreach (var occluder in body.Occluder.OccluderPrimitives)
             {
-                if (occluder is PolyOccluder o)
+                /*if (occluder is PolyOccluder o)
                 {
                     for (int i = 0; i < o.Vertices.Count; i++)
                     {
@@ -74,8 +74,7 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                         Vector2 segEnd = camera.ConvertToScreenCoordinates(body.Position + o.LocalPosition + o.Vertices[n]);
                         occluderLineData.Add(new Vector4(segStart.X, segStart.Y, segEnd.X, segEnd.Y));
                     }
-                }
-
+                }*/
                 if (occluder is CircularOccluder c)
                 {
                     Vector2 center = camera.ConvertToScreenCoordinates(body.Position + c.LocalPosition);
@@ -85,9 +84,9 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             }
         }
 
-        Vector4[] occluderLineDataArray = occluderLineData.Count > 0 ? occluderLineData.ToArray() : [new Vector4()];
+        /*Vector4[] occluderLineDataArray = occluderLineData.Count > 0 ? occluderLineData.ToArray() : [new Vector4()];
         Texture2D occluderLineDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, occluderLineDataArray.Length), 1, false, SurfaceFormat.Vector4);
-        occluderLineDataTexture.SetData(occluderLineDataArray);
+        occluderLineDataTexture.SetData(occluderLineDataArray);*/
 
         Vector4[] cOccluderDataArray = circularOccluderData.Count > 0 ? circularOccluderData.ToArray() : [new Vector4()];
         Texture2D cOccluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, cOccluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
@@ -103,6 +102,74 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
             { "COccluderCount", cOccluderDataArray.Length },
             { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
         }, globalShadowEffect);
+    }
+
+    public void DrawShadowMask(qQEngine.Camera camera, CircularLight light, IEnumerable<qQEngine.Body> bodies)
+    {
+        Effect globalShadowEffect = Effects.GlobalShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        Effect extrudedShadowEffect = Effects.ExtrudedShadowEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        
+        List<Vector4> occluderData = new();
+        List<Vector4> extrudedOccluderData = new();
+        foreach (var body in bodies)
+        {
+            foreach (var occluder in body.Occluder.OccluderPrimitives)
+            {
+                if (occluder is CircularOccluder c)
+                {
+                    Vec2 occluderGlobalPos = c.LocalPosition + body.Position;
+                    qQEngine.SDecimal woah = camera.SD_ConvertToScreenDistance((light.Position - occluderGlobalPos).Magnitude());
+                    if (woah > 1)
+                    {
+                        Vector2 center = camera.ConvertToScreenCoordinates(occluderGlobalPos);
+                        float radius = camera.ConvertToScreenDistance(c.Radius);
+                        occluderData.Add(new Vector4(center.X, center.Y, radius, 0));
+                    }
+                    else
+                    {
+                        
+                        Vec2 lightGlobalPos = light.Position;
+                        float angle = (float)(occluderGlobalPos - lightGlobalPos).Direction();
+
+                        qQEngine.SDecimal screenOccluderLightDistance =
+                            camera.SD_ConvertToScreenDistance((occluderGlobalPos - lightGlobalPos).Magnitude());
+                        qQEngine.SDecimal scaleFactor = 1 / screenOccluderLightDistance;
+
+                        extrudedOccluderData.Add(new Vector4(
+                            angle,
+                            camera.ConvertToScreenDistance(70 * scaleFactor),
+                            camera.ConvertToScreenDistance(c.Radius * scaleFactor),
+                            0
+                        ));
+                    }
+                }
+            }
+        }
+
+        Vector4[] occluderDataArray = occluderData.Count > 0 ? occluderData.ToArray() : [new Vector4()];
+        Texture2D occluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, occluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
+        occluderDataTexture.SetData(occluderDataArray);
+        
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        {
+            { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+            { "LightRadius", camera.ConvertToScreenDistance(70) },
+            { "COccluderTextureBuffer", occluderDataTexture },
+            { "COccluderCount", occluderDataArray.Length },
+            { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+        }, globalShadowEffect);
+        
+        Vector4[] extrudedOccluderDataArray = extrudedOccluderData.Count > 0 ? extrudedOccluderData.ToArray() : [new Vector4()];
+        Texture2D extruderOccluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, extrudedOccluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
+        extruderOccluderDataTexture.SetData(extrudedOccluderDataArray);
+        
+        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        {
+            { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+            { "OccluderDataTexture", extruderOccluderDataTexture },
+            { "OccluderCount", extrudedOccluderDataArray.Length },
+            { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
+        }, extrudedShadowEffect);
     }
 
     public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask,

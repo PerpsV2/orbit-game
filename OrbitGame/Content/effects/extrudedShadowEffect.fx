@@ -110,14 +110,19 @@ half CalculateOcclusion(half2 tex)
         half occluderAngle = v.x;
         half lightRadius = v.y;
         half occluderRadius = v.z;
+
+        half2 occPos = half2(cos(-occluderAngle), sin(-occluderAngle) * ScreenSize.x / ScreenSize.y);
         
-        half2 occPos = half2(cos(occluderAngle), sin(occluderAngle));
+        half2 lightRelPos = LightCenter - pixel;
+        half2 occRelPos = lightRelPos + occPos;
+        half angle = atan2(lightRelPos.y, lightRelPos.x);
         
-        half pixelAngle = atan2(LightCenter.y - pixel.y, LightCenter.x - pixel.x);
+        if (lightRelPos.x * lightRelPos.x + lightRelPos.y * lightRelPos.y < occRelPos.x * occRelPos.x + occRelPos.y * occRelPos.y)
+            continue;
         
-        half intervalScaleFactor = 1.0 / (2 * lightRadius) * sign(cos(pixelAngle));
-        half a = Sec(pixelAngle);
-        half b = tan(pixelAngle);
+        half intervalScaleFactor = 1.0 / (2 * lightRadius) * sign(cos(angle));
+        half a = Sec(angle);
+        half b = tan(angle);
         half intervalStart = ((lightRadius - occluderRadius) * a + b * occPos.x - occPos.y) / abs(a) * intervalScaleFactor;
         half intervalEnd = ((lightRadius + occluderRadius) * a + b * occPos.x - occPos.y) / abs(a) * intervalScaleFactor;
         if (intervalStart > intervalEnd)
@@ -129,7 +134,8 @@ half CalculateOcclusion(half2 tex)
         intervalStart = clamp(intervalStart, 0, 1);
         intervalEnd = clamp(intervalEnd, 0, 1);
         
-        numIntervals = AddInterval(intervals, half2(intervalStart, intervalEnd), numIntervals);
+        if (intervalStart != intervalEnd)
+            numIntervals = AddInterval(intervals, half2(intervalStart, intervalEnd), numIntervals);
     }
     
     return GetIntervalLength(intervals, numIntervals);
