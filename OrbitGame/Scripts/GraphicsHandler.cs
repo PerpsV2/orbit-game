@@ -118,29 +118,23 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                 if (occluder is CircularOccluder c)
                 {
                     Vec2 occluderGlobalPos = c.LocalPosition + body.Position;
-                    qQEngine.SDecimal woah = camera.SD_ConvertToScreenDistance((light.Position - occluderGlobalPos).Magnitude());
-                    if (woah > 1)
-                    {
-                        Vector2 center = camera.ConvertToScreenCoordinates(occluderGlobalPos);
-                        float radius = camera.ConvertToScreenDistance(c.Radius);
-                        occluderData.Add(new Vector4(center.X, center.Y, radius, 0));
-                    }
-                    else
-                    {
-                        Vec2 lightGlobalPos = light.Position;
-                        float angle = (float)(occluderGlobalPos - lightGlobalPos).Direction();
+                    Vector2 center = camera.ConvertToScreenCoordinates(occluderGlobalPos);
+                    float radius = camera.ConvertToScreenDistance(c.Radius);
+                    occluderData.Add(new Vector4(center.X, center.Y, radius, 0));
 
-                        qQEngine.SDecimal screenOccluderLightDistance =
-                            camera.SD_ConvertToScreenDistance((occluderGlobalPos - lightGlobalPos).Magnitude());
-                        qQEngine.SDecimal scaleFactor = 1 / screenOccluderLightDistance;
+                    Vec2 lightGlobalPos = light.Position;
+                    float angle = (float)(occluderGlobalPos - lightGlobalPos).Direction();
 
-                        extrudedOccluderData.Add(new Vector4(
-                            angle,
-                            camera.ConvertToScreenDistance(70 * scaleFactor),
-                            camera.ConvertToScreenDistance(c.Radius * scaleFactor),
-                            0
-                        ));
-                    }
+                    qQEngine.SDecimal screenOccluderLightDistance =
+                        camera.SD_ConvertToScreenDistance((occluderGlobalPos - lightGlobalPos).Magnitude());
+                    qQEngine.SDecimal scaleFactor = 1 / screenOccluderLightDistance;
+
+                    extrudedOccluderData.Add(new Vector4(
+                        angle,
+                        camera.ConvertToScreenDistance(70 * scaleFactor),
+                        camera.ConvertToScreenDistance(c.Radius * scaleFactor),
+                        0
+                    ));
                 }
             }
         }
@@ -149,26 +143,19 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         Texture2D occluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, occluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
         occluderDataTexture.SetData(occluderDataArray);
         
+        Vector4[] extrudedOccluderDataArray = extrudedOccluderData.Count > 0 ? extrudedOccluderData.ToArray() : [new Vector4()];
+        Texture2D extrudedOccluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, extrudedOccluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
+        extrudedOccluderDataTexture.SetData(extrudedOccluderDataArray);
+        
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
         {
             { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
             { "LightRadius", camera.ConvertToScreenDistance(70) },
-            { "COccluderTextureBuffer", occluderDataTexture },
-            { "COccluderCount", occluderDataArray.Length },
+            { "OccluderDataTexture", occluderDataTexture },
+            { "ExtrudedOccluderDataTexture", extrudedOccluderDataTexture },
+            { "OccluderCount", occluderDataArray.Length },
             { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
         }, globalShadowEffect);
-        
-        Vector4[] extrudedOccluderDataArray = extrudedOccluderData.Count > 0 ? extrudedOccluderData.ToArray() : [new Vector4()];
-        Texture2D extruderOccluderDataTexture = new Texture2D(GraphicsDevice, Math.Max(1, extrudedOccluderDataArray.Length), 1, false, SurfaceFormat.Vector4);
-        extruderOccluderDataTexture.SetData(extrudedOccluderDataArray);
-        
-        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
-        {
-            { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
-            { "OccluderDataTexture", extruderOccluderDataTexture },
-            { "OccluderCount", extrudedOccluderDataArray.Length },
-            { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) }
-        }, extrudedShadowEffect);
     }
 
     public void DrawLighting(qQEngine.Camera camera, CircularLight light, RenderTarget2D shadowMask,

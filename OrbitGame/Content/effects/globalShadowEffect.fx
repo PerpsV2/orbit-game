@@ -14,13 +14,13 @@ matrix World;
 half2 LightCenter;
 half LightRadius;
 
-Texture2D OccluderTextureBuffer : register(t0);
-SamplerState OccluderTextureSampler : register(t0);
-int OccluderCount;
+Texture2D OccluderDataTexture : register(t0);
+SamplerState OccluderDataTextureSampler : register(t0);
 
-Texture2D COccluderTextureBuffer : register(t1);
-SamplerState COccluderTextureSampler : register(t1);
-int COccluderCount;
+Texture2D ExtrudedOccluderDataTexture : register(t1);
+SamplerState ExtrudedOccluderDataTextureSampler : register(t1);
+
+int OccluderCount;
 
 half2 ScreenSize;
 
@@ -108,9 +108,9 @@ int AddInterval(out half2 intervals[MAX_DISJOINT_INTERVALS], half2 newInterval, 
     return c + 1;
 }
 
-bool IsFullInterval(half2 interval, half lightHalfAngularRadius)
+bool IsFullInterval(half2 interval)
 {
-    return interval.x <= 0 && (abs(interval.y - 2 * lightHalfAngularRadius) < EPSILON || interval.y >= 2 * lightHalfAngularRadius);
+    return interval.x <= 0 && (abs(interval.y - 1) < EPSILON || interval.y >= 1);
 }
 
 half GetIntervalLength(half2 intervals[MAX_DISJOINT_INTERVALS], int numIntervals)
@@ -145,11 +145,48 @@ half CalculateOcclusion(half2 tex)
     half2 intervals[MAX_DISJOINT_INTERVALS];
     int numIntervals = 0;
     
-    for (int i = 0; i < COccluderCount; i++)
+    for (int i = 0; i < OccluderCount; i++)
     {
-        half4 v = COccluderTextureBuffer.Sample(COccluderTextureSampler, half2(1.0 / COccluderCount * (i + 0.5), 0.5));
+        half4 v = OccluderDataTexture.Sample(OccluderDataTextureSampler, half2(1.0 / OccluderCount * (i + 0.5), 0.5));
         
         half2 center = half2(v.x, v.y) - pixel;
+        
+        if (length(center - lightRelPos) < 1)
+        {
+            half4 q = ExtrudedOccluderDataTexture.Sample(ExtrudedOccluderDataTextureSampler, half2(1.0 / OccluderCount * (i + 0.5), 0.5));
+            
+            half occluderAngle = q.x;
+            half lightRadius = q.y;
+            half occluderRadius = q.z;
+
+            half2 occPos = half2(cos(-occluderAngle), sin(-occluderAngle) * ScreenSize.x / ScreenSize.y);
+            
+            half2 occRelPos = lightRelPos + occPos;
+            half angle = atan2(lightRelPos.y, lightRelPos.x);
+        
+            if (lightRelPos.x * lightRelPos.x + lightRelPos.y * lightRelPos.y < occRelPos.x * occRelPos.x + occRelPos.y * occRelPos.y)
+                continue;
+        
+            half intervalScaleFactor = 1.0 / (2 * lightRadius) * sign(cos(angle));
+            half a = 1.0 / cos(angle);
+            half b = tan(angle);
+            half intervalStart = ((lightRadius - occluderRadius) * a + b * occPos.x - occPos.y) / abs(a) * intervalScaleFactor;
+            half intervalEnd = ((lightRadius + occluderRadius) * a + b * occPos.x - occPos.y) / abs(a) * intervalScaleFactor;
+            if (intervalStart > intervalEnd)
+            {
+                half temp = intervalStart;
+                intervalStart = intervalEnd;
+                intervalEnd = temp;
+            }
+            intervalStart = clamp(intervalStart, 0, 1);
+            intervalEnd = clamp(intervalEnd, 0, 1);
+        
+            if (intervalStart != intervalEnd)
+                numIntervals = AddInterval(intervals, half2(intervalStart, intervalEnd), numIntervals);
+            
+            continue;
+        }
+        
         half radius = v.z;
         
         half occluderDistance = length(center);
@@ -167,13 +204,14 @@ half CalculateOcclusion(half2 tex)
         
         if (!IntervalIsDisjoint(tangentAngle2, tangentAngle1, occTangentAngle2, occTangentAngle1))
         {
-            half m1 = Wrap(occTangentAngle1 - tangentAngle2 + PI) - PI;
-            half m2 = Wrap(occTangentAngle2 - tangentAngle2 + PI) - PI;
+            half lightAngularRadius = 2 * lightHalfAngularRadius;
+            half m1 = (Wrap(occTangentAngle1 - tangentAngle2 + PI) - PI) / lightAngularRadius;
+            half m2 = (Wrap(occTangentAngle2 - tangentAngle2 + PI) - PI) / lightAngularRadius;
             
-            numIntervals = AddInterval(intervals, half2(clamp(m2, 0, 2 * lightHalfAngularRadius), clamp(m1, 0, 2 * lightHalfAngularRadius)), numIntervals);
+            numIntervals = AddInterval(intervals, half2(clamp(m2, 0, 1), clamp(m1, 0, 1)), numIntervals);
         }
         
-        if (numIntervals > 0 && IsFullInterval(intervals[0], lightHalfAngularRadius)) return 1;
+        if (numIntervals > 0 && IsFullInterval(intervals[0])) return 1;
     }
     
     /*for (int i = 0; i < OccluderCount; i++)
@@ -217,7 +255,7 @@ half CalculateOcclusion(half2 tex)
         if (numIntervals > 0 && IsFullInterval(intervals[0], lightHalfAngularRadius)) return 1;
     }*/
     
-    return GetIntervalLength(intervals, numIntervals) / (lightHalfAngularRadius * 2);
+    return GetIntervalLength(intervals, numIntervals);
 }
 
 half4 MainPS(VertexShaderOutput input) : SV_TARGET

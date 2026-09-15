@@ -141,7 +141,7 @@ public class OrbitGame : Game
             multiOccluder.Occluder.OccluderPrimitives.Add(new PolyOccluder(occluderVertices, qQEngine.Vec2Double.FromPolar(randAngle, randDistance)));
         }
 
-        for (int i = 0; i < 512; ++i)
+        for (int i = 0; i < 32; ++i)
         {
             double randAngle = _rnd.NextDouble() * Math.Tau;
             double randDistance = _rnd.NextDouble() * 130 + 120;
