@@ -127,7 +127,6 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
                     }
                     else
                     {
-                        
                         Vec2 lightGlobalPos = light.Position;
                         float angle = (float)(occluderGlobalPos - lightGlobalPos).Direction();
 
