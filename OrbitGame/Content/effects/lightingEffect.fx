@@ -39,11 +39,16 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     return output;
 }
 
+float Rand(float2 tex)
+{
+    return frac(sin(dot(tex, float2(12.9898, 78.233))) * 43758.5453);
+}
+
 float4 MainPS(VertexShaderOutput input) : SV_TARGET
 {
     float distance = length(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter) * DistanceScale;
     float brightness = min(1, MValue / pow(distance, 1.0 / NValue));
-    return saturate(LightColour * brightness * 
+    return saturate(float4(brightness, brightness, brightness, 1) * (1 + Rand(input.TexCoords) * 0.05) *  
         ShadowMask.Sample(ShadowMaskSampler, input.TexCoords) * 
         OccluderMask.Sample(OccluderMaskSampler, input.TexCoords));
 }

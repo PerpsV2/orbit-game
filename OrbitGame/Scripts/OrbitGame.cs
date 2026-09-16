@@ -207,7 +207,7 @@ public class OrbitGame : Game
 
         _shadowMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
         _occluderMask = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height);
-        _lightingRenderTarget = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.Vector4, DepthFormat.None);
+        _lightingRenderTarget = new RenderTarget2D(GraphicsDevice, Options.ScreenSize.width, Options.ScreenSize.height, false, SurfaceFormat.HalfVector4, DepthFormat.None);
         
         DefaultFont = Content.Load<SpriteFont>("fonts/defaultFont");
     }
