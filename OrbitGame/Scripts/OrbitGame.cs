@@ -161,7 +161,7 @@ public class OrbitGame : Game
 
         CircularLight light = new CircularLight("Swing Block", new qQEngine.SpatialInfo(
             position: new Vec2(0, 0), velocity: new Vec2()
-        ), 100000, new Color(255, 255, 255), new qQEngine.SDecimal(6.957, 10));
+        ), new qQEngine.SDecimal(2.8, 24), new Color(255, 255, 255), new qQEngine.SDecimal(6.957, 10));
         
         #endregion
         
@@ -339,7 +339,7 @@ public class OrbitGame : Game
         _spriteBatch.DrawString(DefaultFont, GameState.PhysicsTimeStep.ToString(), new Vector2(0, 60), Color.White);
         
         Graphics.DrawScreenMesh(new Dictionary<string, object> {
-            {"SpriteTexture", _shadowMask},
+            {"SpriteTexture", _lightingRenderTarget},
             //{"TexelSize", new Vector2(1f / Options.ScreenSize.width, 1f / Options.ScreenSize.height)},
         }, Effects.GaussianBlurEffect);
 

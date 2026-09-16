@@ -6,6 +6,8 @@ matrix World;
 
 float2 LightCenter;
 float4 LightColour;
+float NValue;
+float MValue;
 float DistanceScale;
 float2 ScreenSize;
 
@@ -39,8 +41,9 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 MainPS(VertexShaderOutput input) : SV_TARGET
 {
-    float distance = length(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter);
-    return saturate(LightColour / pow(distance * DistanceScale, 2) * 
+    float distance = length(float2(input.TexCoords.x * ScreenSize.x, input.TexCoords.y * ScreenSize.y) - LightCenter) * DistanceScale;
+    float brightness = min(1, MValue / pow(distance, 1.0 / NValue));
+    return saturate(LightColour * brightness * 
         ShadowMask.Sample(ShadowMaskSampler, input.TexCoords) * 
         OccluderMask.Sample(OccluderMaskSampler, input.TexCoords));
 }

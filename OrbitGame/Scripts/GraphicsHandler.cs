@@ -161,9 +161,13 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         RenderTarget2D occluderMask)
     {
         Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
+        double n = (3d * Math.Log10((double)light.Luminosity) + 10d) / 20d;
+        double m = Math.Pow((double)light.Luminosity, 1d / (5 * n));
         DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
         {
-            {"LightColour", light.Colour.ToVector4() * (float)light.Luminosity},
+            {"LightColour", light.Colour.ToVector4()},
+            {"NValue", (float)n },
+            {"MValue", (float)m },
             {"LightCenter", camera.ConvertToScreenCoordinates(light.Position)},
             {"DistanceScale", 1 / camera.ConvertToScreenDistance(1)},
             {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)},
