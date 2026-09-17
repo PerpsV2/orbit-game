@@ -2,7 +2,7 @@ namespace qQEngine;
 
 public static class Options
 {
-    public static (int width, int height) ScreenSize = (400, 400);
+    public static (int width, int height) ScreenSize = (800, 600);
 }
 
 public static class Constants

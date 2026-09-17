@@ -161,19 +161,29 @@ public class GraphicsHandler(SpriteBatch spriteBatch) : IGraphicsHandler
         RenderTarget2D occluderMask)
     {
         Effect effect = Effects.LightingEffect ?? throw new NullReferenceException("Effect not initialized yet");
-        double n = (3d * Math.Log10((double)light.Luminosity) + 10d) / 20d;
-        double m = Math.Pow((double)light.Luminosity, 1d / (5 * n));
-        DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+        double b = (double)light.Luminosity / 1000;
+        double c = Math.Sqrt(b / 0.5);
+        float distanceScale = 1 / camera.ConvertToScreenDistance(1);
+        if (Math.Log10(distanceScale) < light.Magnitude)
         {
-            {"LightColour", light.Colour.ToVector4()},
-            {"NValue", (float)n },
-            {"MValue", (float)m },
-            {"LightCenter", camera.ConvertToScreenCoordinates(light.Position)},
-            {"DistanceScale", 1 / camera.ConvertToScreenDistance(1)},
-            {"ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height)},
-            {"ShadowMask", shadowMask},
-            {"OccluderMask", occluderMask}
-        }, effect);
+            Vector2 lightCenter = camera.ConvertToScreenCoordinates(light.Position);
+            if (lightCenter.X > Options.ScreenSize.width || lightCenter.X < 0 ||
+                lightCenter.Y > Options.ScreenSize.height || lightCenter.Y < 0) return;
+            
+            DrawMesh(ScreenMesh, Matrix.Identity, new Dictionary<string, object>
+            {
+                { "LightColour", light.Colour.ToVector4() },
+                { "BValue", (float)b },
+                { "CValue", (float)c },
+                { "Magnitude", (float)light.Magnitude },
+                { "LightSize", camera.ConvertToScreenDistance(light.Radius) },
+                { "LightCenter", camera.ConvertToScreenCoordinates(light.Position) },
+                { "DistanceScale", distanceScale },
+                { "ScreenSize", new Vector2(Options.ScreenSize.width, Options.ScreenSize.height) },
+                { "ShadowMask", shadowMask },
+                { "OccluderMask", occluderMask }
+            }, effect);
+        }
     }
 
     public void DrawOccluder(qQEngine.Camera camera, qQEngine.Vec2Double position, IOccluder occluder, Color colour)
