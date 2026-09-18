@@ -121,6 +121,19 @@ public class OrbitGame : Game
         Timer _ = new Timer(UpdateFPS, null, 0, 1000);
 
         #region Test Bodies
+        
+        Vec2 sunOrigin = Vec2.FromPolar(_rnd.NextDouble() * Math.Tau, new qQEngine.SDecimal(1.32, 21));
+
+        CircularLight sunLight = new CircularLight("The Sun", new qQEngine.SpatialInfo(
+            position: sunOrigin, velocity: new Vec2()
+        ), new Color(255, 255, 255), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(3.83, 28), 17);
+        
+        CircularLight proximaCentauriLight = new CircularLight("Proxima Centauri Light", new qQEngine.SpatialInfo(
+            position: sunOrigin + new Vec2(new qQEngine.SDecimal(3.482, 16), new qQEngine.SDecimal(2.010, 16)), velocity: new Vec2()
+        ), new Color(255, 255, 255), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(2.30, 23), 16);
+        
+        KinematicObjects.Add(sunLight);
+        KinematicObjects.Add(proximaCentauriLight);
 
         qQEngine.Body multiOccluder = new qQEngine.Body("Gwyneth", new qQEngine.SpatialInfo(
             position: new Vec2(new qQEngine.SDecimal(5.91, 12), 0), velocity: new Vec2()
@@ -160,30 +173,31 @@ public class OrbitGame : Game
             position: new Vec2(5, 5), velocity: new Vec2()
         ));
 
-        /*CircularLight sunLight = new CircularLight("The Sun", new qQEngine.SpatialInfo(
-            position: new Vec2(0, 0), velocity: new Vec2()
-        ), new Color(255, 255, 255), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(3.83, 28), 17);
-        
-        CircularLight proximaCentauriLight = new CircularLight("Proxima Centauri Light", new qQEngine.SpatialInfo(
-            position: new Vec2(new qQEngine.SDecimal(3.482, 16), new qQEngine.SDecimal(2.010, 16)), velocity: new Vec2()
-        ), new Color(255, 255, 255), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(2.30, 23), 16);*/
+        double r = 1000000;
+        double n = 19;
+        double g = 3;
 
-        int RandFunc(int start)
+        double RandFunc(double start)
         {
             int count = 1;
-            while (_rnd.NextDouble() < 1.0 / count) count++;
-            return count + start;
+            while (_rnd.NextDouble() < 0.5) count++;
+            return start + count;
         }
         
-        for (int i = 0; i < 100000; ++i)
+        for (int i = 0; i < 1000; ++i)
         {
-            double randX = _rnd.NextDouble() * 1000;
-            double randY = _rnd.NextDouble() * 1000;
-            double randMagnitude = RandFunc(9) + _rnd.NextDouble();
+            double randAngle = _rnd.NextDouble() * Math.Tau;
+            double randDistance = Math.Pow(_rnd.NextDouble(), 1.5) * r;
+            Vec2 randPos = Vec2.FromPolar(randAngle, new qQEngine.SDecimal(randDistance, 16));
+            double randMagnitude = n - g * randDistance / r + _rnd.NextDouble();
+
+            double randR = (255 - _rnd.NextDouble() * 30) / 255;
+            double randG = (255 - _rnd.NextDouble() * 50) / 255;
+            double randB = (255 - _rnd.NextDouble() * 20) / 255;
             
             CircularLight light = new CircularLight("Light " + i, new qQEngine.SpatialInfo(
-                position: new Vec2(new qQEngine.SDecimal(randX, 16), new qQEngine.SDecimal(randY, 16)), velocity: new Vec2()),
-                new Color(255, 255, 255), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(2.30, 23), randMagnitude);
+                position: randPos, velocity: new Vec2()),
+                new Color((float)randR, (float)randG, (float)randB), new qQEngine.SDecimal(6.96, 8), new qQEngine.SDecimal(2.30, 23), randMagnitude);
             KinematicObjects.Add(light);
         }
         
@@ -191,12 +205,12 @@ public class OrbitGame : Game
         
         KinematicObjects.Add(multiOccluder);
         KinematicObjects.Add(secondOccluder);
-        //KinematicObjects.Add(sunLight);
-        //KinematicObjects.Add(proximaCentauriLight);
         Bodies.Add(multiOccluder);
         Bodies.Add(secondOccluder);
 
         GameState.Tracking = KinematicObjects[0];
+        Camera.MovementScheme = new qQEngine.TrackingCameraScheme(Camera.SpatialInfo, GameState.Tracking);
+        Camera.Focus();
 
         base.Initialize();
     }
@@ -323,27 +337,23 @@ public class OrbitGame : Game
                 );
         _spriteBatch.End();
         
-        /*foreach (var kinematicObject in KinematicObjects)
-        {
+        //if ((light.Position - Camera.Position).MagnitudeSquared() > Camera.MaximumRadiusSquared * 100) continue;
+        
+        GraphicsDevice.SetRenderTarget(_shadowMask);
+        GraphicsDevice.Clear(Color.White);
+        GraphicsDevice.RasterizerState = rasterizerState;
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+        //Graphics.DrawShadowMask(Camera, light, Bodies);
+        _spriteBatch.End();
+        
+        GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
+        GraphicsDevice.Clear(Color.Transparent);
+        GraphicsDevice.RasterizerState = rasterizerState;
+        _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
+        foreach (var kinematicObject in KinematicObjects)
             if (kinematicObject is CircularLight light)
-            {*/
-                GraphicsDevice.SetRenderTarget(_shadowMask);
-                GraphicsDevice.Clear(Color.White);
-                GraphicsDevice.RasterizerState = rasterizerState;
-                _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-                //Graphics.DrawShadowMask(Camera, light, Bodies);
-                _spriteBatch.End();
-                
-                GraphicsDevice.SetRenderTarget(_lightingRenderTarget);
-                GraphicsDevice.Clear(Color.Transparent);
-                GraphicsDevice.RasterizerState = rasterizerState;
-                _spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointClamp);
-                foreach (var kinematicObject in KinematicObjects)
-                    if (kinematicObject is CircularLight light)
-                        Graphics.DrawLighting(Camera, light, _shadowMask, _occluderMask);
-                _spriteBatch.End();
-            /*}
-        }*/
+                Graphics.DrawLighting(Camera, light, _shadowMask, _occluderMask);
+        _spriteBatch.End();
         
         GraphicsDevice.SetRenderTarget(null);
         GraphicsDevice.Clear(Options.BackgroundColour);

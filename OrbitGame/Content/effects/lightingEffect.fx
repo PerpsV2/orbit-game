@@ -68,7 +68,7 @@ float4 MainPS(VertexShaderOutput input) : SV_TARGET
     float objectBrightness = min(1.0 / pow(pixelDistance / LightSize, 2), 1);
     
     float brightness = min(1, max(objectBrightness, radiatedBrightness + distantBrightness));
-    return saturate(float4(1, 1, 1, 1) * brightness  *  
+    return saturate(LightColour * brightness *  
         ShadowMask.Sample(ShadowMaskSampler, input.TexCoords) * 
         OccluderMask.Sample(OccluderMaskSampler, input.TexCoords));
 }
